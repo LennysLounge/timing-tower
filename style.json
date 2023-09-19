@@ -1,0 +1,127 @@
+{
+    "cell": {
+        "value_source": {
+            "FixedValue": "Timing tower background"
+        },
+        "color": {
+            "Rgba": {
+                "red": 0.7,
+                "green": 0.0,
+                "blue": 0.7,
+                "alpha": 1.0
+            }
+        },
+        "pos": [
+            10.0,
+            10.0,
+            0.0
+        ],
+        "size": [
+            700.0,
+            1000.0
+        ],
+        "skew": 0.0
+    },
+    "table": {
+        "row_offset": [
+            0.0,
+            10.0
+        ],
+        "cell": {
+            "value_source": {
+                "FixedValue": "Table background"
+            },
+            "color": {
+                "Rgba": {
+                    "red": 0.7,
+                    "green": 0.7,
+                    "blue": 0.0,
+                    "alpha": 1.0
+                }
+            },
+            "pos": [
+                10.0,
+                10.0,
+                0.0
+            ],
+            "size": [
+                680.0,
+                1000.0
+            ],
+            "skew": 0.0
+        },
+        "row_style": {
+            "cell": {
+                "value_source": {
+                    "FixedValue": "Row background"
+                },
+                "color": {
+                    "Rgba": {
+                        "red": 0.7,
+                        "green": 0.0,
+                        "blue": 0.0,
+                        "alpha": 1.0
+                    }
+                },
+                "pos": [
+                    10.0,
+                    10.0,
+                    0.0
+                ],
+                "size": [
+                    660.0,
+                    60.0
+                ],
+                "skew": 0.0
+            },
+            "columns": {
+                "position": {
+                    "value_source": {
+                        "Position": null
+                    },
+                    "color": {
+                        "Rgba": {
+                            "red": 0.0,
+                            "green": 0.0,
+                            "blue": 0.7,
+                            "alpha": 1.0
+                        }
+                    },
+                    "pos": [
+                        5.0,
+                        5.0,
+                        0.0
+                    ],
+                    "size": [
+                        50.0,
+                        50.0
+                    ],
+                    "skew": 10.0
+                },
+                "driver_name": {
+                    "value_source": {
+                        "DriverName": null
+                    },
+                    "color": {
+                        "Rgba": {
+                            "red": 0.0,
+                            "green": 0.7,
+                            "blue": 0.7,
+                            "alpha": 1.0
+                        }
+                    },
+                    "pos": [
+                        60.0,
+                        5.0,
+                        0.0
+                    ],
+                    "size": [
+                        595.0,
+                        50.0
+                    ],
+                    "skew": 10.0
+                }
+            }
+        }
+    }
+}

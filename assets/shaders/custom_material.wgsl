@@ -56,4 +56,5 @@ fn fragment(
     
     return (material.color * t + material.color_2 * (1.0-t))
         * textureSample(base_color_texture, base_color_sampler, mesh.uv);
+    
 }

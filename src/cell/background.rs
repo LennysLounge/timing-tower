@@ -1,9 +1,9 @@
-use std::{f32::consts::PI, cmp::max};
+use std::f32::consts::PI;
 
 use bevy::{
     prelude::{
-        shape, Assets, BuildChildren, Color, Commands, Component, Entity, EventReader, Handle,
-        Mesh, Plugin, PostUpdate, Query, ResMut, Update, Vec3, With,
+        shape, AssetServer, Assets, BuildChildren, Color, Commands, Component, Entity, EventReader,
+        Handle, Mesh, Plugin, PostUpdate, Query, Res, ResMut, Update, Vec2, Vec3, With,
     },
     render::{mesh::Indices, primitives::Aabb},
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
@@ -62,6 +62,7 @@ fn update_style(
     cells: Query<&Background>,
     materials_handles: Query<&Handle<GradientMaterial>>,
     mut mesh_handles: Query<(&Mesh2dHandle, &mut Aabb)>,
+    asset_server: Res<AssetServer>,
 ) {
     for event in events.iter() {
         let Ok(background_hadle) = cells.get(event.entity) else {
@@ -74,6 +75,10 @@ fn update_style(
             continue;
         };
         material.color = event.style.color;
+        material.texture = match &event.style.texture {
+            Some(path) => Some(asset_server.load(path)),
+            None => None,
+        };
 
         let Ok((mesh_handle, mut aabb)) = mesh_handles.get_mut(background_hadle.0) else {
             continue;
@@ -129,45 +134,25 @@ fn update_mesh(style: &CellStyle, mesh: &mut Mesh, aabb: &mut Aabb) {
         }
     }
 
-    // fn calc_corner(start: Vec3, center: Vec3, end: Vec3, rounding: f32) -> Vec<Vec3> {
-    //     let mut positions = Vec::new();
-    //     let c_to_s = (start - center).normalize();
-    //     positions.push(center + c_to_s * rounding);
-    //     let c_to_e = (end - center).normalize();
-    //     positions.push(center + c_to_e * rounding);
-    //     positions
-    // }
-
-    // positions.extend(calc_corner(
-    //     corner[0],
-    //     corner[1],
-    //     corner[2],
-    //     style.rounding.top_right,
-    // ));
-    // positions.extend(calc_corner(
-    //     corner[1],
-    //     corner[2],
-    //     corner[3],
-    //     style.rounding.bot_right,
-    // ));
-    // positions.extend(calc_corner(
-    //     corner[2],
-    //     corner[3],
-    //     corner[0],
-    //     style.rounding.bot_left,
-    // ));
-    // positions.extend(calc_corner(
-    //     corner[3],
-    //     corner[0],
-    //     corner[1],
-    //     style.rounding.top_left,
-    // ));
+    let mut min = Vec2::new(f32::MAX, f32::MAX);
+    let mut max = Vec2::new(f32::MIN, f32::MIN);
+    for vertex in positions.iter() {
+        min.x = min.x.min(vertex.x);
+        min.y = min.y.min(vertex.y);
+        max.x = max.x.max(vertex.x);
+        max.y = max.y.max(vertex.y);
+    }
+    let width = max.x - min.x;
+    let height = max.y - min.y;
 
     let mut normals = Vec::new();
     let mut uvs = Vec::new();
-    for _ in 0..positions.len() {
+    for vertex in positions.iter() {
         normals.push([0.0, 0.0, 1.0]);
-        uvs.push([0.0, 0.0]);
+        uvs.push([
+            (vertex.x - min.x) / width,
+            (vertex.y - max.y) / height * -1.0,
+        ]);
     }
 
     let mut indices = Vec::new();

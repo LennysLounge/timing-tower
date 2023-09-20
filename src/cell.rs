@@ -4,6 +4,7 @@ use bevy::{
         Mesh, Plugin, PostUpdate, Query, SpatialBundle, Transform, Vec2, Vec3, Visibility, With,
         World,
     },
+    render::primitives::Aabb,
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
     text::{Text, Text2dBundle, TextStyle},
 };
@@ -34,6 +35,7 @@ impl Plugin for CellPlugin {
 pub struct CellStyle {
     pub text: String,
     pub color: Color,
+    pub texture: Option<String>,
     pub pos: Vec3,
     pub size: Vec2,
     pub skew: f32,
@@ -72,11 +74,14 @@ pub fn init_cell(entity_id: Entity, world: &mut World) {
         });
 
     let background_id = world
-        .spawn(MaterialMesh2dBundle {
-            mesh,
-            material,
-            ..Default::default()
-        })
+        .spawn((
+            MaterialMesh2dBundle {
+                mesh,
+                material,
+                ..Default::default()
+            },
+            Aabb::default(),
+        ))
         .id();
 
     let default_font = world.resource::<DefaultFont>().0.clone();

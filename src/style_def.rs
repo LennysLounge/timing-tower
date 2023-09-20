@@ -27,6 +27,7 @@ pub enum ValueSource {
     FixedValue(String),
     DriverName,
     Position,
+    CarNumber,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -40,7 +41,7 @@ pub struct CellStyleDef {
     pub rounding: Rounding,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Default)]
 pub struct Rounding {
     pub top_left: f32,
     pub top_right: f32,

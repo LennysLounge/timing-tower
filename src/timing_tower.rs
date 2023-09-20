@@ -80,7 +80,6 @@ pub fn init_timing_tower(style_def: TimingTowerStyleDef, adapter: Adapter) -> im
 pub fn update_tower(
     main_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
     mut towers: Query<(Entity, &TimingTower, &mut Transform), With<TimingTower>>,
-
     mut set_style_event: EventWriter<SetStyle>,
 ) {
     let (camera, camera_transform) = main_camera.single();
@@ -259,15 +258,17 @@ fn create_cell_style(style_def: &CellStyleDef, entry: &Entry) -> CellStyle {
             let driver = entry
                 .drivers
                 .get(&entry.current_driver)
-                .and_then(|d| Some(format!("{} {}", d.first_name, d.last_name)));
+                .and_then(|d| Some(format!("{}. {}", &d.first_name[0..1], d.last_name)));
             driver.unwrap_or_else(|| "no driver".to_string())
         }
         ValueSource::Position => format!("{}", entry.position),
+        ValueSource::CarNumber => format!("{}", entry.car_number),
     };
 
     CellStyle {
         text,
         color: style_def.color,
+        texture: None,
         pos: style_def.pos * Vec3::new(1.0, -1.0, 1.0),
         size: style_def.size,
         skew: style_def.skew,

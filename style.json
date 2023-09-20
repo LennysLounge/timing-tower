@@ -1,50 +1,50 @@
 {
   "cell": {
     "value_source": {
-      "FixedValue": "Timing tower background"
+      "FixedValue": ""
     },
     "color": {
       "Rgba": {
-        "red": 0.69999963,
+        "red": 0.0,
         "green": 0.0,
-        "blue": 0.7,
-        "alpha": 1.0
+        "blue": 0.0,
+        "alpha": 0.0
       }
     },
     "pos": [
-      10.0,
-      10.0,
+      323.0,
+      56.0,
       0.0
     ],
     "size": [
-      876.0,
-      679.0
+      700.0,
+      1000.0
     ],
-    "skew": 0.0,
+    "skew": 3.0,
     "visible": true,
     "rounding": {
-      "top_left": 28.0,
-      "top_right": 26.0,
-      "bot_left": 33.0,
-      "bot_right": 37.0
+      "top_left": 0.0,
+      "top_right": 0.0,
+      "bot_left": 0.0,
+      "bot_right": 0.0
     }
   },
   "table": {
     "cell": {
       "value_source": {
-        "FixedValue": "Table background"
+        "FixedValue": ""
       },
       "color": {
         "Rgba": {
-          "red": 0.7,
-          "green": 0.6999998,
+          "red": 0.0,
+          "green": 0.0,
           "blue": 0.0,
-          "alpha": 1.0
+          "alpha": 0.0
         }
       },
       "pos": [
-        10.0,
-        10.0,
+        0.0,
+        0.0,
         0.0
       ],
       "size": [
@@ -62,29 +62,29 @@
     },
     "row_offset": [
       0.0,
-      10.0
+      2.0
     ],
     "row_style": {
       "cell": {
         "value_source": {
-          "FixedValue": "Row background"
+          "FixedValue": ""
         },
         "color": {
           "Rgba": {
-            "red": 0.7,
+            "red": 0.0,
             "green": 0.0,
             "blue": 0.0,
-            "alpha": 1.0
+            "alpha": 0.0
           }
         },
         "pos": [
-          10.0,
-          10.0,
+          0.0,
+          0.0,
           0.0
         ],
         "size": [
           660.0,
-          60.0
+          36.0
         ],
         "skew": 0.0,
         "visible": true,
@@ -100,28 +100,86 @@
           "value_source": "Position",
           "color": {
             "Rgba": {
-              "red": 3.33786e-7,
+              "red": 0.0,
               "green": 0.0,
-              "blue": 0.7,
+              "blue": 0.0,
               "alpha": 1.0
             }
           },
           "pos": [
-            5.0,
-            5.0,
+            0.0,
+            0.0,
             3.0
           ],
           "size": [
-            50.0,
-            50.0
+            36.0,
+            36.0
           ],
-          "skew": 10.0,
+          "skew": 13.0,
           "visible": true,
           "rounding": {
-            "top_left": 10.0,
+            "top_left": 12.0,
+            "top_right": 0.0,
+            "bot_left": 3.0,
+            "bot_right": 0.0
+          }
+        },
+        "manufacturer": {
+          "value_source": {
+            "FixedValue": "M"
+          },
+          "color": {
+            "Rgba": {
+              "red": 0.8549,
+              "green": 0.8549,
+              "blue": 0.8549,
+              "alpha": 1.0
+            }
+          },
+          "pos": [
+            189.0,
+            0.0,
+            1.0
+          ],
+          "size": [
+            36.0,
+            36.0
+          ],
+          "skew": 0.0,
+          "visible": true,
+          "rounding": {
+            "top_left": 0.0,
             "top_right": 0.0,
             "bot_left": 0.0,
-            "bot_right": 10.0
+            "bot_right": 0.0
+          }
+        },
+        "car_number": {
+          "value_source": "CarNumber",
+          "color": {
+            "Rgba": {
+              "red": 0.40197778,
+              "green": 0.40197778,
+              "blue": 0.40197778,
+              "alpha": 1.0
+            }
+          },
+          "pos": [
+            225.0,
+            0.0,
+            1.0
+          ],
+          "size": [
+            46.0,
+            36.0
+          ],
+          "skew": 0.0,
+          "visible": true,
+          "rounding": {
+            "top_left": 0.0,
+            "top_right": 0.0,
+            "bot_left": 0.0,
+            "bot_right": 0.0
           }
         },
         "driver_name": {
@@ -129,21 +187,21 @@
           "color": {
             "Rgba": {
               "red": 0.0,
-              "green": 0.7,
-              "blue": 0.7,
-              "alpha": 1.0
+              "green": 0.0,
+              "blue": 0.0,
+              "alpha": 0.6904762
             }
           },
           "pos": [
-            40.0,
-            5.0,
+            32.0,
+            0.0,
             0.0
           ],
           "size": [
-            595.0,
-            50.0
+            250.0,
+            36.0
           ],
-          "skew": 10.0,
+          "skew": 0.0,
           "visible": true,
           "rounding": {
             "top_left": 0.0,

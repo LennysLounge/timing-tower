@@ -4,19 +4,20 @@ use bevy::{
     diagnostic::FrameTimeDiagnosticsPlugin,
     ecs::{system::EntityCommand, world::EntityMut},
     prelude::{
-        App, AssetServer, Camera2dBundle, ClearColor, Color, Commands, Component, Handle,
-        PreStartup, Res, Resource, Startup, World,
+        App, AssetServer, Camera, Camera2dBundle, ClearColor, Color, Commands, Component,
+        EventWriter, First, GlobalTransform, Handle, PreStartup, Query, Res, Resource, Startup,
+        Transform, Vec2, Vec3, With, World,
     },
     text::Font,
     time::{Timer, TimerMode},
     DefaultPlugins,
 };
 use bevy_egui::EguiPlugin;
-use cell::CellPlugin;
+use cell::{init_cell, CellPlugin, CellStyle, SetStyle};
 use editor::{EditorPlugin, EditorState};
 use gradient_material::CustomMaterialPlugin;
 
-use style_def::TimingTowerStyleDef;
+use style_def::{Rounding, TimingTowerStyleDef};
 use timing_tower::{init_timing_tower, TimingTowerPlugin};
 use unified_sim_model::Adapter;
 
@@ -42,6 +43,7 @@ fn main() {
         // Systems
         .add_systems(PreStartup, load)
         .add_systems(Startup, setup)
+        .add_systems(First, move_top_left)
         .run();
 }
 
@@ -60,12 +62,16 @@ pub struct GameAdapterResource {
 #[derive(Component)]
 pub struct MainCamera;
 
+#[derive(Component)]
+struct BackgroundImage;
+
 fn load(asset_server: Res<AssetServer>, mut commands: Commands) {
-    let font: Handle<Font> = asset_server.load("fonts/FiraSans-bold.ttf");
+    //let font: Handle<Font> = asset_server.load("fonts/FiraSans-bold.ttf");
+    let font: Handle<Font> = asset_server.load("fonts/bahnschrift.ttf");
     commands.insert_resource(DefaultFont(font));
 }
 
-fn setup(mut commands: Commands) {
+fn setup(mut commands: Commands, mut set_style_event: EventWriter<SetStyle>) {
     commands.spawn((Camera2dBundle::default(), MainCamera));
 
     let adapter = Adapter::new_dummy();
@@ -88,6 +94,25 @@ fn setup(mut commands: Commands) {
         }
     };
 
+    let background_id = commands
+        .spawn_empty()
+        .add(init_cell)
+        .insert(BackgroundImage)
+        .id();
+    set_style_event.send(SetStyle {
+        entity: background_id,
+        style: CellStyle {
+            text: "".to_string(),
+            color: Color::WHITE,
+            texture: Some("acc6.PNG".to_string()),
+            pos: Vec3::new(0.0, 0.0, 0.0),
+            size: Vec2::new(1920.0, 1080.0),
+            skew: 0.0,
+            visible: true,
+            rounding: Rounding::default(),
+        },
+    });
+
     commands.insert_resource(EditorState {
         style_def: style_def.clone(),
     });
@@ -95,6 +120,18 @@ fn setup(mut commands: Commands) {
     commands
         .spawn_empty()
         .add(init_timing_tower(style_def, adapter));
+}
+
+fn move_top_left(
+    main_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
+    mut bg_images: Query<&mut Transform, With<BackgroundImage>>,
+) {
+    let (camera, camera_transform) = main_camera.single();
+    for mut bg_image in bg_images.iter_mut() {
+        if let Some(top_left) = camera.viewport_to_world_2d(camera_transform, Vec2::new(0.0, 0.0)) {
+            bg_image.translation = Vec3::new(top_left.x, top_left.y, -10.0);
+        }
+    }
 }
 
 // fn update(time: Res<Time>, mut timer: ResMut<SimpleTimer>, mut event: EventWriter<SetRowStyleDef>) {

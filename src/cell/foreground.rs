@@ -71,6 +71,10 @@ fn update_style(
                 color: Color::WHITE,
             },
         );
-        transform.translation = Vec3::new(event.style.size.x / 2.0, -event.style.size.y / 2.0, 1.0)
+        transform.translation = Vec3::new(
+            (event.style.size.x + event.style.skew) / 2.0,
+            -event.style.size.y / 2.0,
+            1.0,
+        )
     }
 }

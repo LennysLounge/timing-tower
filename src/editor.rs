@@ -138,6 +138,7 @@ fn cell_style_editor(ui: &mut Ui, style: &mut CellStyleDef) {
                 ValueSource::FixedValue(_) => "Fixed value",
                 ValueSource::DriverName => "Driver name",
                 ValueSource::Position => "Position",
+                ValueSource::CarNumber => "Car number",
             })
             .show_ui(ui, |ui| {
                 if ui
@@ -166,6 +167,15 @@ fn cell_style_editor(ui: &mut Ui, style: &mut CellStyleDef) {
                     .clicked()
                 {
                     style.value_source = ValueSource::Position;
+                };
+                if ui
+                    .selectable_label(
+                        matches!(style.value_source, ValueSource::CarNumber),
+                        "Car number",
+                    )
+                    .clicked()
+                {
+                    style.value_source = ValueSource::CarNumber;
                 };
             });
     });
@@ -208,19 +218,19 @@ fn cell_style_editor(ui: &mut Ui, style: &mut CellStyleDef) {
     ui.label("Rounding:");
     ui.horizontal(|ui| {
         ui.label("top left:");
-        ui.add(DragValue::new(&mut style.rounding.top_left));
+        ui.add(DragValue::new(&mut style.rounding.top_left).clamp_range(0.0..=f32::MAX));
     });
     ui.horizontal(|ui| {
         ui.label("top right:");
-        ui.add(DragValue::new(&mut style.rounding.top_right));
+        ui.add(DragValue::new(&mut style.rounding.top_right).clamp_range(0.0..=f32::MAX));
     });
     ui.horizontal(|ui| {
         ui.label("bottom right:");
-        ui.add(DragValue::new(&mut style.rounding.bot_right));
+        ui.add(DragValue::new(&mut style.rounding.bot_right).clamp_range(0.0..=f32::MAX));
     });
     ui.horizontal(|ui| {
         ui.label("bottom left:");
-        ui.add(DragValue::new(&mut style.rounding.bot_left));
+        ui.add(DragValue::new(&mut style.rounding.bot_left).clamp_range(0.0..=f32::MAX));
     });
 }
 

@@ -36,4 +36,14 @@ pub struct CellStyleDef {
     pub pos: Vec3,
     pub size: Vec2,
     pub skew: f32,
+    pub visible: bool,
+    pub rounding: Rounding,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Rounding {
+    pub top_left: f32,
+    pub top_right: f32,
+    pub bot_left: f32,
+    pub bot_right: f32,
 }

@@ -271,5 +271,7 @@ fn create_cell_style(style_def: &CellStyleDef, entry: &Entry) -> CellStyle {
         pos: style_def.pos * Vec3::new(1.0, -1.0, 1.0),
         size: style_def.size,
         skew: style_def.skew,
+        visible: style_def.visible,
+        rounding: style_def.rounding.clone(),
     }
 }

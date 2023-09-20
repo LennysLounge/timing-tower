@@ -10,6 +10,7 @@ use bevy::{
 
 use crate::{
     gradient_material::{Gradient, GradientMaterial},
+    style_def::Rounding,
     DefaultFont,
 };
 
@@ -36,6 +37,8 @@ pub struct CellStyle {
     pub pos: Vec3,
     pub size: Vec2,
     pub skew: f32,
+    pub visible: bool,
+    pub rounding: Rounding,
 }
 
 #[derive(Event)]
@@ -111,11 +114,16 @@ pub fn update_style(
     mut events: EventReader<SetStyle>,
     mut cells: Query<(&mut Transform, &mut Visibility), With<CellMarker>>,
 ) {
-    for event in events.iter() {
-        let Ok((mut transform, mut visibility)) = cells.get_mut(event.entity) else {
+    for SetStyle { entity, style } in events.iter() {
+        let Ok((mut transform, mut visibility)) = cells.get_mut(*entity) else {
+            println!("Cell not found for update");
             continue;
         };
-        *visibility = Visibility::Inherited;
-        transform.translation = event.style.pos;
+        if style.visible {
+            *visibility = Visibility::Inherited;
+        } else {
+            *visibility = Visibility::Hidden;
+        }
+        transform.translation = style.pos;
     }
 }

@@ -1,7 +1,9 @@
+use std::{f32::consts::PI, cmp::max};
+
 use bevy::{
     prelude::{
         shape, Assets, BuildChildren, Color, Commands, Component, Entity, EventReader, Handle,
-        Mesh, Plugin, PostUpdate, Query, ResMut, Update, With,
+        Mesh, Plugin, PostUpdate, Query, ResMut, Update, Vec3, With,
     },
     render::{mesh::Indices, primitives::Aabb},
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
@@ -85,20 +87,93 @@ fn update_style(
 }
 
 fn update_mesh(style: &CellStyle, mesh: &mut Mesh, aabb: &mut Aabb) {
-    let positions = vec![
-        [style.skew, 0.0, 0.0],
-        [style.size.x + style.skew, 0.0, 0.0],
-        [style.size.x, -style.size.y, 0.0],
-        [0.0, -style.size.y, 0.0],
+    // Corner of the box with skew applied
+    let corners = vec![
+        Vec3::new(style.skew, 0.0, 0.0),
+        Vec3::new(style.size.x + style.skew, 0.0, 0.0),
+        Vec3::new(style.size.x, -style.size.y, 0.0),
+        Vec3::new(0.0, -style.size.y, 0.0),
     ];
-    let normals = vec![
-        [0.0, 0.0, 1.0],
-        [0.0, 0.0, 1.0],
-        [0.0, 0.0, 1.0],
-        [0.0, 0.0, 1.0],
+
+    // To calculate the rounded corners we first have to trasnlate the rounding radius
+    // into the distance 'l'. 'l' describes the distance from the corner to the point where
+    // the circle touches the edge. For corner rounding with a circle, the distance 'l' is
+    // the same for both edges.
+
+    // Step skipped for simplicity
+    let l = vec![
+        style.rounding.top_left,
+        style.rounding.top_right,
+        style.rounding.bot_right,
+        style.rounding.bot_left,
     ];
-    let uvs = vec![[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]];
-    let indices = vec![0, 1, 2, 0, 2, 3];
+
+    // Next we calculate the normalised vectors for the edges
+    let edges = vec![
+        (corners[0] - corners[3]).normalize(),
+        (corners[1] - corners[0]).normalize(),
+        (corners[2] - corners[1]).normalize(),
+        (corners[3] - corners[2]).normalize(),
+    ];
+
+    // Now calculate the rounding for each corner
+    let mut positions = Vec::new();
+    for i in 0..4 {
+        let steps = 50;
+        for j in 0..steps {
+            let angle = PI / (2.0 * (steps - 1) as f32) * j as f32;
+            positions.push(
+                corners[i] - edges[i] * l[i] * (1.0 - angle.sin())
+                    + edges[(i + 1) % 4] * l[i] * (1.0 - angle.cos()),
+            );
+        }
+    }
+
+    // fn calc_corner(start: Vec3, center: Vec3, end: Vec3, rounding: f32) -> Vec<Vec3> {
+    //     let mut positions = Vec::new();
+    //     let c_to_s = (start - center).normalize();
+    //     positions.push(center + c_to_s * rounding);
+    //     let c_to_e = (end - center).normalize();
+    //     positions.push(center + c_to_e * rounding);
+    //     positions
+    // }
+
+    // positions.extend(calc_corner(
+    //     corner[0],
+    //     corner[1],
+    //     corner[2],
+    //     style.rounding.top_right,
+    // ));
+    // positions.extend(calc_corner(
+    //     corner[1],
+    //     corner[2],
+    //     corner[3],
+    //     style.rounding.bot_right,
+    // ));
+    // positions.extend(calc_corner(
+    //     corner[2],
+    //     corner[3],
+    //     corner[0],
+    //     style.rounding.bot_left,
+    // ));
+    // positions.extend(calc_corner(
+    //     corner[3],
+    //     corner[0],
+    //     corner[1],
+    //     style.rounding.top_left,
+    // ));
+
+    let mut normals = Vec::new();
+    let mut uvs = Vec::new();
+    for _ in 0..positions.len() {
+        normals.push([0.0, 0.0, 1.0]);
+        uvs.push([0.0, 0.0]);
+    }
+
+    let mut indices = Vec::new();
+    for i in 1..(positions.len() - 1) {
+        indices.extend([0, i as u32, i as u32 + 1]);
+    }
 
     mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
     mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);

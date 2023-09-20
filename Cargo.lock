@@ -3248,6 +3248,7 @@ dependencies = [
  "dear_egui",
  "serde",
  "serde_json",
+ "tracing",
  "unified_sim_model",
 ]
 

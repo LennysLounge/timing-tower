@@ -1,3 +1,5 @@
+use std::{fs::File, io::Write};
+
 use bevy::{
     prelude::{
         resource_exists, Camera, IntoSystemConfigs, Plugin, Query, Res, ResMut, Resource, Startup,
@@ -10,6 +12,7 @@ use bevy_egui::{
     egui::{self, DragValue, Ui},
     EguiContexts,
 };
+use tracing::error;
 
 use crate::{
     style_def::{CellStyleDef, TimingTowerStyleDef, ValueSource},
@@ -45,6 +48,27 @@ pub fn setup(mut ctx: EguiContexts) {
     dear_egui::set_theme(ctx.ctx_mut(), dear_egui::SKY);
 }
 
+fn save_style(style: &TimingTowerStyleDef) {
+    let s = match serde_json::to_string_pretty(style) {
+        Ok(s) => s,
+        Err(e) => {
+            error!("Error turning style into string: {e}");
+            return;
+        }
+    };
+    let mut file = match File::create("style.json") {
+        Ok(f) => f,
+        Err(e) => {
+            error!("Error opening file: {e}");
+            return;
+        }
+    };
+    if let Err(e) = file.write_all(s.as_bytes()) {
+        error!("Cannot write to file: {e}");
+        return;
+    }
+}
+
 fn run_egui_main(
     mut ctx: EguiContexts,
     mut occupied_space: ResMut<OccupiedSpace>,
@@ -53,6 +77,10 @@ fn run_egui_main(
 ) {
     occupied_space.0 = egui::SidePanel::left("Editor panel")
         .show(ctx.ctx_mut(), |ui| {
+            if ui.button("Save").clicked() {
+                save_style(&state.style_def);
+            }
+            ui.separator();
             egui::ScrollArea::vertical().show(ui, |ui| {
                 ui.collapsing("Cell", |ui| {
                     cell_style_editor(ui, &mut state.style_def.cell);
@@ -99,6 +127,10 @@ fn run_egui_main(
 }
 
 fn cell_style_editor(ui: &mut Ui, style: &mut CellStyleDef) {
+    ui.horizontal(|ui| {
+        ui.label("Visible:");
+        ui.checkbox(&mut style.visible, "");
+    });
     ui.horizontal(|ui| {
         ui.label("value source:");
         egui::ComboBox::from_id_source("cell value source")
@@ -172,6 +204,23 @@ fn cell_style_editor(ui: &mut Ui, style: &mut CellStyleDef) {
     ui.horizontal(|ui| {
         ui.label("Skew:");
         ui.add(DragValue::new(&mut style.skew));
+    });
+    ui.label("Rounding:");
+    ui.horizontal(|ui| {
+        ui.label("top left:");
+        ui.add(DragValue::new(&mut style.rounding.top_left));
+    });
+    ui.horizontal(|ui| {
+        ui.label("top right:");
+        ui.add(DragValue::new(&mut style.rounding.top_right));
+    });
+    ui.horizontal(|ui| {
+        ui.label("bottom right:");
+        ui.add(DragValue::new(&mut style.rounding.bot_right));
+    });
+    ui.horizontal(|ui| {
+        ui.label("bottom left:");
+        ui.add(DragValue::new(&mut style.rounding.bot_left));
     });
 }
 

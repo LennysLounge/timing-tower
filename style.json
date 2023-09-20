@@ -1,127 +1,158 @@
 {
+  "cell": {
+    "value_source": {
+      "FixedValue": "Timing tower background"
+    },
+    "color": {
+      "Rgba": {
+        "red": 0.69999963,
+        "green": 0.0,
+        "blue": 0.7,
+        "alpha": 1.0
+      }
+    },
+    "pos": [
+      10.0,
+      10.0,
+      0.0
+    ],
+    "size": [
+      876.0,
+      679.0
+    ],
+    "skew": 0.0,
+    "visible": true,
+    "rounding": {
+      "top_left": 28.0,
+      "top_right": 26.0,
+      "bot_left": 33.0,
+      "bot_right": 37.0
+    }
+  },
+  "table": {
     "cell": {
+      "value_source": {
+        "FixedValue": "Table background"
+      },
+      "color": {
+        "Rgba": {
+          "red": 0.7,
+          "green": 0.6999998,
+          "blue": 0.0,
+          "alpha": 1.0
+        }
+      },
+      "pos": [
+        10.0,
+        10.0,
+        0.0
+      ],
+      "size": [
+        680.0,
+        1000.0
+      ],
+      "skew": 0.0,
+      "visible": true,
+      "rounding": {
+        "top_left": 0.0,
+        "top_right": 0.0,
+        "bot_left": 0.0,
+        "bot_right": 0.0
+      }
+    },
+    "row_offset": [
+      0.0,
+      10.0
+    ],
+    "row_style": {
+      "cell": {
         "value_source": {
-            "FixedValue": "Timing tower background"
+          "FixedValue": "Row background"
         },
         "color": {
-            "Rgba": {
-                "red": 0.7,
-                "green": 0.0,
-                "blue": 0.7,
-                "alpha": 1.0
-            }
+          "Rgba": {
+            "red": 0.7,
+            "green": 0.0,
+            "blue": 0.0,
+            "alpha": 1.0
+          }
         },
         "pos": [
-            10.0,
-            10.0,
-            0.0
+          10.0,
+          10.0,
+          0.0
         ],
         "size": [
-            700.0,
-            1000.0
+          660.0,
+          60.0
         ],
-        "skew": 0.0
-    },
-    "table": {
-        "row_offset": [
-            0.0,
-            10.0
-        ],
-        "cell": {
-            "value_source": {
-                "FixedValue": "Table background"
-            },
-            "color": {
-                "Rgba": {
-                    "red": 0.7,
-                    "green": 0.7,
-                    "blue": 0.0,
-                    "alpha": 1.0
-                }
-            },
-            "pos": [
-                10.0,
-                10.0,
-                0.0
-            ],
-            "size": [
-                680.0,
-                1000.0
-            ],
-            "skew": 0.0
-        },
-        "row_style": {
-            "cell": {
-                "value_source": {
-                    "FixedValue": "Row background"
-                },
-                "color": {
-                    "Rgba": {
-                        "red": 0.7,
-                        "green": 0.0,
-                        "blue": 0.0,
-                        "alpha": 1.0
-                    }
-                },
-                "pos": [
-                    10.0,
-                    10.0,
-                    0.0
-                ],
-                "size": [
-                    660.0,
-                    60.0
-                ],
-                "skew": 0.0
-            },
-            "columns": {
-                "position": {
-                    "value_source": {
-                        "Position": null
-                    },
-                    "color": {
-                        "Rgba": {
-                            "red": 0.0,
-                            "green": 0.0,
-                            "blue": 0.7,
-                            "alpha": 1.0
-                        }
-                    },
-                    "pos": [
-                        5.0,
-                        5.0,
-                        0.0
-                    ],
-                    "size": [
-                        50.0,
-                        50.0
-                    ],
-                    "skew": 10.0
-                },
-                "driver_name": {
-                    "value_source": {
-                        "DriverName": null
-                    },
-                    "color": {
-                        "Rgba": {
-                            "red": 0.0,
-                            "green": 0.7,
-                            "blue": 0.7,
-                            "alpha": 1.0
-                        }
-                    },
-                    "pos": [
-                        60.0,
-                        5.0,
-                        0.0
-                    ],
-                    "size": [
-                        595.0,
-                        50.0
-                    ],
-                    "skew": 10.0
-                }
-            }
+        "skew": 0.0,
+        "visible": true,
+        "rounding": {
+          "top_left": 0.0,
+          "top_right": 0.0,
+          "bot_left": 0.0,
+          "bot_right": 0.0
         }
+      },
+      "columns": {
+        "position": {
+          "value_source": "Position",
+          "color": {
+            "Rgba": {
+              "red": 3.33786e-7,
+              "green": 0.0,
+              "blue": 0.7,
+              "alpha": 1.0
+            }
+          },
+          "pos": [
+            5.0,
+            5.0,
+            3.0
+          ],
+          "size": [
+            50.0,
+            50.0
+          ],
+          "skew": 10.0,
+          "visible": true,
+          "rounding": {
+            "top_left": 10.0,
+            "top_right": 0.0,
+            "bot_left": 0.0,
+            "bot_right": 10.0
+          }
+        },
+        "driver_name": {
+          "value_source": "DriverName",
+          "color": {
+            "Rgba": {
+              "red": 0.0,
+              "green": 0.7,
+              "blue": 0.7,
+              "alpha": 1.0
+            }
+          },
+          "pos": [
+            40.0,
+            5.0,
+            0.0
+          ],
+          "size": [
+            595.0,
+            50.0
+          ],
+          "skew": 10.0,
+          "visible": true,
+          "rounding": {
+            "top_left": 0.0,
+            "top_right": 0.0,
+            "bot_left": 0.0,
+            "bot_right": 0.0
+          }
+        }
+      }
     }
+  }
 }

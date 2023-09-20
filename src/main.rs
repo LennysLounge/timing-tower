@@ -1,4 +1,7 @@
-use std::fs::{self};
+use std::{
+    env,
+    fs::{self},
+};
 
 use bevy::{
     diagnostic::FrameTimeDiagnosticsPlugin,
@@ -17,7 +20,7 @@ use cell::{init_cell, CellPlugin, CellStyle, SetStyle};
 use editor::{EditorPlugin, EditorState};
 use gradient_material::CustomMaterialPlugin;
 
-use style_def::{Rounding, TimingTowerStyleDef};
+use style_def::{Rounding, TextAlignment, TimingTowerStyleDef};
 use timing_tower::{init_timing_tower, TimingTowerPlugin};
 use unified_sim_model::Adapter;
 
@@ -28,6 +31,7 @@ mod style_def;
 mod timing_tower;
 
 fn main() {
+    env::set_var("RUST_BACKTRACE", "1");
     App::new()
         .insert_resource(ClearColor(Color::rgba(0.1, 0.1, 0.1, 0.0)))
         .insert_resource(SimpleTimer(Timer::from_seconds(1.0, TimerMode::Repeating)))
@@ -103,6 +107,8 @@ fn setup(mut commands: Commands, mut set_style_event: EventWriter<SetStyle>) {
         entity: background_id,
         style: CellStyle {
             text: "".to_string(),
+            text_alignment: TextAlignment::Center,
+            text_position: Vec2::ZERO,
             color: Color::WHITE,
             texture: Some("acc6.PNG".to_string()),
             pos: Vec3::new(0.0, 0.0, 0.0),

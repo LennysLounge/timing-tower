@@ -15,7 +15,7 @@ use bevy_egui::{
 use tracing::error;
 
 use crate::{
-    style_def::{CellStyleDef, TimingTowerStyleDef, ValueSource},
+    style_def::{CellStyleDef, TextAlignment, TimingTowerStyleDef, ValueSource},
     timing_tower::TimingTower,
     MainCamera,
 };
@@ -185,6 +185,28 @@ fn cell_style_editor(ui: &mut Ui, style: &mut CellStyleDef) {
             ui.text_edit_singleline(s);
         });
     }
+    ui.horizontal(|ui| {
+        ui.label("Text alginment:");
+        egui::ComboBox::from_id_source("Text alginment combobox")
+            .selected_text(match style.text_alginment {
+                TextAlignment::Left => "Left",
+                TextAlignment::Center => "Center",
+                TextAlignment::Right => "Right",
+            })
+            .show_ui(ui, |ui| {
+                ui.selectable_value(&mut style.text_alginment, TextAlignment::Left, "Left");
+                ui.selectable_value(&mut style.text_alginment, TextAlignment::Center, "Center");
+                ui.selectable_value(&mut style.text_alginment, TextAlignment::Right, "Right");
+            });
+    });
+    ui.horizontal(|ui| {
+        ui.label("Text pos x:");
+        ui.add(DragValue::new(&mut style.text_position.x));
+    });
+    ui.horizontal(|ui| {
+        ui.label("Text pos y:");
+        ui.add(DragValue::new(&mut style.text_position.y));
+    });
     ui.horizontal(|ui| {
         ui.label("Background color:");
         let mut color = style.color.as_rgba_f32();

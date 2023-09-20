@@ -12,7 +12,7 @@
       }
     },
     "pos": [
-      323.0,
+      39.0,
       56.0,
       0.0
     ],
@@ -27,7 +27,12 @@
       "top_right": 0.0,
       "bot_left": 0.0,
       "bot_right": 0.0
-    }
+    },
+    "text_alginment": "Center",
+    "text_position": [
+      0.0,
+      0.0
+    ]
   },
   "table": {
     "cell": {
@@ -58,7 +63,12 @@
         "top_right": 0.0,
         "bot_left": 0.0,
         "bot_right": 0.0
-      }
+      },
+      "text_alginment": "Center",
+      "text_position": [
+        0.0,
+        0.0
+      ]
     },
     "row_offset": [
       0.0,
@@ -93,7 +103,12 @@
           "top_right": 0.0,
           "bot_left": 0.0,
           "bot_right": 0.0
-        }
+        },
+        "text_alginment": "Center",
+        "text_position": [
+          0.0,
+          0.0
+        ]
       },
       "columns": {
         "position": {
@@ -122,7 +137,12 @@
             "top_right": 0.0,
             "bot_left": 3.0,
             "bot_right": 0.0
-          }
+          },
+          "text_alginment": "Center",
+          "text_position": [
+            24.5,
+            19.0
+          ]
         },
         "manufacturer": {
           "value_source": {
@@ -152,7 +172,12 @@
             "top_right": 0.0,
             "bot_left": 0.0,
             "bot_right": 0.0
-          }
+          },
+          "text_alginment": "Center",
+          "text_position": [
+            18.0,
+            18.0
+          ]
         },
         "car_number": {
           "value_source": "CarNumber",
@@ -180,7 +205,12 @@
             "top_right": 0.0,
             "bot_left": 0.0,
             "bot_right": 0.0
-          }
+          },
+          "text_alginment": "Center",
+          "text_position": [
+            23.0,
+            18.0
+          ]
         },
         "driver_name": {
           "value_source": "DriverName",
@@ -208,7 +238,12 @@
             "top_right": 0.0,
             "bot_left": 0.0,
             "bot_right": 0.0
-          }
+          },
+          "text_alginment": "Left",
+          "text_position": [
+            20.0,
+            19.0
+          ]
         }
       }
     }

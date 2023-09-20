@@ -39,6 +39,8 @@ pub struct CellStyleDef {
     pub skew: f32,
     pub visible: bool,
     pub rounding: Rounding,
+    pub text_alginment: TextAlignment,
+    pub text_position: Vec2,
 }
 
 #[derive(Serialize, Deserialize, Clone, Default)]
@@ -47,4 +49,12 @@ pub struct Rounding {
     pub top_right: f32,
     pub bot_left: f32,
     pub bot_right: f32,
+}
+
+#[derive(Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+pub enum TextAlignment {
+    #[default]
+    Left,
+    Center,
+    Right,
 }

@@ -11,7 +11,7 @@ use bevy::{
 
 use crate::{
     gradient_material::{Gradient, GradientMaterial},
-    style_def::Rounding,
+    style_def::{Rounding, TextAlignment},
     DefaultFont,
 };
 
@@ -34,6 +34,8 @@ impl Plugin for CellPlugin {
 }
 pub struct CellStyle {
     pub text: String,
+    pub text_alignment: TextAlignment,
+    pub text_position: Vec2,
     pub color: Color,
     pub texture: Option<String>,
     pub pos: Vec3,

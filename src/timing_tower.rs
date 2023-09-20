@@ -270,10 +270,14 @@ fn create_cell_style(style_def: &CellStyleDef, entry: &Entry) -> CellStyle {
     let text = match &style_def.value_source {
         ValueSource::FixedValue(s) => s.clone(),
         ValueSource::DriverName => {
-            let driver = entry
-                .drivers
-                .get(&entry.current_driver)
-                .and_then(|d| Some(format!("{}. {}", &d.first_name[0..1], d.last_name)));
+            let driver = entry.drivers.get(&entry.current_driver).and_then(|d| {
+                let letter = if d.first_name.len() > 0 {
+                    &d.first_name[0..1]
+                } else {
+                    ""
+                };
+                Some(format!("{}. {}", letter, d.last_name))
+            });
             driver.unwrap_or_else(|| "no driver".to_string())
         }
         ValueSource::Position => format!("{}", entry.position),
@@ -282,6 +286,8 @@ fn create_cell_style(style_def: &CellStyleDef, entry: &Entry) -> CellStyle {
 
     CellStyle {
         text,
+        text_alignment: style_def.text_alginment.clone(),
+        text_position: style_def.text_position.clone(),
         color: style_def.color,
         texture: None,
         pos: style_def.pos * Vec3::new(1.0, -1.0, 1.0),

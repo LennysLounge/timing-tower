@@ -3,10 +3,11 @@ use bevy::{
         BuildChildren, Color, Commands, Component, Entity, EventReader, Plugin, PostUpdate, Query,
         Res, Transform, Update, Vec3, With,
     },
+    sprite::Anchor,
     text::{Text, Text2dBundle, TextStyle},
 };
 
-use crate::{cell::SetStyle, DefaultFont};
+use crate::{cell::SetStyle, style_def::TextAlignment, DefaultFont};
 
 pub struct ForegroundPlugin;
 impl Plugin for ForegroundPlugin {
@@ -52,7 +53,7 @@ fn add_foreground(
 
 fn update_style(
     cells: Query<&Foreground>,
-    mut texts: Query<(&mut Text, &mut Transform)>,
+    mut texts: Query<(&mut Text, &mut Anchor, &mut Transform)>,
     mut events: EventReader<SetStyle>,
     font: Res<DefaultFont>,
 ) {
@@ -60,7 +61,7 @@ fn update_style(
         let Ok(foreground) = cells.get(event.entity) else {
             continue;
         };
-        let Ok((mut text, mut transform)) = texts.get_mut(foreground.0) else {
+        let Ok((mut text, mut anchor, mut transform)) = texts.get_mut(foreground.0) else {
             continue;
         };
         *text = Text::from_section(
@@ -71,9 +72,15 @@ fn update_style(
                 color: Color::WHITE,
             },
         );
+        *anchor = match event.style.text_alignment {
+            TextAlignment::Left => Anchor::CenterLeft,
+            TextAlignment::Center => Anchor::Center,
+            TextAlignment::Right => Anchor::CenterRight,
+        };
+
         transform.translation = Vec3::new(
-            (event.style.size.x + event.style.skew) / 2.0,
-            -event.style.size.y / 2.0,
+            event.style.text_position.x,
+            -event.style.text_position.y,
             1.0,
         )
     }

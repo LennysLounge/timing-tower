@@ -17,10 +17,10 @@ use bevy::{
 };
 use bevy_egui::EguiPlugin;
 use cell::{init_cell, CellPlugin, CellStyle, SetStyle};
-use editor::{EditorPlugin, EditorState};
+use editor::{style_element_tree::from_style_def, EditorPlugin, EditorState};
 use gradient_material::CustomMaterialPlugin;
 
-use style_def::{Rounding, TextAlignment, TimingTowerStyleDef};
+use style_def::{Rounding, TextAlignment};
 use timing_tower::{init_timing_tower, TimingTowerPlugin};
 use unified_sim_model::Adapter;
 
@@ -90,13 +90,55 @@ fn setup(mut commands: Commands, mut set_style_event: EventWriter<SetStyle>) {
         }
         Ok(s) => s,
     };
-    let style_def = match serde_json::from_str::<TimingTowerStyleDef>(&s) {
+    let style_def = match serde_json::from_str::<style_def::TimingTowerStyleDef>(&s) {
         Ok(o) => o,
         Err(e) => {
             println!("Error parsing json: {}", e);
             return;
         }
     };
+
+    // let mut t = Tree::new();
+
+    // let n: TreeNode<Box<dyn StyleElement>> = TreeNode {
+    //     id: t.next_id(),
+    //     node: Box::new(Number {
+    //         value: 12,
+    //         special: None,
+    //         nodes: vec![TreeNode {
+    //             id: t.next_id(),
+    //             node: Box::new(Number {
+    //                 value: 25,
+    //                 special: Some(TreeNode {
+    //                     id: t.next_id(),
+    //                     node: Special {},
+    //                 }),
+    //                 nodes: vec![
+    //                     TreeNode {
+    //                         id: t.next_id(),
+    //                         node: Box::new(Number {
+    //                             value: 144,
+    //                             special: None,
+    //                             nodes: vec![],
+    //                         }),
+    //                     },
+    //                     TreeNode {
+    //                         id: t.next_id(),
+    //                         node: Box::new(Number {
+    //                             value: 256,
+    //                             special: None,
+    //                             nodes: vec![],
+    //                         }),
+    //                     },
+    //                 ],
+    //             }),
+    //         }],
+    //     }),
+    // };
+    // t.add(n);
+    // t.print();
+    // t.mutate(25);
+    // t.print();
 
     let background_id = commands
         .spawn_empty()
@@ -120,7 +162,8 @@ fn setup(mut commands: Commands, mut set_style_event: EventWriter<SetStyle>) {
     });
 
     commands.insert_resource(EditorState {
-        style_def: style_def.clone(),
+        elements: from_style_def(&style_def),
+        selected_element: None,
     });
 
     commands
@@ -139,26 +182,6 @@ fn move_top_left(
         }
     }
 }
-
-// fn update(time: Res<Time>, mut timer: ResMut<SimpleTimer>, mut event: EventWriter<SetRowStyleDef>) {
-//     timer.0.tick(time.delta());
-//     if timer.0.just_finished() {
-//         let Ok(style_str) = fs::read_to_string("style.json") else {
-//             eprintln!("Cannot read style file");
-//             return;
-//         };
-
-//         let style = match serde_json::from_str::<RowStyleDef>(&style_str) {
-//             Ok(o) => o,
-//             Err(e) => {
-//                 eprintln!("Error parsing style file: {e}");
-//                 return;
-//             }
-//         };
-
-//         event.send(SetRowStyleDef { style });
-//     }
-// }
 
 pub trait SpawnAndInitWorld {
     fn spawn_new<C: EntityCommand>(&mut self, command: C) -> EntityMut;

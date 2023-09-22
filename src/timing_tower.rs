@@ -4,11 +4,10 @@ use bevy::{
     ecs::system::EntityCommand,
     prelude::{
         BuildChildren, BuildWorldChildren, Bundle, Camera, Commands, Component, Entity,
-        EventWriter, GlobalTransform, IntoSystemConfigs, Last, Plugin, Query, SpatialBundle,
-        Transform, Update, Vec2, Vec3, With, World,
+        EventWriter, GlobalTransform, IntoSystemConfigs, Plugin, Query, SpatialBundle, Transform,
+        Update, Vec2, Vec3, With, World,
     },
 };
-use tracing::info;
 use unified_sim_model::{
     model::{Entry, EntryId},
     Adapter,
@@ -26,8 +25,7 @@ impl Plugin for TimingTowerPlugin {
         app.add_systems(
             Update,
             (update_tower, update_table, update_rows, update_columns).chain(),
-        )
-        .add_systems(Last, log_position);
+        );
     }
 }
 
@@ -80,15 +78,6 @@ pub fn init_timing_tower(style_def: TimingTowerStyleDef, adapter: Adapter) -> im
             })
             .insert(LogPosition(Vec3::ZERO))
             .add_child(table_id);
-    }
-}
-
-fn log_position(mut towers: Query<(&Transform, &mut LogPosition)>) {
-    for (transform, mut log) in towers.iter_mut() {
-        if log.0 != transform.translation {
-            info!("Tower position moved to: {:?}", transform.translation);
-            log.0 = transform.translation.clone();
-        }
     }
 }
 

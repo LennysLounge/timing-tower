@@ -1,160 +1,216 @@
-use std::collections::HashMap;
-
 use bevy::prelude::Vec2;
-use bevy_egui::egui::{self, collapsing_header::CollapsingState, DragValue, Ui};
+use bevy_egui::egui::{collapsing_header::CollapsingState, ComboBox, DragValue, Ui};
 use uuid::Uuid;
 
-use crate::style_def::{CellStyleDef, TextAlignment, TimingTowerStyleDef, ValueSource};
+use crate::style_def::{
+    CellStyleDef, ColumnStyleDef, RowStyleDef, TableStyleDef, TextAlignment, TimingTowerStyleDef,
+    ValueSource,
+};
 
-pub struct StyleNode {
-    id: Uuid,
-    element: StyleElement,
+pub trait StyleElement {
+    fn element_tree(&mut self, ui: &mut Ui, selected_element: &mut Option<Uuid>);
+    fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn StyleElement>;
+    fn property_editor(&mut self, ui: &mut Ui);
 }
 
-pub enum StyleElement {
-    TimingTower(TimingTower),
-    TimingTowerTable(TimingTowerTable),
-    TimingTowerRow(TimingTowerRow),
-    TimingTowerColumn(TimingTowerColumn),
-}
-
-pub struct TimingTower {
+pub struct TimingTowerElement {
+    pub id: Uuid,
     pub cell: CellStyleDef,
-    pub table: Box<StyleNode>,
+    pub table: TimingTowerTableElement,
 }
-pub struct TimingTowerTable {
+
+pub struct TimingTowerTableElement {
+    pub id: Uuid,
     pub cell: CellStyleDef,
     pub row_offset: Vec2,
-    pub row: Box<StyleNode>,
+    pub row: TimingTowerRowElement,
 }
-pub struct TimingTowerRow {
+
+pub struct TimingTowerRowElement {
+    pub id: Uuid,
     pub cell: CellStyleDef,
-    pub columns: HashMap<Uuid, StyleNode>,
+    pub columns: Vec<TimingTowerColumnElement>,
 }
-pub struct TimingTowerColumn {
+
+pub struct TimingTowerColumnElement {
+    pub id: Uuid,
     pub cell: CellStyleDef,
     pub name: String,
 }
 
-impl StyleNode {
-    pub fn element_tree(&self, ui: &mut Ui, selected_element: &mut Option<Uuid>) {
-        match &self.element {
-            StyleElement::TimingTower(o) => o.element_tree(ui, &self.id, selected_element),
-            StyleElement::TimingTowerTable(o) => o.element_tree(ui, &self.id, selected_element),
-            StyleElement::TimingTowerRow(o) => o.element_tree(ui, &self.id, selected_element),
-            StyleElement::TimingTowerColumn(o) => o.element_tree(ui, &self.id, selected_element),
-        }
-    }
-    pub fn find_mut(&mut self, id: &Uuid) -> Option<&mut StyleNode> {
-        if &self.id == id {
-            Some(self)
-        } else {
-            match &mut self.element {
-                StyleElement::TimingTower(o) => o.find_mut(id),
-                StyleElement::TimingTowerTable(o) => o.find_mut(id),
-                StyleElement::TimingTowerRow(o) => o.find_mut(id),
-                StyleElement::TimingTowerColumn(_) => None,
-            }
-        }
-    }
-
-    pub fn property_editor(&mut self, ui: &mut Ui) {
-        match &mut self.element {
-            StyleElement::TimingTower(o) => o.property_editor(ui),
-            StyleElement::TimingTowerTable(o) => o.property_editor(ui),
-            StyleElement::TimingTowerRow(o) => o.property_editor(ui),
-            StyleElement::TimingTowerColumn(o) => o.property_editor(ui),
-        }
-    }
-}
-
-impl TimingTower {
-    fn element_tree(&self, ui: &mut Ui, id: &Uuid, selected_element: &mut Option<Uuid>) {
+impl StyleElement for TimingTowerElement {
+    fn element_tree(&mut self, ui: &mut Ui, selected_element: &mut Option<Uuid>) {
         CollapsingState::load_with_default_open(ui.ctx(), ui.next_auto_id(), true)
             .show_header(ui, |ui| {
-                let is_selected = selected_element.is_some_and(|uuid| uuid.eq(id));
+                let is_selected = selected_element.is_some_and(|uuid| uuid.eq(&self.id));
                 if ui.selectable_label(is_selected, "Timing Tower").clicked() {
-                    *selected_element = Some(id.clone());
+                    *selected_element = Some(self.id.clone());
                 }
             })
             .body(|ui| {
-                let _ = ui.button("+ Add cell");
                 self.table.element_tree(ui, selected_element);
             });
     }
-    fn find_mut(&mut self, id: &Uuid) -> Option<&mut StyleNode> {
+
+    fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn StyleElement> {
+        if self.id.eq(id) {
+            return Some(self as &mut dyn StyleElement);
+        }
         self.table.find_mut(id)
     }
+
     fn property_editor(&mut self, ui: &mut Ui) {
         cell_style_editor(ui, &mut self.cell);
     }
 }
-impl TimingTowerTable {
-    fn element_tree(&self, ui: &mut Ui, id: &Uuid, selected_element: &mut Option<Uuid>) {
+
+impl TimingTowerElement {
+    pub fn from_style_def(style: &TimingTowerStyleDef) -> TimingTowerElement {
+        TimingTowerElement {
+            id: Uuid::new_v4(),
+            cell: style.cell.clone(),
+            table: TimingTowerTableElement::from_style_def(&style.table),
+        }
+    }
+    pub fn to_style_def(&self) -> TimingTowerStyleDef {
+        TimingTowerStyleDef {
+            cell: self.cell.clone(),
+            table: self.table.to_style_def(),
+        }
+    }
+}
+
+impl StyleElement for TimingTowerTableElement {
+    fn element_tree(&mut self, ui: &mut Ui, selected_element: &mut Option<Uuid>) {
         CollapsingState::load_with_default_open(ui.ctx(), ui.next_auto_id(), true)
             .show_header(ui, |ui| {
-                let is_selected = selected_element.is_some_and(|uuid| uuid.eq(id));
+                let is_selected = selected_element.is_some_and(|uuid| uuid.eq(&self.id));
                 if ui.selectable_label(is_selected, "Table").clicked() {
-                    *selected_element = Some(id.clone());
+                    *selected_element = Some(self.id.clone());
                 }
             })
             .body(|ui| {
-                let _ = ui.button("+ Add cell");
                 self.row.element_tree(ui, selected_element);
             });
     }
-    fn find_mut(&mut self, id: &Uuid) -> Option<&mut StyleNode> {
+    fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn StyleElement> {
+        if self.id.eq(id) {
+            return Some(self as &mut dyn StyleElement);
+        }
         self.row.find_mut(id)
     }
     fn property_editor(&mut self, ui: &mut Ui) {
         ui.label("Row offset:");
         ui.horizontal(|ui| {
             ui.label("Offset x:");
-            ui.add(egui::DragValue::new(&mut self.row_offset.x));
+            ui.add(DragValue::new(&mut self.row_offset.x));
         });
         ui.horizontal(|ui| {
             ui.label("Offset y:");
-            ui.add(egui::DragValue::new(&mut self.row_offset.y));
+            ui.add(DragValue::new(&mut self.row_offset.y));
         });
         ui.separator();
         cell_style_editor(ui, &mut self.cell);
     }
 }
-impl TimingTowerRow {
-    fn element_tree(&self, ui: &mut Ui, id: &Uuid, selected_element: &mut Option<Uuid>) {
+
+impl TimingTowerTableElement {
+    pub fn from_style_def(style: &TableStyleDef) -> Self {
+        TimingTowerTableElement {
+            id: Uuid::new_v4(),
+            cell: style.cell.clone(),
+            row_offset: style.row_offset.clone(),
+            row: TimingTowerRowElement::from_style_def(&style.row_style),
+        }
+    }
+
+    pub fn to_style_def(&self) -> TableStyleDef {
+        TableStyleDef {
+            cell: self.cell.clone(),
+            row_offset: self.row_offset.clone(),
+            row_style: self.row.to_style_def(),
+        }
+    }
+}
+
+impl StyleElement for TimingTowerRowElement {
+    fn element_tree(&mut self, ui: &mut Ui, selected_element: &mut Option<Uuid>) {
         CollapsingState::load_with_default_open(ui.ctx(), ui.next_auto_id(), true)
             .show_header(ui, |ui| {
-                let is_selected = selected_element.is_some_and(|uuid| uuid.eq(id));
+                let is_selected = selected_element.is_some_and(|uuid| uuid.eq(&self.id));
                 if ui.selectable_label(is_selected, "Row").clicked() {
-                    *selected_element = Some(id.clone());
+                    *selected_element = Some(self.id.clone());
                 }
             })
             .body(|ui| {
-                let _ = ui.button("+ Add cell");
-                for column in self.columns.values() {
+                if ui.button("+ Add cell").clicked() {
+                    let column = TimingTowerColumnElement {
+                        id: Uuid::new_v4(),
+                        cell: CellStyleDef::default(),
+                        name: "Column".to_string(),
+                    };
+                    self.columns.push(column);
+                }
+                for column in self.columns.iter_mut() {
                     column.element_tree(ui, selected_element);
                 }
             });
     }
-    fn find_mut(&mut self, id: &Uuid) -> Option<&mut StyleNode> {
+    fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn StyleElement> {
+        if self.id.eq(id) {
+            return Some(self as &mut dyn StyleElement);
+        }
         self.columns
             .iter_mut()
-            .find_map(|(c_id, c_style)| if c_id == id { Some(c_style) } else { None })
+            .find_map(|element| element.find_mut(id))
     }
     fn property_editor(&mut self, ui: &mut Ui) {
         cell_style_editor(ui, &mut self.cell);
     }
 }
-impl TimingTowerColumn {
-    fn element_tree(&self, ui: &mut Ui, id: &Uuid, selected_element: &mut Option<Uuid>) {
-        let is_selected = selected_element.is_some_and(|uuid| uuid.eq(id));
+
+impl TimingTowerRowElement {
+    pub fn from_style_def(style: &RowStyleDef) -> Self {
+        TimingTowerRowElement {
+            id: Uuid::new_v4(),
+            cell: style.cell.clone(),
+            columns: style
+                .columns
+                .iter()
+                .map(|c| TimingTowerColumnElement::from_style_def(c))
+                .collect(),
+        }
+    }
+
+    pub fn to_style_def(&self) -> RowStyleDef {
+        RowStyleDef {
+            cell: self.cell.clone(),
+            columns: {
+                let mut columns = Vec::new();
+                for column in self.columns.iter() {
+                    columns.push(column.to_style_def());
+                }
+                columns
+            },
+        }
+    }
+}
+
+impl StyleElement for TimingTowerColumnElement {
+    fn element_tree(&mut self, ui: &mut Ui, selected_element: &mut Option<Uuid>) {
+        let is_selected = selected_element.is_some_and(|uuid| uuid.eq(&self.id));
         if ui
             .selectable_label(is_selected, self.name.clone())
             .clicked()
         {
-            *selected_element = Some(id.clone());
+            *selected_element = Some(self.id.clone());
         }
     }
+
+    fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn StyleElement> {
+        self.id.eq(id).then_some(self as &mut dyn StyleElement)
+    }
+
     fn property_editor(&mut self, ui: &mut Ui) {
         ui.label("Name:");
         ui.text_edit_singleline(&mut self.name);
@@ -163,41 +219,21 @@ impl TimingTowerColumn {
     }
 }
 
-pub fn from_style_def(style: &TimingTowerStyleDef) -> StyleNode {
-    let mut columns = HashMap::new();
-    for (column_name, column_style) in style.table.row_style.columns.iter() {
-        let column = StyleNode {
+impl TimingTowerColumnElement {
+    pub fn from_style_def(style: &ColumnStyleDef) -> TimingTowerColumnElement {
+        TimingTowerColumnElement {
             id: Uuid::new_v4(),
-            element: StyleElement::TimingTowerColumn(TimingTowerColumn {
-                cell: column_style.clone(),
-                name: column_name.clone(),
-            }),
-        };
-        columns.insert(column.id.clone(), column);
-    }
-    let row = StyleNode {
-        id: Uuid::new_v4(),
-        element: StyleElement::TimingTowerRow(TimingTowerRow {
-            cell: style.table.row_style.cell.clone(),
-            columns,
-        }),
-    };
-    let table = StyleNode {
-        id: Uuid::new_v4(),
-        element: StyleElement::TimingTowerTable(TimingTowerTable {
-            cell: style.table.cell.clone(),
-            row_offset: style.table.row_offset.clone(),
-            row: Box::new(row),
-        }),
-    };
-    let tower = StyleNode {
-        id: Uuid::new_v4(),
-        element: StyleElement::TimingTower(TimingTower {
             cell: style.cell.clone(),
-            table: Box::new(table),
-        }),
-    };
-    tower
+            name: style.name.clone(),
+        }
+    }
+
+    pub fn to_style_def(&self) -> ColumnStyleDef {
+        ColumnStyleDef {
+            cell: self.cell.clone(),
+            name: self.name.clone(),
+        }
+    }
 }
 
 fn cell_style_editor(ui: &mut Ui, style: &mut CellStyleDef) {
@@ -208,7 +244,7 @@ fn cell_style_editor(ui: &mut Ui, style: &mut CellStyleDef) {
     });
     ui.horizontal(|ui| {
         ui.label("value source:");
-        egui::ComboBox::from_id_source("cell value source")
+        ComboBox::from_id_source("cell value source")
             .selected_text(match &style.value_source {
                 ValueSource::FixedValue(_) => "Fixed value",
                 ValueSource::DriverName => "Driver name",
@@ -262,7 +298,7 @@ fn cell_style_editor(ui: &mut Ui, style: &mut CellStyleDef) {
     }
     ui.horizontal(|ui| {
         ui.label("Text alginment:");
-        egui::ComboBox::from_id_source("Text alginment combobox")
+        ComboBox::from_id_source("Text alginment combobox")
             .selected_text(match style.text_alginment {
                 TextAlignment::Left => "Left",
                 TextAlignment::Center => "Center",

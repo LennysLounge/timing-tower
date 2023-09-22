@@ -17,7 +17,7 @@ use bevy::{
 };
 use bevy_egui::EguiPlugin;
 use cell::{init_cell, CellPlugin, CellStyle, SetStyle};
-use editor::{style_element_tree::from_style_def, EditorPlugin, EditorState};
+use editor::{style_elements::TimingTowerElement, EditorPlugin, EditorState};
 use gradient_material::CustomMaterialPlugin;
 
 use style_def::{Rounding, TextAlignment};
@@ -98,48 +98,6 @@ fn setup(mut commands: Commands, mut set_style_event: EventWriter<SetStyle>) {
         }
     };
 
-    // let mut t = Tree::new();
-
-    // let n: TreeNode<Box<dyn StyleElement>> = TreeNode {
-    //     id: t.next_id(),
-    //     node: Box::new(Number {
-    //         value: 12,
-    //         special: None,
-    //         nodes: vec![TreeNode {
-    //             id: t.next_id(),
-    //             node: Box::new(Number {
-    //                 value: 25,
-    //                 special: Some(TreeNode {
-    //                     id: t.next_id(),
-    //                     node: Special {},
-    //                 }),
-    //                 nodes: vec![
-    //                     TreeNode {
-    //                         id: t.next_id(),
-    //                         node: Box::new(Number {
-    //                             value: 144,
-    //                             special: None,
-    //                             nodes: vec![],
-    //                         }),
-    //                     },
-    //                     TreeNode {
-    //                         id: t.next_id(),
-    //                         node: Box::new(Number {
-    //                             value: 256,
-    //                             special: None,
-    //                             nodes: vec![],
-    //                         }),
-    //                     },
-    //                 ],
-    //             }),
-    //         }],
-    //     }),
-    // };
-    // t.add(n);
-    // t.print();
-    // t.mutate(25);
-    // t.print();
-
     let background_id = commands
         .spawn_empty()
         .add(init_cell)
@@ -162,7 +120,7 @@ fn setup(mut commands: Commands, mut set_style_event: EventWriter<SetStyle>) {
     });
 
     commands.insert_resource(EditorState {
-        elements: from_style_def(&style_def),
+        elements: TimingTowerElement::from_style_def(&style_def),
         selected_element: None,
     });
 

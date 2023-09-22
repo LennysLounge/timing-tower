@@ -17,9 +17,9 @@ use uuid::Uuid;
 
 use crate::{style_def::TimingTowerStyleDef, timing_tower::TimingTower, MainCamera};
 
-use self::style_element_tree::StyleNode;
+use self::style_elements::{StyleElement, TimingTowerElement};
 
-pub mod style_element_tree;
+pub mod style_elements;
 
 pub struct EditorPlugin;
 impl Plugin for EditorPlugin {
@@ -42,7 +42,7 @@ struct OccupiedSpace(f32);
 
 #[derive(Resource)]
 pub struct EditorState {
-    pub elements: StyleNode,
+    pub elements: TimingTowerElement,
     pub selected_element: Option<Uuid>,
 }
 
@@ -50,7 +50,7 @@ pub fn setup(mut ctx: EguiContexts) {
     dear_egui::set_theme(ctx.ctx_mut(), dear_egui::SKY);
 }
 
-fn _save_style(style: &TimingTowerStyleDef) {
+fn save_style(style: &TimingTowerStyleDef) {
     let s = match serde_json::to_string_pretty(style) {
         Ok(s) => s,
         Err(e) => {
@@ -75,7 +75,7 @@ fn run_egui_main(
     mut ctx: EguiContexts,
     mut occupied_space: ResMut<OccupiedSpace>,
     mut state: ResMut<EditorState>,
-    mut _towers: Query<&mut TimingTower>,
+    mut towers: Query<&mut TimingTower>,
 ) {
     let EditorState {
         elements,
@@ -86,7 +86,7 @@ fn run_egui_main(
     occupied_space.0 = egui::SidePanel::left("Editor panel")
         .show(ctx.ctx_mut(), |ui| {
             if ui.button("Save").clicked() {
-                //save_style(&state.style_def);
+                save_style(&elements.to_style_def());
             }
 
             egui::Frame::group(ui.style()).show(ui, |ui| {
@@ -114,72 +114,11 @@ fn run_egui_main(
         .response
         .rect
         .width();
-    // push new style to the towers
-    // for mut tower in towers.iter_mut() {
-    //     tower.style_def = state.style_def.clone();
-    // }
+    //push new style to the towers
+    for mut tower in towers.iter_mut() {
+        tower.style_def = elements.to_style_def();
+    }
 }
-
-// fn component_tree(ui: &mut Ui, state: &mut EditorState) {
-//     ui.selectable_value(
-//         &mut state.tower_selection,
-//         TimingTowerSelection::None,
-//         "None",
-//     );
-
-//     fn tree_node(
-//         ui: &mut Ui,
-//         state: &mut EditorState,
-//         selection: TimingTowerSelection,
-//         label: impl Into<WidgetText>,
-//         add_body: impl FnOnce(&mut Ui, &mut EditorState),
-//     ) {
-//         let id = ui.next_auto_id();
-//         let (_, _header_response, _) = CollapsingState::load_with_default_open(ui.ctx(), id, true)
-//             .show_header(ui, |ui| {
-//                 let res = ui.selectable_value(&mut state.tower_selection, selection, label);
-//                 res.double_clicked()
-//             })
-//             .body(|ui| {
-//                 add_body(ui, state);
-//             });
-//         // if header_response.inner {
-//         //     if let Some(mut state) = CollapsingState::load(ui.ctx(), id) {
-//         //         state.toggle(ui);
-//         //         state.store(ui.ctx());
-//         //     }
-//         // }
-//     }
-
-//     tree_node(
-//         ui,
-//         state,
-//         TimingTowerSelection::Tower,
-//         "Timing tower",
-//         |ui, state| {
-//             let _ = ui.button("+ Add cell");
-//             tree_node(
-//                 ui,
-//                 state,
-//                 TimingTowerSelection::Table,
-//                 "Table",
-//                 |ui, state| {
-//                     let _ = ui.button("+ Add cell");
-//                     tree_node(ui, state, TimingTowerSelection::Row, "Row", |ui, state| {
-//                         let _ = ui.button("+ Add cell");
-//                         for column_name in state.style_def.table.row_style.columns.keys() {
-//                             ui.selectable_value(
-//                                 &mut state.tower_selection,
-//                                 TimingTowerSelection::RowCell(column_name.to_string()),
-//                                 column_name,
-//                             );
-//                         }
-//                     });
-//                 },
-//             );
-//         },
-//     );
-// }
 
 fn update_camera(
     mut cameras: Query<&mut Camera, With<MainCamera>>,

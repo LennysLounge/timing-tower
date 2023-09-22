@@ -171,9 +171,9 @@ fn update_rows(
                 let row_id = commands.spawn_empty().add(init_cell).id();
                 // create all necessairy cells for rows.
                 let mut columns = HashMap::new();
-                for column_name in tower.style_def.table.row_style.columns.keys() {
+                for column in tower.style_def.table.row_style.columns.iter() {
                     let cell_id = commands.spawn_empty().add(init_cell).id();
-                    columns.insert(column_name.clone(), cell_id);
+                    columns.insert(column.name.clone(), cell_id);
                     commands.entity(row_id).add_child(cell_id);
                 }
                 commands.entity(row_id).insert(Row {
@@ -240,12 +240,12 @@ fn update_columns(
             continue;
         };
 
-        for (column_name, column_style) in tower.style_def.table.row_style.columns.iter() {
-            let Some(cell_id) = row.columns.get(column_name) else {
+        for column in tower.style_def.table.row_style.columns.iter() {
+            let Some(cell_id) = row.columns.get(&column.name) else {
                 continue;
             };
 
-            let mut style = create_cell_style(column_style, entry);
+            let mut style = create_cell_style(&column.cell, entry);
             style.pos += Vec3::new(0.0, 0.0, 1.0);
             set_style_event.send(SetStyle {
                 entity: cell_id.clone(),

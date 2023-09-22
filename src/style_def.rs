@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use bevy::prelude::{Color, Vec2, Vec3};
 use serde::{Deserialize, Serialize};
 
@@ -19,7 +17,13 @@ pub struct TableStyleDef {
 #[derive(Serialize, Deserialize, Clone)]
 pub struct RowStyleDef {
     pub cell: CellStyleDef,
-    pub columns: HashMap<String, CellStyleDef>,
+    pub columns: Vec<ColumnStyleDef>,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct ColumnStyleDef {
+    pub cell: CellStyleDef,
+    pub name: String,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -41,6 +45,22 @@ pub struct CellStyleDef {
     pub rounding: Rounding,
     pub text_alginment: TextAlignment,
     pub text_position: Vec2,
+}
+
+impl Default for CellStyleDef {
+    fn default() -> Self {
+        Self {
+            value_source: ValueSource::FixedValue("Column".to_string()),
+            color: Color::PURPLE,
+            pos: Vec3::new(10.0, 10.0, 0.0),
+            size: Vec2::new(30.0, 30.0),
+            skew: 0.0,
+            visible: true,
+            rounding: Rounding::default(),
+            text_alginment: TextAlignment::default(),
+            text_position: Vec2::new(5.0, 15.0),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Default)]

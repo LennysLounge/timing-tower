@@ -1,13 +1,14 @@
-use std::sync::Weak;
+use std::sync::{Arc, Mutex, Weak};
 
 use bevy::prelude::{Color, Resource, Vec2, Vec3};
 use bevy_egui::egui::{ComboBox, DragValue, Ui};
 use serde::{Deserialize, Serialize};
+use tracing::error;
 use uuid::Uuid;
 
 use super::{
-    scope::{Variable, VariablesElement},
     timing_tower_elements::TimingTowerElement,
+    variable_element::{SharedVariable, VariablesElement},
 };
 
 pub trait StyleElement {
@@ -61,7 +62,7 @@ pub enum ColorProperty {
 pub struct VariableReference {
     pub id: Uuid,
     #[serde(skip)]
-    pub reference: Weak<Variable>,
+    pub reference: Weak<Mutex<SharedVariable>>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -106,6 +107,21 @@ pub enum VariableDef {
     Color(Color),
 }
 
+impl RootElement {
+    pub fn connect_references(&mut self) {
+        self.timing_tower.cell.connect_references(&self.vars);
+        self.timing_tower.table.cell.connect_references(&self.vars);
+        self.timing_tower
+            .table
+            .row
+            .cell
+            .connect_references(&self.vars);
+        for column in self.timing_tower.table.row.columns.iter_mut() {
+            column.cell.connect_references(&self.vars);
+        }
+    }
+}
+
 impl StyleElement for RootElement {
     fn element_tree(&mut self, ui: &mut Ui, selected_element: &mut Option<Uuid>) {
         self.vars.element_tree(ui, selected_element);
@@ -123,6 +139,22 @@ impl StyleElement for RootElement {
     }
 }
 
+impl CellElement {
+    pub fn connect_references(&mut self, vars: &VariablesElement) {
+        *self = CellElement {
+            value_source: self.value_source.clone(),
+            color: self.color.connect_reference(vars),
+            pos: self.pos.clone(),
+            size: self.size.clone(),
+            skew: self.skew.clone(),
+            visible: self.visible.clone(),
+            rounding: self.rounding.clone(),
+            text_alginment: self.text_alginment.clone(),
+            text_position: self.text_position.clone(),
+        }
+    }
+}
+
 impl Default for CellElement {
     fn default() -> Self {
         Self {
@@ -135,6 +167,24 @@ impl Default for CellElement {
             rounding: Rounding::default(),
             text_alginment: TextAlignment::default(),
             text_position: Vec2::new(5.0, 15.0),
+        }
+    }
+}
+
+impl ColorProperty {
+    pub fn connect_reference(&self, vars: &VariablesElement) -> ColorProperty {
+        match self {
+            ColorProperty::Ref(var_ref) => ColorProperty::Ref(VariableReference {
+                id: var_ref.id.clone(),
+                reference: vars
+                    .get_var(&var_ref.id)
+                    .map(|v| Arc::downgrade(&v.0))
+                    .unwrap_or_else(|| {
+                        error!("Error connecting variable reference. Asking for id {} but found nothing.", var_ref.id);
+                        Weak::new()
+                    }),
+            }),
+            ColorProperty::Fixed(_) => self.clone(),
         }
     }
 }
@@ -230,7 +280,12 @@ pub fn cell_style_editor(ui: &mut Ui, style: &mut CellElement) {
                 *c = color.into();
             }
             ColorProperty::Ref(var_ref) => {
-                ui.label(format!("ref( {} )", var_ref.id));
+                if let Some(var) = var_ref.reference.upgrade() {
+                    let shared = var.lock().expect("Still fucked bro. Fix it");
+                    ui.label(format!("Ref[ {} ]", shared.name));
+                } else {
+                    ui.label(format!("Invalid variable reference"));
+                }
             }
         }
     });

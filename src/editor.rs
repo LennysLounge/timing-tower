@@ -19,7 +19,7 @@ use crate::MainCamera;
 
 use self::style_elements::{RootElement, StyleElement};
 
-pub mod scope;
+pub mod variable_element;
 pub mod style_elements;
 pub mod timing_tower_elements;
 

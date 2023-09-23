@@ -93,13 +93,14 @@ fn setup(mut commands: Commands, mut set_style_event: EventWriter<SetStyle>) {
         }
         Ok(s) => s,
     };
-    let scene = match serde_json::from_str::<RootElement>(&s) {
+    let mut scene = match serde_json::from_str::<RootElement>(&s) {
         Ok(o) => o,
         Err(e) => {
             println!("Error parsing json: {}", e);
             return;
         }
     };
+    scene.connect_references();
 
     let background_id = commands
         .spawn_empty()

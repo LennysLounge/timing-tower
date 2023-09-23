@@ -16,8 +16,8 @@ use unified_sim_model::{
 use crate::{
     cell::{init_cell, CellStyle, SetStyle},
     editor::{
-        scope::VariablesElement,
         style_elements::{CellElement, RootElement, ValueSource},
+        variable_element::VariablesElement,
     },
     MainCamera, SpawnAndInitWorld,
 };

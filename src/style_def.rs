@@ -1,5 +1,20 @@
+use std::collections::HashMap;
+
 use bevy::prelude::{Color, Vec2, Vec3};
 use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct SceneStyleDef {
+    pub vars: HashMap<String, VariableDef>,
+    pub timing_tower: TimingTowerStyleDef,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub enum VariableDef {
+    Number(f32),
+    Text(String),
+    Color(Color),
+}
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TimingTowerStyleDef {
@@ -77,4 +92,16 @@ pub enum TextAlignment {
     Left,
     Center,
     Right,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+
+pub enum PropertyValue {
+    VarRef(String),
+    #[serde(untagged)]
+    Text(String),
+    #[serde(untagged)]
+    Color(Color),
+    #[serde(untagged)]
+    Number(f32),
 }

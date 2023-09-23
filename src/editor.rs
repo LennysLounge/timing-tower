@@ -15,11 +15,13 @@ use bevy_egui::{
 use tracing::error;
 use uuid::Uuid;
 
-use crate::{style_def::TimingTowerStyleDef, timing_tower::TimingTower, MainCamera};
+use crate::{style_def::SceneStyleDef, timing_tower::TimingTower, MainCamera};
 
-use self::style_elements::{StyleElement, TimingTowerElement};
+use self::style_elements::{SceneElement, StyleElement};
 
+pub mod scope;
 pub mod style_elements;
+pub mod timing_tower_elements;
 
 pub struct EditorPlugin;
 impl Plugin for EditorPlugin {
@@ -42,7 +44,6 @@ struct OccupiedSpace(f32);
 
 #[derive(Resource)]
 pub struct EditorState {
-    pub elements: TimingTowerElement,
     pub selected_element: Option<Uuid>,
 }
 
@@ -50,7 +51,7 @@ pub fn setup(mut ctx: EguiContexts) {
     dear_egui::set_theme(ctx.ctx_mut(), dear_egui::SKY);
 }
 
-fn save_style(style: &TimingTowerStyleDef) {
+fn save_style(style: &SceneStyleDef) {
     let s = match serde_json::to_string_pretty(style) {
         Ok(s) => s,
         Err(e) => {
@@ -75,23 +76,22 @@ fn run_egui_main(
     mut ctx: EguiContexts,
     mut occupied_space: ResMut<OccupiedSpace>,
     mut state: ResMut<EditorState>,
+    mut scene: ResMut<SceneElement>,
     mut towers: Query<&mut TimingTower>,
 ) {
     let EditorState {
-        elements,
-        selected_element,
-        ..
+        selected_element, ..
     } = &mut *state;
 
     occupied_space.0 = egui::SidePanel::left("Editor panel")
         .show(ctx.ctx_mut(), |ui| {
             if ui.button("Save").clicked() {
-                save_style(&elements.to_style_def());
+                save_style(&scene.to_style_def());
             }
 
             egui::Frame::group(ui.style()).show(ui, |ui| {
                 egui::ScrollArea::vertical().show(ui, |ui| {
-                    elements.element_tree(ui, selected_element);
+                    scene.element_tree(ui, selected_element);
                 });
                 ui.allocate_rect(
                     Rect::from_min_size(
@@ -105,7 +105,15 @@ fn run_egui_main(
                 );
             });
 
-            if let Some(element) = selected_element.and_then(|id| elements.find_mut(&id)) {
+            ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());
+        })
+        .response
+        .rect
+        .width();
+
+    egui::SidePanel::right("Property panel")
+        .show(ctx.ctx_mut(), |ui| {
+            if let Some(element) = selected_element.and_then(|id| scene.find_mut(&id)) {
                 element.property_editor(ui);
             }
 
@@ -116,7 +124,7 @@ fn run_egui_main(
         .width();
     //push new style to the towers
     for mut tower in towers.iter_mut() {
-        tower.style_def = elements.to_style_def();
+        tower.style_def = scene.timing_tower.to_style_def();
     }
 }
 

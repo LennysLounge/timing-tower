@@ -1,26 +1,45 @@
 {
   "vars": {},
   "timing_tower": {
+    "number": {
+      "Number": 12
+    },
+    "text": {
+      "Text": "Default Text"
+    },
+    "color": {
+      "Color": {
+        "Rgba": {
+          "red": 0.1,
+          "green": 0.2,
+          "blue": 0.4,
+          "alpha": 0.8
+        }
+      }
+    },
+    "var_ref": {
+      "VarRef": "test_name"
+    },
     "cell": {
       "value_source": {
         "FixedValue": ""
       },
       "color": {
         "Rgba": {
-          "red": 0.742857,
+          "red": 0.0,
           "green": 0.0,
-          "blue": 1.0,
-          "alpha": 1.0
+          "blue": 0.0,
+          "alpha": 0.0
         }
       },
       "pos": [
-        338.0,
+        330.0,
         56.0,
         0.0
       ],
       "size": [
-        100.0,
-        100.0
+        700.0,
+        1000.0
       ],
       "skew": 3.0,
       "visible": true,
@@ -50,7 +69,7 @@
           }
         },
         "pos": [
-          113.0,
+          0.0,
           0.0,
           0.0
         ],

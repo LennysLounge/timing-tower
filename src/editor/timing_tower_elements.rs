@@ -1,35 +1,36 @@
 use bevy::prelude::Vec2;
 use bevy_egui::egui::{collapsing_header::CollapsingState, DragValue, Ui};
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::style_def::{
-    CellStyleDef, ColumnStyleDef, RowStyleDef, TableStyleDef, TimingTowerStyleDef,
-};
+use super::style_elements::{cell_style_editor, CellElement, StyleElement};
 
-use super::style_elements::{cell_style_editor, StyleElement};
-
+#[derive(Serialize, Deserialize, Clone)]
 pub struct TimingTowerElement {
     pub id: Uuid,
-    pub cell: CellStyleDef,
+    pub cell: CellElement,
     pub table: TimingTowerTableElement,
 }
 
+#[derive(Serialize, Deserialize, Clone)]
 pub struct TimingTowerTableElement {
     pub id: Uuid,
-    pub cell: CellStyleDef,
+    pub cell: CellElement,
     pub row_offset: Vec2,
     pub row: TimingTowerRowElement,
 }
 
+#[derive(Serialize, Deserialize, Clone)]
 pub struct TimingTowerRowElement {
     pub id: Uuid,
-    pub cell: CellStyleDef,
+    pub cell: CellElement,
     pub columns: Vec<TimingTowerColumnElement>,
 }
 
+#[derive(Serialize, Deserialize, Clone)]
 pub struct TimingTowerColumnElement {
     pub id: Uuid,
-    pub cell: CellStyleDef,
+    pub cell: CellElement,
     pub name: String,
 }
 
@@ -56,22 +57,6 @@ impl StyleElement for TimingTowerElement {
 
     fn property_editor(&mut self, ui: &mut Ui) {
         cell_style_editor(ui, &mut self.cell);
-    }
-}
-
-impl TimingTowerElement {
-    pub fn from_style_def(style: &TimingTowerStyleDef) -> TimingTowerElement {
-        TimingTowerElement {
-            id: Uuid::new_v4(),
-            cell: style.cell.clone(),
-            table: TimingTowerTableElement::from_style_def(&style.table),
-        }
-    }
-    pub fn to_style_def(&self) -> TimingTowerStyleDef {
-        TimingTowerStyleDef {
-            cell: self.cell.clone(),
-            table: self.table.to_style_def(),
-        }
     }
 }
 
@@ -109,25 +94,6 @@ impl StyleElement for TimingTowerTableElement {
     }
 }
 
-impl TimingTowerTableElement {
-    pub fn from_style_def(style: &TableStyleDef) -> Self {
-        TimingTowerTableElement {
-            id: Uuid::new_v4(),
-            cell: style.cell.clone(),
-            row_offset: style.row_offset.clone(),
-            row: TimingTowerRowElement::from_style_def(&style.row_style),
-        }
-    }
-
-    pub fn to_style_def(&self) -> TableStyleDef {
-        TableStyleDef {
-            cell: self.cell.clone(),
-            row_offset: self.row_offset.clone(),
-            row_style: self.row.to_style_def(),
-        }
-    }
-}
-
 impl StyleElement for TimingTowerRowElement {
     fn element_tree(&mut self, ui: &mut Ui, selected_element: &mut Option<Uuid>) {
         CollapsingState::load_with_default_open(ui.ctx(), ui.next_auto_id(), true)
@@ -141,7 +107,7 @@ impl StyleElement for TimingTowerRowElement {
                 if ui.button("+ Add cell").clicked() {
                     let column = TimingTowerColumnElement {
                         id: Uuid::new_v4(),
-                        cell: CellStyleDef::default(),
+                        cell: CellElement::default(),
                         name: "Column".to_string(),
                     };
                     self.columns.push(column);
@@ -161,33 +127,6 @@ impl StyleElement for TimingTowerRowElement {
     }
     fn property_editor(&mut self, ui: &mut Ui) {
         cell_style_editor(ui, &mut self.cell);
-    }
-}
-
-impl TimingTowerRowElement {
-    pub fn from_style_def(style: &RowStyleDef) -> Self {
-        TimingTowerRowElement {
-            id: Uuid::new_v4(),
-            cell: style.cell.clone(),
-            columns: style
-                .columns
-                .iter()
-                .map(|c| TimingTowerColumnElement::from_style_def(c))
-                .collect(),
-        }
-    }
-
-    pub fn to_style_def(&self) -> RowStyleDef {
-        RowStyleDef {
-            cell: self.cell.clone(),
-            columns: {
-                let mut columns = Vec::new();
-                for column in self.columns.iter() {
-                    columns.push(column.to_style_def());
-                }
-                columns
-            },
-        }
     }
 }
 
@@ -211,22 +150,5 @@ impl StyleElement for TimingTowerColumnElement {
         ui.text_edit_singleline(&mut self.name);
         ui.separator();
         cell_style_editor(ui, &mut self.cell);
-    }
-}
-
-impl TimingTowerColumnElement {
-    pub fn from_style_def(style: &ColumnStyleDef) -> TimingTowerColumnElement {
-        TimingTowerColumnElement {
-            id: Uuid::new_v4(),
-            cell: style.cell.clone(),
-            name: style.name.clone(),
-        }
-    }
-
-    pub fn to_style_def(&self) -> ColumnStyleDef {
-        ColumnStyleDef {
-            cell: self.cell.clone(),
-            name: self.name.clone(),
-        }
     }
 }

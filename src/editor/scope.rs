@@ -1,15 +1,18 @@
 use std::collections::HashMap;
 
 use bevy::prelude::Color;
+use serde::{Deserialize, Serialize};
 
 use super::style_elements::{ColorProperty, NumberProperty, TextProperty};
 
+#[derive(Serialize, Deserialize, Clone)]
 pub enum Variable {
     Number(f32),
     Text(String),
     Color(Color),
 }
 
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Scope {
     pub vars: HashMap<String, Variable>,
 }

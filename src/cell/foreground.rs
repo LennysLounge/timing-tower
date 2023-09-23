@@ -7,7 +7,7 @@ use bevy::{
     text::{Text, Text2dBundle, TextStyle},
 };
 
-use crate::{cell::SetStyle, style_def::TextAlignment, DefaultFont};
+use crate::{cell::SetStyle, editor::style_elements::TextAlignment, DefaultFont};
 
 pub struct ForegroundPlugin;
 impl Plugin for ForegroundPlugin {

@@ -1,62 +1,28 @@
 {
-  "cell": {
-    "value_source": {
-      "FixedValue": ""
-    },
-    "color": {
-      "Rgba": {
-        "red": 0.0,
-        "green": 0.0,
-        "blue": 0.0,
-        "alpha": 0.0
-      }
-    },
-    "pos": [
-      39.0,
-      56.0,
-      0.0
-    ],
-    "size": [
-      700.0,
-      1000.0
-    ],
-    "skew": 3.0,
-    "visible": true,
-    "rounding": {
-      "top_left": 0.0,
-      "top_right": 0.0,
-      "bot_left": 0.0,
-      "bot_right": 0.0
-    },
-    "text_alginment": "Center",
-    "text_position": [
-      0.0,
-      0.0
-    ]
-  },
-  "table": {
+  "vars": {},
+  "timing_tower": {
     "cell": {
       "value_source": {
         "FixedValue": ""
       },
       "color": {
         "Rgba": {
-          "red": 0.0,
+          "red": 0.742857,
           "green": 0.0,
-          "blue": 0.0,
-          "alpha": 0.0
+          "blue": 1.0,
+          "alpha": 1.0
         }
       },
       "pos": [
-        0.0,
-        0.0,
+        338.0,
+        56.0,
         0.0
       ],
       "size": [
-        680.0,
-        1000.0
+        100.0,
+        100.0
       ],
-      "skew": 0.0,
+      "skew": 3.0,
       "visible": true,
       "rounding": {
         "top_left": 0.0,
@@ -70,11 +36,7 @@
         0.0
       ]
     },
-    "row_offset": [
-      0.0,
-      2.0
-    ],
-    "row_style": {
+    "table": {
       "cell": {
         "value_source": {
           "FixedValue": ""
@@ -88,13 +50,13 @@
           }
         },
         "pos": [
-          0.0,
+          113.0,
           0.0,
           0.0
         ],
         "size": [
-          660.0,
-          36.0
+          680.0,
+          1000.0
         ],
         "skew": 0.0,
         "visible": true,
@@ -110,125 +72,30 @@
           0.0
         ]
       },
-      "columns": {
-        "position": {
-          "value_source": "Position",
-          "color": {
-            "Rgba": {
-              "red": 0.0,
-              "green": 0.0,
-              "blue": 0.0,
-              "alpha": 1.0
-            }
-          },
-          "pos": [
-            0.0,
-            0.0,
-            3.0
-          ],
-          "size": [
-            36.0,
-            36.0
-          ],
-          "skew": 13.0,
-          "visible": true,
-          "rounding": {
-            "top_left": 12.0,
-            "top_right": 0.0,
-            "bot_left": 3.0,
-            "bot_right": 0.0
-          },
-          "text_alginment": "Center",
-          "text_position": [
-            24.5,
-            19.0
-          ]
-        },
-        "manufacturer": {
+      "row_offset": [
+        0.0,
+        2.0
+      ],
+      "row_style": {
+        "cell": {
           "value_source": {
-            "FixedValue": "M"
+            "FixedValue": ""
           },
-          "color": {
-            "Rgba": {
-              "red": 0.8549,
-              "green": 0.8549,
-              "blue": 0.8549,
-              "alpha": 1.0
-            }
-          },
-          "pos": [
-            189.0,
-            0.0,
-            1.0
-          ],
-          "size": [
-            36.0,
-            36.0
-          ],
-          "skew": 0.0,
-          "visible": true,
-          "rounding": {
-            "top_left": 0.0,
-            "top_right": 0.0,
-            "bot_left": 0.0,
-            "bot_right": 0.0
-          },
-          "text_alginment": "Center",
-          "text_position": [
-            18.0,
-            18.0
-          ]
-        },
-        "car_number": {
-          "value_source": "CarNumber",
-          "color": {
-            "Rgba": {
-              "red": 0.40197778,
-              "green": 0.40197778,
-              "blue": 0.40197778,
-              "alpha": 1.0
-            }
-          },
-          "pos": [
-            225.0,
-            0.0,
-            1.0
-          ],
-          "size": [
-            46.0,
-            36.0
-          ],
-          "skew": 0.0,
-          "visible": true,
-          "rounding": {
-            "top_left": 0.0,
-            "top_right": 0.0,
-            "bot_left": 0.0,
-            "bot_right": 0.0
-          },
-          "text_alginment": "Center",
-          "text_position": [
-            23.0,
-            18.0
-          ]
-        },
-        "driver_name": {
-          "value_source": "DriverName",
           "color": {
             "Rgba": {
               "red": 0.0,
               "green": 0.0,
               "blue": 0.0,
-              "alpha": 0.6904762
+              "alpha": 0.0
             }
           },
           "pos": [
-            32.0,
+            0.0,
             0.0,
             0.0
           ],
           "size": [
-            250.0,
+            660.0,
             36.0
           ],
           "skew": 0.0,
@@ -239,12 +106,160 @@
             "bot_left": 0.0,
             "bot_right": 0.0
           },
-          "text_alginment": "Left",
+          "text_alginment": "Center",
           "text_position": [
-            20.0,
-            19.0
+            0.0,
+            0.0
           ]
-        }
+        },
+        "columns": [
+          {
+            "cell": {
+              "value_source": "Position",
+              "color": {
+                "Rgba": {
+                  "red": 0.0,
+                  "green": 0.0,
+                  "blue": 0.0,
+                  "alpha": 1.0
+                }
+              },
+              "pos": [
+                0.0,
+                0.0,
+                3.0
+              ],
+              "size": [
+                36.0,
+                36.0
+              ],
+              "skew": 13.0,
+              "visible": true,
+              "rounding": {
+                "top_left": 12.0,
+                "top_right": 0.0,
+                "bot_left": 3.0,
+                "bot_right": 0.0
+              },
+              "text_alginment": "Center",
+              "text_position": [
+                24.5,
+                19.0
+              ]
+            },
+            "name": "position"
+          },
+          {
+            "cell": {
+              "value_source": "CarNumber",
+              "color": {
+                "Rgba": {
+                  "red": 0.40197778,
+                  "green": 0.40197778,
+                  "blue": 0.40197778,
+                  "alpha": 1.0
+                }
+              },
+              "pos": [
+                225.0,
+                0.0,
+                1.0
+              ],
+              "size": [
+                46.0,
+                36.0
+              ],
+              "skew": 0.0,
+              "visible": true,
+              "rounding": {
+                "top_left": 0.0,
+                "top_right": 0.0,
+                "bot_left": 0.0,
+                "bot_right": 0.0
+              },
+              "text_alginment": "Center",
+              "text_position": [
+                23.0,
+                18.0
+              ]
+            },
+            "name": "car number"
+          },
+          {
+            "cell": {
+              "value_source": "DriverName",
+              "color": {
+                "Rgba": {
+                  "red": 0.0,
+                  "green": 0.0,
+                  "blue": 0.0,
+                  "alpha": 0.6904762
+                }
+              },
+              "pos": [
+                32.0,
+                0.0,
+                0.0
+              ],
+              "size": [
+                250.0,
+                36.0
+              ],
+              "skew": 0.0,
+              "visible": true,
+              "rounding": {
+                "top_left": 0.0,
+                "top_right": 0.0,
+                "bot_left": 0.0,
+                "bot_right": 0.0
+              },
+              "text_alginment": "Left",
+              "text_position": [
+                20.0,
+                19.0
+              ]
+            },
+            "name": "driver name"
+          },
+          {
+            "cell": {
+              "value_source": {
+                "FixedValue": "M"
+              },
+              "color": {
+                "Rgba": {
+                  "red": 0.8549,
+                  "green": 0.8549,
+                  "blue": 0.8549,
+                  "alpha": 1.0
+                }
+              },
+              "pos": [
+                189.0,
+                0.0,
+                1.0
+              ],
+              "size": [
+                36.0,
+                36.0
+              ],
+              "skew": 0.0,
+              "visible": true,
+              "rounding": {
+                "top_left": 0.0,
+                "top_right": 0.0,
+                "bot_left": 0.0,
+                "bot_right": 0.0
+              },
+              "text_alginment": "Center",
+              "text_position": [
+                18.0,
+                18.0
+              ]
+            },
+            "name": "manufacturer"
+          }
+        ]
       }
     }
   }

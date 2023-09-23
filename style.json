@@ -1,6 +1,10 @@
 {
-  "vars": {},
+  "id": "a2191c04-bae5-49b4-9aee-1b55675aba4d",
+  "scope": {
+    "vars": {}
+  },
   "timing_tower": {
+    "id": "63777a7c-26e1-4bdc-a840-87ebf3bdcb41",
     "cell": {
       "value_source": {
         "FixedValue": ""
@@ -37,6 +41,7 @@
       ]
     },
     "table": {
+      "id": "9539afda-b875-433f-9bd0-af822088b55d",
       "cell": {
         "value_source": {
           "FixedValue": ""
@@ -76,7 +81,8 @@
         0.0,
         2.0
       ],
-      "row_style": {
+      "row": {
+        "id": "23c20135-9036-4628-9c86-5a8f2b39871b",
         "cell": {
           "value_source": {
             "FixedValue": ""
@@ -114,6 +120,7 @@
         },
         "columns": [
           {
+            "id": "7d96c8c6-c978-4258-83c4-9504bccf7256",
             "cell": {
               "value_source": "Position",
               "color": {
@@ -150,6 +157,7 @@
             "name": "position"
           },
           {
+            "id": "a275bdc4-ed4a-4dcb-a964-d0646598d64e",
             "cell": {
               "value_source": "CarNumber",
               "color": {
@@ -186,6 +194,7 @@
             "name": "car number"
           },
           {
+            "id": "95ab724b-b056-4e76-8153-2f9265aac3cb",
             "cell": {
               "value_source": "DriverName",
               "color": {
@@ -222,6 +231,7 @@
             "name": "driver name"
           },
           {
+            "id": "408863e5-c4d7-4721-bb58-2a3887551ea5",
             "cell": {
               "value_source": {
                 "FixedValue": "M"

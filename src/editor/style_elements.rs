@@ -1,20 +1,9 @@
-#![allow(unused)]
-
-use std::collections::HashMap;
-
-use bevy::prelude::{Color, Resource, Vec2};
-use bevy_egui::egui::{collapsing_header::CollapsingState, ComboBox, DragValue, Ui};
+use bevy::prelude::{Color, Resource, Vec2, Vec3};
+use bevy_egui::egui::{ComboBox, DragValue, Ui};
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::style_def::{
-    CellStyleDef, ColumnStyleDef, PropertyValue, RowStyleDef, SceneStyleDef, TableStyleDef,
-    TextAlignment, TimingTowerStyleDef, ValueSource, VariableDef,
-};
-
-use super::{
-    scope::{Scope, Variable},
-    timing_tower_elements::TimingTowerElement,
-};
+use super::{scope::Scope, timing_tower_elements::TimingTowerElement};
 
 pub trait StyleElement {
     fn element_tree(&mut self, ui: &mut Ui, selected_element: &mut Option<Uuid>);
@@ -22,11 +11,24 @@ pub trait StyleElement {
     fn property_editor(&mut self, ui: &mut Ui);
 }
 
-#[derive(Resource)]
+#[derive(Serialize, Deserialize, Clone, Resource)]
 pub struct SceneElement {
     pub id: Uuid,
     pub scope: Scope,
     pub timing_tower: TimingTowerElement,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct CellElement {
+    pub value_source: ValueSource,
+    pub color: Color,
+    pub pos: Vec3,
+    pub size: Vec2,
+    pub skew: f32,
+    pub visible: bool,
+    pub rounding: Rounding,
+    pub text_alginment: TextAlignment,
+    pub text_position: Vec2,
 }
 
 pub enum NumberProperty {
@@ -44,6 +46,48 @@ pub enum ColorProperty {
     Ref(String),
 }
 
+#[derive(Serialize, Deserialize, Clone)]
+pub enum ValueSource {
+    FixedValue(String),
+    DriverName,
+    Position,
+    CarNumber,
+}
+
+#[derive(Serialize, Deserialize, Clone, Default)]
+pub struct Rounding {
+    pub top_left: f32,
+    pub top_right: f32,
+    pub bot_left: f32,
+    pub bot_right: f32,
+}
+
+#[derive(Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
+pub enum TextAlignment {
+    #[default]
+    Left,
+    Center,
+    Right,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub enum PropertyValue {
+    VarRef(String),
+    #[serde(untagged)]
+    Text(String),
+    #[serde(untagged)]
+    Color(Color),
+    #[serde(untagged)]
+    Number(f32),
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub enum VariableDef {
+    Number(f32),
+    Text(String),
+    Color(Color),
+}
+
 impl StyleElement for SceneElement {
     fn element_tree(&mut self, ui: &mut Ui, selected_element: &mut Option<Uuid>) {
         self.timing_tower.element_tree(ui, selected_element);
@@ -58,92 +102,23 @@ impl StyleElement for SceneElement {
     }
 }
 
-impl SceneElement {
-    pub fn from_style_def(style: &SceneStyleDef) -> Self {
+impl Default for CellElement {
+    fn default() -> Self {
         Self {
-            id: Uuid::new_v4(),
-            timing_tower: TimingTowerElement::from_style_def(&style.timing_tower),
-            scope: Scope::from_style_def(&style.vars),
-        }
-    }
-    pub fn to_style_def(&self) -> SceneStyleDef {
-        SceneStyleDef {
-            timing_tower: TimingTowerElement::to_style_def(&self.timing_tower),
-            vars: HashMap::new(),
-        }
-    }
-}
-
-impl Scope {
-    pub fn from_style_def(style: &HashMap<String, VariableDef>) -> Self {
-        let mut vars = HashMap::new();
-        for (var_name, def) in style {
-            vars.insert(
-                var_name.clone(),
-                match def {
-                    VariableDef::Number(n) => Variable::Number(*n),
-                    VariableDef::Text(s) => Variable::Text(s.clone()),
-                    VariableDef::Color(c) => Variable::Color(c.clone()),
-                },
-            );
-        }
-        Self { vars }
-    }
-}
-
-impl NumberProperty {
-    pub fn from_style_def(prop: &PropertyValue) -> Option<Self> {
-        match prop {
-            PropertyValue::Number(n) => Some(NumberProperty::Fixed(n.clone())),
-            PropertyValue::Text(_) => None,
-            PropertyValue::Color(_) => None,
-            PropertyValue::VarRef(name) => Some(NumberProperty::Ref(name.clone())),
-        }
-    }
-    pub fn to_style_def(&self) -> PropertyValue {
-        match self {
-            NumberProperty::Fixed(n) => PropertyValue::Number(n.clone()),
-            NumberProperty::Ref(name) => PropertyValue::VarRef(name.clone()),
+            value_source: ValueSource::FixedValue("Column".to_string()),
+            color: Color::PURPLE,
+            pos: Vec3::new(10.0, 10.0, 0.0),
+            size: Vec2::new(30.0, 30.0),
+            skew: 0.0,
+            visible: true,
+            rounding: Rounding::default(),
+            text_alginment: TextAlignment::default(),
+            text_position: Vec2::new(5.0, 15.0),
         }
     }
 }
 
-impl TextProperty {
-    pub fn from_style_def(prop: &PropertyValue) -> Option<Self> {
-        match prop {
-            PropertyValue::Number(n) => Some(TextProperty::Fixed(format!("{n}"))),
-            PropertyValue::Text(s) => Some(TextProperty::Fixed(s.clone())),
-            PropertyValue::Color(_) => None,
-            PropertyValue::VarRef(name) => Some(TextProperty::Ref(name.clone())),
-        }
-    }
-    pub fn to_style_def(&self) -> PropertyValue {
-        match self {
-            TextProperty::Fixed(t) => PropertyValue::Text(t.clone()),
-            TextProperty::Ref(name) => PropertyValue::VarRef(name.clone()),
-        }
-    }
-}
-
-impl ColorProperty {
-    pub fn from_style_def(prop: &PropertyValue) -> Option<Self> {
-        match prop {
-            PropertyValue::Number(_) => None,
-            PropertyValue::Text(_) => None,
-            PropertyValue::Color(c) => Some(ColorProperty::Fixed(c.clone())),
-            PropertyValue::VarRef(name) => Some(ColorProperty::Ref(name.clone())),
-        }
-    }
-
-    pub fn to_style_def(&self) -> PropertyValue {
-        match self {
-            ColorProperty::Fixed(c) => PropertyValue::Color(c.clone()),
-            ColorProperty::Ref(name) => PropertyValue::VarRef(name.clone()),
-        }
-    }
-}
-
-pub fn cell_style_editor(ui: &mut Ui, style: &mut CellStyleDef) {
+pub fn cell_style_editor(ui: &mut Ui, style: &mut CellElement) {
     ui.label("Cell:");
     ui.horizontal(|ui| {
         ui.label("Visible:");

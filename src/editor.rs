@@ -15,7 +15,7 @@ use bevy_egui::{
 use tracing::error;
 use uuid::Uuid;
 
-use crate::{style_def::SceneStyleDef, timing_tower::TimingTower, MainCamera};
+use crate::MainCamera;
 
 use self::style_elements::{SceneElement, StyleElement};
 
@@ -51,7 +51,7 @@ pub fn setup(mut ctx: EguiContexts) {
     dear_egui::set_theme(ctx.ctx_mut(), dear_egui::SKY);
 }
 
-fn save_style(style: &SceneStyleDef) {
+fn save_style(style: &SceneElement) {
     let s = match serde_json::to_string_pretty(style) {
         Ok(s) => s,
         Err(e) => {
@@ -77,7 +77,6 @@ fn run_egui_main(
     mut occupied_space: ResMut<OccupiedSpace>,
     mut state: ResMut<EditorState>,
     mut scene: ResMut<SceneElement>,
-    mut towers: Query<&mut TimingTower>,
 ) {
     let EditorState {
         selected_element, ..
@@ -86,7 +85,7 @@ fn run_egui_main(
     occupied_space.0 = egui::SidePanel::left("Editor panel")
         .show(ctx.ctx_mut(), |ui| {
             if ui.button("Save").clicked() {
-                save_style(&scene.to_style_def());
+                save_style(&scene);
             }
 
             egui::Frame::group(ui.style()).show(ui, |ui| {
@@ -122,10 +121,6 @@ fn run_egui_main(
         .response
         .rect
         .width();
-    //push new style to the towers
-    for mut tower in towers.iter_mut() {
-        tower.style_def = scene.timing_tower.to_style_def();
-    }
 }
 
 fn update_camera(

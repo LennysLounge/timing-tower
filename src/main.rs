@@ -17,10 +17,12 @@ use bevy::{
 };
 use bevy_egui::EguiPlugin;
 use cell::{init_cell, CellPlugin, CellStyle, SetStyle};
-use editor::{style_elements::SceneElement, EditorPlugin, EditorState};
+use editor::{
+    style_elements::{Rounding, SceneElement, TextAlignment},
+    EditorPlugin, EditorState,
+};
 use gradient_material::CustomMaterialPlugin;
 
-use style_def::{Rounding, TextAlignment};
 use timing_tower::{init_timing_tower, TimingTowerPlugin};
 use unified_sim_model::Adapter;
 
@@ -28,7 +30,7 @@ mod cell;
 mod editor;
 mod gradient_material;
 mod property;
-mod style_def;
+//mod style_def;
 mod timing_tower;
 
 fn main() {
@@ -91,7 +93,7 @@ fn setup(mut commands: Commands, mut set_style_event: EventWriter<SetStyle>) {
         }
         Ok(s) => s,
     };
-    let style_def = match serde_json::from_str::<style_def::SceneStyleDef>(&s) {
+    let scene = match serde_json::from_str::<SceneElement>(&s) {
         Ok(o) => o,
         Err(e) => {
             println!("Error parsing json: {}", e);
@@ -120,15 +122,13 @@ fn setup(mut commands: Commands, mut set_style_event: EventWriter<SetStyle>) {
         },
     });
 
-    commands.insert_resource(SceneElement::from_style_def(&style_def));
+    commands.insert_resource(scene.clone());
 
     commands.insert_resource(EditorState {
         selected_element: None,
     });
 
-    commands
-        .spawn_empty()
-        .add(init_timing_tower(style_def.timing_tower, adapter));
+    commands.spawn_empty().add(init_timing_tower(adapter));
 }
 
 fn move_top_left(

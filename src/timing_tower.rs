@@ -15,8 +15,10 @@ use unified_sim_model::{
 
 use crate::{
     cell::{init_cell, CellStyle, SetStyle},
-    editor::{scope::Scope, style_elements::SceneElement},
-    style_def::{CellStyleDef, TimingTowerStyleDef, ValueSource},
+    editor::{
+        scope::Scope,
+        style_elements::{CellElement, SceneElement, ValueSource},
+    },
     MainCamera, SpawnAndInitWorld,
 };
 
@@ -38,7 +40,6 @@ pub struct TimingTowerBundle {
 
 #[derive(Component)]
 pub struct TimingTower {
-    pub style_def: TimingTowerStyleDef,
     pub adapter: Adapter,
     pub table_id: Entity,
 }
@@ -59,7 +60,7 @@ pub struct Row {
 #[derive(Component)]
 struct LogPosition(Vec3);
 
-pub fn init_timing_tower(style_def: TimingTowerStyleDef, adapter: Adapter) -> impl EntityCommand {
+pub fn init_timing_tower(adapter: Adapter) -> impl EntityCommand {
     |tower_id: Entity, world: &mut World| {
         let table_id = world
             .spawn_new(init_cell)
@@ -72,11 +73,7 @@ pub fn init_timing_tower(style_def: TimingTowerStyleDef, adapter: Adapter) -> im
         init_cell(tower_id, world);
         world
             .entity_mut(tower_id)
-            .insert(TimingTower {
-                style_def,
-                adapter,
-                table_id,
-            })
+            .insert(TimingTower { adapter, table_id })
             .insert(LogPosition(Vec3::ZERO))
             .add_child(table_id);
     }
@@ -102,7 +99,7 @@ pub fn update_tower(
             continue;
         };
 
-        let mut style = create_cell_style(&tower.style_def.cell, entry, &scene.scope);
+        let mut style = create_cell_style(&scene.timing_tower.cell, entry, &scene.scope);
         // The cell position is relative to its parent. The timing tower itself doesnt
         // have a parent so this needs to be added to get it into the right position.
         let top_left = camera
@@ -139,7 +136,7 @@ fn update_table(
             continue;
         };
 
-        let mut style = create_cell_style(&tower.style_def.table.cell, entry, &scene.scope);
+        let mut style = create_cell_style(&scene.timing_tower.table.cell, entry, &scene.scope);
         style.pos.z += 1.0;
         set_style_event.send(SetStyle {
             entity: table_id.clone(),
@@ -174,7 +171,7 @@ fn update_rows(
                 let row_id = commands.spawn_empty().add(init_cell).id();
                 // create all necessairy cells for rows.
                 let mut columns = HashMap::new();
-                for column in tower.style_def.table.row_style.columns.iter() {
+                for column in scene.timing_tower.table.row.columns.iter() {
                     let cell_id = commands.spawn_empty().add(init_cell).id();
                     columns.insert(column.name.clone(), cell_id);
                     commands.entity(row_id).add_child(cell_id);
@@ -208,7 +205,7 @@ fn update_rows(
             };
 
             let mut style =
-                create_cell_style(&tower.style_def.table.row_style.cell, entry, &scene.scope);
+                create_cell_style(&scene.timing_tower.table.row.cell, entry, &scene.scope);
             style.pos += Vec3::new(offset.x, offset.y, 1.0);
             let row_height = style.size.y;
             set_style_event.send(SetStyle {
@@ -217,7 +214,7 @@ fn update_rows(
             });
 
             offset.y -= row_height;
-            offset -= tower.style_def.table.row_offset * Vec2::new(-1.0, 1.0);
+            offset -= scene.timing_tower.table.row_offset * Vec2::new(-1.0, 1.0);
         }
     }
 }
@@ -245,7 +242,7 @@ fn update_columns(
             continue;
         };
 
-        for column in tower.style_def.table.row_style.columns.iter() {
+        for column in scene.timing_tower.table.row.columns.iter() {
             let Some(cell_id) = row.columns.get(&column.name) else {
                 continue;
             };
@@ -260,8 +257,8 @@ fn update_columns(
     }
 }
 
-fn create_cell_style(style_def: &CellStyleDef, entry: &Entry, scope: &Scope) -> CellStyle {
-    let text = match &style_def.value_source {
+fn create_cell_style(cell: &CellElement, entry: &Entry, _scope: &Scope) -> CellStyle {
+    let text = match &cell.value_source {
         ValueSource::FixedValue(s) => s.clone(),
         ValueSource::DriverName => {
             let driver = entry.drivers.get(&entry.current_driver).and_then(|d| {
@@ -280,14 +277,14 @@ fn create_cell_style(style_def: &CellStyleDef, entry: &Entry, scope: &Scope) -> 
 
     CellStyle {
         text,
-        text_alignment: style_def.text_alginment.clone(),
-        text_position: style_def.text_position.clone(),
-        color: style_def.color,
+        text_alignment: cell.text_alginment.clone(),
+        text_position: cell.text_position.clone(),
+        color: cell.color,
         texture: None,
-        pos: style_def.pos * Vec3::new(1.0, -1.0, 1.0),
-        size: style_def.size,
-        skew: style_def.skew,
-        visible: style_def.visible,
-        rounding: style_def.rounding.clone(),
+        pos: cell.pos * Vec3::new(1.0, -1.0, 1.0),
+        size: cell.size,
+        skew: cell.skew,
+        visible: cell.visible,
+        rounding: cell.rounding.clone(),
     }
 }

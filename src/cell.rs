@@ -10,8 +10,8 @@ use bevy::{
 };
 
 use crate::{
+    editor::style_elements::{Rounding, TextAlignment},
     gradient_material::{Gradient, GradientMaterial},
-    style_def::{Rounding, TextAlignment},
     DefaultFont,
 };
 

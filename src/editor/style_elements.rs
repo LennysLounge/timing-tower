@@ -1,9 +1,14 @@
+use std::sync::Weak;
+
 use bevy::prelude::{Color, Resource, Vec2, Vec3};
 use bevy_egui::egui::{ComboBox, DragValue, Ui};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::{scope::Scope, timing_tower_elements::TimingTowerElement};
+use super::{
+    scope::{Variable, VariablesElement},
+    timing_tower_elements::TimingTowerElement,
+};
 
 pub trait StyleElement {
     fn element_tree(&mut self, ui: &mut Ui, selected_element: &mut Option<Uuid>);
@@ -12,16 +17,16 @@ pub trait StyleElement {
 }
 
 #[derive(Serialize, Deserialize, Clone, Resource)]
-pub struct SceneElement {
+pub struct RootElement {
     pub id: Uuid,
-    pub scope: Scope,
+    pub vars: VariablesElement,
     pub timing_tower: TimingTowerElement,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct CellElement {
     pub value_source: ValueSource,
-    pub color: Color,
+    pub color: ColorProperty,
     pub pos: Vec3,
     pub size: Vec2,
     pub skew: f32,
@@ -31,19 +36,32 @@ pub struct CellElement {
     pub text_position: Vec2,
 }
 
+#[derive(Serialize, Deserialize, Clone)]
 pub enum NumberProperty {
+    Ref(VariableReference),
+    #[serde(untagged)]
     Fixed(f32),
-    Ref(String),
 }
 
+#[derive(Serialize, Deserialize, Clone)]
 pub enum TextProperty {
+    Ref(VariableReference),
+    #[serde(untagged)]
     Fixed(String),
-    Ref(String),
 }
 
+#[derive(Serialize, Deserialize, Clone)]
 pub enum ColorProperty {
+    Ref(VariableReference),
+    #[serde(untagged)]
     Fixed(Color),
-    Ref(String),
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct VariableReference {
+    pub id: Uuid,
+    #[serde(skip)]
+    pub reference: Weak<Variable>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -88,13 +106,16 @@ pub enum VariableDef {
     Color(Color),
 }
 
-impl StyleElement for SceneElement {
+impl StyleElement for RootElement {
     fn element_tree(&mut self, ui: &mut Ui, selected_element: &mut Option<Uuid>) {
+        self.vars.element_tree(ui, selected_element);
         self.timing_tower.element_tree(ui, selected_element);
     }
 
     fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn StyleElement> {
-        self.timing_tower.find_mut(id)
+        self.vars
+            .find_mut(id)
+            .or_else(|| self.timing_tower.find_mut(id))
     }
 
     fn property_editor(&mut self, ui: &mut Ui) {
@@ -106,7 +127,7 @@ impl Default for CellElement {
     fn default() -> Self {
         Self {
             value_source: ValueSource::FixedValue("Column".to_string()),
-            color: Color::PURPLE,
+            color: ColorProperty::Fixed(Color::PURPLE),
             pos: Vec3::new(10.0, 10.0, 0.0),
             size: Vec2::new(30.0, 30.0),
             skew: 0.0,
@@ -202,9 +223,16 @@ pub fn cell_style_editor(ui: &mut Ui, style: &mut CellElement) {
     });
     ui.horizontal(|ui| {
         ui.label("Background color:");
-        let mut color = style.color.as_rgba_f32();
-        ui.color_edit_button_rgba_unmultiplied(&mut color);
-        style.color = color.into();
+        match &mut style.color {
+            ColorProperty::Fixed(c) => {
+                let mut color = c.as_rgba_f32();
+                ui.color_edit_button_rgba_unmultiplied(&mut color);
+                *c = color.into();
+            }
+            ColorProperty::Ref(var_ref) => {
+                ui.label(format!("ref( {} )", var_ref.id));
+            }
+        }
     });
     ui.horizontal(|ui| {
         ui.label("Pos x:");

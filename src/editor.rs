@@ -17,7 +17,7 @@ use uuid::Uuid;
 
 use crate::MainCamera;
 
-use self::style_elements::{SceneElement, StyleElement};
+use self::style_elements::{RootElement, StyleElement};
 
 pub mod scope;
 pub mod style_elements;
@@ -51,7 +51,7 @@ pub fn setup(mut ctx: EguiContexts) {
     dear_egui::set_theme(ctx.ctx_mut(), dear_egui::SKY);
 }
 
-fn save_style(style: &SceneElement) {
+fn save_style(style: &RootElement) {
     let s = match serde_json::to_string_pretty(style) {
         Ok(s) => s,
         Err(e) => {
@@ -76,7 +76,7 @@ fn run_egui_main(
     mut ctx: EguiContexts,
     mut occupied_space: ResMut<OccupiedSpace>,
     mut state: ResMut<EditorState>,
-    mut scene: ResMut<SceneElement>,
+    mut root: ResMut<RootElement>,
 ) {
     let EditorState {
         selected_element, ..
@@ -85,12 +85,12 @@ fn run_egui_main(
     occupied_space.0 = egui::SidePanel::left("Editor panel")
         .show(ctx.ctx_mut(), |ui| {
             if ui.button("Save").clicked() {
-                save_style(&scene);
+                save_style(&root);
             }
 
             egui::Frame::group(ui.style()).show(ui, |ui| {
                 egui::ScrollArea::vertical().show(ui, |ui| {
-                    scene.element_tree(ui, selected_element);
+                    root.element_tree(ui, selected_element);
                 });
                 ui.allocate_rect(
                     Rect::from_min_size(
@@ -112,7 +112,7 @@ fn run_egui_main(
 
     egui::SidePanel::right("Property panel")
         .show(ctx.ctx_mut(), |ui| {
-            if let Some(element) = selected_element.and_then(|id| scene.find_mut(&id)) {
+            if let Some(element) = selected_element.and_then(|id| root.find_mut(&id)) {
                 element.property_editor(ui);
             }
 

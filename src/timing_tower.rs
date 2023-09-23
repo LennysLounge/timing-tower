@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use bevy::{
     ecs::system::EntityCommand,
     prelude::{
-        BuildChildren, BuildWorldChildren, Bundle, Camera, Commands, Component, Entity,
+        BuildChildren, BuildWorldChildren, Bundle, Camera, Color, Commands, Component, Entity,
         EventWriter, GlobalTransform, IntoSystemConfigs, Plugin, Query, Res, SpatialBundle, Update,
         Vec2, Vec3, With, World,
     },
@@ -16,8 +16,8 @@ use unified_sim_model::{
 use crate::{
     cell::{init_cell, CellStyle, SetStyle},
     editor::{
-        scope::Scope,
-        style_elements::{CellElement, SceneElement, ValueSource},
+        scope::VariablesElement,
+        style_elements::{CellElement, RootElement, ValueSource},
     },
     MainCamera, SpawnAndInitWorld,
 };
@@ -81,7 +81,7 @@ pub fn init_timing_tower(adapter: Adapter) -> impl EntityCommand {
 
 pub fn update_tower(
     main_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
-    scene: Res<SceneElement>,
+    scene: Res<RootElement>,
     mut towers: Query<(Entity, &TimingTower), With<TimingTower>>,
     mut set_style_event: EventWriter<SetStyle>,
 ) {
@@ -99,7 +99,7 @@ pub fn update_tower(
             continue;
         };
 
-        let mut style = create_cell_style(&scene.timing_tower.cell, entry, &scene.scope);
+        let mut style = create_cell_style(&scene.timing_tower.cell, entry, &scene.vars);
         // The cell position is relative to its parent. The timing tower itself doesnt
         // have a parent so this needs to be added to get it into the right position.
         let top_left = camera
@@ -116,7 +116,7 @@ pub fn update_tower(
 fn update_table(
     tables: Query<(Entity, &Table)>,
     towers: Query<&TimingTower>,
-    scene: Res<SceneElement>,
+    scene: Res<RootElement>,
     mut set_style_event: EventWriter<SetStyle>,
 ) {
     for (table_id, table) in tables.iter() {
@@ -136,7 +136,7 @@ fn update_table(
             continue;
         };
 
-        let mut style = create_cell_style(&scene.timing_tower.table.cell, entry, &scene.scope);
+        let mut style = create_cell_style(&scene.timing_tower.table.cell, entry, &scene.vars);
         style.pos.z += 1.0;
         set_style_event.send(SetStyle {
             entity: table_id.clone(),
@@ -147,7 +147,7 @@ fn update_table(
 
 fn update_rows(
     towers: Query<&TimingTower>,
-    scene: Res<SceneElement>,
+    scene: Res<RootElement>,
     mut tables: Query<(Entity, &mut Table)>,
     mut commands: Commands,
     mut set_style_event: EventWriter<SetStyle>,
@@ -205,7 +205,7 @@ fn update_rows(
             };
 
             let mut style =
-                create_cell_style(&scene.timing_tower.table.row.cell, entry, &scene.scope);
+                create_cell_style(&scene.timing_tower.table.row.cell, entry, &scene.vars);
             style.pos += Vec3::new(offset.x, offset.y, 1.0);
             let row_height = style.size.y;
             set_style_event.send(SetStyle {
@@ -222,7 +222,7 @@ fn update_rows(
 fn update_columns(
     rows: Query<&Row>,
     towers: Query<&TimingTower>,
-    scene: Res<SceneElement>,
+    scene: Res<RootElement>,
     mut set_style_event: EventWriter<SetStyle>,
 ) {
     for row in rows.iter() {
@@ -247,7 +247,7 @@ fn update_columns(
                 continue;
             };
 
-            let mut style = create_cell_style(&column.cell, entry, &scene.scope);
+            let mut style = create_cell_style(&column.cell, entry, &scene.vars);
             style.pos += Vec3::new(0.0, 0.0, 1.0);
             set_style_event.send(SetStyle {
                 entity: cell_id.clone(),
@@ -257,7 +257,7 @@ fn update_columns(
     }
 }
 
-fn create_cell_style(cell: &CellElement, entry: &Entry, _scope: &Scope) -> CellStyle {
+fn create_cell_style(cell: &CellElement, entry: &Entry, scope: &VariablesElement) -> CellStyle {
     let text = match &cell.value_source {
         ValueSource::FixedValue(s) => s.clone(),
         ValueSource::DriverName => {
@@ -279,7 +279,7 @@ fn create_cell_style(cell: &CellElement, entry: &Entry, _scope: &Scope) -> CellS
         text,
         text_alignment: cell.text_alginment.clone(),
         text_position: cell.text_position.clone(),
-        color: cell.color,
+        color: scope.get_color(&cell.color).unwrap_or(Color::RED),
         texture: None,
         pos: cell.pos * Vec3::new(1.0, -1.0, 1.0),
         size: cell.size,

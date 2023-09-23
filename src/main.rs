@@ -18,7 +18,7 @@ use bevy::{
 use bevy_egui::EguiPlugin;
 use cell::{init_cell, CellPlugin, CellStyle, SetStyle};
 use editor::{
-    style_elements::{Rounding, SceneElement, TextAlignment},
+    style_elements::{RootElement, Rounding, TextAlignment},
     EditorPlugin, EditorState,
 };
 use gradient_material::CustomMaterialPlugin;
@@ -93,7 +93,7 @@ fn setup(mut commands: Commands, mut set_style_event: EventWriter<SetStyle>) {
         }
         Ok(s) => s,
     };
-    let scene = match serde_json::from_str::<SceneElement>(&s) {
+    let scene = match serde_json::from_str::<RootElement>(&s) {
         Ok(o) => o,
         Err(e) => {
             println!("Error parsing json: {}", e);

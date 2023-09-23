@@ -1,7 +1,20 @@
 {
   "id": "a2191c04-bae5-49b4-9aee-1b55675aba4d",
-  "scope": {
-    "vars": {}
+  "vars": {
+    "vars": [
+      {
+        "id": "e9072d1c-a528-43c7-9260-41ea3f1c495c",
+        "name": "bg color",
+        "var_type": {
+          "Rgba": {
+            "red": 0.37088037,
+            "green": 0.15541652,
+            "blue": 0.15541652,
+            "alpha": 1.0
+          }
+        }
+      }
+    ]
   },
   "timing_tower": {
     "id": "63777a7c-26e1-4bdc-a840-87ebf3bdcb41",
@@ -124,11 +137,8 @@
             "cell": {
               "value_source": "Position",
               "color": {
-                "Rgba": {
-                  "red": 0.0,
-                  "green": 0.0,
-                  "blue": 0.0,
-                  "alpha": 1.0
+                "Ref": {
+                  "id": "e9072d1c-a528-43c7-9260-41ea3f1c495c"
                 }
               },
               "pos": [

@@ -31,7 +31,6 @@ use variable_repo::VariableRepo;
 mod cell;
 mod editor;
 mod gradient_material;
-mod property;
 //mod style_def;
 mod timing_tower;
 mod variable_repo;

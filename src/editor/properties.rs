@@ -9,28 +9,23 @@ use super::variable_element::VariableType;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub enum NumberProperty {
-    Ref(VariableReference),
+    Ref(Uuid),
     #[serde(untagged)]
     Fixed(f32),
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub enum TextProperty {
-    Ref(VariableReference),
+    Ref(Uuid),
     #[serde(untagged)]
     Fixed(String),
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub enum ColorProperty {
-    Ref(VariableReference),
+    Ref(Uuid),
     #[serde(untagged)]
     Fixed(Color),
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct VariableReference {
-    pub id: Uuid,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -66,14 +61,14 @@ impl TextProperty {
                     });
                     for var in color_vars {
                         if ui.selectable_label(false, &var.name).clicked() {
-                            *self = TextProperty::Ref(VariableReference { id: var.id.clone() });
+                            *self = TextProperty::Ref(var.id.clone());
                             ui.memory_mut(|mem| mem.close_popup());
                         }
                     }
                 });
             }
             TextProperty::Ref(var_ref) => {
-                if let Some(var) = vars.get_var(&var_ref.id) {
+                if let Some(var) = vars.get_var(&var_ref) {
                     ui.label(format!("[ {} ]", var.name));
                 } else {
                     ui.label(format!("Invalid variable reference"));
@@ -104,14 +99,14 @@ impl NumberProperty {
                         .filter(|var| matches!(var.var_type, VariableType::Number(_)));
                     for var in color_vars {
                         if ui.selectable_label(false, &var.name).clicked() {
-                            *self = NumberProperty::Ref(VariableReference { id: var.id.clone() });
+                            *self = NumberProperty::Ref(var.id.clone());
                             ui.memory_mut(|mem| mem.close_popup());
                         }
                     }
                 });
             }
             NumberProperty::Ref(var_ref) => {
-                if let Some(var) = vars.get_var(&var_ref.id) {
+                if let Some(var) = vars.get_var(&var_ref) {
                     ui.label(format!("[ {} ]", var.name));
                 } else {
                     ui.label(format!("Invalid variable reference"));
@@ -146,14 +141,14 @@ impl ColorProperty {
                         .filter(|var| matches!(var.var_type, VariableType::Color(_)));
                     for var in color_vars {
                         if ui.selectable_label(false, &var.name).clicked() {
-                            *self = ColorProperty::Ref(VariableReference { id: var.id.clone() });
+                            *self = ColorProperty::Ref(var.id.clone());
                             ui.memory_mut(|mem| mem.close_popup());
                         }
                     }
                 });
             }
             ColorProperty::Ref(var_ref) => {
-                if let Some(var) = vars.get_var(&var_ref.id) {
+                if let Some(var) = vars.get_var(&var_ref) {
                     ui.label(format!("[ {} ]", var.name));
                 } else {
                     ui.label(format!("Invalid variable reference"));

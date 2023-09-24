@@ -30,12 +30,11 @@ impl VariableRepo {
         match property {
             NumberProperty::Fixed(n) => Some(*n),
             NumberProperty::Ref(var_ref) => {
-                self.get_var(&var_ref.id)
-                    .and_then(|var| match &var.var_type {
-                        VariableType::Number(n) => Some(*n),
-                        VariableType::Text(_) => None,
-                        VariableType::Color(_) => None,
-                    })
+                self.get_var(&var_ref).and_then(|var| match &var.var_type {
+                    VariableType::Number(n) => Some(*n),
+                    VariableType::Text(_) => None,
+                    VariableType::Color(_) => None,
+                })
             }
         }
     }
@@ -43,7 +42,7 @@ impl VariableRepo {
     pub fn get_text(&self, property: &TextProperty) -> Option<String> {
         match property {
             TextProperty::Fixed(n) => Some(n.clone()),
-            TextProperty::Ref(id) => self.get_var(&id.id).and_then(|var| match &var.var_type {
+            TextProperty::Ref(id) => self.get_var(&id).and_then(|var| match &var.var_type {
                 VariableType::Number(n) => Some(format!("{n}")),
                 VariableType::Text(s) => Some(s.clone()),
                 VariableType::Color(_) => None,
@@ -54,7 +53,7 @@ impl VariableRepo {
     pub fn get_color(&self, property: &ColorProperty) -> Option<Color> {
         match property {
             ColorProperty::Fixed(n) => Some(n.clone()),
-            ColorProperty::Ref(id) => self.get_var(&id.id).and_then(|var| match &var.var_type {
+            ColorProperty::Ref(id) => self.get_var(&id).and_then(|var| match &var.var_type {
                 VariableType::Number(_) => None,
                 VariableType::Text(_) => None,
                 VariableType::Color(c) => Some(c.clone()),

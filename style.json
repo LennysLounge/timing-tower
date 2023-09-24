@@ -141,9 +141,7 @@
             "cell": {
               "value_source": "1",
               "color": {
-                "Ref": {
-                  "id": "e9072d1c-a528-43c7-9260-41ea3f1c495c"
-                }
+                "Ref": "e9072d1c-a528-43c7-9260-41ea3f1c495c"
               },
               "pos": [
                 0.0,
@@ -155,9 +153,7 @@
                 36.0
               ],
               "skew": {
-                "Ref": {
-                  "id": "64e97ffd-ee13-4fb1-9c38-a6d4b4a38cb8"
-                }
+                "Ref": "64e97ffd-ee13-4fb1-9c38-a6d4b4a38cb8"
               },
               "visible": true,
               "rounding": {
@@ -215,9 +211,7 @@
             "id": "95ab724b-b056-4e76-8153-2f9265aac3cb",
             "cell": {
               "value_source": {
-                "Ref": {
-                  "id": "aff50918-9bff-42f6-880a-f6f29ffce9b2"
-                }
+                "Ref": "aff50918-9bff-42f6-880a-f6f29ffce9b2"
               },
               "color": {
                 "Rgba": {

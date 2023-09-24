@@ -5,7 +5,11 @@ use uuid::Uuid;
 
 use crate::variable_repo::VariableRepo;
 
-use super::{timing_tower_elements::TimingTowerElement, variable_element::VariablesElement};
+use super::{
+    properties::{ColorProperty, NumberProperty},
+    timing_tower_elements::TimingTowerElement,
+    variable_element::VariablesElement,
+};
 
 pub trait StyleElement {
     fn element_tree(&mut self, ui: &mut Ui, selected_element: &mut Option<Uuid>);
@@ -26,37 +30,11 @@ pub struct CellElement {
     pub color: ColorProperty,
     pub pos: Vec3,
     pub size: Vec2,
-    pub skew: f32,
+    pub skew: NumberProperty,
     pub visible: bool,
     pub rounding: Rounding,
     pub text_alginment: TextAlignment,
     pub text_position: Vec2,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub enum NumberProperty {
-    Ref(VariableReference),
-    #[serde(untagged)]
-    Fixed(f32),
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub enum TextProperty {
-    Ref(VariableReference),
-    #[serde(untagged)]
-    Fixed(String),
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub enum ColorProperty {
-    Ref(VariableReference),
-    #[serde(untagged)]
-    Fixed(Color),
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct VariableReference {
-    pub id: Uuid,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -81,17 +59,6 @@ pub enum TextAlignment {
     Left,
     Center,
     Right,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub enum PropertyValue {
-    VarRef(String),
-    #[serde(untagged)]
-    Text(String),
-    #[serde(untagged)]
-    Color(Color),
-    #[serde(untagged)]
-    Number(f32),
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -125,7 +92,7 @@ impl Default for CellElement {
             color: ColorProperty::Fixed(Color::PURPLE),
             pos: Vec3::new(10.0, 10.0, 0.0),
             size: Vec2::new(30.0, 30.0),
-            skew: 0.0,
+            skew: NumberProperty::Fixed(12.0),
             visible: true,
             rounding: Rounding::default(),
             text_alginment: TextAlignment::default(),
@@ -219,20 +186,7 @@ impl CellElement {
         });
         ui.horizontal(|ui| {
             ui.label("Background color:");
-            match &mut self.color {
-                ColorProperty::Fixed(c) => {
-                    let mut color = c.as_rgba_f32();
-                    ui.color_edit_button_rgba_unmultiplied(&mut color);
-                    *c = color.into();
-                }
-                ColorProperty::Ref(var_ref) => {
-                    if let Some(var) = vars.get_var(&var_ref.id) {
-                        ui.label(format!("Ref[ {} ]", var.name));
-                    } else {
-                        ui.label(format!("Invalid variable reference"));
-                    }
-                }
-            }
+            self.color.editor(ui, vars);
         });
         ui.horizontal(|ui| {
             ui.label("Pos x:");
@@ -256,7 +210,7 @@ impl CellElement {
         });
         ui.horizontal(|ui| {
             ui.label("Skew:");
-            ui.add(DragValue::new(&mut self.skew));
+            self.skew.editor(ui, vars);
         });
         ui.label("Rounding:");
         ui.horizontal(|ui| {

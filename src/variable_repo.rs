@@ -4,7 +4,7 @@ use bevy::prelude::{Color, Resource};
 use uuid::Uuid;
 
 use crate::editor::{
-    style_elements::ColorProperty,
+    properties::{ColorProperty, NumberProperty},
     variable_element::{Variable, VariableType, VariablesElement},
 };
 
@@ -26,19 +26,19 @@ impl VariableRepo {
         self.vars.get(id)
     }
 
-    // pub fn get_number(&self, property: &NumberProperty) -> Option<f32> {
-    //     match property {
-    //         NumberProperty::Fixed(n) => Some(*n),
-    //         NumberProperty::Ref(var_ref) => {
-    //             self.get_var(&var_ref.id)
-    //                 .and_then(|var| match &var.var_type {
-    //                     VariableType::Number(n) => Some(*n),
-    //                     VariableType::Text(_) => None,
-    //                     VariableType::Color(_) => None,
-    //                 })
-    //         }
-    //     }
-    // }
+    pub fn get_number(&self, property: &NumberProperty) -> Option<f32> {
+        match property {
+            NumberProperty::Fixed(n) => Some(*n),
+            NumberProperty::Ref(var_ref) => {
+                self.get_var(&var_ref.id)
+                    .and_then(|var| match &var.var_type {
+                        VariableType::Number(n) => Some(*n),
+                        VariableType::Text(_) => None,
+                        VariableType::Color(_) => None,
+                    })
+            }
+        }
+    }
 
     // pub fn get_text(&self, property: &TextProperty) -> Option<String> {
     //     match property {

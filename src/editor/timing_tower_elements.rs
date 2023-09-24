@@ -1,11 +1,13 @@
-use bevy::prelude::Vec2;
-use bevy_egui::egui::{collapsing_header::CollapsingState, DragValue, Ui};
+use bevy_egui::egui::{collapsing_header::CollapsingState, Ui};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::variable_repo::VariableRepo;
 
-use super::style_elements::{CellElement, StyleElement};
+use super::{
+    properties::Vec2Property,
+    style_elements::{CellElement, StyleElement},
+};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TimingTowerElement {
@@ -18,7 +20,7 @@ pub struct TimingTowerElement {
 pub struct TimingTowerTableElement {
     pub id: Uuid,
     pub cell: CellElement,
-    pub row_offset: Vec2,
+    pub row_offset: Vec2Property,
     pub row: TimingTowerRowElement,
 }
 
@@ -85,11 +87,11 @@ impl StyleElement for TimingTowerTableElement {
         ui.label("Row offset:");
         ui.horizontal(|ui| {
             ui.label("Offset x:");
-            ui.add(DragValue::new(&mut self.row_offset.x));
+            self.row_offset.x.editor(ui, vars);
         });
         ui.horizontal(|ui| {
             ui.label("Offset y:");
-            ui.add(DragValue::new(&mut self.row_offset.y));
+            self.row_offset.y.editor(ui, vars);
         });
         ui.separator();
         self.cell.property_editor(ui, vars);

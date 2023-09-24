@@ -215,7 +215,15 @@ fn update_rows(
             });
 
             offset.y -= row_height;
-            offset -= elements.timing_tower.table.row_offset * Vec2::new(-1.0, 1.0);
+            offset -= Vec2::new(
+                variables
+                    .get_number(&elements.timing_tower.table.row_offset.x)
+                    .unwrap_or(0.0)
+                    * -1.0,
+                variables
+                    .get_number(&elements.timing_tower.table.row_offset.y)
+                    .unwrap_or(0.0),
+            );
         }
     }
 }
@@ -259,7 +267,7 @@ fn update_columns(
     }
 }
 
-fn create_cell_style(cell: &CellElement, entry: &Entry, scope: &VariableRepo) -> CellStyle {
+fn create_cell_style(cell: &CellElement, entry: &Entry, vars: &VariableRepo) -> CellStyle {
     let text = match &cell.value_source {
         ValueSource::FixedValue(s) => s.clone(),
         ValueSource::DriverName => {
@@ -281,11 +289,11 @@ fn create_cell_style(cell: &CellElement, entry: &Entry, scope: &VariableRepo) ->
         text,
         text_alignment: cell.text_alginment.clone(),
         text_position: cell.text_position.clone(),
-        color: scope.get_color(&cell.color).unwrap_or(Color::RED),
+        color: vars.get_color(&cell.color).unwrap_or(Color::RED),
         texture: None,
         pos: cell.pos * Vec3::new(1.0, -1.0, 1.0),
         size: cell.size,
-        skew: cell.skew,
+        skew: vars.get_number(&cell.skew).unwrap_or(0.0),
         visible: cell.visible,
         rounding: cell.rounding.clone(),
     }

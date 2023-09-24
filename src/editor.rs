@@ -19,6 +19,7 @@ use crate::{variable_repo::VariableRepo, MainCamera};
 
 use self::style_elements::{RootElement, StyleElement};
 
+pub mod properties;
 pub mod style_elements;
 pub mod timing_tower_elements;
 pub mod variable_element;

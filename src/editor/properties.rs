@@ -53,10 +53,10 @@ impl TextProperty {
                 }
                 egui::popup::popup_below_widget(ui, popup_id, &popup_button, |ui| {
                     ui.set_min_width(200.0);
-                    let color_vars = vars.vars.values().filter(|var| {
+                    let color_vars = vars.vars.values().map(|v| &v.def).filter(|var| {
                         matches!(
                             var.var_type,
-                            VariableType::Number(_) | VariableType::Text(_)
+                            VariableType::StaticNumber(_) | VariableType::StaticText(_)
                         )
                     });
                     for var in color_vars {
@@ -68,7 +68,7 @@ impl TextProperty {
                 });
             }
             TextProperty::Ref(var_ref) => {
-                if let Some(var) = vars.get_var(&var_ref) {
+                if let Some(var) = vars.get_var_def(&var_ref) {
                     ui.label(format!("[ {} ]", var.name));
                 } else {
                     ui.label(format!("Invalid variable reference"));
@@ -96,7 +96,8 @@ impl NumberProperty {
                     let color_vars = vars
                         .vars
                         .values()
-                        .filter(|var| matches!(var.var_type, VariableType::Number(_)));
+                        .map(|v| &v.def)
+                        .filter(|var| matches!(var.var_type, VariableType::StaticNumber(_)));
                     for var in color_vars {
                         if ui.selectable_label(false, &var.name).clicked() {
                             *self = NumberProperty::Ref(var.id.clone());
@@ -106,7 +107,7 @@ impl NumberProperty {
                 });
             }
             NumberProperty::Ref(var_ref) => {
-                if let Some(var) = vars.get_var(&var_ref) {
+                if let Some(var) = vars.get_var_def(&var_ref) {
                     ui.label(format!("[ {} ]", var.name));
                 } else {
                     ui.label(format!("Invalid variable reference"));
@@ -138,7 +139,8 @@ impl ColorProperty {
                     let color_vars = vars
                         .vars
                         .values()
-                        .filter(|var| matches!(var.var_type, VariableType::Color(_)));
+                        .map(|v| &v.def)
+                        .filter(|var| matches!(var.var_type, VariableType::StaticColor(_)));
                     for var in color_vars {
                         if ui.selectable_label(false, &var.name).clicked() {
                             *self = ColorProperty::Ref(var.id.clone());
@@ -148,7 +150,7 @@ impl ColorProperty {
                 });
             }
             ColorProperty::Ref(var_ref) => {
-                if let Some(var) = vars.get_var(&var_ref) {
+                if let Some(var) = vars.get_var_def(&var_ref) {
                     ui.label(format!("[ {} ]", var.name));
                 } else {
                     ui.label(format!("Invalid variable reference"));

@@ -132,144 +132,146 @@ impl Default for CellElement {
     }
 }
 
-pub fn cell_style_editor(ui: &mut Ui, style: &mut CellElement, vars: &VariablesElement) {
-    ui.label("Cell:");
-    ui.horizontal(|ui| {
-        ui.label("Visible:");
-        ui.checkbox(&mut style.visible, "");
-    });
-    ui.horizontal(|ui| {
-        ui.label("value source:");
-        ComboBox::from_id_source("cell value source")
-            .selected_text(match &style.value_source {
-                ValueSource::FixedValue(_) => "Fixed value",
-                ValueSource::DriverName => "Driver name",
-                ValueSource::Position => "Position",
-                ValueSource::CarNumber => "Car number",
-            })
-            .show_ui(ui, |ui| {
-                if ui
-                    .selectable_label(
-                        matches!(style.value_source, ValueSource::FixedValue(_)),
-                        "Fixed value",
-                    )
-                    .clicked()
-                {
-                    style.value_source = ValueSource::FixedValue("".to_string());
-                };
-                if ui
-                    .selectable_label(
-                        matches!(style.value_source, ValueSource::DriverName),
-                        "Driver name",
-                    )
-                    .clicked()
-                {
-                    style.value_source = ValueSource::DriverName;
-                };
-                if ui
-                    .selectable_label(
-                        matches!(style.value_source, ValueSource::Position),
-                        "Position",
-                    )
-                    .clicked()
-                {
-                    style.value_source = ValueSource::Position;
-                };
-                if ui
-                    .selectable_label(
-                        matches!(style.value_source, ValueSource::CarNumber),
-                        "Car number",
-                    )
-                    .clicked()
-                {
-                    style.value_source = ValueSource::CarNumber;
-                };
-            });
-    });
-    if let ValueSource::FixedValue(s) = &mut style.value_source {
+impl CellElement {
+    pub fn property_editor(&mut self, ui: &mut Ui, vars: &VariablesElement) {
+        ui.label("Cell:");
         ui.horizontal(|ui| {
-            ui.label("Text:");
-            ui.text_edit_singleline(s);
+            ui.label("Visible:");
+            ui.checkbox(&mut self.visible, "");
         });
-    }
-    ui.horizontal(|ui| {
-        ui.label("Text alginment:");
-        ComboBox::from_id_source("Text alginment combobox")
-            .selected_text(match style.text_alginment {
-                TextAlignment::Left => "Left",
-                TextAlignment::Center => "Center",
-                TextAlignment::Right => "Right",
-            })
-            .show_ui(ui, |ui| {
-                ui.selectable_value(&mut style.text_alginment, TextAlignment::Left, "Left");
-                ui.selectable_value(&mut style.text_alginment, TextAlignment::Center, "Center");
-                ui.selectable_value(&mut style.text_alginment, TextAlignment::Right, "Right");
+        ui.horizontal(|ui| {
+            ui.label("value source:");
+            ComboBox::from_id_source("cell value source")
+                .selected_text(match &self.value_source {
+                    ValueSource::FixedValue(_) => "Fixed value",
+                    ValueSource::DriverName => "Driver name",
+                    ValueSource::Position => "Position",
+                    ValueSource::CarNumber => "Car number",
+                })
+                .show_ui(ui, |ui| {
+                    if ui
+                        .selectable_label(
+                            matches!(self.value_source, ValueSource::FixedValue(_)),
+                            "Fixed value",
+                        )
+                        .clicked()
+                    {
+                        self.value_source = ValueSource::FixedValue("".to_string());
+                    };
+                    if ui
+                        .selectable_label(
+                            matches!(self.value_source, ValueSource::DriverName),
+                            "Driver name",
+                        )
+                        .clicked()
+                    {
+                        self.value_source = ValueSource::DriverName;
+                    };
+                    if ui
+                        .selectable_label(
+                            matches!(self.value_source, ValueSource::Position),
+                            "Position",
+                        )
+                        .clicked()
+                    {
+                        self.value_source = ValueSource::Position;
+                    };
+                    if ui
+                        .selectable_label(
+                            matches!(self.value_source, ValueSource::CarNumber),
+                            "Car number",
+                        )
+                        .clicked()
+                    {
+                        self.value_source = ValueSource::CarNumber;
+                    };
+                });
+        });
+        if let ValueSource::FixedValue(s) = &mut self.value_source {
+            ui.horizontal(|ui| {
+                ui.label("Text:");
+                ui.text_edit_singleline(s);
             });
-    });
-    ui.horizontal(|ui| {
-        ui.label("Text pos x:");
-        ui.add(DragValue::new(&mut style.text_position.x));
-    });
-    ui.horizontal(|ui| {
-        ui.label("Text pos y:");
-        ui.add(DragValue::new(&mut style.text_position.y));
-    });
-    ui.horizontal(|ui| {
-        ui.label("Background color:");
-        match &mut style.color {
-            ColorProperty::Fixed(c) => {
-                let mut color = c.as_rgba_f32();
-                ui.color_edit_button_rgba_unmultiplied(&mut color);
-                *c = color.into();
-            }
-            ColorProperty::Ref(var_ref) => {
-                if let Some(var) = vars.get_var(&var_ref.id) {
-                    ui.label(format!("Ref[ {} ]", var.name));
-                } else {
-                    ui.label(format!("Invalid variable reference"));
+        }
+        ui.horizontal(|ui| {
+            ui.label("Text alginment:");
+            ComboBox::from_id_source("Text alginment combobox")
+                .selected_text(match self.text_alginment {
+                    TextAlignment::Left => "Left",
+                    TextAlignment::Center => "Center",
+                    TextAlignment::Right => "Right",
+                })
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(&mut self.text_alginment, TextAlignment::Left, "Left");
+                    ui.selectable_value(&mut self.text_alginment, TextAlignment::Center, "Center");
+                    ui.selectable_value(&mut self.text_alginment, TextAlignment::Right, "Right");
+                });
+        });
+        ui.horizontal(|ui| {
+            ui.label("Text pos x:");
+            ui.add(DragValue::new(&mut self.text_position.x));
+        });
+        ui.horizontal(|ui| {
+            ui.label("Text pos y:");
+            ui.add(DragValue::new(&mut self.text_position.y));
+        });
+        ui.horizontal(|ui| {
+            ui.label("Background color:");
+            match &mut self.color {
+                ColorProperty::Fixed(c) => {
+                    let mut color = c.as_rgba_f32();
+                    ui.color_edit_button_rgba_unmultiplied(&mut color);
+                    *c = color.into();
+                }
+                ColorProperty::Ref(var_ref) => {
+                    if let Some(var) = vars.get_var(&var_ref.id) {
+                        ui.label(format!("Ref[ {} ]", var.name));
+                    } else {
+                        ui.label(format!("Invalid variable reference"));
+                    }
                 }
             }
-        }
-    });
-    ui.horizontal(|ui| {
-        ui.label("Pos x:");
-        ui.add(DragValue::new(&mut style.pos.x));
-    });
-    ui.horizontal(|ui| {
-        ui.label("Pos y:");
-        ui.add(DragValue::new(&mut style.pos.y));
-    });
-    ui.horizontal(|ui| {
-        ui.label("Pos z:");
-        ui.add(DragValue::new(&mut style.pos.z));
-    });
-    ui.horizontal(|ui| {
-        ui.label("Width:");
-        ui.add(DragValue::new(&mut style.size.x).clamp_range(0.0..=f32::MAX));
-    });
-    ui.horizontal(|ui| {
-        ui.label("Height:");
-        ui.add(DragValue::new(&mut style.size.y).clamp_range(0.0..=f32::MAX));
-    });
-    ui.horizontal(|ui| {
-        ui.label("Skew:");
-        ui.add(DragValue::new(&mut style.skew));
-    });
-    ui.label("Rounding:");
-    ui.horizontal(|ui| {
-        ui.label("top left:");
-        ui.add(DragValue::new(&mut style.rounding.top_left).clamp_range(0.0..=f32::MAX));
-    });
-    ui.horizontal(|ui| {
-        ui.label("top right:");
-        ui.add(DragValue::new(&mut style.rounding.top_right).clamp_range(0.0..=f32::MAX));
-    });
-    ui.horizontal(|ui| {
-        ui.label("bottom right:");
-        ui.add(DragValue::new(&mut style.rounding.bot_right).clamp_range(0.0..=f32::MAX));
-    });
-    ui.horizontal(|ui| {
-        ui.label("bottom left:");
-        ui.add(DragValue::new(&mut style.rounding.bot_left).clamp_range(0.0..=f32::MAX));
-    });
+        });
+        ui.horizontal(|ui| {
+            ui.label("Pos x:");
+            ui.add(DragValue::new(&mut self.pos.x));
+        });
+        ui.horizontal(|ui| {
+            ui.label("Pos y:");
+            ui.add(DragValue::new(&mut self.pos.y));
+        });
+        ui.horizontal(|ui| {
+            ui.label("Pos z:");
+            ui.add(DragValue::new(&mut self.pos.z));
+        });
+        ui.horizontal(|ui| {
+            ui.label("Width:");
+            ui.add(DragValue::new(&mut self.size.x).clamp_range(0.0..=f32::MAX));
+        });
+        ui.horizontal(|ui| {
+            ui.label("Height:");
+            ui.add(DragValue::new(&mut self.size.y).clamp_range(0.0..=f32::MAX));
+        });
+        ui.horizontal(|ui| {
+            ui.label("Skew:");
+            ui.add(DragValue::new(&mut self.skew));
+        });
+        ui.label("Rounding:");
+        ui.horizontal(|ui| {
+            ui.label("top left:");
+            ui.add(DragValue::new(&mut self.rounding.top_left).clamp_range(0.0..=f32::MAX));
+        });
+        ui.horizontal(|ui| {
+            ui.label("top right:");
+            ui.add(DragValue::new(&mut self.rounding.top_right).clamp_range(0.0..=f32::MAX));
+        });
+        ui.horizontal(|ui| {
+            ui.label("bottom right:");
+            ui.add(DragValue::new(&mut self.rounding.bot_right).clamp_range(0.0..=f32::MAX));
+        });
+        ui.horizontal(|ui| {
+            ui.label("bottom left:");
+            ui.add(DragValue::new(&mut self.rounding.bot_left).clamp_range(0.0..=f32::MAX));
+        });
+    }
 }

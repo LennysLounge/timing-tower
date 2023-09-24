@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::{
-    style_elements::{cell_style_editor, CellElement, StyleElement},
+    style_elements::{CellElement, StyleElement},
     variable_element::VariablesElement,
 };
 
@@ -59,7 +59,7 @@ impl StyleElement for TimingTowerElement {
     }
 
     fn property_editor(&mut self, ui: &mut Ui, vars: &VariablesElement) {
-        cell_style_editor(ui, &mut self.cell, vars);
+        self.cell.property_editor(ui, vars);
     }
 }
 
@@ -93,7 +93,7 @@ impl StyleElement for TimingTowerTableElement {
             ui.add(DragValue::new(&mut self.row_offset.y));
         });
         ui.separator();
-        cell_style_editor(ui, &mut self.cell, vars);
+        self.cell.property_editor(ui, vars);
     }
 }
 
@@ -129,7 +129,7 @@ impl StyleElement for TimingTowerRowElement {
             .find_map(|element| element.find_mut(id))
     }
     fn property_editor(&mut self, ui: &mut Ui, vars: &VariablesElement) {
-        cell_style_editor(ui, &mut self.cell, vars);
+        self.cell.property_editor(ui, vars);
     }
 }
 
@@ -152,6 +152,6 @@ impl StyleElement for TimingTowerColumnElement {
         ui.label("Name:");
         ui.text_edit_singleline(&mut self.name);
         ui.separator();
-        cell_style_editor(ui, &mut self.cell, vars);
+        self.cell.property_editor(ui, vars);
     }
 }

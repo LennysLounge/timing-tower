@@ -3,7 +3,10 @@ use bevy_egui::egui::{collapsing_header::CollapsingState, DragValue, Ui};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::style_elements::{cell_style_editor, CellElement, StyleElement};
+use super::{
+    style_elements::{cell_style_editor, CellElement, StyleElement},
+    variable_element::VariablesElement,
+};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TimingTowerElement {
@@ -55,8 +58,8 @@ impl StyleElement for TimingTowerElement {
         self.table.find_mut(id)
     }
 
-    fn property_editor(&mut self, ui: &mut Ui) {
-        cell_style_editor(ui, &mut self.cell);
+    fn property_editor(&mut self, ui: &mut Ui, vars: &VariablesElement) {
+        cell_style_editor(ui, &mut self.cell, vars);
     }
 }
 
@@ -79,7 +82,7 @@ impl StyleElement for TimingTowerTableElement {
         }
         self.row.find_mut(id)
     }
-    fn property_editor(&mut self, ui: &mut Ui) {
+    fn property_editor(&mut self, ui: &mut Ui, vars: &VariablesElement) {
         ui.label("Row offset:");
         ui.horizontal(|ui| {
             ui.label("Offset x:");
@@ -90,7 +93,7 @@ impl StyleElement for TimingTowerTableElement {
             ui.add(DragValue::new(&mut self.row_offset.y));
         });
         ui.separator();
-        cell_style_editor(ui, &mut self.cell);
+        cell_style_editor(ui, &mut self.cell, vars);
     }
 }
 
@@ -125,8 +128,8 @@ impl StyleElement for TimingTowerRowElement {
             .iter_mut()
             .find_map(|element| element.find_mut(id))
     }
-    fn property_editor(&mut self, ui: &mut Ui) {
-        cell_style_editor(ui, &mut self.cell);
+    fn property_editor(&mut self, ui: &mut Ui, vars: &VariablesElement) {
+        cell_style_editor(ui, &mut self.cell, vars);
     }
 }
 
@@ -145,10 +148,10 @@ impl StyleElement for TimingTowerColumnElement {
         self.id.eq(id).then_some(self as &mut dyn StyleElement)
     }
 
-    fn property_editor(&mut self, ui: &mut Ui) {
+    fn property_editor(&mut self, ui: &mut Ui, vars: &VariablesElement) {
         ui.label("Name:");
         ui.text_edit_singleline(&mut self.name);
         ui.separator();
-        cell_style_editor(ui, &mut self.cell);
+        cell_style_editor(ui, &mut self.cell, vars);
     }
 }

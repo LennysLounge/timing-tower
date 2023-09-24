@@ -19,9 +19,9 @@ use crate::MainCamera;
 
 use self::style_elements::{RootElement, StyleElement};
 
-pub mod variable_element;
 pub mod style_elements;
 pub mod timing_tower_elements;
+pub mod variable_element;
 
 pub struct EditorPlugin;
 impl Plugin for EditorPlugin {
@@ -112,8 +112,12 @@ fn run_egui_main(
 
     egui::SidePanel::right("Property panel")
         .show(ctx.ctx_mut(), |ui| {
-            if let Some(element) = selected_element.and_then(|id| root.find_mut(&id)) {
-                element.property_editor(ui);
+            let RootElement {
+                vars, timing_tower, ..
+            } = &mut *root;
+
+            if let Some(element) = selected_element.and_then(|id| timing_tower.find_mut(&id)) {
+                element.property_editor(ui, vars);
             }
 
             ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());

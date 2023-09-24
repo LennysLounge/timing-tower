@@ -107,7 +107,7 @@ impl StyleElement for VariablesElement {
         self.vars.iter_mut().find_map(|v| v.find_mut(id))
     }
 
-    fn property_editor(&mut self, _ui: &mut Ui) {}
+    fn property_editor(&mut self, _ui: &mut Ui, _vars: &VariablesElement) {}
 }
 
 impl StyleElement for Variable {
@@ -133,7 +133,7 @@ impl StyleElement for Variable {
         }
     }
 
-    fn property_editor(&mut self, ui: &mut bevy_egui::egui::Ui) {
+    fn property_editor(&mut self, ui: &mut Ui, _vars: &VariablesElement) {
         let mut shared = self.0.lock().expect("Still fucked jo");
         ui.label("Name:");
         ui.text_edit_singleline(&mut shared.name);

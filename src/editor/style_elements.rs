@@ -14,7 +14,7 @@ use super::{
 pub trait StyleElement {
     fn element_tree(&mut self, ui: &mut Ui, selected_element: &mut Option<Uuid>);
     fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn StyleElement>;
-    fn property_editor(&mut self, ui: &mut Ui);
+    fn property_editor(&mut self, ui: &mut Ui, vars: &VariablesElement);
 }
 
 #[derive(Serialize, Deserialize, Clone, Resource)]
@@ -134,7 +134,7 @@ impl StyleElement for RootElement {
             .or_else(|| self.timing_tower.find_mut(id))
     }
 
-    fn property_editor(&mut self, ui: &mut Ui) {
+    fn property_editor(&mut self, ui: &mut Ui, _vars: &VariablesElement) {
         ui.label("Scene");
     }
 }
@@ -189,7 +189,7 @@ impl ColorProperty {
     }
 }
 
-pub fn cell_style_editor(ui: &mut Ui, style: &mut CellElement) {
+pub fn cell_style_editor(ui: &mut Ui, style: &mut CellElement, vars: &VariablesElement) {
     ui.label("Cell:");
     ui.horizontal(|ui| {
         ui.label("Visible:");
@@ -280,8 +280,8 @@ pub fn cell_style_editor(ui: &mut Ui, style: &mut CellElement) {
                 *c = color.into();
             }
             ColorProperty::Ref(var_ref) => {
-                if let Some(var) = var_ref.reference.upgrade() {
-                    let shared = var.lock().expect("Still fucked bro. Fix it");
+                if let Some(var) = vars.get_var(&var_ref.id) {
+                    let shared = var.0.lock().expect("Still fucked bro. Fix it");
                     ui.label(format!("Ref[ {} ]", shared.name));
                 } else {
                     ui.label(format!("Invalid variable reference"));

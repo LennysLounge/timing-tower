@@ -15,7 +15,7 @@ use unified_sim_model::{
 
 use crate::{
     cell::{init_cell, CellStyle, SetStyle},
-    editor::style_elements::{CellElement, RootElement, ValueSource},
+    editor::style_elements::{CellElement, RootElement},
     variable_repo::VariableRepo,
     MainCamera, SpawnAndInitWorld,
 };
@@ -267,26 +267,28 @@ fn update_columns(
     }
 }
 
-fn create_cell_style(cell: &CellElement, entry: &Entry, vars: &VariableRepo) -> CellStyle {
-    let text = match &cell.value_source {
-        ValueSource::FixedValue(s) => s.clone(),
-        ValueSource::DriverName => {
-            let driver = entry.drivers.get(&entry.current_driver).and_then(|d| {
-                let letter = if d.first_name.len() > 0 {
-                    &d.first_name[0..1]
-                } else {
-                    ""
-                };
-                Some(format!("{}. {}", letter, d.last_name))
-            });
-            driver.unwrap_or_else(|| "no driver".to_string())
-        }
-        ValueSource::Position => format!("{}", entry.position),
-        ValueSource::CarNumber => format!("{}", entry.car_number),
-    };
+fn create_cell_style(cell: &CellElement, _entry: &Entry, vars: &VariableRepo) -> CellStyle {
+    // let text = match &cell.value_source {
+    //     ValueSource::FixedValue(s) => s.clone(),
+    //     ValueSource::DriverName => {
+    //         let driver = entry.drivers.get(&entry.current_driver).and_then(|d| {
+    //             let letter = if d.first_name.len() > 0 {
+    //                 &d.first_name[0..1]
+    //             } else {
+    //                 ""
+    //             };
+    //             Some(format!("{}. {}", letter, d.last_name))
+    //         });
+    //         driver.unwrap_or_else(|| "no driver".to_string())
+    //     }
+    //     ValueSource::Position => format!("{}", entry.position),
+    //     ValueSource::CarNumber => format!("{}", entry.car_number),
+    // };
 
     CellStyle {
-        text,
+        text: vars
+            .get_text(&cell.value_source)
+            .unwrap_or_else(|| "unavailable".to_string()),
         text_alignment: cell.text_alginment.clone(),
         text_position: cell.text_position.clone(),
         color: vars.get_color(&cell.color).unwrap_or(Color::RED),

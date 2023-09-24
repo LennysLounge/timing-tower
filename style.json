@@ -7,9 +7,9 @@
         "name": "bg color",
         "var_type": {
           "Rgba": {
-            "red": 0.37088037,
-            "green": 0.15541652,
-            "blue": 0.15541652,
+            "red": 0.0,
+            "green": 0.0,
+            "blue": 0.0,
             "alpha": 1.0
           }
         }
@@ -18,25 +18,28 @@
         "id": "64e97ffd-ee13-4fb1-9c38-a6d4b4a38cb8",
         "name": "skew",
         "var_type": 13.0
+      },
+      {
+        "id": "aff50918-9bff-42f6-880a-f6f29ffce9b2",
+        "name": "driver name",
+        "var_type": "A. Brodych"
       }
     ]
   },
   "timing_tower": {
     "id": "63777a7c-26e1-4bdc-a840-87ebf3bdcb41",
     "cell": {
-      "value_source": {
-        "FixedValue": ""
-      },
+      "value_source": "",
       "color": {
         "Rgba": {
-          "red": 0.742857,
+          "red": 0.0,
           "green": 0.0,
-          "blue": 1.0,
-          "alpha": 1.0
+          "blue": 0.0,
+          "alpha": 0.0
         }
       },
       "pos": [
-        338.0,
+        332.0,
         56.0,
         0.0
       ],
@@ -61,9 +64,7 @@
     "table": {
       "id": "9539afda-b875-433f-9bd0-af822088b55d",
       "cell": {
-        "value_source": {
-          "FixedValue": ""
-        },
+        "value_source": "",
         "color": {
           "Rgba": {
             "red": 0.0,
@@ -73,7 +74,7 @@
           }
         },
         "pos": [
-          113.0,
+          0.0,
           0.0,
           0.0
         ],
@@ -95,16 +96,14 @@
           0.0
         ]
       },
-      "row_offset": [
-        0.0,
-        2.0
-      ],
+      "row_offset": {
+        "x": 0.0,
+        "y": 2.0
+      },
       "row": {
         "id": "23c20135-9036-4628-9c86-5a8f2b39871b",
         "cell": {
-          "value_source": {
-            "FixedValue": ""
-          },
+          "value_source": "",
           "color": {
             "Rgba": {
               "red": 0.0,
@@ -140,7 +139,7 @@
           {
             "id": "7d96c8c6-c978-4258-83c4-9504bccf7256",
             "cell": {
-              "value_source": "Position",
+              "value_source": "1",
               "color": {
                 "Ref": {
                   "id": "e9072d1c-a528-43c7-9260-41ea3f1c495c"
@@ -178,7 +177,7 @@
           {
             "id": "a275bdc4-ed4a-4dcb-a964-d0646598d64e",
             "cell": {
-              "value_source": "CarNumber",
+              "value_source": "6",
               "color": {
                 "Rgba": {
                   "red": 0.40197778,
@@ -215,7 +214,11 @@
           {
             "id": "95ab724b-b056-4e76-8153-2f9265aac3cb",
             "cell": {
-              "value_source": "DriverName",
+              "value_source": {
+                "Ref": {
+                  "id": "aff50918-9bff-42f6-880a-f6f29ffce9b2"
+                }
+              },
               "color": {
                 "Rgba": {
                   "red": 0.0,
@@ -252,9 +255,7 @@
           {
             "id": "408863e5-c4d7-4721-bb58-2a3887551ea5",
             "cell": {
-              "value_source": {
-                "FixedValue": "M"
-              },
+              "value_source": "M",
               "color": {
                 "Rgba": {
                   "red": 0.8549,

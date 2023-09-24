@@ -1,5 +1,5 @@
 use bevy::prelude::Color;
-use bevy_egui::egui::{self, DragValue, Ui};
+use bevy_egui::egui::{self, DragValue, TextEdit, Ui};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -37,6 +37,46 @@ pub struct VariableReference {
 pub struct Vec2Property {
     pub x: NumberProperty,
     pub y: NumberProperty,
+}
+
+impl TextProperty {
+    pub fn editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
+        match self {
+            TextProperty::Fixed(t) => {
+                ui.add(TextEdit::singleline(t).desired_width(100.0));
+                let popup_button = ui.button("R");
+                let popup_id = ui.next_auto_id();
+                if popup_button.clicked() {
+                    ui.memory_mut(|mem| mem.toggle_popup(popup_id));
+                }
+                egui::popup::popup_below_widget(ui, popup_id, &popup_button, |ui| {
+                    ui.set_min_width(200.0);
+                    let color_vars = vars.vars.values().filter(|var| {
+                        matches!(
+                            var.var_type,
+                            VariableType::Number(_) | VariableType::Text(_)
+                        )
+                    });
+                    for var in color_vars {
+                        if ui.selectable_label(false, &var.name).clicked() {
+                            *self = TextProperty::Ref(VariableReference { id: var.id.clone() });
+                            ui.memory_mut(|mem| mem.close_popup());
+                        }
+                    }
+                });
+            }
+            TextProperty::Ref(var_ref) => {
+                if let Some(var) = vars.get_var(&var_ref.id) {
+                    ui.label(format!("[ {} ]", var.name));
+                } else {
+                    ui.label(format!("Invalid variable reference"));
+                }
+                if ui.button("x").clicked() {
+                    *self = TextProperty::Fixed("".to_string());
+                }
+            }
+        }
+    }
 }
 
 impl NumberProperty {

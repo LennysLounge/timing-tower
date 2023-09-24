@@ -4,7 +4,7 @@ use bevy::prelude::{Color, Resource};
 use uuid::Uuid;
 
 use crate::editor::{
-    properties::{ColorProperty, NumberProperty},
+    properties::{ColorProperty, NumberProperty, TextProperty},
     variable_element::{Variable, VariableType, VariablesElement},
 };
 
@@ -40,16 +40,16 @@ impl VariableRepo {
         }
     }
 
-    // pub fn get_text(&self, property: &TextProperty) -> Option<String> {
-    //     match property {
-    //         TextProperty::Fixed(n) => Some(n.clone()),
-    //         TextProperty::Ref(id) => self.get_var(&id.id).and_then(|var| match &var.var_type {
-    //             VariableType::Number(n) => Some(format!("{n}")),
-    //             VariableType::Text(s) => Some(s.clone()),
-    //             VariableType::Color(_) => None,
-    //         }),
-    //     }
-    // }
+    pub fn get_text(&self, property: &TextProperty) -> Option<String> {
+        match property {
+            TextProperty::Fixed(n) => Some(n.clone()),
+            TextProperty::Ref(id) => self.get_var(&id.id).and_then(|var| match &var.var_type {
+                VariableType::Number(n) => Some(format!("{n}")),
+                VariableType::Text(s) => Some(s.clone()),
+                VariableType::Color(_) => None,
+            }),
+        }
+    }
 
     pub fn get_color(&self, property: &ColorProperty) -> Option<Color> {
         match property {

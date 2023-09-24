@@ -6,7 +6,7 @@ use uuid::Uuid;
 use crate::variable_repo::VariableRepo;
 
 use super::{
-    properties::{ColorProperty, NumberProperty},
+    properties::{ColorProperty, NumberProperty, TextProperty},
     timing_tower_elements::TimingTowerElement,
     variable_element::VariablesElement,
 };
@@ -26,7 +26,7 @@ pub struct RootElement {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct CellElement {
-    pub value_source: ValueSource,
+    pub value_source: TextProperty,
     pub color: ColorProperty,
     pub pos: Vec3,
     pub size: Vec2,
@@ -88,7 +88,7 @@ impl StyleElement for RootElement {
 impl Default for CellElement {
     fn default() -> Self {
         Self {
-            value_source: ValueSource::FixedValue("Column".to_string()),
+            value_source: TextProperty::Fixed("Column".to_string()),
             color: ColorProperty::Fixed(Color::PURPLE),
             pos: Vec3::new(10.0, 10.0, 0.0),
             size: Vec2::new(30.0, 30.0),
@@ -110,58 +110,8 @@ impl CellElement {
         });
         ui.horizontal(|ui| {
             ui.label("value source:");
-            ComboBox::from_id_source("cell value source")
-                .selected_text(match &self.value_source {
-                    ValueSource::FixedValue(_) => "Fixed value",
-                    ValueSource::DriverName => "Driver name",
-                    ValueSource::Position => "Position",
-                    ValueSource::CarNumber => "Car number",
-                })
-                .show_ui(ui, |ui| {
-                    if ui
-                        .selectable_label(
-                            matches!(self.value_source, ValueSource::FixedValue(_)),
-                            "Fixed value",
-                        )
-                        .clicked()
-                    {
-                        self.value_source = ValueSource::FixedValue("".to_string());
-                    };
-                    if ui
-                        .selectable_label(
-                            matches!(self.value_source, ValueSource::DriverName),
-                            "Driver name",
-                        )
-                        .clicked()
-                    {
-                        self.value_source = ValueSource::DriverName;
-                    };
-                    if ui
-                        .selectable_label(
-                            matches!(self.value_source, ValueSource::Position),
-                            "Position",
-                        )
-                        .clicked()
-                    {
-                        self.value_source = ValueSource::Position;
-                    };
-                    if ui
-                        .selectable_label(
-                            matches!(self.value_source, ValueSource::CarNumber),
-                            "Car number",
-                        )
-                        .clicked()
-                    {
-                        self.value_source = ValueSource::CarNumber;
-                    };
-                });
+            self.value_source.editor(ui, vars);
         });
-        if let ValueSource::FixedValue(s) = &mut self.value_source {
-            ui.horizontal(|ui| {
-                ui.label("Text:");
-                ui.text_edit_singleline(s);
-            });
-        }
         ui.horizontal(|ui| {
             ui.label("Text alginment:");
             ComboBox::from_id_source("Text alginment combobox")

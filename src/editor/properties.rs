@@ -39,6 +39,13 @@ pub struct Vec2Property {
     pub y: NumberProperty,
 }
 
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Vec3Property {
+    pub x: NumberProperty,
+    pub y: NumberProperty,
+    pub z: NumberProperty,
+}
+
 impl TextProperty {
     pub fn editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
         match self {

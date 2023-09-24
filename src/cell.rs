@@ -10,7 +10,7 @@ use bevy::{
 };
 
 use crate::{
-    editor::style_elements::{Rounding, TextAlignment},
+    editor::style_elements::TextAlignment,
     gradient_material::{Gradient, GradientMaterial},
     DefaultFont,
 };
@@ -42,7 +42,7 @@ pub struct CellStyle {
     pub size: Vec2,
     pub skew: f32,
     pub visible: bool,
-    pub rounding: Rounding,
+    pub rounding: [f32; 4],
 }
 
 #[derive(Event)]

@@ -290,13 +290,28 @@ fn create_cell_style(cell: &CellElement, _entry: &Entry, vars: &VariableRepo) ->
             .get_text(&cell.value_source)
             .unwrap_or_else(|| "unavailable".to_string()),
         text_alignment: cell.text_alginment.clone(),
-        text_position: cell.text_position.clone(),
+        text_position: Vec2::new(
+            vars.get_number(&cell.text_position.x).unwrap_or(0.0),
+            vars.get_number(&cell.text_position.y).unwrap_or(0.0),
+        ),
         color: vars.get_color(&cell.color).unwrap_or(Color::RED),
         texture: None,
-        pos: cell.pos * Vec3::new(1.0, -1.0, 1.0),
-        size: cell.size,
+        pos: Vec3::new(
+            vars.get_number(&cell.pos.x).unwrap_or(0.0),
+            vars.get_number(&cell.pos.y).unwrap_or(0.0) * -1.0,
+            vars.get_number(&cell.pos.z).unwrap_or(0.0),
+        ),
+        size: Vec2::new(
+            vars.get_number(&cell.size.x).unwrap_or(0.0),
+            vars.get_number(&cell.size.y).unwrap_or(0.0),
+        ),
         skew: vars.get_number(&cell.skew).unwrap_or(0.0),
         visible: cell.visible,
-        rounding: cell.rounding.clone(),
+        rounding: [
+            vars.get_number(&cell.rounding.top_left).unwrap_or(0.0),
+            vars.get_number(&cell.rounding.top_right).unwrap_or(0.0),
+            vars.get_number(&cell.rounding.bot_right).unwrap_or(0.0),
+            vars.get_number(&cell.rounding.bot_left).unwrap_or(0.0),
+        ],
     }
 }

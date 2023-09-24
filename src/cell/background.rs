@@ -107,10 +107,10 @@ fn update_mesh(style: &CellStyle, mesh: &mut Mesh, aabb: &mut Aabb) {
 
     // Step skipped for simplicity
     let l = vec![
-        style.rounding.top_left,
-        style.rounding.top_right,
-        style.rounding.bot_right,
-        style.rounding.bot_left,
+        style.rounding[0],
+        style.rounding[1],
+        style.rounding[2],
+        style.rounding[3],
     ];
 
     // Next we calculate the normalised vectors for the edges

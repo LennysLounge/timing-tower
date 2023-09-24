@@ -1,12 +1,12 @@
-use bevy::prelude::{Color, Resource, Vec2, Vec3};
-use bevy_egui::egui::{ComboBox, DragValue, Ui};
+use bevy::prelude::{Color, Resource};
+use bevy_egui::egui::{ComboBox, Ui};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::variable_repo::VariableRepo;
 
 use super::{
-    properties::{ColorProperty, NumberProperty, TextProperty},
+    properties::{ColorProperty, NumberProperty, TextProperty, Vec2Property, Vec3Property},
     timing_tower_elements::TimingTowerElement,
     variable_element::VariablesElement,
 };
@@ -28,13 +28,13 @@ pub struct RootElement {
 pub struct CellElement {
     pub value_source: TextProperty,
     pub color: ColorProperty,
-    pub pos: Vec3,
-    pub size: Vec2,
+    pub pos: Vec3Property,
+    pub size: Vec2Property,
     pub skew: NumberProperty,
     pub visible: bool,
     pub rounding: Rounding,
     pub text_alginment: TextAlignment,
-    pub text_position: Vec2,
+    pub text_position: Vec2Property,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -45,12 +45,12 @@ pub enum ValueSource {
     CarNumber,
 }
 
-#[derive(Serialize, Deserialize, Clone, Default)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Rounding {
-    pub top_left: f32,
-    pub top_right: f32,
-    pub bot_left: f32,
-    pub bot_right: f32,
+    pub top_left: NumberProperty,
+    pub top_right: NumberProperty,
+    pub bot_left: NumberProperty,
+    pub bot_right: NumberProperty,
 }
 
 #[derive(Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
@@ -90,13 +90,28 @@ impl Default for CellElement {
         Self {
             value_source: TextProperty::Fixed("Column".to_string()),
             color: ColorProperty::Fixed(Color::PURPLE),
-            pos: Vec3::new(10.0, 10.0, 0.0),
-            size: Vec2::new(30.0, 30.0),
+            pos: Vec3Property {
+                x: NumberProperty::Fixed(10.0),
+                y: NumberProperty::Fixed(10.0),
+                z: NumberProperty::Fixed(0.0),
+            },
+            size: Vec2Property {
+                x: NumberProperty::Fixed(30.0),
+                y: NumberProperty::Fixed(30.0),
+            },
             skew: NumberProperty::Fixed(12.0),
             visible: true,
-            rounding: Rounding::default(),
+            rounding: Rounding {
+                top_left: NumberProperty::Fixed(0.0),
+                top_right: NumberProperty::Fixed(0.0),
+                bot_left: NumberProperty::Fixed(0.0),
+                bot_right: NumberProperty::Fixed(0.0),
+            },
             text_alginment: TextAlignment::default(),
-            text_position: Vec2::new(5.0, 15.0),
+            text_position: Vec2Property {
+                x: NumberProperty::Fixed(5.0),
+                y: NumberProperty::Fixed(15.0),
+            },
         }
     }
 }
@@ -128,11 +143,11 @@ impl CellElement {
         });
         ui.horizontal(|ui| {
             ui.label("Text pos x:");
-            ui.add(DragValue::new(&mut self.text_position.x));
+            self.text_position.x.editor(ui, vars);
         });
         ui.horizontal(|ui| {
             ui.label("Text pos y:");
-            ui.add(DragValue::new(&mut self.text_position.y));
+            self.text_position.y.editor(ui, vars);
         });
         ui.horizontal(|ui| {
             ui.label("Background color:");
@@ -140,23 +155,23 @@ impl CellElement {
         });
         ui.horizontal(|ui| {
             ui.label("Pos x:");
-            ui.add(DragValue::new(&mut self.pos.x));
+            self.pos.x.editor(ui, vars);
         });
         ui.horizontal(|ui| {
             ui.label("Pos y:");
-            ui.add(DragValue::new(&mut self.pos.y));
+            self.pos.y.editor(ui, vars);
         });
         ui.horizontal(|ui| {
             ui.label("Pos z:");
-            ui.add(DragValue::new(&mut self.pos.z));
+            self.pos.z.editor(ui, vars);
         });
         ui.horizontal(|ui| {
             ui.label("Width:");
-            ui.add(DragValue::new(&mut self.size.x).clamp_range(0.0..=f32::MAX));
+            self.size.x.editor(ui, vars);
         });
         ui.horizontal(|ui| {
             ui.label("Height:");
-            ui.add(DragValue::new(&mut self.size.y).clamp_range(0.0..=f32::MAX));
+            self.size.y.editor(ui, vars);
         });
         ui.horizontal(|ui| {
             ui.label("Skew:");
@@ -165,19 +180,19 @@ impl CellElement {
         ui.label("Rounding:");
         ui.horizontal(|ui| {
             ui.label("top left:");
-            ui.add(DragValue::new(&mut self.rounding.top_left).clamp_range(0.0..=f32::MAX));
+            self.rounding.top_left.editor(ui, vars);
         });
         ui.horizontal(|ui| {
             ui.label("top right:");
-            ui.add(DragValue::new(&mut self.rounding.top_right).clamp_range(0.0..=f32::MAX));
+            self.rounding.top_right.editor(ui, vars);
         });
         ui.horizontal(|ui| {
             ui.label("bottom right:");
-            ui.add(DragValue::new(&mut self.rounding.bot_right).clamp_range(0.0..=f32::MAX));
+            self.rounding.bot_right.editor(ui, vars);
         });
         ui.horizontal(|ui| {
             ui.label("bottom left:");
-            ui.add(DragValue::new(&mut self.rounding.bot_left).clamp_range(0.0..=f32::MAX));
+            self.rounding.bot_left.editor(ui, vars);
         });
     }
 }

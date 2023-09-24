@@ -19,7 +19,7 @@ use bevy::{
 use bevy_egui::EguiPlugin;
 use cell::{init_cell, CellPlugin, CellStyle, SetStyle};
 use editor::{
-    style_elements::{RootElement, Rounding, TextAlignment},
+    style_elements::{RootElement, TextAlignment},
     EditorPlugin, EditorState,
 };
 use gradient_material::CustomMaterialPlugin;
@@ -121,7 +121,7 @@ fn setup(mut commands: Commands, mut set_style_event: EventWriter<SetStyle>) {
             size: Vec2::new(1920.0, 1080.0),
             skew: 0.0,
             visible: true,
-            rounding: Rounding::default(),
+            rounding: [0.0, 0.0, 0.0, 0.0],
         },
     });
 

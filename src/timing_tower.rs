@@ -291,7 +291,7 @@ fn create_cell_style(cell: &CellElement, vars: &VariableRepo, entry: Option<&Ent
 
     CellStyle {
         text: vars
-            .get_text(&cell.value_source, entry)
+            .get_text(&cell.text, entry)
             .unwrap_or_else(|| "unavailable".to_string()),
         text_alignment: cell.text_alginment.clone(),
         text_position: Vec2::new(

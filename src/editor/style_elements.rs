@@ -26,7 +26,7 @@ pub struct RootElement {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct CellElement {
-    pub value_source: TextProperty,
+    pub text: TextProperty,
     pub color: ColorProperty,
     pub pos: Vec3Property,
     pub size: Vec2Property,
@@ -88,7 +88,7 @@ impl StyleElement for RootElement {
 impl Default for CellElement {
     fn default() -> Self {
         Self {
-            value_source: TextProperty::Fixed("Column".to_string()),
+            text: TextProperty::Fixed("Column".to_string()),
             color: ColorProperty::Fixed(Color::PURPLE),
             pos: Vec3Property {
                 x: NumberProperty::Fixed(10.0),
@@ -124,8 +124,8 @@ impl CellElement {
             ui.checkbox(&mut self.visible, "");
         });
         ui.horizontal(|ui| {
-            ui.label("value source:");
-            self.value_source.editor(ui, vars);
+            ui.label("Text:");
+            self.text.editor(ui, vars);
         });
         ui.horizontal(|ui| {
             ui.label("Text alginment:");

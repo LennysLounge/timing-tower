@@ -158,54 +158,47 @@ impl TextSource for GameTextSource {
 }
 
 fn generate_game_sources(vars: &mut HashMap<Uuid, Variable>) {
-    let uuid = uuid!("6330a6bb-51d1-4af7-9bd0-efeb00b1ff52");
-    vars.insert(
-        uuid.clone(),
-        Variable {
-            def: VariableDefinition {
-                id: uuid,
-                name: "Position".to_string(),
-                var_type: VariableType::Game,
-            },
-            source: VariableSource::Number(Box::new(GameNumberSource {
-                extractor: |entry| entry.map(|e| *e.position as f32),
-            })),
-        },
-    );
-
-    let uuid = uuid!("171d7438-3179-4c70-b818-811cf86d514e");
-    vars.insert(
-        uuid.clone(),
-        Variable {
-            def: VariableDefinition {
-                id: uuid,
-                name: "Car number".to_string(),
-                var_type: VariableType::Game,
-            },
-            source: VariableSource::Number(Box::new(GameNumberSource {
-                extractor: |entry| entry.map(|e| *e.car_number as f32),
-            })),
-        },
-    );
-
-    let uuid = uuid!("8abcf9d5-60f7-4886-a716-139d62ad83ac");
-    vars.insert(
-        uuid.clone(),
-        Variable {
-            def: VariableDefinition {
-                id: uuid,
-                name: "Driver name".to_string(),
-                var_type: VariableType::Game,
-            },
-            source: VariableSource::Text(Box::new(GameTextSource {
-                extractor: |entry| {
-                    entry.and_then(|e| {
-                        e.drivers
-                            .get(&e.current_driver)
-                            .map(|driver| format!("{} {}", driver.first_name, driver.last_name))
-                    })
+    let mut make_source = |uuid: Uuid, name: &str, source: VariableSource| {
+        vars.insert(
+            uuid.clone(),
+            Variable {
+                def: VariableDefinition {
+                    id: uuid,
+                    name: name.to_string(),
+                    var_type: VariableType::Game,
                 },
-            })),
-        },
+                source,
+            },
+        )
+    };
+
+    make_source(
+        uuid!("6330a6bb-51d1-4af7-9bd0-efeb00b1ff52"),
+        "Position",
+        VariableSource::Number(Box::new(GameNumberSource {
+            extractor: |entry| entry.map(|e| *e.position as f32),
+        })),
+    );
+
+    make_source(
+        uuid!("171d7438-3179-4c70-b818-811cf86d514e"),
+        "Car number",
+        VariableSource::Number(Box::new(GameNumberSource {
+            extractor: |entry| entry.map(|e| *e.car_number as f32),
+        })),
+    );
+
+    make_source(
+        uuid!("8abcf9d5-60f7-4886-a716-139d62ad83ac"),
+        "Driver name",
+        VariableSource::Text(Box::new(GameTextSource {
+            extractor: |entry| {
+                entry.and_then(|e| {
+                    e.drivers
+                        .get(&e.current_driver)
+                        .map(|driver| format!("{} {}", driver.first_name, driver.last_name))
+                })
+            },
+        })),
     );
 }

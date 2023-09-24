@@ -3,7 +3,9 @@ use bevy_egui::egui::{collapsing_header::CollapsingState, ComboBox, DragValue, S
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::style_elements::{ColorProperty, NumberProperty, StyleElement, TextProperty};
+use crate::variable_repo::VariableRepo;
+
+use super::style_elements::StyleElement;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct VariablesElement {
@@ -23,48 +25,6 @@ pub enum VariableType {
     Number(f32),
     Text(String),
     Color(Color),
-}
-
-impl VariablesElement {
-    pub fn get_var(&self, id: &Uuid) -> Option<&Variable> {
-        self.vars.iter().find_map(|v| (&v.id == id).then_some(v))
-    }
-
-    pub fn get_number(&self, property: &NumberProperty) -> Option<f32> {
-        match property {
-            NumberProperty::Fixed(n) => Some(*n),
-            NumberProperty::Ref(var_ref) => {
-                self.get_var(&var_ref.id)
-                    .and_then(|var| match &var.var_type {
-                        VariableType::Number(n) => Some(*n),
-                        VariableType::Text(_) => None,
-                        VariableType::Color(_) => None,
-                    })
-            }
-        }
-    }
-
-    pub fn get_text(&self, property: &TextProperty) -> Option<String> {
-        match property {
-            TextProperty::Fixed(n) => Some(n.clone()),
-            TextProperty::Ref(id) => self.get_var(&id.id).and_then(|var| match &var.var_type {
-                VariableType::Number(n) => Some(format!("{n}")),
-                VariableType::Text(s) => Some(s.clone()),
-                VariableType::Color(_) => None,
-            }),
-        }
-    }
-
-    pub fn get_color(&self, property: &ColorProperty) -> Option<Color> {
-        match property {
-            ColorProperty::Fixed(n) => Some(n.clone()),
-            ColorProperty::Ref(id) => self.get_var(&id.id).and_then(|var| match &var.var_type {
-                VariableType::Number(_) => None,
-                VariableType::Text(_) => None,
-                VariableType::Color(c) => Some(c.clone()),
-            }),
-        }
-    }
 }
 
 impl StyleElement for VariablesElement {
@@ -93,7 +53,7 @@ impl StyleElement for VariablesElement {
         self.vars.iter_mut().find_map(|v| v.find_mut(id))
     }
 
-    fn property_editor(&mut self, _ui: &mut Ui, _vars: &VariablesElement) {}
+    fn property_editor(&mut self, _ui: &mut Ui, _vars: &VariableRepo) {}
 }
 
 impl StyleElement for Variable {
@@ -108,7 +68,7 @@ impl StyleElement for Variable {
         (&self.id == id).then_some(self as &mut dyn StyleElement)
     }
 
-    fn property_editor(&mut self, ui: &mut Ui, _vars: &VariablesElement) {
+    fn property_editor(&mut self, ui: &mut Ui, _vars: &VariableRepo) {
         ui.label("Name:");
         ui.text_edit_singleline(&mut self.name);
         ui.separator();

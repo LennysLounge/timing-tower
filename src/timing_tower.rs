@@ -15,10 +15,8 @@ use unified_sim_model::{
 
 use crate::{
     cell::{init_cell, CellStyle, SetStyle},
-    editor::{
-        style_elements::{CellElement, RootElement, ValueSource},
-        variable_element::VariablesElement,
-    },
+    editor::style_elements::{CellElement, RootElement, ValueSource},
+    variable_repo::VariableRepo,
     MainCamera, SpawnAndInitWorld,
 };
 
@@ -81,7 +79,8 @@ pub fn init_timing_tower(adapter: Adapter) -> impl EntityCommand {
 
 pub fn update_tower(
     main_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
-    scene: Res<RootElement>,
+    elements: Res<RootElement>,
+    variables: Res<VariableRepo>,
     mut towers: Query<(Entity, &TimingTower), With<TimingTower>>,
     mut set_style_event: EventWriter<SetStyle>,
 ) {
@@ -99,7 +98,7 @@ pub fn update_tower(
             continue;
         };
 
-        let mut style = create_cell_style(&scene.timing_tower.cell, entry, &scene.vars);
+        let mut style = create_cell_style(&elements.timing_tower.cell, entry, &variables);
         // The cell position is relative to its parent. The timing tower itself doesnt
         // have a parent so this needs to be added to get it into the right position.
         let top_left = camera
@@ -116,7 +115,8 @@ pub fn update_tower(
 fn update_table(
     tables: Query<(Entity, &Table)>,
     towers: Query<&TimingTower>,
-    scene: Res<RootElement>,
+    elements: Res<RootElement>,
+    variables: Res<VariableRepo>,
     mut set_style_event: EventWriter<SetStyle>,
 ) {
     for (table_id, table) in tables.iter() {
@@ -136,7 +136,7 @@ fn update_table(
             continue;
         };
 
-        let mut style = create_cell_style(&scene.timing_tower.table.cell, entry, &scene.vars);
+        let mut style = create_cell_style(&elements.timing_tower.table.cell, entry, &variables);
         style.pos.z += 1.0;
         set_style_event.send(SetStyle {
             entity: table_id.clone(),
@@ -147,7 +147,8 @@ fn update_table(
 
 fn update_rows(
     towers: Query<&TimingTower>,
-    scene: Res<RootElement>,
+    elements: Res<RootElement>,
+    variables: Res<VariableRepo>,
     mut tables: Query<(Entity, &mut Table)>,
     mut commands: Commands,
     mut set_style_event: EventWriter<SetStyle>,
@@ -171,7 +172,7 @@ fn update_rows(
                 let row_id = commands.spawn_empty().add(init_cell).id();
                 // create all necessairy cells for rows.
                 let mut columns = HashMap::new();
-                for column in scene.timing_tower.table.row.columns.iter() {
+                for column in elements.timing_tower.table.row.columns.iter() {
                     let cell_id = commands.spawn_empty().add(init_cell).id();
                     columns.insert(column.name.clone(), cell_id);
                     commands.entity(row_id).add_child(cell_id);
@@ -205,7 +206,7 @@ fn update_rows(
             };
 
             let mut style =
-                create_cell_style(&scene.timing_tower.table.row.cell, entry, &scene.vars);
+                create_cell_style(&elements.timing_tower.table.row.cell, entry, &variables);
             style.pos += Vec3::new(offset.x, offset.y, 1.0);
             let row_height = style.size.y;
             set_style_event.send(SetStyle {
@@ -214,7 +215,7 @@ fn update_rows(
             });
 
             offset.y -= row_height;
-            offset -= scene.timing_tower.table.row_offset * Vec2::new(-1.0, 1.0);
+            offset -= elements.timing_tower.table.row_offset * Vec2::new(-1.0, 1.0);
         }
     }
 }
@@ -222,7 +223,8 @@ fn update_rows(
 fn update_columns(
     rows: Query<&Row>,
     towers: Query<&TimingTower>,
-    scene: Res<RootElement>,
+    elements: Res<RootElement>,
+    variables: Res<VariableRepo>,
     mut set_style_event: EventWriter<SetStyle>,
 ) {
     for row in rows.iter() {
@@ -242,12 +244,12 @@ fn update_columns(
             continue;
         };
 
-        for column in scene.timing_tower.table.row.columns.iter() {
+        for column in elements.timing_tower.table.row.columns.iter() {
             let Some(cell_id) = row.columns.get(&column.name) else {
                 continue;
             };
 
-            let mut style = create_cell_style(&column.cell, entry, &scene.vars);
+            let mut style = create_cell_style(&column.cell, entry, &variables);
             style.pos += Vec3::new(0.0, 0.0, 1.0);
             set_style_event.send(SetStyle {
                 entity: cell_id.clone(),
@@ -257,7 +259,7 @@ fn update_columns(
     }
 }
 
-fn create_cell_style(cell: &CellElement, entry: &Entry, scope: &VariablesElement) -> CellStyle {
+fn create_cell_style(cell: &CellElement, entry: &Entry, scope: &VariableRepo) -> CellStyle {
     let text = match &cell.value_source {
         ValueSource::FixedValue(s) => s.clone(),
         ValueSource::DriverName => {

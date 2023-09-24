@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     env,
     fs::{self},
 };
@@ -25,6 +26,7 @@ use gradient_material::CustomMaterialPlugin;
 
 use timing_tower::{init_timing_tower, TimingTowerPlugin};
 use unified_sim_model::Adapter;
+use variable_repo::VariableRepo;
 
 mod cell;
 mod editor;
@@ -32,6 +34,7 @@ mod gradient_material;
 mod property;
 //mod style_def;
 mod timing_tower;
+mod variable_repo;
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
@@ -93,7 +96,7 @@ fn setup(mut commands: Commands, mut set_style_event: EventWriter<SetStyle>) {
         }
         Ok(s) => s,
     };
-    let scene = match serde_json::from_str::<RootElement>(&s) {
+    let elements = match serde_json::from_str::<RootElement>(&s) {
         Ok(o) => o,
         Err(e) => {
             println!("Error parsing json: {}", e);
@@ -122,7 +125,10 @@ fn setup(mut commands: Commands, mut set_style_event: EventWriter<SetStyle>) {
         },
     });
 
-    commands.insert_resource(scene.clone());
+    commands.insert_resource(elements.clone());
+    commands.insert_resource(VariableRepo {
+        vars: HashMap::new(),
+    });
 
     commands.insert_resource(EditorState {
         selected_element: None,

@@ -3,10 +3,9 @@ use bevy_egui::egui::{collapsing_header::CollapsingState, DragValue, Ui};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::{
-    style_elements::{CellElement, StyleElement},
-    variable_element::VariablesElement,
-};
+use crate::variable_repo::VariableRepo;
+
+use super::style_elements::{CellElement, StyleElement};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TimingTowerElement {
@@ -58,7 +57,7 @@ impl StyleElement for TimingTowerElement {
         self.table.find_mut(id)
     }
 
-    fn property_editor(&mut self, ui: &mut Ui, vars: &VariablesElement) {
+    fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
         self.cell.property_editor(ui, vars);
     }
 }
@@ -82,7 +81,7 @@ impl StyleElement for TimingTowerTableElement {
         }
         self.row.find_mut(id)
     }
-    fn property_editor(&mut self, ui: &mut Ui, vars: &VariablesElement) {
+    fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
         ui.label("Row offset:");
         ui.horizontal(|ui| {
             ui.label("Offset x:");
@@ -128,7 +127,7 @@ impl StyleElement for TimingTowerRowElement {
             .iter_mut()
             .find_map(|element| element.find_mut(id))
     }
-    fn property_editor(&mut self, ui: &mut Ui, vars: &VariablesElement) {
+    fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
         self.cell.property_editor(ui, vars);
     }
 }
@@ -148,7 +147,7 @@ impl StyleElement for TimingTowerColumnElement {
         self.id.eq(id).then_some(self as &mut dyn StyleElement)
     }
 
-    fn property_editor(&mut self, ui: &mut Ui, vars: &VariablesElement) {
+    fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
         ui.label("Name:");
         ui.text_edit_singleline(&mut self.name);
         ui.separator();

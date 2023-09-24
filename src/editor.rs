@@ -15,7 +15,7 @@ use bevy_egui::{
 use tracing::error;
 use uuid::Uuid;
 
-use crate::MainCamera;
+use crate::{variable_repo::VariableRepo, MainCamera};
 
 use self::style_elements::{RootElement, StyleElement};
 
@@ -76,7 +76,8 @@ fn run_egui_main(
     mut ctx: EguiContexts,
     mut occupied_space: ResMut<OccupiedSpace>,
     mut state: ResMut<EditorState>,
-    mut root: ResMut<RootElement>,
+    mut elements: ResMut<RootElement>,
+    mut variable_repo: ResMut<VariableRepo>,
 ) {
     let EditorState {
         selected_element, ..
@@ -85,12 +86,12 @@ fn run_egui_main(
     occupied_space.0 = egui::SidePanel::left("Editor panel")
         .show(ctx.ctx_mut(), |ui| {
             if ui.button("Save").clicked() {
-                save_style(&root);
+                save_style(&elements);
             }
 
             egui::Frame::group(ui.style()).show(ui, |ui| {
                 egui::ScrollArea::vertical().show(ui, |ui| {
-                    root.element_tree(ui, selected_element);
+                    elements.element_tree(ui, selected_element);
                 });
                 ui.allocate_rect(
                     Rect::from_min_size(
@@ -112,12 +113,8 @@ fn run_egui_main(
 
     egui::SidePanel::right("Property panel")
         .show(ctx.ctx_mut(), |ui| {
-            let RootElement {
-                vars, timing_tower, ..
-            } = &mut *root;
-
-            if let Some(element) = selected_element.and_then(|id| timing_tower.find_mut(&id)) {
-                element.property_editor(ui, vars);
+            if let Some(element) = selected_element.and_then(|id| elements.find_mut(&id)) {
+                element.property_editor(ui, &variable_repo);
             }
 
             ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());
@@ -125,6 +122,7 @@ fn run_egui_main(
         .response
         .rect
         .width();
+    variable_repo.reload_repo(&elements.vars);
 }
 
 fn update_camera(

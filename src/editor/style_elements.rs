@@ -3,12 +3,14 @@ use bevy_egui::egui::{ComboBox, DragValue, Ui};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::variable_repo::VariableRepo;
+
 use super::{timing_tower_elements::TimingTowerElement, variable_element::VariablesElement};
 
 pub trait StyleElement {
     fn element_tree(&mut self, ui: &mut Ui, selected_element: &mut Option<Uuid>);
     fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn StyleElement>;
-    fn property_editor(&mut self, ui: &mut Ui, vars: &VariablesElement);
+    fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo);
 }
 
 #[derive(Serialize, Deserialize, Clone, Resource)]
@@ -111,7 +113,7 @@ impl StyleElement for RootElement {
             .or_else(|| self.timing_tower.find_mut(id))
     }
 
-    fn property_editor(&mut self, ui: &mut Ui, _vars: &VariablesElement) {
+    fn property_editor(&mut self, ui: &mut Ui, _vars: &VariableRepo) {
         ui.label("Scene");
     }
 }
@@ -133,7 +135,7 @@ impl Default for CellElement {
 }
 
 impl CellElement {
-    pub fn property_editor(&mut self, ui: &mut Ui, vars: &VariablesElement) {
+    pub fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
         ui.label("Cell:");
         ui.horizontal(|ui| {
             ui.label("Visible:");

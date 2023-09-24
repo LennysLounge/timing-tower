@@ -98,7 +98,7 @@ pub fn update_tower(
             continue;
         };
 
-        let mut style = create_cell_style(&elements.timing_tower.cell, entry, &variables);
+        let mut style = create_cell_style(&elements.timing_tower.cell, &variables, Some(entry));
         // The cell position is relative to its parent. The timing tower itself doesnt
         // have a parent so this needs to be added to get it into the right position.
         let top_left = camera
@@ -136,7 +136,8 @@ fn update_table(
             continue;
         };
 
-        let mut style = create_cell_style(&elements.timing_tower.table.cell, entry, &variables);
+        let mut style =
+            create_cell_style(&elements.timing_tower.table.cell, &variables, Some(entry));
         style.pos.z += 1.0;
         set_style_event.send(SetStyle {
             entity: table_id.clone(),
@@ -205,8 +206,11 @@ fn update_rows(
                 continue;
             };
 
-            let mut style =
-                create_cell_style(&elements.timing_tower.table.row.cell, entry, &variables);
+            let mut style = create_cell_style(
+                &elements.timing_tower.table.row.cell,
+                &variables,
+                Some(entry),
+            );
             style.pos += Vec3::new(offset.x, offset.y, 1.0);
             let row_height = style.size.y;
             set_style_event.send(SetStyle {
@@ -217,11 +221,11 @@ fn update_rows(
             offset.y -= row_height;
             offset -= Vec2::new(
                 variables
-                    .get_number(&elements.timing_tower.table.row_offset.x)
+                    .get_number(&elements.timing_tower.table.row_offset.x, None)
                     .unwrap_or(0.0)
                     * -1.0,
                 variables
-                    .get_number(&elements.timing_tower.table.row_offset.y)
+                    .get_number(&elements.timing_tower.table.row_offset.y, None)
                     .unwrap_or(0.0),
             );
         }
@@ -257,7 +261,7 @@ fn update_columns(
                 continue;
             };
 
-            let mut style = create_cell_style(&column.cell, entry, &variables);
+            let mut style = create_cell_style(&column.cell, &variables, Some(entry));
             style.pos += Vec3::new(0.0, 0.0, 1.0);
             set_style_event.send(SetStyle {
                 entity: cell_id.clone(),
@@ -267,7 +271,7 @@ fn update_columns(
     }
 }
 
-fn create_cell_style(cell: &CellElement, _entry: &Entry, vars: &VariableRepo) -> CellStyle {
+fn create_cell_style(cell: &CellElement, vars: &VariableRepo, entry: Option<&Entry>) -> CellStyle {
     // let text = match &cell.value_source {
     //     ValueSource::FixedValue(s) => s.clone(),
     //     ValueSource::DriverName => {
@@ -287,31 +291,35 @@ fn create_cell_style(cell: &CellElement, _entry: &Entry, vars: &VariableRepo) ->
 
     CellStyle {
         text: vars
-            .get_text(&cell.value_source)
+            .get_text(&cell.value_source, entry)
             .unwrap_or_else(|| "unavailable".to_string()),
         text_alignment: cell.text_alginment.clone(),
         text_position: Vec2::new(
-            vars.get_number(&cell.text_position.x).unwrap_or(0.0),
-            vars.get_number(&cell.text_position.y).unwrap_or(0.0),
+            vars.get_number(&cell.text_position.x, entry).unwrap_or(0.0),
+            vars.get_number(&cell.text_position.y, entry).unwrap_or(0.0),
         ),
-        color: vars.get_color(&cell.color).unwrap_or(Color::RED),
+        color: vars.get_color(&cell.color, entry).unwrap_or(Color::RED),
         texture: None,
         pos: Vec3::new(
-            vars.get_number(&cell.pos.x).unwrap_or(0.0),
-            vars.get_number(&cell.pos.y).unwrap_or(0.0) * -1.0,
-            vars.get_number(&cell.pos.z).unwrap_or(0.0),
+            vars.get_number(&cell.pos.x, entry).unwrap_or(0.0),
+            vars.get_number(&cell.pos.y, entry).unwrap_or(0.0) * -1.0,
+            vars.get_number(&cell.pos.z, entry).unwrap_or(0.0),
         ),
         size: Vec2::new(
-            vars.get_number(&cell.size.x).unwrap_or(0.0),
-            vars.get_number(&cell.size.y).unwrap_or(0.0),
+            vars.get_number(&cell.size.x, entry).unwrap_or(0.0),
+            vars.get_number(&cell.size.y, entry).unwrap_or(0.0),
         ),
-        skew: vars.get_number(&cell.skew).unwrap_or(0.0),
+        skew: vars.get_number(&cell.skew, entry).unwrap_or(0.0),
         visible: cell.visible,
         rounding: [
-            vars.get_number(&cell.rounding.top_left).unwrap_or(0.0),
-            vars.get_number(&cell.rounding.top_right).unwrap_or(0.0),
-            vars.get_number(&cell.rounding.bot_right).unwrap_or(0.0),
-            vars.get_number(&cell.rounding.bot_left).unwrap_or(0.0),
+            vars.get_number(&cell.rounding.top_left, entry)
+                .unwrap_or(0.0),
+            vars.get_number(&cell.rounding.top_right, entry)
+                .unwrap_or(0.0),
+            vars.get_number(&cell.rounding.bot_right, entry)
+                .unwrap_or(0.0),
+            vars.get_number(&cell.rounding.bot_left, entry)
+                .unwrap_or(0.0),
         ],
     }
 }

@@ -38,15 +38,15 @@
           "alpha": 0.0
         }
       },
-      "pos": [
-        332.0,
-        56.0,
-        0.0
-      ],
-      "size": [
-        100.0,
-        100.0
-      ],
+      "pos": {
+        "x": 332.0,
+        "y": 56.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 100.0,
+        "y": 100.0
+      },
       "skew": 3.0,
       "visible": true,
       "rounding": {
@@ -56,10 +56,10 @@
         "bot_right": 0.0
       },
       "text_alginment": "Center",
-      "text_position": [
-        0.0,
-        0.0
-      ]
+      "text_position": {
+        "x": 0.0,
+        "y": 0.0
+      }
     },
     "table": {
       "id": "9539afda-b875-433f-9bd0-af822088b55d",
@@ -73,15 +73,15 @@
             "alpha": 0.0
           }
         },
-        "pos": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "size": [
-          680.0,
-          1000.0
-        ],
+        "pos": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "size": {
+          "x": 680.0,
+          "y": 1000.0
+        },
         "skew": 0.0,
         "visible": true,
         "rounding": {
@@ -91,10 +91,10 @@
           "bot_right": 0.0
         },
         "text_alginment": "Center",
-        "text_position": [
-          0.0,
-          0.0
-        ]
+        "text_position": {
+          "x": 0.0,
+          "y": 0.0
+        }
       },
       "row_offset": {
         "x": 0.0,
@@ -112,15 +112,15 @@
               "alpha": 0.0
             }
           },
-          "pos": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "size": [
-            660.0,
-            36.0
-          ],
+          "pos": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "size": {
+            "x": 660.0,
+            "y": 36.0
+          },
           "skew": 0.0,
           "visible": true,
           "rounding": {
@@ -130,28 +130,30 @@
             "bot_right": 0.0
           },
           "text_alginment": "Center",
-          "text_position": [
-            0.0,
-            0.0
-          ]
+          "text_position": {
+            "x": 0.0,
+            "y": 0.0
+          }
         },
         "columns": [
           {
             "id": "7d96c8c6-c978-4258-83c4-9504bccf7256",
             "cell": {
-              "value_source": "1",
+              "value_source": {
+                "Ref": "6330a6bb-51d1-4af7-9bd0-efeb00b1ff52"
+              },
               "color": {
                 "Ref": "e9072d1c-a528-43c7-9260-41ea3f1c495c"
               },
-              "pos": [
-                0.0,
-                0.0,
-                3.0
-              ],
-              "size": [
-                36.0,
-                36.0
-              ],
+              "pos": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 3.0
+              },
+              "size": {
+                "x": 36.0,
+                "y": 36.0
+              },
               "skew": {
                 "Ref": "64e97ffd-ee13-4fb1-9c38-a6d4b4a38cb8"
               },
@@ -163,17 +165,19 @@
                 "bot_right": 0.0
               },
               "text_alginment": "Center",
-              "text_position": [
-                24.5,
-                19.0
-              ]
+              "text_position": {
+                "x": 24.5,
+                "y": 19.0
+              }
             },
             "name": "position"
           },
           {
             "id": "a275bdc4-ed4a-4dcb-a964-d0646598d64e",
             "cell": {
-              "value_source": "6",
+              "value_source": {
+                "Ref": "171d7438-3179-4c70-b818-811cf86d514e"
+              },
               "color": {
                 "Rgba": {
                   "red": 0.40197778,
@@ -182,15 +186,15 @@
                   "alpha": 1.0
                 }
               },
-              "pos": [
-                225.0,
-                0.0,
-                1.0
-              ],
-              "size": [
-                46.0,
-                36.0
-              ],
+              "pos": {
+                "x": 225.0,
+                "y": 0.0,
+                "z": 1.0
+              },
+              "size": {
+                "x": 46.0,
+                "y": 36.0
+              },
               "skew": 0.0,
               "visible": true,
               "rounding": {
@@ -200,10 +204,10 @@
                 "bot_right": 0.0
               },
               "text_alginment": "Center",
-              "text_position": [
-                23.0,
-                18.0
-              ]
+              "text_position": {
+                "x": 23.0,
+                "y": 18.0
+              }
             },
             "name": "car number"
           },
@@ -211,7 +215,7 @@
             "id": "95ab724b-b056-4e76-8153-2f9265aac3cb",
             "cell": {
               "value_source": {
-                "Ref": "aff50918-9bff-42f6-880a-f6f29ffce9b2"
+                "Ref": "8abcf9d5-60f7-4886-a716-139d62ad83ac"
               },
               "color": {
                 "Rgba": {
@@ -221,15 +225,15 @@
                   "alpha": 0.6904762
                 }
               },
-              "pos": [
-                32.0,
-                0.0,
-                0.0
-              ],
-              "size": [
-                250.0,
-                36.0
-              ],
+              "pos": {
+                "x": 32.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "size": {
+                "x": 250.0,
+                "y": 36.0
+              },
               "skew": 0.0,
               "visible": true,
               "rounding": {
@@ -239,10 +243,10 @@
                 "bot_right": 0.0
               },
               "text_alginment": "Left",
-              "text_position": [
-                20.0,
-                19.0
-              ]
+              "text_position": {
+                "x": 20.0,
+                "y": 19.0
+              }
             },
             "name": "driver name"
           },
@@ -258,15 +262,15 @@
                   "alpha": 1.0
                 }
               },
-              "pos": [
-                189.0,
-                0.0,
-                1.0
-              ],
-              "size": [
-                36.0,
-                36.0
-              ],
+              "pos": {
+                "x": 189.0,
+                "y": 0.0,
+                "z": 1.0
+              },
+              "size": {
+                "x": 36.0,
+                "y": 36.0
+              },
               "skew": 0.0,
               "visible": true,
               "rounding": {
@@ -276,10 +280,10 @@
                 "bot_right": 0.0
               },
               "text_alginment": "Center",
-              "text_position": [
-                18.0,
-                18.0
-              ]
+              "text_position": {
+                "x": 18.0,
+                "y": 18.0
+              }
             },
             "name": "manufacturer"
           }

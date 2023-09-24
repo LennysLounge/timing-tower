@@ -3,9 +3,7 @@ use bevy_egui::egui::{self, DragValue, TextEdit, Ui};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::variable_repo::VariableRepo;
-
-use super::variable_element::VariableType;
+use crate::variable_repo::{Variable, VariableRepo, VariableSource};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub enum NumberProperty {
@@ -53,15 +51,20 @@ impl TextProperty {
                 }
                 egui::popup::popup_below_widget(ui, popup_id, &popup_button, |ui| {
                     ui.set_min_width(200.0);
-                    let color_vars = vars.vars.values().map(|v| &v.def).filter(|var| {
-                        matches!(
-                            var.var_type,
-                            VariableType::StaticNumber(_) | VariableType::StaticText(_)
-                        )
-                    });
+                    let mut color_vars: Vec<&Variable> = vars
+                        .vars
+                        .values()
+                        .filter(|var| {
+                            matches!(
+                                var.source,
+                                VariableSource::Number(_) | VariableSource::Text(_)
+                            )
+                        })
+                        .collect();
+                    color_vars.sort_by(|v1, v2| v1.def.name.cmp(&v2.def.name));
                     for var in color_vars {
-                        if ui.selectable_label(false, &var.name).clicked() {
-                            *self = TextProperty::Ref(var.id.clone());
+                        if ui.selectable_label(false, &var.def.name).clicked() {
+                            *self = TextProperty::Ref(var.def.id.clone());
                             ui.memory_mut(|mem| mem.close_popup());
                         }
                     }
@@ -93,14 +96,15 @@ impl NumberProperty {
                 }
                 egui::popup::popup_below_widget(ui, popup_id, &popup_button, |ui| {
                     ui.set_min_width(200.0);
-                    let color_vars = vars
+                    let mut color_vars: Vec<&Variable> = vars
                         .vars
                         .values()
-                        .map(|v| &v.def)
-                        .filter(|var| matches!(var.var_type, VariableType::StaticNumber(_)));
+                        .filter(|var| matches!(var.source, VariableSource::Number(_)))
+                        .collect();
+                    color_vars.sort_by(|v1, v2| v1.def.name.cmp(&v2.def.name));
                     for var in color_vars {
-                        if ui.selectable_label(false, &var.name).clicked() {
-                            *self = NumberProperty::Ref(var.id.clone());
+                        if ui.selectable_label(false, &var.def.name).clicked() {
+                            *self = NumberProperty::Ref(var.def.id.clone());
                             ui.memory_mut(|mem| mem.close_popup());
                         }
                     }
@@ -136,14 +140,15 @@ impl ColorProperty {
                 }
                 egui::popup::popup_below_widget(ui, popup_id, &popup_button, |ui| {
                     ui.set_min_width(200.0);
-                    let color_vars = vars
+                    let mut color_vars: Vec<&Variable> = vars
                         .vars
                         .values()
-                        .map(|v| &v.def)
-                        .filter(|var| matches!(var.var_type, VariableType::StaticColor(_)));
+                        .filter(|var| matches!(var.source, VariableSource::Color(_)))
+                        .collect();
+                    color_vars.sort_by(|v1, v2| v1.def.name.cmp(&v2.def.name));
                     for var in color_vars {
-                        if ui.selectable_label(false, &var.name).clicked() {
-                            *self = ColorProperty::Ref(var.id.clone());
+                        if ui.selectable_label(false, &var.def.name).clicked() {
+                            *self = ColorProperty::Ref(var.def.id.clone());
                             ui.memory_mut(|mem| mem.close_popup());
                         }
                     }

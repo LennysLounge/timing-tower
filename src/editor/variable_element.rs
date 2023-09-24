@@ -25,6 +25,8 @@ pub enum VariableType {
     StaticNumber(f32),
     StaticText(String),
     StaticColor(Color),
+    #[serde(skip)]
+    Game,
 }
 
 impl StyleElement for VariablesElement {
@@ -88,6 +90,7 @@ impl StyleElement for VariableDefinition {
                     VariableType::StaticNumber(_) => "Number",
                     VariableType::StaticText(_) => "Text",
                     VariableType::StaticColor(_) => "Color",
+                    _ => unreachable!(),
                 })
                 .show_ui(ui, |ui| {
                     let is_number = matches!(self.var_type, VariableType::StaticNumber(_));
@@ -127,6 +130,7 @@ impl StyleElement for VariableDefinition {
                     *c = color.into();
                 });
             }
+            _ => unreachable!(),
         }
     }
 }

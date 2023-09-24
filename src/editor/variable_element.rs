@@ -33,6 +33,15 @@ impl StyleElement for VariablesElement {
         let (toggle, header_res, _) = CollapsingState::load_with_default_open(ui.ctx(), id, true)
             .show_header(ui, |ui| ui.label("Variables"))
             .body(|ui| {
+                if ui.button("+ Add variable").clicked() {
+                    let uuid = Uuid::new_v4();
+                    self.vars.push(Variable {
+                        id: uuid.clone(),
+                        name: "Variable".to_string(),
+                        var_type: VariableType::Number(12.0),
+                    });
+                    *selected_element = Some(uuid);
+                }
                 for var in self.vars.iter_mut() {
                     var.element_tree(ui, selected_element);
                 }

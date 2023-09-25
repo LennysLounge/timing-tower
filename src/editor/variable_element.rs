@@ -16,17 +16,30 @@ pub struct VariablesElement {
 pub struct VariableDefinition {
     pub id: Uuid,
     pub name: String,
-    pub var_type: VariableType,
+    pub behavior: VariableBehavior,
+    pub output_type: VariableOutputType,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub enum VariableBehavior {
+    FixedValue(FixedValueType),
+    #[serde(skip)]
+    Game,
+}
+
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
+pub enum VariableOutputType {
+    Number,
+    Text,
+    Color,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(untagged)]
-pub enum VariableType {
+pub enum FixedValueType {
     StaticNumber(f32),
     StaticText(String),
     StaticColor(Color),
-    #[serde(skip)]
-    Game,
 }
 
 impl StyleElement for VariablesElement {
@@ -40,7 +53,8 @@ impl StyleElement for VariablesElement {
                     self.vars.push(VariableDefinition {
                         id: uuid.clone(),
                         name: "Variable".to_string(),
-                        var_type: VariableType::StaticNumber(12.0),
+                        behavior: VariableBehavior::FixedValue(FixedValueType::StaticNumber(12.0)),
+                        output_type: VariableOutputType::Number,
                     });
                     *selected_element = Some(uuid);
                 }
@@ -82,55 +96,88 @@ impl StyleElement for VariableDefinition {
     fn property_editor(&mut self, ui: &mut Ui, _vars: &VariableRepo) {
         ui.label("Name:");
         ui.text_edit_singleline(&mut self.name);
-        ui.separator();
         ui.horizontal(|ui| {
             ui.label("Type:");
             ComboBox::new(ui.next_auto_id(), "")
-                .selected_text(match self.var_type {
-                    VariableType::StaticNumber(_) => "Number",
-                    VariableType::StaticText(_) => "Text",
-                    VariableType::StaticColor(_) => "Color",
+                .selected_text(match self.output_type {
+                    VariableOutputType::Number => "Number",
+                    VariableOutputType::Text => "Text",
+                    VariableOutputType::Color => "Color",
+                })
+                .show_ui(ui, |ui| {
+                    ui.selectable_value(
+                        &mut self.output_type,
+                        VariableOutputType::Number,
+                        "Number",
+                    );
+                    ui.selectable_value(&mut self.output_type, VariableOutputType::Text, "Text");
+                    ui.selectable_value(&mut self.output_type, VariableOutputType::Color, "Color");
+                });
+        });
+        ui.horizontal(|ui| {
+            ui.label("Behavior:");
+            ComboBox::new(ui.next_auto_id(), "")
+                .selected_text(match self.behavior {
+                    VariableBehavior::FixedValue(_) => "Fixed value",
                     _ => unreachable!(),
                 })
                 .show_ui(ui, |ui| {
-                    let is_number = matches!(self.var_type, VariableType::StaticNumber(_));
-                    if ui.selectable_label(is_number, "Number").clicked() {
-                        self.var_type = VariableType::StaticNumber(0.0);
-                    }
-
-                    let is_text = matches!(self.var_type, VariableType::StaticText(_));
-                    if ui.selectable_label(is_text, "Text").clicked() {
-                        self.var_type = VariableType::StaticText("".to_string());
-                    }
-
-                    let is_color = matches!(self.var_type, VariableType::StaticColor(_));
-                    if ui.selectable_label(is_color, "Color").clicked() {
-                        self.var_type = VariableType::StaticColor(Color::RED);
+                    let is_fixed_value = matches!(self.behavior, VariableBehavior::FixedValue(_));
+                    if ui.selectable_label(is_fixed_value, "Fixed value").clicked()
+                        && !is_fixed_value
+                    {
+                        self.behavior =
+                            VariableBehavior::FixedValue(FixedValueType::StaticNumber(0.0))
                     }
                 });
         });
-        match &mut self.var_type {
-            VariableType::StaticNumber(n) => {
+        ui.separator();
+
+        self.behavior.property_editor(ui, &self.output_type);
+    }
+}
+
+impl VariableBehavior {
+    pub fn property_editor(&mut self, ui: &mut Ui, output_type: &VariableOutputType) {
+        match self {
+            VariableBehavior::FixedValue(v) => v.property_editor(ui, output_type),
+            VariableBehavior::Game => unreachable!(),
+        }
+    }
+}
+
+impl FixedValueType {
+    pub fn property_editor(&mut self, ui: &mut Ui, output_type: &VariableOutputType) {
+        match (output_type, &self) {
+            (VariableOutputType::Number, FixedValueType::StaticNumber(_)) => (),
+            (VariableOutputType::Number, _) => *self = FixedValueType::StaticNumber(0.0),
+            (VariableOutputType::Text, FixedValueType::StaticText(_)) => (),
+            (VariableOutputType::Text, _) => *self = FixedValueType::StaticText(String::new()),
+            (VariableOutputType::Color, FixedValueType::StaticColor(_)) => (),
+            (VariableOutputType::Color, _) => *self = FixedValueType::StaticColor(Color::WHITE),
+        }
+
+        match self {
+            FixedValueType::StaticNumber(number) => {
                 ui.horizontal(|ui| {
-                    ui.label("Value:");
-                    ui.add(DragValue::new(n));
+                    ui.label("Value");
+                    ui.add(DragValue::new(number));
                 });
             }
-            VariableType::StaticText(t) => {
+            FixedValueType::StaticText(text) => {
                 ui.horizontal(|ui| {
                     ui.label("Text");
-                    ui.text_edit_singleline(t);
+                    ui.text_edit_singleline(text);
                 });
             }
-            VariableType::StaticColor(c) => {
+            FixedValueType::StaticColor(color) => {
                 ui.horizontal(|ui| {
                     ui.label("Color:");
-                    let mut color = c.as_rgba_f32();
-                    ui.color_edit_button_rgba_unmultiplied(&mut color);
-                    *c = color.into();
+                    let mut color_local = color.as_rgba_f32();
+                    ui.color_edit_button_rgba_unmultiplied(&mut color_local);
+                    *color = color_local.into();
                 });
             }
-            _ => unreachable!(),
         }
     }
 }

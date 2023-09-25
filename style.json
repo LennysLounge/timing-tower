@@ -5,24 +5,33 @@
       {
         "id": "e9072d1c-a528-43c7-9260-41ea3f1c495c",
         "name": "color sample",
-        "var_type": {
-          "Rgba": {
-            "red": 0.0,
-            "green": 0.0,
-            "blue": 0.0,
-            "alpha": 1.0
+        "behavior": {
+          "FixedValue": {
+            "Rgba": {
+              "red": 0.0,
+              "green": 0.0,
+              "blue": 0.0,
+              "alpha": 1.0
+            }
           }
-        }
+        },
+        "output_type": "Color"
       },
       {
         "id": "64e97ffd-ee13-4fb1-9c38-a6d4b4a38cb8",
         "name": "number sample",
-        "var_type": 13.0
+        "behavior": {
+          "FixedValue": 13.0
+        },
+        "output_type": "Number"
       },
       {
         "id": "aff50918-9bff-42f6-880a-f6f29ffce9b2",
         "name": "text sample",
-        "var_type": "A. Brodych"
+        "behavior": {
+          "FixedValue": "A. Brodych"
+        },
+        "output_type": "Text"
       }
     ]
   },

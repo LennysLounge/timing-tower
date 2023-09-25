@@ -6,7 +6,9 @@ use uuid::{uuid, Uuid};
 
 use crate::editor::{
     properties::{ColorProperty, NumberProperty, TextProperty},
-    variable_element::{VariableDefinition, VariableType, VariablesElement},
+    variable_element::{
+        FixedValueType, VariableBehavior, VariableDefinition, VariableOutputType, VariablesElement,
+    },
 };
 
 pub trait NumberSource {
@@ -65,12 +67,18 @@ impl VariableRepo {
         generate_game_sources(&mut self.vars);
 
         for var_def in var_defs.vars.iter() {
-            let var = match &var_def.var_type {
-                VariableType::StaticNumber(n) => VariableSource::Number(Box::new(StaticNumber(*n))),
-                VariableType::StaticText(t) => {
-                    VariableSource::Text(Box::new(StaticText(t.clone())))
-                }
-                VariableType::StaticColor(c) => VariableSource::Color(Box::new(StaticColor(*c))),
+            let var = match &var_def.behavior {
+                VariableBehavior::FixedValue(v) => match v {
+                    FixedValueType::StaticNumber(n) => {
+                        VariableSource::Number(Box::new(StaticNumber(*n)))
+                    }
+                    FixedValueType::StaticText(t) => {
+                        VariableSource::Text(Box::new(StaticText(t.clone())))
+                    }
+                    FixedValueType::StaticColor(c) => {
+                        VariableSource::Color(Box::new(StaticColor(*c)))
+                    }
+                },
                 _ => unreachable!(),
             };
             self.vars.insert(
@@ -165,7 +173,12 @@ fn generate_game_sources(vars: &mut HashMap<Uuid, Variable>) {
                 def: VariableDefinition {
                     id: uuid,
                     name: name.to_string(),
-                    var_type: VariableType::Game,
+                    behavior: VariableBehavior::Game,
+                    output_type: match source {
+                        VariableSource::Number(_) => VariableOutputType::Number,
+                        VariableSource::Text(_) => VariableOutputType::Text,
+                        VariableSource::Color(_) => VariableOutputType::Color,
+                    },
                 },
                 source,
             },

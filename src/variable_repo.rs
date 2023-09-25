@@ -7,7 +7,7 @@ use uuid::{uuid, Uuid};
 use crate::editor::{
     properties::{ColorProperty, NumberProperty, TextProperty},
     variable_element::{
-        FixedValueType, VariableBehavior, VariableDefinition, VariableOutputType, VariablesElement,
+        VariableBehavior, VariableDefinition, VariableOutputType, VariablesElement,
     },
 };
 
@@ -39,21 +39,21 @@ pub struct VariableRepo {
     pub vars: HashMap<Uuid, Variable>,
 }
 
-pub struct StaticNumber(f32);
+pub struct StaticNumber(pub f32);
 impl NumberSource for StaticNumber {
     fn resolve(&self, _entry: Option<&Entry>) -> Option<f32> {
         Some(self.0)
     }
 }
 
-pub struct StaticText(String);
+pub struct StaticText(pub String);
 impl TextSource for StaticText {
     fn resolve(&self, _entry: Option<&Entry>) -> Option<String> {
         Some(self.0.clone())
     }
 }
 
-pub struct StaticColor(Color);
+pub struct StaticColor(pub Color);
 impl ColorSource for StaticColor {
     fn resolve(&self, _entry: Option<&Entry>) -> Option<Color> {
         Some(self.0)
@@ -67,25 +67,11 @@ impl VariableRepo {
         generate_game_sources(&mut self.vars);
 
         for var_def in var_defs.vars.iter() {
-            let var = match &var_def.behavior {
-                VariableBehavior::FixedValue(v) => match v {
-                    FixedValueType::StaticNumber(n) => {
-                        VariableSource::Number(Box::new(StaticNumber(*n)))
-                    }
-                    FixedValueType::StaticText(t) => {
-                        VariableSource::Text(Box::new(StaticText(t.clone())))
-                    }
-                    FixedValueType::StaticColor(c) => {
-                        VariableSource::Color(Box::new(StaticColor(*c)))
-                    }
-                },
-                _ => unreachable!(),
-            };
             self.vars.insert(
                 var_def.id.clone(),
                 Variable {
                     def: var_def.clone(),
-                    source: var,
+                    source: var_def.behavior.as_variable_source(),
                 },
             );
         }

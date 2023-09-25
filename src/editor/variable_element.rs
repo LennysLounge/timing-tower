@@ -1,11 +1,14 @@
-use bevy::prelude::Color;
-use bevy_egui::egui::{collapsing_header::CollapsingState, ComboBox, DragValue, Sense, Ui};
+use bevy_egui::egui::{collapsing_header::CollapsingState, ComboBox, Sense, Ui};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::variable_repo::VariableRepo;
+use crate::variable_repo::{VariableRepo, VariableSource};
+
+use self::fixed_value::FixedValue;
 
 use super::style_elements::StyleElement;
+
+pub mod fixed_value;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct VariablesElement {
@@ -22,7 +25,7 @@ pub struct VariableDefinition {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub enum VariableBehavior {
-    FixedValue(FixedValueType),
+    FixedValue(FixedValue),
     #[serde(skip)]
     Game,
 }
@@ -32,14 +35,6 @@ pub enum VariableOutputType {
     Number,
     Text,
     Color,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-#[serde(untagged)]
-pub enum FixedValueType {
-    StaticNumber(f32),
-    StaticText(String),
-    StaticColor(Color),
 }
 
 impl StyleElement for VariablesElement {
@@ -53,7 +48,7 @@ impl StyleElement for VariablesElement {
                     self.vars.push(VariableDefinition {
                         id: uuid.clone(),
                         name: "Variable".to_string(),
-                        behavior: VariableBehavior::FixedValue(FixedValueType::StaticNumber(12.0)),
+                        behavior: VariableBehavior::FixedValue(FixedValue::StaticNumber(12.0)),
                         output_type: VariableOutputType::Number,
                     });
                     *selected_element = Some(uuid);
@@ -126,8 +121,7 @@ impl StyleElement for VariableDefinition {
                     if ui.selectable_label(is_fixed_value, "Fixed value").clicked()
                         && !is_fixed_value
                     {
-                        self.behavior =
-                            VariableBehavior::FixedValue(FixedValueType::StaticNumber(0.0))
+                        self.behavior = VariableBehavior::FixedValue(FixedValue::default())
                     }
                 });
         });
@@ -144,40 +138,11 @@ impl VariableBehavior {
             VariableBehavior::Game => unreachable!(),
         }
     }
-}
 
-impl FixedValueType {
-    pub fn property_editor(&mut self, ui: &mut Ui, output_type: &VariableOutputType) {
-        match (output_type, &self) {
-            (VariableOutputType::Number, FixedValueType::StaticNumber(_)) => (),
-            (VariableOutputType::Number, _) => *self = FixedValueType::StaticNumber(0.0),
-            (VariableOutputType::Text, FixedValueType::StaticText(_)) => (),
-            (VariableOutputType::Text, _) => *self = FixedValueType::StaticText(String::new()),
-            (VariableOutputType::Color, FixedValueType::StaticColor(_)) => (),
-            (VariableOutputType::Color, _) => *self = FixedValueType::StaticColor(Color::WHITE),
-        }
-
+    pub fn as_variable_source(&self) -> VariableSource {
         match self {
-            FixedValueType::StaticNumber(number) => {
-                ui.horizontal(|ui| {
-                    ui.label("Value");
-                    ui.add(DragValue::new(number));
-                });
-            }
-            FixedValueType::StaticText(text) => {
-                ui.horizontal(|ui| {
-                    ui.label("Text");
-                    ui.text_edit_singleline(text);
-                });
-            }
-            FixedValueType::StaticColor(color) => {
-                ui.horizontal(|ui| {
-                    ui.label("Color:");
-                    let mut color_local = color.as_rgba_f32();
-                    ui.color_edit_button_rgba_unmultiplied(&mut color_local);
-                    *color = color_local.into();
-                });
-            }
+            VariableBehavior::FixedValue(v) => v.as_variable_source(),
+            VariableBehavior::Game => unreachable!(),
         }
     }
 }

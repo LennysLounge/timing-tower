@@ -4,10 +4,11 @@ use uuid::Uuid;
 
 use crate::variable_repo::{VariableRepo, VariableSource};
 
-use self::fixed_value::FixedValue;
+use self::{condition::Condition, fixed_value::FixedValue};
 
 use super::style_elements::StyleElement;
 
+pub mod condition;
 pub mod fixed_value;
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -26,6 +27,7 @@ pub struct VariableDefinition {
 #[derive(Serialize, Deserialize, Clone)]
 pub enum VariableBehavior {
     FixedValue(FixedValue),
+    Condition(Condition),
     #[serde(skip)]
     Game,
 }
@@ -88,7 +90,7 @@ impl StyleElement for VariableDefinition {
         (&self.id == id).then_some(self as &mut dyn StyleElement)
     }
 
-    fn property_editor(&mut self, ui: &mut Ui, _vars: &VariableRepo) {
+    fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
         ui.label("Name:");
         ui.text_edit_singleline(&mut self.name);
         ui.horizontal(|ui| {
@@ -114,7 +116,8 @@ impl StyleElement for VariableDefinition {
             ComboBox::new(ui.next_auto_id(), "")
                 .selected_text(match self.behavior {
                     VariableBehavior::FixedValue(_) => "Fixed value",
-                    _ => unreachable!(),
+                    VariableBehavior::Condition(_) => "Condition",
+                    VariableBehavior::Game => unreachable!(),
                 })
                 .show_ui(ui, |ui| {
                     let is_fixed_value = matches!(self.behavior, VariableBehavior::FixedValue(_));
@@ -123,18 +126,29 @@ impl StyleElement for VariableDefinition {
                     {
                         self.behavior = VariableBehavior::FixedValue(FixedValue::default())
                     }
+
+                    let is_condition = matches!(self.behavior, VariableBehavior::Condition(_));
+                    if ui.selectable_label(is_condition, "Condition").clicked() && !is_condition {
+                        self.behavior = VariableBehavior::Condition(Condition::default())
+                    }
                 });
         });
         ui.separator();
 
-        self.behavior.property_editor(ui, &self.output_type);
+        self.behavior.property_editor(ui, &self.output_type, vars);
     }
 }
 
 impl VariableBehavior {
-    pub fn property_editor(&mut self, ui: &mut Ui, output_type: &VariableOutputType) {
+    pub fn property_editor(
+        &mut self,
+        ui: &mut Ui,
+        output_type: &VariableOutputType,
+        vars: &VariableRepo,
+    ) {
         match self {
             VariableBehavior::FixedValue(v) => v.property_editor(ui, output_type),
+            VariableBehavior::Condition(v) => v.property_editor(ui, output_type, vars),
             VariableBehavior::Game => unreachable!(),
         }
     }
@@ -142,6 +156,7 @@ impl VariableBehavior {
     pub fn as_variable_source(&self) -> VariableSource {
         match self {
             VariableBehavior::FixedValue(v) => v.as_variable_source(),
+            VariableBehavior::Condition(v) => v.as_variable_source(),
             VariableBehavior::Game => unreachable!(),
         }
     }

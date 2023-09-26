@@ -36,23 +36,37 @@
       {
         "Condition": {
           "id": "e86a2ae3-6486-4941-bee9-b063f3ff0152",
-          "name": "Rude label",
-          "value_type": "Text",
+          "name": "position color",
+          "value_type": "Color",
           "left": {
             "value_type": "Number",
             "key": "6330a6bb-51d1-4af7-9bd0-efeb00b1ff52"
           },
           "right": {
             "Number": [
-              5.0,
-              "Greater"
+              3.0,
+              "Equal"
             ]
           },
           "true_output": {
-            "Text": "Top 5"
+            "Color": {
+              "Rgba": {
+                "red": 0.8649127,
+                "green": 0.0,
+                "blue": 0.0,
+                "alpha": 1.0
+              }
+            }
           },
           "false_output": {
-            "Text": "Loosers"
+            "Color": {
+              "Rgba": {
+                "red": 0.0,
+                "green": 0.0,
+                "blue": 0.0,
+                "alpha": 1.0
+              }
+            }
           }
         }
       }
@@ -180,7 +194,7 @@
               "color": {
                 "Ref": {
                   "value_type": "Color",
-                  "key": "9df89401-32e8-4455-ba91-b1421639cd50"
+                  "key": "e86a2ae3-6486-4941-bee9-b063f3ff0152"
                 }
               },
               "pos": {

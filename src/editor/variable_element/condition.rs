@@ -1,13 +1,17 @@
 use bevy::prelude::Color;
 use bevy_egui::egui::{ComboBox, Sense, Ui, Vec2};
 use serde::{Deserialize, Serialize};
+use unified_sim_model::model::Entry;
 
 use crate::{
     editor::{
         properties::{ColorProperty, NumberProperty, TextProperty},
         style_elements::reference_editor,
     },
-    variable_repo::{Reference, StaticNumber, ValueType, VariableId, VariableRepo, VariableSource},
+    variable_repo::{
+        ColorSource, NumberSource, Reference, TextSource, ValueType, VariableId, VariableRepo,
+        VariableSource,
+    },
 };
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -109,10 +113,12 @@ impl Condition {
         ui.horizontal(|ui| {
             ui.label("If");
             ui.allocate_at_least(Vec2::new(5.0, 0.0), Sense::hover());
-            let new_ref = reference_editor(ui, vars, &mut self.left, |v| match v.value_type {
-                ValueType::Number => true,
-                ValueType::Text => true,
-                _ => false,
+            let new_ref = reference_editor(ui, vars, &mut self.left, |v| {
+                return match v.value_type {
+                    ValueType::Number => true,
+                    ValueType::Text => true,
+                    _ => false,
+                } && v.id != self.id.id;
             });
             if let Some(reference) = new_ref {
                 // Channge the value type of the right side if necessary
@@ -206,6 +212,132 @@ impl Condition {
     }
 
     pub fn as_variable_source(&self) -> VariableSource {
-        VariableSource::Number(Box::new(StaticNumber(0.0)))
+        let source = ConditionSource {
+            comparison: match &self.right {
+                RightHandSide::Number(np, c) => Comparison::Number(NumberComparison {
+                    left: self.left.clone(),
+                    comparator: c.clone(),
+                    right: np.clone(),
+                }),
+                RightHandSide::Text(tp, c) => Comparison::Text(TextComparison {
+                    left: self.left.clone(),
+                    comparator: c.clone(),
+                    right: tp.clone(),
+                }),
+            },
+            true_value: self.true_output.clone(),
+            false_value: self.false_output.clone(),
+        };
+
+        match self.id.value_type {
+            ValueType::Number => VariableSource::Number(Box::new(source)),
+            ValueType::Text => VariableSource::Text(Box::new(source)),
+            ValueType::Color => VariableSource::Color(Box::new(source)),
+        }
+    }
+}
+
+struct ConditionSource {
+    comparison: Comparison,
+    true_value: Output,
+    false_value: Output,
+}
+
+impl ConditionSource {
+    fn evaluate_condition(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<bool> {
+        match &self.comparison {
+            Comparison::Number(n) => n.evaluate(vars, entry),
+            Comparison::Text(t) => t.evaluate(vars, entry),
+        }
+    }
+}
+
+impl NumberSource for ConditionSource {
+    fn resolve(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<f32> {
+        let condition = self.evaluate_condition(vars, entry)?;
+        if condition {
+            match &self.true_value {
+                Output::Number(n) => vars.get_number_property(&n, entry),
+                _ => unreachable!(),
+            }
+        } else {
+            match &self.false_value {
+                Output::Number(n) => vars.get_number_property(&n, entry),
+                _ => unreachable!(),
+            }
+        }
+    }
+}
+impl TextSource for ConditionSource {
+    fn resolve(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<String> {
+        let condition = self.evaluate_condition(vars, entry)?;
+        if condition {
+            match &self.true_value {
+                Output::Text(n) => vars.get_text_property(&n, entry),
+                _ => unreachable!(),
+            }
+        } else {
+            match &self.false_value {
+                Output::Text(n) => vars.get_text_property(&n, entry),
+                _ => unreachable!(),
+            }
+        }
+    }
+}
+impl ColorSource for ConditionSource {
+    fn resolve(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<Color> {
+        let condition = self.evaluate_condition(vars, entry)?;
+        if condition {
+            match &self.true_value {
+                Output::Color(n) => vars.get_color_property(&n, entry),
+                _ => unreachable!(),
+            }
+        } else {
+            match &self.false_value {
+                Output::Color(n) => vars.get_color_property(&n, entry),
+                _ => unreachable!(),
+            }
+        }
+    }
+}
+
+enum Comparison {
+    Number(NumberComparison),
+    Text(TextComparison),
+}
+
+struct NumberComparison {
+    left: Reference,
+    comparator: NumberComparator,
+    right: NumberProperty,
+}
+
+impl NumberComparison {
+    fn evaluate(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<bool> {
+        let left = vars.get_number(&self.left, entry)?;
+        let right = vars.get_number_property(&self.right, entry)?;
+        Some(match self.comparator {
+            NumberComparator::Equal => left == right,
+            NumberComparator::Greater => left > right,
+            NumberComparator::GreaterEqual => left >= right,
+            NumberComparator::Less => left < right,
+            NumberComparator::LessEqual => left <= right,
+        })
+    }
+}
+
+struct TextComparison {
+    left: Reference,
+    comparator: TextComparator,
+    right: TextProperty,
+}
+
+impl TextComparison {
+    fn evaluate(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<bool> {
+        let left = vars.get_text(&self.left, entry)?;
+        let right = vars.get_text_property(&self.right, entry)?;
+        Some(match self.comparator {
+            TextComparator::Like => left == right,
+        })
     }
 }

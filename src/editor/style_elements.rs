@@ -1,9 +1,9 @@
 use bevy::prelude::{Color, Resource};
-use bevy_egui::egui::{ComboBox, Ui};
+use bevy_egui::egui::{self, ComboBox, Response, Ui};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::variable_repo::VariableRepo;
+use crate::variable_repo::{Reference, Variable, VariableId, VariableRepo};
 
 use super::{
     properties::{ColorProperty, NumberProperty, TextProperty, Vec2Property, Vec3Property},
@@ -195,4 +195,55 @@ impl CellElement {
             self.rounding.bot_left.editor(ui, vars);
         });
     }
+}
+
+pub fn reference_editor(
+    ui: &mut Ui,
+    vars: &VariableRepo,
+    reference: &mut Reference,
+    use_type: impl Fn(&VariableId) -> bool,
+) -> Option<Reference> {
+    let var_name = match vars.get_var_def(reference) {
+        Some(def) => def.name.as_str(),
+        None => "Ref",
+    };
+    let popup_button = ui.button(var_name);
+    reference_popup(ui, &popup_button, vars, use_type)
+}
+
+pub fn reference_editor_small(
+    ui: &mut Ui,
+    vars: &VariableRepo,
+    use_type: impl Fn(&VariableId) -> bool,
+) -> Option<Reference> {
+    let popup_button = ui.button("R");
+    reference_popup(ui, &popup_button, vars, use_type)
+}
+
+fn reference_popup(
+    ui: &mut Ui,
+    button_response: &Response,
+    vars: &VariableRepo,
+    use_type: impl Fn(&VariableId) -> bool,
+) -> Option<Reference> {
+    let popup_id = ui.next_auto_id();
+    if button_response.clicked() {
+        ui.memory_mut(|mem| mem.toggle_popup(popup_id));
+    }
+    egui::popup::popup_below_widget(ui, popup_id, &button_response, |ui| {
+        ui.set_min_width(200.0);
+        let mut color_vars: Vec<&Variable> =
+            vars.vars.values().filter(|var| use_type(&var.id)).collect();
+        color_vars.sort_by(|v1, v2| v1.id.name.cmp(&v2.id.name));
+
+        let mut result = None;
+        for var in color_vars {
+            if ui.selectable_label(false, &var.id.name).clicked() && result.is_none() {
+                result = Some(var.get_ref());
+                ui.memory_mut(|mem| mem.close_popup());
+            }
+        }
+        result
+    })
+    .flatten()
 }

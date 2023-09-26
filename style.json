@@ -3,8 +3,11 @@
   "vars": {
     "vars": [
       {
-        "id": "e9072d1c-a528-43c7-9260-41ea3f1c495c",
-        "name": "color sample",
+        "id": {
+          "id": "e9072d1c-a528-43c7-9260-41ea3f1c495c",
+          "name": "color sample",
+          "value_type": "Color"
+        },
         "behavior": {
           "FixedValue": {
             "Rgba": {
@@ -14,24 +17,27 @@
               "alpha": 1.0
             }
           }
-        },
-        "output_type": "Color"
+        }
       },
       {
-        "id": "64e97ffd-ee13-4fb1-9c38-a6d4b4a38cb8",
-        "name": "number sample",
+        "id": {
+          "id": "64e97ffd-ee13-4fb1-9c38-a6d4b4a38cb8",
+          "name": "number sample",
+          "value_type": "Number"
+        },
         "behavior": {
           "FixedValue": 13.0
-        },
-        "output_type": "Number"
+        }
       },
       {
-        "id": "aff50918-9bff-42f6-880a-f6f29ffce9b2",
-        "name": "text sample",
+        "id": {
+          "id": "aff50918-9bff-42f6-880a-f6f29ffce9b2",
+          "name": "text sample",
+          "value_type": "Text"
+        },
         "behavior": {
           "FixedValue": "A. Brodych"
-        },
-        "output_type": "Text"
+        }
       }
     ]
   },
@@ -149,10 +155,16 @@
             "id": "7d96c8c6-c978-4258-83c4-9504bccf7256",
             "cell": {
               "text": {
-                "Ref": "6330a6bb-51d1-4af7-9bd0-efeb00b1ff52"
+                "Ref": {
+                  "value_type": "Text",
+                  "key": "6330a6bb-51d1-4af7-9bd0-efeb00b1ff52"
+                }
               },
               "color": {
-                "Ref": "e9072d1c-a528-43c7-9260-41ea3f1c495c"
+                "Ref": {
+                  "value_type": "Color",
+                  "key": "e9072d1c-a528-43c7-9260-41ea3f1c495c"
+                }
               },
               "pos": {
                 "x": 0.0,
@@ -164,7 +176,10 @@
                 "y": 36.0
               },
               "skew": {
-                "Ref": "64e97ffd-ee13-4fb1-9c38-a6d4b4a38cb8"
+                "Ref": {
+                  "value_type": "Number",
+                  "key": "64e97ffd-ee13-4fb1-9c38-a6d4b4a38cb8"
+                }
               },
               "visible": true,
               "rounding": {
@@ -185,7 +200,10 @@
             "id": "a275bdc4-ed4a-4dcb-a964-d0646598d64e",
             "cell": {
               "text": {
-                "Ref": "171d7438-3179-4c70-b818-811cf86d514e"
+                "Ref": {
+                  "value_type": "Text",
+                  "key": "171d7438-3179-4c70-b818-811cf86d514e"
+                }
               },
               "color": {
                 "Rgba": {
@@ -224,7 +242,10 @@
             "id": "95ab724b-b056-4e76-8153-2f9265aac3cb",
             "cell": {
               "text": {
-                "Ref": "8abcf9d5-60f7-4886-a716-139d62ad83ac"
+                "Ref": {
+                  "value_type": "Text",
+                  "key": "8abcf9d5-60f7-4886-a716-139d62ad83ac"
+                }
               },
               "color": {
                 "Rgba": {

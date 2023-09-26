@@ -2,7 +2,7 @@ use bevy_egui::egui::{collapsing_header::CollapsingState, ComboBox, Sense, Ui};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::variable_repo::{VariableRepo, VariableSource};
+use crate::variable_repo::{ValueType, VariableId, VariableRepo, VariableSource};
 
 use self::{condition::Condition, fixed_value::FixedValue};
 
@@ -18,8 +18,7 @@ pub struct VariablesElement {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct VariableDefinition {
-    pub id: Uuid,
-    pub name: String,
+    pub id: VariableId,
     pub behavior: VariableBehavior,
 }
 
@@ -27,8 +26,6 @@ pub struct VariableDefinition {
 pub enum VariableBehavior {
     FixedValue(FixedValue),
     Condition(Condition),
-    #[serde(skip)]
-    Game,
 }
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -47,8 +44,11 @@ impl StyleElement for VariablesElement {
                 if ui.button("+ Add variable").clicked() {
                     let uuid = Uuid::new_v4();
                     self.vars.push(VariableDefinition {
-                        id: uuid.clone(),
-                        name: "Variable".to_string(),
+                        id: VariableId {
+                            id: uuid.clone(),
+                            name: "Variable".to_string(),
+                            value_type: ValueType::Number,
+                        },
                         behavior: VariableBehavior::FixedValue(FixedValue::Number(12.0)),
                     });
                     *selected_element = Some(uuid);
@@ -78,27 +78,26 @@ impl StyleElement for VariablesElement {
 
 impl StyleElement for VariableDefinition {
     fn element_tree(&mut self, ui: &mut Ui, selected_element: &mut Option<Uuid>) {
-        let is_selected = selected_element.is_some_and(|uuid| uuid == self.id);
-        if ui.selectable_label(is_selected, &self.name).clicked() {
-            *selected_element = Some(self.id.clone());
+        let is_selected = selected_element.is_some_and(|uuid| uuid == self.id.id);
+        if ui.selectable_label(is_selected, &self.id.name).clicked() {
+            *selected_element = Some(self.id.id.clone());
         }
     }
 
     fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn StyleElement> {
-        (&self.id == id).then_some(self as &mut dyn StyleElement)
+        (&self.id.id == id).then_some(self as &mut dyn StyleElement)
     }
 
     fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
         ui.label("Name:");
-        ui.text_edit_singleline(&mut self.name);
-        
+        ui.text_edit_singleline(&mut self.id.name);
+
         ui.horizontal(|ui| {
             ui.label("Behavior:");
             ComboBox::new(ui.next_auto_id(), "")
                 .selected_text(match self.behavior {
                     VariableBehavior::FixedValue(_) => "Fixed value",
                     VariableBehavior::Condition(_) => "Condition",
-                    VariableBehavior::Game => unreachable!(),
                 })
                 .show_ui(ui, |ui| {
                     let is_fixed_value = matches!(self.behavior, VariableBehavior::FixedValue(_));
@@ -125,7 +124,6 @@ impl VariableBehavior {
         match self {
             VariableBehavior::FixedValue(v) => v.property_editor(ui),
             VariableBehavior::Condition(v) => v.property_editor(ui, vars),
-            VariableBehavior::Game => unreachable!(),
         }
     }
 
@@ -133,7 +131,6 @@ impl VariableBehavior {
         match self {
             VariableBehavior::FixedValue(v) => v.as_variable_source(),
             VariableBehavior::Condition(v) => v.as_variable_source(),
-            VariableBehavior::Game => unreachable!(),
         }
     }
 }

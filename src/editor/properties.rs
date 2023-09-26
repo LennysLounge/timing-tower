@@ -1,27 +1,28 @@
 use bevy::prelude::Color;
-use bevy_egui::egui::{self, DragValue, TextEdit, Ui};
+use bevy_egui::egui::{DragValue, TextEdit, Ui};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
-use crate::variable_repo::{Variable, VariableRepo, VariableSource};
+use crate::variable_repo::{Reference, ValueType, VariableRepo};
+
+use super::style_elements::{reference_editor, reference_editor_small};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub enum NumberProperty {
-    Ref(Uuid),
+    Ref(Reference),
     #[serde(untagged)]
     Fixed(f32),
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub enum TextProperty {
-    Ref(Uuid),
+    Ref(Reference),
     #[serde(untagged)]
     Fixed(String),
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub enum ColorProperty {
-    Ref(Uuid),
+    Ref(Reference),
     #[serde(untagged)]
     Fixed(Color),
 }
@@ -44,37 +45,19 @@ impl TextProperty {
         match self {
             TextProperty::Fixed(t) => {
                 ui.add(TextEdit::singleline(t).desired_width(100.0));
-                let popup_button = ui.button("R");
-                let popup_id = ui.next_auto_id();
-                if popup_button.clicked() {
-                    ui.memory_mut(|mem| mem.toggle_popup(popup_id));
-                }
-                egui::popup::popup_below_widget(ui, popup_id, &popup_button, |ui| {
-                    ui.set_min_width(200.0);
-                    let mut color_vars: Vec<&Variable> = vars
-                        .vars
-                        .values()
-                        .filter(|var| {
-                            matches!(
-                                var.source,
-                                VariableSource::Number(_) | VariableSource::Text(_)
-                            )
-                        })
-                        .collect();
-                    color_vars.sort_by(|v1, v2| v1.def.name.cmp(&v2.def.name));
-                    for var in color_vars {
-                        if ui.selectable_label(false, &var.def.name).clicked() {
-                            *self = TextProperty::Ref(var.def.id.clone());
-                            ui.memory_mut(|mem| mem.close_popup());
-                        }
-                    }
+                let new_reference = reference_editor_small(ui, vars, |v| {
+                    v.value_type.can_cast_to(&ValueType::Text)
                 });
+                if let Some(reference) = new_reference {
+                    *self = TextProperty::Ref(reference);
+                }
             }
             TextProperty::Ref(var_ref) => {
-                if let Some(var) = vars.get_var_def(&var_ref) {
-                    ui.label(format!("[ {} ]", var.name));
-                } else {
-                    ui.label(format!("Invalid variable reference"));
+                let new_ref = reference_editor(ui, vars, var_ref, |v| {
+                    v.value_type.can_cast_to(&ValueType::Text)
+                });
+                if let Some(reference) = new_ref {
+                    *var_ref = reference;
                 }
                 if ui.button("x").clicked() {
                     *self = TextProperty::Fixed("".to_string());
@@ -89,32 +72,19 @@ impl NumberProperty {
         match self {
             NumberProperty::Fixed(c) => {
                 ui.add(DragValue::new(c));
-                let popup_button = ui.button("R");
-                let popup_id = ui.next_auto_id();
-                if popup_button.clicked() {
-                    ui.memory_mut(|mem| mem.toggle_popup(popup_id));
-                }
-                egui::popup::popup_below_widget(ui, popup_id, &popup_button, |ui| {
-                    ui.set_min_width(200.0);
-                    let mut color_vars: Vec<&Variable> = vars
-                        .vars
-                        .values()
-                        .filter(|var| matches!(var.source, VariableSource::Number(_)))
-                        .collect();
-                    color_vars.sort_by(|v1, v2| v1.def.name.cmp(&v2.def.name));
-                    for var in color_vars {
-                        if ui.selectable_label(false, &var.def.name).clicked() {
-                            *self = NumberProperty::Ref(var.def.id.clone());
-                            ui.memory_mut(|mem| mem.close_popup());
-                        }
-                    }
+                let new_reference = reference_editor_small(ui, vars, |v| {
+                    v.value_type.can_cast_to(&ValueType::Number)
                 });
+                if let Some(reference) = new_reference {
+                    *self = NumberProperty::Ref(reference);
+                }
             }
             NumberProperty::Ref(var_ref) => {
-                if let Some(var) = vars.get_var_def(&var_ref) {
-                    ui.label(format!("[ {} ]", var.name));
-                } else {
-                    ui.label(format!("Invalid variable reference"));
+                let new_ref = reference_editor(ui, vars, var_ref, |v| {
+                    v.value_type.can_cast_to(&ValueType::Number)
+                });
+                if let Some(reference) = new_ref {
+                    *var_ref = reference;
                 }
                 if ui.button("x").clicked() {
                     *self = NumberProperty::Fixed(0.0);
@@ -132,33 +102,19 @@ impl ColorProperty {
                 ui.color_edit_button_rgba_unmultiplied(&mut color);
                 *c = color.into();
 
-                let popup_button = ui.button("R");
-                //let popup_id = ui.make_persistent_id("color_property_popup");
-                let popup_id = ui.next_auto_id();
-                if popup_button.clicked() {
-                    ui.memory_mut(|mem| mem.toggle_popup(popup_id));
-                }
-                egui::popup::popup_below_widget(ui, popup_id, &popup_button, |ui| {
-                    ui.set_min_width(200.0);
-                    let mut color_vars: Vec<&Variable> = vars
-                        .vars
-                        .values()
-                        .filter(|var| matches!(var.source, VariableSource::Color(_)))
-                        .collect();
-                    color_vars.sort_by(|v1, v2| v1.def.name.cmp(&v2.def.name));
-                    for var in color_vars {
-                        if ui.selectable_label(false, &var.def.name).clicked() {
-                            *self = ColorProperty::Ref(var.def.id.clone());
-                            ui.memory_mut(|mem| mem.close_popup());
-                        }
-                    }
+                let new_reference = reference_editor_small(ui, vars, |v| {
+                    v.value_type.can_cast_to(&ValueType::Color)
                 });
+                if let Some(reference) = new_reference {
+                    *self = ColorProperty::Ref(reference);
+                }
             }
             ColorProperty::Ref(var_ref) => {
-                if let Some(var) = vars.get_var_def(&var_ref) {
-                    ui.label(format!("[ {} ]", var.name));
-                } else {
-                    ui.label(format!("Invalid variable reference"));
+                let new_ref = reference_editor(ui, vars, var_ref, |v| {
+                    v.value_type.can_cast_to(&ValueType::Color)
+                });
+                if let Some(reference) = new_ref {
+                    *var_ref = reference;
                 }
                 if ui.button("x").clicked() {
                     *self = ColorProperty::Fixed(Color::PURPLE);

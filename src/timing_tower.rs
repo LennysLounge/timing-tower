@@ -221,11 +221,11 @@ fn update_rows(
             offset.y -= row_height;
             offset -= Vec2::new(
                 variables
-                    .get_number(&elements.timing_tower.table.row_offset.x, None)
+                    .get_number_property(&elements.timing_tower.table.row_offset.x, None)
                     .unwrap_or(0.0)
                     * -1.0,
                 variables
-                    .get_number(&elements.timing_tower.table.row_offset.y, None)
+                    .get_number_property(&elements.timing_tower.table.row_offset.y, None)
                     .unwrap_or(0.0),
             );
         }
@@ -291,34 +291,34 @@ fn create_cell_style(cell: &CellElement, vars: &VariableRepo, entry: Option<&Ent
 
     CellStyle {
         text: vars
-            .get_text(&cell.text, entry)
+            .get_text_property(&cell.text, entry)
             .unwrap_or_else(|| "unavailable".to_string()),
         text_alignment: cell.text_alginment.clone(),
         text_position: Vec2::new(
-            vars.get_number(&cell.text_position.x, entry).unwrap_or(0.0),
-            vars.get_number(&cell.text_position.y, entry).unwrap_or(0.0),
+            vars.get_number_property(&cell.text_position.x, entry).unwrap_or(0.0),
+            vars.get_number_property(&cell.text_position.y, entry).unwrap_or(0.0),
         ),
-        color: vars.get_color(&cell.color, entry).unwrap_or(Color::RED),
+        color: vars.get_color_property(&cell.color, entry).unwrap_or(Color::RED),
         texture: None,
         pos: Vec3::new(
-            vars.get_number(&cell.pos.x, entry).unwrap_or(0.0),
-            vars.get_number(&cell.pos.y, entry).unwrap_or(0.0) * -1.0,
-            vars.get_number(&cell.pos.z, entry).unwrap_or(0.0),
+            vars.get_number_property(&cell.pos.x, entry).unwrap_or(0.0),
+            vars.get_number_property(&cell.pos.y, entry).unwrap_or(0.0) * -1.0,
+            vars.get_number_property(&cell.pos.z, entry).unwrap_or(0.0),
         ),
         size: Vec2::new(
-            vars.get_number(&cell.size.x, entry).unwrap_or(0.0),
-            vars.get_number(&cell.size.y, entry).unwrap_or(0.0),
+            vars.get_number_property(&cell.size.x, entry).unwrap_or(0.0),
+            vars.get_number_property(&cell.size.y, entry).unwrap_or(0.0),
         ),
-        skew: vars.get_number(&cell.skew, entry).unwrap_or(0.0),
+        skew: vars.get_number_property(&cell.skew, entry).unwrap_or(0.0),
         visible: cell.visible,
         rounding: [
-            vars.get_number(&cell.rounding.top_left, entry)
+            vars.get_number_property(&cell.rounding.top_left, entry)
                 .unwrap_or(0.0),
-            vars.get_number(&cell.rounding.top_right, entry)
+            vars.get_number_property(&cell.rounding.top_right, entry)
                 .unwrap_or(0.0),
-            vars.get_number(&cell.rounding.bot_right, entry)
+            vars.get_number_property(&cell.rounding.bot_right, entry)
                 .unwrap_or(0.0),
-            vars.get_number(&cell.rounding.bot_left, entry)
+            vars.get_number_property(&cell.rounding.bot_left, entry)
                 .unwrap_or(0.0),
         ],
     }

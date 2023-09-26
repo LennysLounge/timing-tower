@@ -4,31 +4,32 @@ use uuid::Uuid;
 
 use crate::{
     editor::style_elements::reference_editor,
-    variable_repo::{Reference, StaticNumber, ValueType, VariableRepo, VariableSource},
+    variable_repo::{Reference, StaticNumber, ValueType, VariableId, VariableRepo, VariableSource},
 };
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Default)]
 pub struct Condition {
+    #[serde(flatten)]
+    id: VariableId,
     left: Reference,
     right: Reference,
 }
 
-impl Default for Condition {
-    fn default() -> Self {
+impl Condition {
+    pub fn from_id(id: VariableId) -> Self {
         Self {
-            left: Reference {
-                value_type: ValueType::Number,
-                key: Uuid::nil(),
-            },
-            right: Reference {
-                value_type: ValueType::Number,
-                key: Uuid::nil(),
-            },
+            id,
+            ..Default::default()
         }
     }
-}
 
-impl Condition {
+    pub fn get_id(&self) -> &VariableId {
+        &self.id
+    }
+    pub fn get_id_mut(&mut self) -> &mut VariableId {
+        &mut self.id
+    }
+
     pub fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
         let new_ref = reference_editor(ui, vars, &mut self.left, |v| match v.value_type {
             ValueType::Number => true,

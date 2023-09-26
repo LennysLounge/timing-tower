@@ -3,13 +3,11 @@
   "vars": {
     "vars": [
       {
-        "id": {
-          "id": "e9072d1c-a528-43c7-9260-41ea3f1c495c",
+        "FixedValue": {
+          "id": "9df89401-32e8-4455-ba91-b1421639cd50",
           "name": "color sample",
-          "value_type": "Color"
-        },
-        "behavior": {
-          "FixedValue": {
+          "value_type": "Color",
+          "value": {
             "Rgba": {
               "red": 0.0,
               "green": 0.0,
@@ -20,23 +18,19 @@
         }
       },
       {
-        "id": {
-          "id": "64e97ffd-ee13-4fb1-9c38-a6d4b4a38cb8",
-          "name": "number sample",
-          "value_type": "Number"
-        },
-        "behavior": {
-          "FixedValue": 13.0
+        "FixedValue": {
+          "id": "f45338ce-3d52-43b3-85ee-d99352174b79",
+          "name": "Number sample",
+          "value_type": "Number",
+          "value": 13.0
         }
       },
       {
-        "id": {
-          "id": "aff50918-9bff-42f6-880a-f6f29ffce9b2",
-          "name": "text sample",
-          "value_type": "Text"
-        },
-        "behavior": {
-          "FixedValue": "A. Brodych"
+        "FixedValue": {
+          "id": "aed52af1-aa86-4348-aef6-e86fc2c97cc5",
+          "name": "Text sample",
+          "value_type": "Text",
+          "value": "A. Brodych"
         }
       }
     ]
@@ -163,7 +157,7 @@
               "color": {
                 "Ref": {
                   "value_type": "Color",
-                  "key": "e9072d1c-a528-43c7-9260-41ea3f1c495c"
+                  "key": "9df89401-32e8-4455-ba91-b1421639cd50"
                 }
               },
               "pos": {
@@ -178,7 +172,7 @@
               "skew": {
                 "Ref": {
                   "value_type": "Number",
-                  "key": "64e97ffd-ee13-4fb1-9c38-a6d4b4a38cb8"
+                  "key": "f45338ce-3d52-43b3-85ee-d99352174b79"
                 }
               },
               "visible": true,

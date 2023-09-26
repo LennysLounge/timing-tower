@@ -2,7 +2,7 @@ use bevy_egui::egui::{collapsing_header::CollapsingState, ComboBox, Sense, Ui};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::variable_repo::{ValueType, VariableId, VariableRepo, VariableSource};
+use crate::variable_repo::{VariableId, VariableRepo, VariableSource};
 
 use self::{condition::Condition, fixed_value::FixedValue};
 
@@ -13,13 +13,7 @@ pub mod fixed_value;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct VariablesElement {
-    pub vars: Vec<VariableDefinition>,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct VariableDefinition {
-    pub id: VariableId,
-    pub behavior: VariableBehavior,
+    pub vars: Vec<VariableBehavior>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -43,14 +37,8 @@ impl StyleElement for VariablesElement {
             .body(|ui| {
                 if ui.button("+ Add variable").clicked() {
                     let uuid = Uuid::new_v4();
-                    self.vars.push(VariableDefinition {
-                        id: VariableId {
-                            id: uuid.clone(),
-                            name: "Variable".to_string(),
-                            value_type: ValueType::Number,
-                        },
-                        behavior: VariableBehavior::FixedValue(FixedValue::Number(12.0)),
-                    });
+                    self.vars
+                        .push(VariableBehavior::FixedValue(FixedValue::default()));
                     *selected_element = Some(uuid);
                 }
                 for var in self.vars.iter_mut() {
@@ -76,46 +64,51 @@ impl StyleElement for VariablesElement {
     fn property_editor(&mut self, _ui: &mut Ui, _vars: &VariableRepo) {}
 }
 
-impl StyleElement for VariableDefinition {
+impl StyleElement for VariableBehavior {
     fn element_tree(&mut self, ui: &mut Ui, selected_element: &mut Option<Uuid>) {
-        let is_selected = selected_element.is_some_and(|uuid| uuid == self.id.id);
-        if ui.selectable_label(is_selected, &self.id.name).clicked() {
-            *selected_element = Some(self.id.id.clone());
+        let is_selected = selected_element.is_some_and(|uuid| uuid == self.get_id().id);
+        if ui
+            .selectable_label(is_selected, &self.get_id().name)
+            .clicked()
+        {
+            *selected_element = Some(self.get_id().id.clone());
         }
     }
 
     fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn StyleElement> {
-        (&self.id.id == id).then_some(self as &mut dyn StyleElement)
+        (&self.get_id().id == id).then_some(self as &mut dyn StyleElement)
     }
 
     fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
         ui.label("Name:");
-        ui.text_edit_singleline(&mut self.id.name);
+        ui.text_edit_singleline(&mut self.get_id_mut().name);
 
         ui.horizontal(|ui| {
             ui.label("Behavior:");
             ComboBox::new(ui.next_auto_id(), "")
-                .selected_text(match self.behavior {
+                .selected_text(match self {
                     VariableBehavior::FixedValue(_) => "Fixed value",
                     VariableBehavior::Condition(_) => "Condition",
                 })
                 .show_ui(ui, |ui| {
-                    let is_fixed_value = matches!(self.behavior, VariableBehavior::FixedValue(_));
+                    let is_fixed_value = matches!(self, VariableBehavior::FixedValue(_));
                     if ui.selectable_label(is_fixed_value, "Fixed value").clicked()
                         && !is_fixed_value
                     {
-                        self.behavior = VariableBehavior::FixedValue(FixedValue::default())
+                        *self =
+                            VariableBehavior::FixedValue(FixedValue::from_id(self.get_id().clone()))
                     }
 
-                    let is_condition = matches!(self.behavior, VariableBehavior::Condition(_));
+                    let is_condition = matches!(self, VariableBehavior::Condition(_));
                     if ui.selectable_label(is_condition, "Condition").clicked() && !is_condition {
-                        self.behavior = VariableBehavior::Condition(Condition::default())
+                        *self =
+                            VariableBehavior::Condition(Condition::from_id(self.get_id().clone()))
                     }
                 });
         });
         ui.separator();
 
-        self.behavior.property_editor(ui, vars);
+        self.property_editor(ui, vars);
     }
 }
 
@@ -131,6 +124,19 @@ impl VariableBehavior {
         match self {
             VariableBehavior::FixedValue(v) => v.as_variable_source(),
             VariableBehavior::Condition(v) => v.as_variable_source(),
+        }
+    }
+
+    pub fn get_id(&self) -> &VariableId {
+        match self {
+            VariableBehavior::FixedValue(f) => f.get_id(),
+            VariableBehavior::Condition(c) => c.get_id(),
+        }
+    }
+    pub fn get_id_mut(&mut self) -> &mut VariableId {
+        match self {
+            VariableBehavior::FixedValue(f) => f.get_id_mut(),
+            VariableBehavior::Condition(c) => c.get_id_mut(),
         }
     }
 }

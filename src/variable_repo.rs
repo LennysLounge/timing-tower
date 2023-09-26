@@ -22,20 +22,21 @@ pub trait ColorSource {
     fn resolve(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<Color>;
 }
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug, Default)]
 pub enum ValueType {
+    #[default]
     Number,
     Text,
     Color,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Default)]
 pub struct Reference {
     pub value_type: ValueType,
     pub key: Uuid,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Default)]
 pub struct VariableId {
     pub id: Uuid,
     pub name: String,
@@ -66,10 +67,10 @@ impl VariableRepo {
 
         for var_def in var_defs.vars.iter() {
             self.vars.insert(
-                var_def.id.id.clone(),
+                var_def.get_id().id.clone(),
                 Variable {
-                    id: var_def.id.clone(),
-                    source: var_def.behavior.as_variable_source(),
+                    id: var_def.get_id().clone(),
+                    source: var_def.as_variable_source(),
                 },
             );
         }

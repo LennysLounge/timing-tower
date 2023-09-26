@@ -6,9 +6,7 @@ use uuid::{uuid, Uuid};
 
 use crate::editor::{
     properties::{ColorProperty, NumberProperty, TextProperty},
-    variable_element::{
-        VariableBehavior, VariableDefinition, VariableOutputType, VariablesElement,
-    },
+    variable_element::{VariableBehavior, VariableDefinition, VariablesElement},
 };
 
 pub trait NumberSource {
@@ -160,11 +158,6 @@ fn generate_game_sources(vars: &mut HashMap<Uuid, Variable>) {
                     id: uuid,
                     name: name.to_string(),
                     behavior: VariableBehavior::Game,
-                    output_type: match source {
-                        VariableSource::Number(_) => VariableOutputType::Number,
-                        VariableSource::Text(_) => VariableOutputType::Text,
-                        VariableSource::Color(_) => VariableOutputType::Color,
-                    },
                 },
                 source,
             },

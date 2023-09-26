@@ -36,11 +36,21 @@ pub struct Reference {
     pub key: Uuid,
 }
 
-#[derive(Serialize, Deserialize, Clone, Default)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct VariableId {
     pub id: Uuid,
     pub name: String,
     pub value_type: ValueType,
+}
+
+impl Default for VariableId {
+    fn default() -> Self {
+        Self {
+            name: "Variable".to_string(),
+            id: Uuid::new_v4(),
+            value_type: ValueType::default(),
+        }
+    }
 }
 
 pub struct Variable {

@@ -22,13 +22,6 @@ pub enum VariableBehavior {
     Condition(Condition),
 }
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
-pub enum VariableOutputType {
-    Number,
-    Text,
-    Color,
-}
-
 impl StyleElement for VariablesElement {
     fn element_tree(&mut self, ui: &mut Ui, selected_element: &mut Option<Uuid>) {
         let id = ui.next_auto_id();
@@ -36,10 +29,9 @@ impl StyleElement for VariablesElement {
             .show_header(ui, |ui| ui.label("Variables"))
             .body(|ui| {
                 if ui.button("+ Add variable").clicked() {
-                    let uuid = Uuid::new_v4();
-                    self.vars
-                        .push(VariableBehavior::FixedValue(FixedValue::default()));
-                    *selected_element = Some(uuid);
+                    let var = VariableBehavior::FixedValue(FixedValue::default());
+                    *selected_element = Some(var.get_id().id.clone());
+                    self.vars.push(var);
                 }
                 for var in self.vars.iter_mut() {
                     var.element_tree(ui, selected_element);

@@ -32,6 +32,29 @@
           "value_type": "Text",
           "value": "A. Brodych"
         }
+      },
+      {
+        "Condition": {
+          "id": "e86a2ae3-6486-4941-bee9-b063f3ff0152",
+          "name": "Rude label",
+          "value_type": "Text",
+          "left": {
+            "value_type": "Number",
+            "key": "6330a6bb-51d1-4af7-9bd0-efeb00b1ff52"
+          },
+          "right": {
+            "Number": [
+              5.0,
+              "Greater"
+            ]
+          },
+          "true_output": {
+            "Text": "Top 5"
+          },
+          "false_output": {
+            "Text": "Loosers"
+          }
+        }
       }
     ]
   },

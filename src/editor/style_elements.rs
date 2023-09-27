@@ -1,5 +1,5 @@
 use bevy::prelude::{Color, Resource};
-use bevy_egui::egui::{self, ComboBox, Response, Ui};
+use bevy_egui::egui::{self, ComboBox, Response, Sense, Ui, Vec2};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -73,6 +73,7 @@ pub enum VariableDef {
 impl StyleElement for RootElement {
     fn element_tree(&mut self, ui: &mut Ui, selected_element: &mut Option<Uuid>) {
         self.vars.element_tree(ui, selected_element);
+        ui.allocate_at_least(Vec2::new(0.0, 5.0), Sense::hover());
         self.timing_tower.element_tree(ui, selected_element);
     }
 

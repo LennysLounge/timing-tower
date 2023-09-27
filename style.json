@@ -347,6 +347,43 @@
               }
             },
             "name": "manufacturer"
+          },
+          {
+            "id": "12b0a701-6b31-4027-8bbb-0c3011998f4c",
+            "cell": {
+              "text": "P",
+              "color": {
+                "Rgba": {
+                  "red": 1.0,
+                  "green": 1.0,
+                  "blue": 1.0,
+                  "alpha": 1.0
+                }
+              },
+              "pos": {
+                "x": 271.0,
+                "y": 0.0,
+                "z": 5.0
+              },
+              "size": {
+                "x": 11.0,
+                "y": 36.0
+              },
+              "skew": 0.0,
+              "visible": true,
+              "rounding": {
+                "top_left": 0.0,
+                "top_right": 0.0,
+                "bot_left": 0.0,
+                "bot_right": 0.0
+              },
+              "text_alginment": "Center",
+              "text_position": {
+                "x": 25.0,
+                "y": 18.0
+              }
+            },
+            "name": "pit indicator"
           }
         ]
       }

@@ -39,13 +39,13 @@
           "name": "position color",
           "value_type": "Color",
           "left": {
-            "value_type": "Number",
-            "key": "6330a6bb-51d1-4af7-9bd0-efeb00b1ff52"
+            "value_type": "Boolean",
+            "key": "de909160-f54b-40cf-a987-6a8453df0914"
           },
           "right": {
-            "Number": [
-              3.0,
-              "Equal"
+            "Boolean": [
+              true,
+              "Is"
             ]
           },
           "true_output": {
@@ -85,7 +85,7 @@
         }
       },
       "pos": {
-        "x": 332.0,
+        "x": 39.0,
         "y": 56.0,
         "z": 0.0
       },
@@ -370,7 +370,12 @@
                 "y": 36.0
               },
               "skew": 0.0,
-              "visible": true,
+              "visible": {
+                "Ref": {
+                  "value_type": "Boolean",
+                  "key": "c16f71b9-dcc9-4f04-9579-ea5211fa99be"
+                }
+              },
               "rounding": {
                 "top_left": 0.0,
                 "top_right": 0.0,

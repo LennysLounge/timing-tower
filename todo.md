@@ -1,6 +1,3 @@
-1. Add a boolean variable type
-2. Add the entity focused game variable
-3. Use the entity focused to set the background for the focused car
 4. Add a text color styling option
 5. Add a font size styling option
 6. Add the entity in pits game variable

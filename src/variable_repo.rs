@@ -263,6 +263,15 @@ impl TextSource for GameTextSource {
     }
 }
 
+pub struct GameBooleanSource {
+    extractor: fn(Option<&Entry>) -> Option<bool>,
+}
+impl BooleanSource for GameBooleanSource {
+    fn resolve(&self, _vars: &VariableRepo, entry: Option<&Entry>) -> Option<bool> {
+        (self.extractor)(entry)
+    }
+}
+
 fn generate_game_sources(vars: &mut HashMap<Uuid, Variable>) {
     let mut make_source =
         |uuid: Uuid, name: &str, value_type: ValueType, source: VariableSource| {
@@ -309,6 +318,23 @@ fn generate_game_sources(vars: &mut HashMap<Uuid, Variable>) {
                         .map(|driver| format!("{} {}", driver.first_name, driver.last_name))
                 })
             },
+        })),
+    );
+    make_source(
+        uuid!("de909160-f54b-40cf-a987-6a8453df0914"),
+        "Is focused",
+        ValueType::Boolean,
+        VariableSource::Bool(Box::new(GameBooleanSource {
+            extractor: |entry| entry.map(|e| e.focused),
+        })),
+    );
+
+    make_source(
+        uuid!("c16f71b9-dcc9-4f04-9579-ea5211fa99be"),
+        "Is in pits",
+        ValueType::Boolean,
+        VariableSource::Bool(Box::new(GameBooleanSource {
+            extractor: |entry| entry.map(|e| *e.in_pits),
         })),
     );
 }

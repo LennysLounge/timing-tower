@@ -125,9 +125,11 @@ fn setup(mut commands: Commands, mut set_style_event: EventWriter<SetStyle>) {
     });
 
     commands.insert_resource(elements.clone());
-    commands.insert_resource(VariableRepo {
+    let mut repo = VariableRepo {
         vars: HashMap::new(),
-    });
+    };
+    repo.reload_repo(&elements.vars);
+    commands.insert_resource(repo);
 
     commands.insert_resource(EditorState {
         selected_element: None,

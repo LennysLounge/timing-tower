@@ -1,5 +1,5 @@
 use bevy::prelude::Color;
-use bevy_egui::egui::{DragValue, TextEdit, Ui};
+use bevy_egui::egui::{ComboBox, DragValue, TextEdit, Ui};
 use serde::{Deserialize, Serialize};
 
 use crate::variable_repo::{Reference, ValueType, VariableRepo};
@@ -135,7 +135,16 @@ impl BooleanProperty {
     pub fn editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
         match self {
             BooleanProperty::Fixed(b) => {
-                ui.checkbox(b, "");
+                ComboBox::from_id_source(ui.next_auto_id())
+                    .width(50.0)
+                    .selected_text(match b {
+                        true => "Yes",
+                        false => "No",
+                    })
+                    .show_ui(ui, |ui| {
+                        ui.selectable_value(b, true, "Yes");
+                        ui.selectable_value(b, false, "No");
+                    });
                 let new_reference = reference_editor_small(ui, vars, |v| {
                     v.value_type.can_cast_to(&ValueType::Boolean)
                 });

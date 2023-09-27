@@ -74,6 +74,18 @@ impl Default for Condition {
 impl Condition {
     pub fn from_id(id: VariableId) -> Self {
         Self {
+            true_output: match &id.value_type {
+                ValueType::Number => Output::Number(NumberProperty::Fixed(0.0)),
+                ValueType::Text => Output::Text(TextProperty::Fixed(String::new())),
+                ValueType::Color => Output::Color(ColorProperty::Fixed(Color::WHITE)),
+                ValueType::Boolean => Output::Boolean(BooleanProperty::Fixed(true)),
+            },
+            false_output: match &id.value_type {
+                ValueType::Number => Output::Number(NumberProperty::Fixed(0.0)),
+                ValueType::Text => Output::Text(TextProperty::Fixed(String::new())),
+                ValueType::Color => Output::Color(ColorProperty::Fixed(Color::WHITE)),
+                ValueType::Boolean => Output::Boolean(BooleanProperty::Fixed(false)),
+            },
             id,
             ..Default::default()
         }
@@ -94,7 +106,7 @@ impl Condition {
                     ValueType::Number => "Number",
                     ValueType::Text => "Text",
                     ValueType::Color => "Color",
-                    ValueType::Boolean => "Boolean",
+                    ValueType::Boolean => "Yes/No",
                 })
                 .show_ui(ui, |ui| {
                     let is_number = self.id.value_type == ValueType::Number;
@@ -116,7 +128,7 @@ impl Condition {
                         self.false_output = Output::Color(ColorProperty::Fixed(Color::WHITE));
                     }
                     let is_boolean = self.id.value_type == ValueType::Boolean;
-                    if ui.selectable_label(is_boolean, "Boolean").clicked() && !is_boolean {
+                    if ui.selectable_label(is_boolean, "Yes/No").clicked() && !is_boolean {
                         self.id.value_type = ValueType::Boolean;
                         self.true_output = Output::Boolean(BooleanProperty::Fixed(true));
                         self.false_output = Output::Boolean(BooleanProperty::Fixed(false));
@@ -165,6 +177,7 @@ impl Condition {
             match &mut self.right {
                 RightHandSide::Number(_, c) => {
                     ComboBox::from_id_source(ui.next_auto_id())
+                        .width(50.0)
                         .selected_text(match c {
                             NumberComparator::Equal => "equal",
                             NumberComparator::Greater => "greater",
@@ -193,6 +206,7 @@ impl Condition {
                 }
                 RightHandSide::Text(_, c) => {
                     ComboBox::from_id_source(ui.next_auto_id())
+                        .width(50.0)
                         .selected_text(match c {
                             TextComparator::Like => "like",
                         })
@@ -202,6 +216,7 @@ impl Condition {
                 }
                 RightHandSide::Boolean(_, c) => {
                     ComboBox::from_id_source(ui.next_auto_id())
+                        .width(50.0)
                         .selected_text(match c {
                             BooleanComparator::Is => "is",
                             BooleanComparator::IsNot => "is not",

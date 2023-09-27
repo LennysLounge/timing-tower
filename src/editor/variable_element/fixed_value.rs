@@ -51,7 +51,7 @@ impl FixedValue {
                     FixedValueType::Number(_) => "Number",
                     FixedValueType::Text(_) => "Text",
                     FixedValueType::Color(_) => "Color",
-                    FixedValueType::Boolean(_) => "Boolean",
+                    FixedValueType::Boolean(_) => "Yes/No",
                 })
                 .show_ui(ui, |ui| {
                     let is_number = matches!(self.value, FixedValueType::Number(_));
@@ -70,7 +70,7 @@ impl FixedValue {
                         self.id.value_type = ValueType::Color;
                     }
                     let is_boolean = matches!(self.value, FixedValueType::Boolean(_));
-                    if ui.selectable_label(is_boolean, "Boolean").clicked() && !is_boolean {
+                    if ui.selectable_label(is_boolean, "Yes/No").clicked() && !is_boolean {
                         self.value = FixedValueType::Boolean(true);
                         self.id.value_type = ValueType::Boolean;
                     }
@@ -101,7 +101,16 @@ impl FixedValue {
             FixedValueType::Boolean(b) => {
                 ui.horizontal(|ui| {
                     ui.label("Value:");
-                    ui.checkbox(b, "");
+                    ComboBox::from_id_source(ui.next_auto_id())
+                        .width(50.0)
+                        .selected_text(match b {
+                            true => "Yes",
+                            false => "No",
+                        })
+                        .show_ui(ui, |ui| {
+                            ui.selectable_value(b, true, "Yes");
+                            ui.selectable_value(b, false, "No");
+                        });
                 });
             }
         }

@@ -6,7 +6,9 @@ use uuid::Uuid;
 use crate::variable_repo::{Reference, Variable, VariableId, VariableRepo};
 
 use super::{
-    properties::{ColorProperty, NumberProperty, TextProperty, Vec2Property, Vec3Property},
+    properties::{
+        BooleanProperty, ColorProperty, NumberProperty, TextProperty, Vec2Property, Vec3Property,
+    },
     timing_tower_elements::TimingTowerElement,
     variable_element::VariablesElement,
 };
@@ -31,7 +33,7 @@ pub struct CellElement {
     pub pos: Vec3Property,
     pub size: Vec2Property,
     pub skew: NumberProperty,
-    pub visible: bool,
+    pub visible: BooleanProperty,
     pub rounding: Rounding,
     pub text_alginment: TextAlignment,
     pub text_position: Vec2Property,
@@ -100,7 +102,7 @@ impl Default for CellElement {
                 y: NumberProperty::Fixed(30.0),
             },
             skew: NumberProperty::Fixed(12.0),
-            visible: true,
+            visible: BooleanProperty::Fixed(true),
             rounding: Rounding {
                 top_left: NumberProperty::Fixed(0.0),
                 top_right: NumberProperty::Fixed(0.0),
@@ -121,7 +123,7 @@ impl CellElement {
         ui.label("Cell:");
         ui.horizontal(|ui| {
             ui.label("Visible:");
-            ui.checkbox(&mut self.visible, "");
+            self.visible.editor(ui, vars);
         });
         ui.horizontal(|ui| {
             ui.label("Text:");

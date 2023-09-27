@@ -5,12 +5,12 @@ use unified_sim_model::model::Entry;
 
 use crate::{
     editor::{
-        properties::{ColorProperty, NumberProperty, TextProperty},
+        properties::{BooleanProperty, ColorProperty, NumberProperty, TextProperty},
         style_elements::reference_editor,
     },
     variable_repo::{
-        ColorSource, NumberSource, Reference, TextSource, ValueType, VariableId, VariableRepo,
-        VariableSource,
+        BooleanSource, ColorSource, NumberSource, Reference, TextSource, ValueType, VariableId,
+        VariableRepo, VariableSource,
     },
 };
 
@@ -28,6 +28,7 @@ pub struct Condition {
 enum RightHandSide {
     Number(NumberProperty, NumberComparator),
     Text(TextProperty, TextComparator),
+    Boolean(BooleanProperty, BooleanComparator),
 }
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -44,11 +45,18 @@ enum TextComparator {
     Like,
 }
 
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
+enum BooleanComparator {
+    Is,
+    IsNot,
+}
+
 #[derive(Serialize, Deserialize, Clone)]
 enum Output {
     Number(NumberProperty),
     Text(TextProperty),
     Color(ColorProperty),
+    Boolean(BooleanProperty),
 }
 
 impl Default for Condition {
@@ -80,12 +88,13 @@ impl Condition {
 
     pub fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
         ui.horizontal(|ui| {
-            ui.label("Type:");
+            ui.label("Output type:");
             ComboBox::new(ui.next_auto_id(), "")
                 .selected_text(match self.id.value_type {
                     ValueType::Number => "Number",
                     ValueType::Text => "Text",
                     ValueType::Color => "Color",
+                    ValueType::Boolean => "Boolean",
                 })
                 .show_ui(ui, |ui| {
                     let is_number = self.id.value_type == ValueType::Number;
@@ -106,6 +115,12 @@ impl Condition {
                         self.true_output = Output::Color(ColorProperty::Fixed(Color::WHITE));
                         self.false_output = Output::Color(ColorProperty::Fixed(Color::WHITE));
                     }
+                    let is_boolean = self.id.value_type == ValueType::Boolean;
+                    if ui.selectable_label(is_boolean, "Boolean").clicked() && !is_boolean {
+                        self.id.value_type = ValueType::Boolean;
+                        self.true_output = Output::Boolean(BooleanProperty::Fixed(true));
+                        self.false_output = Output::Boolean(BooleanProperty::Fixed(false));
+                    }
                 });
         });
         ui.allocate_at_least(Vec2::new(0.0, 5.0), Sense::hover());
@@ -117,6 +132,7 @@ impl Condition {
                 return match v.value_type {
                     ValueType::Number => true,
                     ValueType::Text => true,
+                    ValueType::Boolean => true,
                     _ => false,
                 } && v.id != self.id.id;
             });
@@ -131,6 +147,10 @@ impl Condition {
                         ValueType::Text => RightHandSide::Text(
                             TextProperty::Fixed(String::new()),
                             TextComparator::Like,
+                        ),
+                        ValueType::Boolean => RightHandSide::Boolean(
+                            BooleanProperty::Fixed(true),
+                            BooleanComparator::Is,
                         ),
                         ValueType::Color => unreachable!(),
                     }
@@ -180,6 +200,17 @@ impl Condition {
                             ui.selectable_value(c, TextComparator::Like, "like")
                         });
                 }
+                RightHandSide::Boolean(_, c) => {
+                    ComboBox::from_id_source(ui.next_auto_id())
+                        .selected_text(match c {
+                            BooleanComparator::Is => "is",
+                            BooleanComparator::IsNot => "is not",
+                        })
+                        .show_ui(ui, |ui| {
+                            ui.selectable_value(c, BooleanComparator::Is, "is");
+                            ui.selectable_value(c, BooleanComparator::IsNot, "is not");
+                        });
+                }
             }
         });
 
@@ -189,6 +220,7 @@ impl Condition {
             ui.horizontal(|ui| match &mut self.right {
                 RightHandSide::Number(n, _) => n.editor(ui, vars),
                 RightHandSide::Text(t, _) => t.editor(ui, vars),
+                RightHandSide::Boolean(b, _) => b.editor(ui, vars),
             });
         });
         ui.label("then:");
@@ -198,6 +230,7 @@ impl Condition {
                 Output::Number(n) => n.editor(ui, vars),
                 Output::Text(t) => t.editor(ui, vars),
                 Output::Color(c) => c.editor(ui, vars),
+                Output::Boolean(b) => b.editor(ui, vars),
             }
         });
         ui.label("else:");
@@ -207,6 +240,7 @@ impl Condition {
                 Output::Number(n) => n.editor(ui, vars),
                 Output::Text(t) => t.editor(ui, vars),
                 Output::Color(c) => c.editor(ui, vars),
+                Output::Boolean(b) => b.editor(ui, vars),
             }
         });
     }
@@ -224,6 +258,11 @@ impl Condition {
                     comparator: c.clone(),
                     right: tp.clone(),
                 }),
+                RightHandSide::Boolean(bp, c) => Comparison::Boolean(BooleanComparison {
+                    left: self.left.clone(),
+                    comparator: c.clone(),
+                    right: bp.clone(),
+                }),
             },
             true_value: self.true_output.clone(),
             false_value: self.false_output.clone(),
@@ -233,6 +272,7 @@ impl Condition {
             ValueType::Number => VariableSource::Number(Box::new(source)),
             ValueType::Text => VariableSource::Text(Box::new(source)),
             ValueType::Color => VariableSource::Color(Box::new(source)),
+            ValueType::Boolean => VariableSource::Bool(Box::new(source)),
         }
     }
 }
@@ -248,6 +288,7 @@ impl ConditionSource {
         match &self.comparison {
             Comparison::Number(n) => n.evaluate(vars, entry),
             Comparison::Text(t) => t.evaluate(vars, entry),
+            Comparison::Boolean(b) => b.evaluate(vars, entry),
         }
     }
 }
@@ -301,9 +342,27 @@ impl ColorSource for ConditionSource {
     }
 }
 
+impl BooleanSource for ConditionSource {
+    fn resolve(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<bool> {
+        let condition = self.evaluate_condition(vars, entry)?;
+        if condition {
+            match &self.true_value {
+                Output::Boolean(b) => vars.get_bool_property(&b, entry),
+                _ => unreachable!(),
+            }
+        } else {
+            match &self.false_value {
+                Output::Boolean(b) => vars.get_bool_property(&b, entry),
+                _ => unreachable!(),
+            }
+        }
+    }
+}
+
 enum Comparison {
     Number(NumberComparison),
     Text(TextComparison),
+    Boolean(BooleanComparison),
 }
 
 struct NumberComparison {
@@ -338,6 +397,22 @@ impl TextComparison {
         let right = vars.get_text_property(&self.right, entry)?;
         Some(match self.comparator {
             TextComparator::Like => left == right,
+        })
+    }
+}
+
+struct BooleanComparison {
+    left: Reference,
+    comparator: BooleanComparator,
+    right: BooleanProperty,
+}
+impl BooleanComparison {
+    fn evaluate(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<bool> {
+        let left = vars.get_bool(&self.left, entry)?;
+        let right = vars.get_bool_property(&self.right, entry)?;
+        Some(match self.comparator {
+            BooleanComparator::Is => left == right,
+            BooleanComparator::IsNot => left != right,
         })
     }
 }

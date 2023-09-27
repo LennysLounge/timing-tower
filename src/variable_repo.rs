@@ -6,7 +6,7 @@ use unified_sim_model::model::Entry;
 use uuid::{uuid, Uuid};
 
 use crate::editor::{
-    properties::{ColorProperty, NumberProperty, TextProperty},
+    properties::{BooleanProperty, ColorProperty, NumberProperty, TextProperty},
     variable_element::VariablesElement,
 };
 
@@ -22,12 +22,17 @@ pub trait ColorSource {
     fn resolve(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<Color>;
 }
 
+pub trait BooleanSource {
+    fn resolve(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<bool>;
+}
+
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug, Default)]
 pub enum ValueType {
     #[default]
     Number,
     Text,
     Color,
+    Boolean,
 }
 
 #[derive(Serialize, Deserialize, Clone, Default)]
@@ -62,6 +67,7 @@ pub enum VariableSource {
     Number(Box<dyn NumberSource + Send + Sync>),
     Text(Box<dyn TextSource + Send + Sync>),
     Color(Box<dyn ColorSource + Send + Sync>),
+    Bool(Box<dyn BooleanSource + Send + Sync>),
 }
 
 #[derive(Resource)]
@@ -107,6 +113,11 @@ impl VariableRepo {
             .get(&reference.key)
             .and_then(|v| v.source.resolve_color(self, entry))
     }
+    pub fn get_bool(&self, reference: &Reference, entry: Option<&Entry>) -> Option<bool> {
+        self.vars
+            .get(&reference.key)
+            .and_then(|v| v.source.resolve_bool(self, entry))
+    }
 
     pub fn get_number_property(
         &self,
@@ -140,6 +151,17 @@ impl VariableRepo {
             ColorProperty::Ref(reference) => self.get_color(reference, entry),
         }
     }
+
+    pub fn get_bool_property(
+        &self,
+        property: &BooleanProperty,
+        entry: Option<&Entry>,
+    ) -> Option<bool> {
+        match property {
+            BooleanProperty::Fixed(b) => Some(*b),
+            BooleanProperty::Ref(reference) => self.get_bool(reference, entry),
+        }
+    }
 }
 
 impl VariableSource {
@@ -161,6 +183,12 @@ impl VariableSource {
     pub fn resolve_color(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<Color> {
         match self {
             VariableSource::Color(s) => s.resolve(vars, entry),
+            _ => None,
+        }
+    }
+    pub fn resolve_bool(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<bool> {
+        match self {
+            VariableSource::Bool(s) => s.resolve(vars, entry),
             _ => None,
         }
     }
@@ -207,6 +235,12 @@ impl TextSource for StaticText {
 pub struct StaticColor(pub Color);
 impl ColorSource for StaticColor {
     fn resolve(&self, _vars: &VariableRepo, _entry: Option<&Entry>) -> Option<Color> {
+        Some(self.0)
+    }
+}
+pub struct StaticBoolean(pub bool);
+impl BooleanSource for StaticBoolean {
+    fn resolve(&self, _vars: &VariableRepo, _entry: Option<&Entry>) -> Option<bool> {
         Some(self.0)
     }
 }

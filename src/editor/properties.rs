@@ -28,6 +28,13 @@ pub enum ColorProperty {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
+pub enum BooleanProperty {
+    Ref(Reference),
+    #[serde(untagged)]
+    Fixed(bool),
+}
+
+#[derive(Serialize, Deserialize, Clone)]
 pub struct Vec2Property {
     pub x: NumberProperty,
     pub y: NumberProperty,
@@ -118,6 +125,33 @@ impl ColorProperty {
                 }
                 if ui.button("x").clicked() {
                     *self = ColorProperty::Fixed(Color::PURPLE);
+                }
+            }
+        }
+    }
+}
+
+impl BooleanProperty {
+    pub fn editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
+        match self {
+            BooleanProperty::Fixed(b) => {
+                ui.checkbox(b, "");
+                let new_reference = reference_editor_small(ui, vars, |v| {
+                    v.value_type.can_cast_to(&ValueType::Boolean)
+                });
+                if let Some(reference) = new_reference {
+                    *self = BooleanProperty::Ref(reference);
+                }
+            }
+            BooleanProperty::Ref(var_ref) => {
+                let new_ref = reference_editor(ui, vars, var_ref, |v| {
+                    v.value_type.can_cast_to(&ValueType::Color)
+                });
+                if let Some(reference) = new_ref {
+                    *var_ref = reference;
+                }
+                if ui.button("x").clicked() {
+                    *self = BooleanProperty::Fixed(true);
                 }
             }
         }

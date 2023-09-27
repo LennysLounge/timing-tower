@@ -295,10 +295,14 @@ fn create_cell_style(cell: &CellElement, vars: &VariableRepo, entry: Option<&Ent
             .unwrap_or_else(|| "unavailable".to_string()),
         text_alignment: cell.text_alginment.clone(),
         text_position: Vec2::new(
-            vars.get_number_property(&cell.text_position.x, entry).unwrap_or(0.0),
-            vars.get_number_property(&cell.text_position.y, entry).unwrap_or(0.0),
+            vars.get_number_property(&cell.text_position.x, entry)
+                .unwrap_or(0.0),
+            vars.get_number_property(&cell.text_position.y, entry)
+                .unwrap_or(0.0),
         ),
-        color: vars.get_color_property(&cell.color, entry).unwrap_or(Color::RED),
+        color: vars
+            .get_color_property(&cell.color, entry)
+            .unwrap_or(Color::RED),
         texture: None,
         pos: Vec3::new(
             vars.get_number_property(&cell.pos.x, entry).unwrap_or(0.0),
@@ -310,7 +314,7 @@ fn create_cell_style(cell: &CellElement, vars: &VariableRepo, entry: Option<&Ent
             vars.get_number_property(&cell.size.y, entry).unwrap_or(0.0),
         ),
         skew: vars.get_number_property(&cell.skew, entry).unwrap_or(0.0),
-        visible: cell.visible,
+        visible: vars.get_bool_property(&cell.visible, entry).unwrap_or(true),
         rounding: [
             vars.get_number_property(&cell.rounding.top_left, entry)
                 .unwrap_or(0.0),

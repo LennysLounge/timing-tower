@@ -3,7 +3,7 @@ use bevy_egui::egui::{ComboBox, DragValue, Ui};
 use serde::{Deserialize, Serialize};
 
 use crate::variable_repo::{
-    StaticColor, StaticNumber, StaticText, ValueType, VariableId, VariableSource,
+    StaticBoolean, StaticColor, StaticNumber, StaticText, ValueType, VariableId, VariableSource,
 };
 
 #[derive(Serialize, Deserialize, Clone, Default)]
@@ -19,6 +19,7 @@ pub enum FixedValueType {
     Number(f32),
     Text(String),
     Color(Color),
+    Boolean(bool),
 }
 
 impl Default for FixedValueType {
@@ -50,6 +51,7 @@ impl FixedValue {
                     FixedValueType::Number(_) => "Number",
                     FixedValueType::Text(_) => "Text",
                     FixedValueType::Color(_) => "Color",
+                    FixedValueType::Boolean(_) => "Boolean",
                 })
                 .show_ui(ui, |ui| {
                     let is_number = matches!(self.value, FixedValueType::Number(_));
@@ -66,6 +68,11 @@ impl FixedValue {
                     if ui.selectable_label(is_color, "Color").clicked() && !is_color {
                         self.value = FixedValueType::Color(Color::WHITE);
                         self.id.value_type = ValueType::Color;
+                    }
+                    let is_boolean = matches!(self.value, FixedValueType::Boolean(_));
+                    if ui.selectable_label(is_boolean, "Boolean").clicked() && !is_boolean {
+                        self.value = FixedValueType::Boolean(true);
+                        self.id.value_type = ValueType::Boolean;
                     }
                 });
         });
@@ -91,6 +98,12 @@ impl FixedValue {
                     *color = color_local.into();
                 });
             }
+            FixedValueType::Boolean(b) => {
+                ui.horizontal(|ui| {
+                    ui.label("Value:");
+                    ui.checkbox(b, "");
+                });
+            }
         }
     }
 
@@ -99,6 +112,7 @@ impl FixedValue {
             FixedValueType::Number(n) => VariableSource::Number(Box::new(StaticNumber(*n))),
             FixedValueType::Text(t) => VariableSource::Text(Box::new(StaticText(t.clone()))),
             FixedValueType::Color(c) => VariableSource::Color(Box::new(StaticColor(*c))),
+            FixedValueType::Boolean(b) => VariableSource::Bool(Box::new(StaticBoolean(*b))),
         }
     }
 }

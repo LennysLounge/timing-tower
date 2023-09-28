@@ -68,8 +68,8 @@ fn update_style(
             event.style.text.clone(),
             TextStyle {
                 font: font.0.clone(),
-                font_size: 20.0,
-                color: Color::WHITE,
+                font_size: event.style.text_size,
+                color: event.style.text_color,
             },
         );
         *anchor = match event.style.text_alignment {

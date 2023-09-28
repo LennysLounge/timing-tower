@@ -29,6 +29,8 @@ pub struct RootElement {
 #[derive(Serialize, Deserialize, Clone)]
 pub struct CellElement {
     pub text: TextProperty,
+    pub text_color: ColorProperty,
+    pub text_size: NumberProperty,
     pub color: ColorProperty,
     pub pos: Vec3Property,
     pub size: Vec2Property,
@@ -92,6 +94,8 @@ impl Default for CellElement {
     fn default() -> Self {
         Self {
             text: TextProperty::Fixed("Column".to_string()),
+            text_color: ColorProperty::Fixed(Color::BLACK),
+            text_size: NumberProperty::Fixed(20.0),
             color: ColorProperty::Fixed(Color::PURPLE),
             pos: Vec3Property {
                 x: NumberProperty::Fixed(10.0),
@@ -129,6 +133,14 @@ impl CellElement {
         ui.horizontal(|ui| {
             ui.label("Text:");
             self.text.editor(ui, vars);
+        });
+        ui.horizontal(|ui| {
+            ui.label("Text color:");
+            self.text_color.editor(ui, vars);
+        });
+        ui.horizontal(|ui| {
+            ui.label("Text size:");
+            self.text_size.editor(ui, vars);
         });
         ui.horizontal(|ui| {
             ui.label("Text alginment:");

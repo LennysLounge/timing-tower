@@ -76,7 +76,9 @@ struct BackgroundImage;
 
 fn load(asset_server: Res<AssetServer>, mut commands: Commands) {
     //let font: Handle<Font> = asset_server.load("fonts/FiraSans-bold.ttf");
-    let font: Handle<Font> = asset_server.load("fonts/bahnschrift.ttf");
+    //let font: Handle<Font> = asset_server.load("fonts/Heebo-Regular.ttf");
+    //let font: Handle<Font> = asset_server.load("fonts/Heebo-Black.ttf");
+    let font: Handle<Font> = asset_server.load("fonts/cufonfonts D-DIN-Bold.otf");
     commands.insert_resource(DefaultFont(font));
 }
 
@@ -112,6 +114,8 @@ fn setup(mut commands: Commands, mut set_style_event: EventWriter<SetStyle>) {
         entity: background_id,
         style: CellStyle {
             text: "".to_string(),
+            text_color: Color::BLACK,
+            text_size: 20.0,
             text_alignment: TextAlignment::Center,
             text_position: Vec2::ZERO,
             color: Color::WHITE,

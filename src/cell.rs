@@ -34,6 +34,8 @@ impl Plugin for CellPlugin {
 }
 pub struct CellStyle {
     pub text: String,
+    pub text_color: Color,
+    pub text_size: f32,
     pub text_alignment: TextAlignment,
     pub text_position: Vec2,
     pub color: Color,

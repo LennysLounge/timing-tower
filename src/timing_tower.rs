@@ -293,6 +293,12 @@ fn create_cell_style(cell: &CellElement, vars: &VariableRepo, entry: Option<&Ent
         text: vars
             .get_text_property(&cell.text, entry)
             .unwrap_or_else(|| "unavailable".to_string()),
+        text_color: vars
+            .get_color_property(&cell.text_color, entry)
+            .unwrap_or(Color::BLACK),
+        text_size: vars
+            .get_number_property(&cell.text_size, entry)
+            .unwrap_or(20.0),
         text_alignment: cell.text_alginment.clone(),
         text_position: Vec2::new(
             vars.get_number_property(&cell.text_position.x, entry)

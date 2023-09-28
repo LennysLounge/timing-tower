@@ -313,9 +313,14 @@ fn generate_game_sources(vars: &mut HashMap<Uuid, Variable>) {
         VariableSource::Text(Box::new(GameTextSource {
             extractor: |entry| {
                 entry.and_then(|e| {
-                    e.drivers
-                        .get(&e.current_driver)
-                        .map(|driver| format!("{} {}", driver.first_name, driver.last_name))
+                    e.drivers.get(&e.current_driver).map(|driver| {
+                        let letter = if driver.first_name.is_empty() {
+                            ""
+                        } else {
+                            &driver.first_name[0..1]
+                        };
+                        format!("{} {}", letter, driver.last_name)
+                    })
                 })
             },
         })),

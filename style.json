@@ -76,6 +76,15 @@
     "id": "63777a7c-26e1-4bdc-a840-87ebf3bdcb41",
     "cell": {
       "text": "",
+      "text_color": {
+        "Rgba": {
+          "red": 0.0,
+          "green": 0.0,
+          "blue": 0.0,
+          "alpha": 1.0
+        }
+      },
+      "text_size": 20.0,
       "color": {
         "Rgba": {
           "red": 0.0,
@@ -111,6 +120,15 @@
       "id": "9539afda-b875-433f-9bd0-af822088b55d",
       "cell": {
         "text": "",
+        "text_color": {
+          "Rgba": {
+            "red": 0.0,
+            "green": 0.0,
+            "blue": 0.0,
+            "alpha": 1.0
+          }
+        },
+        "text_size": 20.0,
         "color": {
           "Rgba": {
             "red": 0.0,
@@ -150,6 +168,15 @@
         "id": "23c20135-9036-4628-9c86-5a8f2b39871b",
         "cell": {
           "text": "",
+          "text_color": {
+            "Rgba": {
+              "red": 0.0,
+              "green": 0.0,
+              "blue": 0.0,
+              "alpha": 1.0
+            }
+          },
+          "text_size": 20.0,
           "color": {
             "Rgba": {
               "red": 0.0,
@@ -191,6 +218,15 @@
                   "key": "6330a6bb-51d1-4af7-9bd0-efeb00b1ff52"
                 }
               },
+              "text_color": {
+                "Rgba": {
+                  "red": 1.0,
+                  "green": 1.0,
+                  "blue": 1.0,
+                  "alpha": 1.0
+                }
+              },
+              "text_size": 19.5,
               "color": {
                 "Ref": {
                   "value_type": "Color",
@@ -222,7 +258,7 @@
               "text_alginment": "Center",
               "text_position": {
                 "x": 24.5,
-                "y": 19.0
+                "y": 18.0
               }
             },
             "name": "position"
@@ -236,6 +272,15 @@
                   "key": "171d7438-3179-4c70-b818-811cf86d514e"
                 }
               },
+              "text_color": {
+                "Rgba": {
+                  "red": 1.0,
+                  "green": 1.0,
+                  "blue": 1.0,
+                  "alpha": 1.0
+                }
+              },
+              "text_size": 19.5,
               "color": {
                 "Rgba": {
                   "red": 0.40197778,
@@ -275,9 +320,18 @@
               "text": {
                 "Ref": {
                   "value_type": "Text",
-                  "key": "8abcf9d5-60f7-4886-a716-139d62ad83ac"
+                  "key": "aed52af1-aa86-4348-aef6-e86fc2c97cc5"
                 }
               },
+              "text_color": {
+                "Rgba": {
+                  "red": 1.0,
+                  "green": 1.0,
+                  "blue": 1.0,
+                  "alpha": 1.0
+                }
+              },
+              "text_size": 19.5,
               "color": {
                 "Rgba": {
                   "red": 0.0,
@@ -305,8 +359,8 @@
               },
               "text_alginment": "Left",
               "text_position": {
-                "x": 20.0,
-                "y": 19.0
+                "x": 21.0,
+                "y": 18.0
               }
             },
             "name": "driver name"
@@ -315,6 +369,15 @@
             "id": "408863e5-c4d7-4721-bb58-2a3887551ea5",
             "cell": {
               "text": "M",
+              "text_color": {
+                "Rgba": {
+                  "red": 1.0,
+                  "green": 1.0,
+                  "blue": 1.0,
+                  "alpha": 1.0
+                }
+              },
+              "text_size": 19.5,
               "color": {
                 "Rgba": {
                   "red": 0.8549,
@@ -352,6 +415,15 @@
             "id": "12b0a701-6b31-4027-8bbb-0c3011998f4c",
             "cell": {
               "text": "P",
+              "text_color": {
+                "Rgba": {
+                  "red": 0.0,
+                  "green": 0.0,
+                  "blue": 0.0,
+                  "alpha": 1.0
+                }
+              },
+              "text_size": 12.0,
               "color": {
                 "Rgba": {
                   "red": 1.0,
@@ -384,7 +456,7 @@
               },
               "text_alginment": "Center",
               "text_position": {
-                "x": 25.0,
+                "x": 5.5,
                 "y": 18.0
               }
             },

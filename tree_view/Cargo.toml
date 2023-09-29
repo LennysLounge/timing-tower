@@ -1,0 +1,12 @@
+[package]
+name = "tree_view"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bevy = { version = "0.11.2", features = ["dynamic_linking"] }
+bevy_egui = "0.21"
+uuid = { version = "1.4.1", features = ["v4"] }
+dear_egui = { path = "../../unified_sim_model/dear_egui" }

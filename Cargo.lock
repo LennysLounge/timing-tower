@@ -3387,6 +3387,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "tree_view"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy_egui",
+ "dear_egui",
+ "uuid",
+]
+
+[[package]]
 name = "ttf-parser"
 version = "0.19.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"

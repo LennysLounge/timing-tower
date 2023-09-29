@@ -32,6 +32,7 @@ pub struct CellElement {
     pub text_color: ColorProperty,
     pub text_size: NumberProperty,
     pub color: ColorProperty,
+    pub image: TextProperty,
     pub pos: Vec3Property,
     pub size: Vec2Property,
     pub skew: NumberProperty,
@@ -119,6 +120,7 @@ impl Default for CellElement {
                 x: NumberProperty::Fixed(5.0),
                 y: NumberProperty::Fixed(15.0),
             },
+            image: TextProperty::Fixed(String::new()),
         }
     }
 }
@@ -167,6 +169,10 @@ impl CellElement {
         ui.horizontal(|ui| {
             ui.label("Background color:");
             self.color.editor(ui, vars);
+        });
+        ui.horizontal(|ui| {
+            ui.label("Background image:");
+            self.image.editor(ui, vars);
         });
         ui.horizontal(|ui| {
             ui.label("Pos x:");

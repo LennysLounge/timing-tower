@@ -309,7 +309,9 @@ fn create_cell_style(cell: &CellElement, vars: &VariableRepo, entry: Option<&Ent
         color: vars
             .get_color_property(&cell.color, entry)
             .unwrap_or(Color::RED),
-        texture: None,
+        texture: vars
+            .get_text_property(&cell.image, entry)
+            .filter(|path| !path.is_empty()),
         pos: Vec3::new(
             vars.get_number_property(&cell.pos.x, entry).unwrap_or(0.0),
             vars.get_number_property(&cell.pos.y, entry).unwrap_or(0.0) * -1.0,

@@ -48,6 +48,16 @@ struct ShowNodeResult {
 
 impl<'a> TreeViewContext<'a> {
     fn show_node(&mut self, ui: &mut Ui, node: &dyn TreeNode) {
+        let mut child_ui = ui.child_ui_with_id_source(
+            ui.available_rect_before_wrap(),
+            *ui.layout(),
+            node.get_id(),
+        );
+        self.show_node_ui(&mut child_ui, node);
+        ui.allocate_at_least(child_ui.min_rect().size(), Sense::hover());
+    }
+
+    fn show_node_ui(&mut self, ui: &mut Ui, node: &dyn TreeNode) {
         let where_to_put_background = ui.painter().add(Shape::Noop);
 
         self.line_count += 1;
@@ -58,9 +68,7 @@ impl<'a> TreeViewContext<'a> {
             .is_some_and(|id| &id == node.get_id());
 
         let node_result = if node.is_directory() {
-            self.drop_target(ui, |me, ui| {
-                me.drag_source(ui, |me, ui| me.show_dir(ui, node))
-            })
+            self.drag_source(ui, |me, ui| me.show_dir(ui, node))
         } else {
             self.drag_source(ui, |me, ui| me.show_leaf(ui, node))
         };
@@ -86,7 +94,7 @@ impl<'a> TreeViewContext<'a> {
         );
     }
 
-    fn drop_target<T>(
+    fn _drop_target<T>(
         &mut self,
         ui: &mut Ui,
         mut add_content: impl FnMut(&mut Self, &mut Ui) -> T,
@@ -155,15 +163,11 @@ impl<'a> TreeViewContext<'a> {
         };
 
         // Save the drag offset and drag value for next frame.
-        let drag_offset = if !is_dragged && result.dragged {
-            if let Some(pointer_pos) = ui.ctx().pointer_interact_pos() {
-                result.rect.min - pointer_pos
-            } else {
-                drag_offset
-            }
-        } else {
-            drag_offset
-        };
+        let drag_offset = (!is_dragged && result.dragged)
+            .then_some(())
+            .and_then(|_| ui.ctx().pointer_interact_pos())
+            .map(|pointer_pos| result.rect.min - pointer_pos)
+            .unwrap_or(drag_offset);
         ui.data_mut(|d| d.insert_persisted(drag_source_id, (result.dragged, drag_offset)));
         result
     }
@@ -171,7 +175,7 @@ impl<'a> TreeViewContext<'a> {
     fn show_dir(&mut self, ui: &mut Ui, node: &dyn TreeNode) -> ShowNodeResult {
         let collapsing_id = ui.next_auto_id();
         let (button, header, _) =
-            CollapsingState::load_with_default_open(ui.ctx(), collapsing_id, false)
+            CollapsingState::load_with_default_open(ui.ctx(), collapsing_id, true)
                 .show_header(ui, |ui| {
                     node.show(ui);
                     ui.allocate_at_least(vec2(ui.available_width(), 0.0), Sense::hover());

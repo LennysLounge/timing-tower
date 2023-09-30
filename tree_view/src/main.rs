@@ -9,6 +9,7 @@ use bevy_egui::{
 use tree_view::{TreeNode, TreeView};
 use uuid::Uuid;
 
+pub mod split_collapsing_state;
 mod tree_view;
 
 fn main() {

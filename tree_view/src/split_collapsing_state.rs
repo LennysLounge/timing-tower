@@ -2,7 +2,8 @@ use bevy_egui::egui::{self, collapsing_header::CollapsingState, Id, InnerRespons
 
 pub struct SplitCollapsingState<T> {
     pub id: Id,
-    pub header_response: InnerResponse<(Response, T)>,
+    pub button_response: Response,
+    pub header_response: InnerResponse<T>,
 }
 
 impl<T> SplitCollapsingState<T> {
@@ -24,9 +25,19 @@ impl<T> SplitCollapsingState<T> {
         });
         state.store(ui.ctx());
 
+        let header = header_response.response;
+        let (button, header_return) = header_response.inner;
         SplitCollapsingState {
             id,
-            header_response,
+            button_response: button,
+            header_response: InnerResponse::new(header_return, header),
+        }
+    }
+
+    pub fn toggle(&mut self, ui: &mut Ui) {
+        if let Some(mut state) = CollapsingState::load(ui.ctx(), self.id) {
+            state.toggle(ui);
+            state.store(ui.ctx());
         }
     }
 
@@ -37,11 +48,5 @@ impl<T> SplitCollapsingState<T> {
     ) -> Option<InnerResponse<T>> {
         let mut state = CollapsingState::load_with_default_open(ui.ctx(), self.id, true);
         state.show_body_indented(&self.header_response.response, ui, add_body)
-    }
-    pub fn get_header_response(self) -> (Response, InnerResponse<T>) {
-        let header = self.header_response.response;
-        let (button, header_return) = self.header_response.inner;
-
-        (button, InnerResponse::new(header_return, header))
     }
 }

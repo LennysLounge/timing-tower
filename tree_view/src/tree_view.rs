@@ -1,8 +1,10 @@
 use bevy_egui::egui::{
-    self, collapsing_header::CollapsingState, epaint, pos2, vec2, Color32, LayerId, Order, Rect,
-    Rounding, Sense, Shape, Stroke, Ui, Vec2,
+    self, epaint, pos2, vec2, Color32, Id, LayerId, Order, Rect, Rounding, Sense, Shape, Stroke,
+    Ui, Vec2,
 };
 use uuid::Uuid;
+
+use crate::split_collapsing_state::SplitCollapsingState;
 
 pub trait TreeNode {
     fn is_directory(&self) -> bool;
@@ -40,10 +42,11 @@ struct TreeViewContext<'a> {
     line_count: i32,
 }
 
-struct ShowNodeResult {
+struct ShowNodeResult<T> {
     rect: Rect,
     clicked: bool,
     dragged: bool,
+    inner: T,
 }
 
 impl<'a> TreeViewContext<'a> {
@@ -68,7 +71,14 @@ impl<'a> TreeViewContext<'a> {
             .is_some_and(|id| &id == node.get_id());
 
         let node_result = if node.is_directory() {
-            self.drag_source(ui, |me, ui| me.show_dir(ui, node))
+            let result = self.drag_source(ui, |me, ui| me.show_dir_header(ui, node));
+            self.show_dir_body(ui, result.inner, node);
+            ShowNodeResult {
+                rect: result.rect,
+                clicked: result.clicked,
+                dragged: result.dragged,
+                inner: (),
+            }
         } else {
             self.drag_source(ui, |me, ui| me.show_leaf(ui, node))
         };
@@ -126,11 +136,11 @@ impl<'a> TreeViewContext<'a> {
         res
     }
 
-    fn drag_source(
+    fn drag_source<T>(
         &mut self,
         ui: &mut Ui,
-        mut add_content: impl FnMut(&mut Self, &mut Ui) -> ShowNodeResult,
-    ) -> ShowNodeResult {
+        mut add_content: impl FnMut(&mut Self, &mut Ui) -> ShowNodeResult<T>,
+    ) -> ShowNodeResult<T> {
         let rect = Rect::from_min_size(ui.cursor().min, Vec2::ZERO);
         let drag_source_id = ui.next_auto_id().with("Drag source id");
         ui.ctx()
@@ -172,58 +182,65 @@ impl<'a> TreeViewContext<'a> {
         result
     }
 
-    fn show_dir(&mut self, ui: &mut Ui, node: &dyn TreeNode) -> ShowNodeResult {
-        let collapsing_id = ui.next_auto_id();
-        let (button, header, _) =
-            CollapsingState::load_with_default_open(ui.ctx(), collapsing_id, true)
-                .show_header(ui, |ui| {
-                    node.show(ui);
-                    ui.allocate_at_least(vec2(ui.available_width(), 0.0), Sense::hover());
-                })
-                .body(|ui| {
-                    for child in node.get_children() {
-                        self.show_node(ui, child);
-                    }
-                });
+    fn show_dir_header(
+        &mut self,
+        ui: &mut Ui,
+        node: &dyn TreeNode,
+    ) -> ShowNodeResult<SplitCollapsingState<()>> {
+        // Generate id out of the node id to make sure that the header in the tree
+        // and the drag overlay are the same.
+        let collapsing_id = Id::new(node.get_id()).with("dir header");
 
-        let left_of_button = Rect::from_min_max(
-            pos2(self.bounds.left(), header.response.rect.top()),
-            pos2(button.rect.left(), header.response.rect.bottom()),
-        );
+        let mut state = SplitCollapsingState::show_header(ui, collapsing_id, |ui| {
+            node.show(ui);
+            ui.allocate_at_least(vec2(ui.available_width(), 0.0), Sense::hover());
+        });
 
-        let right_of_button = Rect::from_min_max(
-            pos2(button.rect.right(), header.response.rect.top()),
-            pos2(self.bounds.right(), header.response.rect.bottom()),
-        );
+        let (left, right) = {
+            let SplitCollapsingState {
+                button_response: button,
+                header_response: header,
+                ..
+            } = &state;
 
-        let right_of_button = ui.interact(
-            right_of_button,
-            collapsing_id.with(1),
-            Sense::click_and_drag(),
-        );
-        let left_of_button = ui.interact(
-            left_of_button,
-            collapsing_id.with(2),
-            Sense::click_and_drag(),
-        );
-        if right_of_button.double_clicked() || left_of_button.double_clicked() {
-            if let Some(mut state) = CollapsingState::load(ui.ctx(), collapsing_id) {
-                state.toggle(ui);
-                state.store(ui.ctx());
-            }
+            let right_of_button = ui.interact(
+                Rect::from_min_max(
+                    pos2(button.rect.right(), header.response.rect.top()),
+                    pos2(self.bounds.right(), header.response.rect.bottom()),
+                ),
+                collapsing_id.with(1),
+                Sense::click_and_drag(),
+            );
+            let left_of_button = ui.interact(
+                Rect::from_min_max(
+                    pos2(self.bounds.left(), header.response.rect.top()),
+                    pos2(button.rect.left(), header.response.rect.bottom()),
+                ),
+                collapsing_id.with(2),
+                Sense::click_and_drag(),
+            );
+            (left_of_button, right_of_button)
+        };
+        if right.double_clicked() || left.double_clicked() {
+            state.toggle(ui);
         }
 
         ShowNodeResult {
-            rect: Rect::from_min_max(
-                pos2(self.bounds.left(), header.response.rect.top()),
-                pos2(self.bounds.right(), header.response.rect.bottom()),
-            ),
-            clicked: right_of_button.clicked() || left_of_button.clicked(),
-            dragged: right_of_button.dragged() || left_of_button.dragged(),
+            rect: Rect::from_min_max(left.rect.min, right.rect.max),
+            clicked: right.clicked() || left.clicked(),
+            dragged: right.dragged() || left.dragged(),
+            inner: state,
         }
     }
+    fn show_dir_body(&mut self, ui: &mut Ui, state: SplitCollapsingState<()>, node: &dyn TreeNode) {
+        state.show_body(ui, |ui| {
+            for child in node.get_children() {
+                self.show_node(ui, child);
+            }
+        });
+    }
 
-    fn show_leaf(&mut self, ui: &mut Ui, node: &dyn TreeNode) -> ShowNodeResult {
+    fn show_leaf(&mut self, ui: &mut Ui, node: &dyn TreeNode) -> ShowNodeResult<()> {
         let res = ui.scope(|ui| {
             ui.horizontal(|ui| {
                 node.show(ui);
@@ -241,14 +258,15 @@ impl<'a> TreeViewContext<'a> {
             rect: full_width,
             clicked: full_width_res.clicked(),
             dragged: full_width_res.dragged(),
+            inner: (),
         }
     }
 
-    fn drag_overlay_background(
+    fn drag_overlay_background<T>(
         &mut self,
         ui: &mut Ui,
-        mut add_content: impl FnMut(&mut Self, &mut Ui) -> ShowNodeResult,
-    ) -> ShowNodeResult {
+        mut add_content: impl FnMut(&mut Self, &mut Ui) -> ShowNodeResult<T>,
+    ) -> ShowNodeResult<T> {
         let background = ui.painter().add(Shape::Noop);
         let result = add_content(self, ui);
         ui.painter().set(

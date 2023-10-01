@@ -1,5 +1,3 @@
-use std::marker::PhantomData;
-
 use bevy_egui::egui::{
     self,
     epaint::{self, RectShape},
@@ -10,18 +8,18 @@ use uuid::Uuid;
 
 use crate::split_collapsing_state::SplitCollapsingState;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum DropAction {
-    On(Uuid),
-    After(Uuid),
-    Before(Uuid),
+    On { parent_id: Uuid },
+    After { parent_id: Uuid, child_id: Uuid },
+    Before { parent_id: Uuid, child_id: Uuid },
 }
 impl DropAction {
-    fn get_id(&self) -> &Uuid {
+    fn get_parent_node_id(&self) -> &Uuid {
         match self {
-            DropAction::On(id) => id,
-            DropAction::After(id) => id,
-            DropAction::Before(id) => id,
+            DropAction::On { parent_id } => parent_id,
+            DropAction::After { parent_id, .. } => parent_id,
+            DropAction::Before { parent_id, .. } => parent_id,
         }
     }
 }
@@ -83,12 +81,7 @@ pub trait TreeNode {
     }
 
     fn drop(&mut self, drop_action: &DropAction, node: Self::NodeType) {
-        let parent = match drop_action {
-            DropAction::On(id) => self.find_mut(id),
-            DropAction::After(child_id) => self.find_parent_mut(child_id),
-            DropAction::Before(child_id) => self.find_parent_mut(child_id),
-        };
-        if let Some(parent) = parent {
+        if let Some(parent) = self.find_mut(drop_action.get_parent_node_id()) {
             parent.insert(&drop_action, node);
         }
     }
@@ -106,12 +99,13 @@ impl TreeView {
     pub fn show<N: TreeNode>(&mut self, ui: &mut Ui, root: &mut dyn TreeNode<NodeType = N>) {
         let mut context = TreeViewContext {
             was_dragged_last_frame: self.was_dragged_last_frame,
-            tree_view: self,
             bounds: ui.available_rect_before_wrap(),
             line_count: 0,
             dragged: None,
             hovered: None,
-            phantom: PhantomData,
+            node: root,
+            selected: self.selected,
+            parent: None,
         };
 
         let res = ui.allocate_ui(ui.available_size_before_wrap(), |ui| {
@@ -122,7 +116,7 @@ impl TreeView {
                 vec2(0.0, -ui.spacing().item_spacing.y / 2.0),
                 Sense::hover(),
             );
-            context.show_node(ui, root);
+            context.show_node(ui);
             // Allocate a bit of space to add half of one item spacing worth of space.
             // Allocating normals adds a full space so we take away half.
             ui.allocate_at_least(
@@ -132,9 +126,13 @@ impl TreeView {
         });
 
         let TreeViewContext {
-            dragged, hovered, ..
+            dragged,
+            hovered,
+            selected,
+            ..
         } = context;
 
+        self.selected = selected;
         self.was_dragged_last_frame = dragged;
 
         ui.painter().rect_stroke(
@@ -143,18 +141,22 @@ impl TreeView {
             Stroke::new(1.0, Color32::BLACK),
         );
 
+        // Move the node to the drag target.
         let drag_released = ui.input(|i| i.pointer.any_released());
         if let (Some(drop_action), Some(drag_source), true) = (&hovered, &dragged, drag_released) {
-            if let Some(drag_target) = root.find(drag_source) {
-                if drag_target.find(drop_action.get_id()).is_some() {
-                    println!("Cannot drop a parent into its child");
+            // The node we are dropping on cannot be a child of the node we are dragging.
+            if root
+                .find(drag_source)
+                .and_then(|source| source.find(drop_action.get_parent_node_id()))
+                .is_some()
+            {
+                println!("Cannot drop a parent into its child");
+            } else {
+                if let Some(node) = root.remove(drag_source) {
+                    println!("Removed: {:?}", node.get_id());
+                    root.drop(drop_action, node);
+                    println!("Place {:?}", drop_action);
                 }
-            }
-
-            if let Some(node) = root.remove(drag_source) {
-                println!("Removed: {:?}", node.get_id());
-                root.drop(drop_action, node);
-                println!("Place {:?}", drop_action);
             }
         }
 
@@ -163,14 +165,15 @@ impl TreeView {
     }
 }
 
-struct TreeViewContext<'a, T> {
-    tree_view: &'a mut TreeView,
+struct TreeViewContext<'a, N> {
+    node: &'a dyn TreeNode<NodeType = N>,
+    parent: Option<Uuid>,
     bounds: Rect,
     line_count: i32,
+    selected: Option<Uuid>,
     was_dragged_last_frame: Option<Uuid>,
     dragged: Option<Uuid>,
     hovered: Option<DropAction>,
-    phantom: PhantomData<T>,
 }
 
 struct ShowNodeResult<T> {
@@ -189,30 +192,27 @@ enum DropTargetPos {
 }
 
 impl<'a, N> TreeViewContext<'a, N> {
-    fn show_node(&mut self, ui: &mut Ui, node: &dyn TreeNode<NodeType = N>) {
+    fn show_node(&mut self, ui: &mut Ui) {
         let mut child_ui = ui.child_ui_with_id_source(
             ui.available_rect_before_wrap(),
             *ui.layout(),
-            node.get_id(),
+            self.node.get_id(),
         );
-        self.show_node_ui(&mut child_ui, node);
+        self.show_node_ui(&mut child_ui);
         ui.allocate_at_least(child_ui.min_rect().size(), Sense::hover());
     }
 
-    fn show_node_ui(&mut self, ui: &mut Ui, node: &dyn TreeNode<NodeType = N>) {
+    fn show_node_ui(&mut self, ui: &mut Ui) {
         let where_to_put_background = ui.painter().add(Shape::Noop);
 
         self.line_count += 1;
         let is_even = self.line_count % 2 == 0;
-        let is_selected = self
-            .tree_view
-            .selected
-            .is_some_and(|id| &id == node.get_id());
+        let is_selected = self.selected.is_some_and(|id| &id == self.node.get_id());
 
-        let node_result = if node.is_directory() {
-            let result = self.dir_drop_target(ui, node, |me, ui| {
-                let result = me.drag_source(ui, node, |me, ui| me.show_dir_header(ui, node));
-                me.show_dir_body(ui, &result.inner, node);
+        let node_result = if self.node.is_directory() {
+            let result = self.dir_drop_target(ui, |me, ui| {
+                let result = me.drag_source(ui, |me, ui| me.show_dir_header(ui));
+                me.show_dir_body(ui, &result.inner);
                 (result.rect, result)
             });
             ShowNodeResult {
@@ -222,8 +222,8 @@ impl<'a, N> TreeViewContext<'a, N> {
                 inner: (),
             }
         } else {
-            let result = self.leaf_drop_target(ui, node, |me, ui| {
-                let result = me.drag_source(ui, node, |me, ui| me.show_leaf(ui, node));
+            let result = self.leaf_drop_target(ui, |me, ui| {
+                let result = me.drag_source(ui, |me, ui| me.show_leaf(ui));
                 (result.rect, result)
             });
 
@@ -231,7 +231,7 @@ impl<'a, N> TreeViewContext<'a, N> {
         };
 
         if node_result.clicked || node_result.dragged {
-            self.tree_view.selected = Some(*node.get_id());
+            self.selected = Some(*self.node.get_id());
         }
 
         ui.painter().set(
@@ -314,7 +314,6 @@ impl<'a, N> TreeViewContext<'a, N> {
     fn dir_drop_target<T>(
         &mut self,
         ui: &mut Ui,
-        node: &dyn TreeNode<NodeType = N>,
         mut add_content: impl FnMut(&mut Self, &mut Ui) -> (Rect, T),
     ) -> T {
         let where_to_put_background = ui.painter().add(Shape::Noop);
@@ -326,29 +325,39 @@ impl<'a, N> TreeViewContext<'a, N> {
 
         if self
             .was_dragged_last_frame
-            .map_or(true, |id| &id == node.get_id())
+            .map_or(true, |id| &id == self.node.get_id())
         {
             return result;
         }
 
-        let (upper_hovered, shape) =
-            Self::check_drop_target(ui, row_rect, response.rect, DropTargetPos::Above);
-        if upper_hovered {
-            self.hovered = Some(DropAction::Before(*node.get_id()));
-            ui.painter().set(where_to_put_background, shape);
-        }
+        if let Some(parent_id) = self.parent {
+            let (upper_hovered, shape) =
+                Self::check_drop_target(ui, row_rect, response.rect, DropTargetPos::Above);
+            if upper_hovered {
+                self.hovered = Some(DropAction::Before {
+                    parent_id,
+                    child_id: *self.node.get_id(),
+                });
+                ui.painter().set(where_to_put_background, shape);
+            }
 
-        let (lower_hovered, shape) =
-            Self::check_drop_target(ui, row_rect, response.rect, DropTargetPos::Below);
-        if lower_hovered {
-            self.hovered = Some(DropAction::After(*node.get_id()));
-            ui.painter().set(where_to_put_background, shape);
+            let (lower_hovered, shape) =
+                Self::check_drop_target(ui, row_rect, response.rect, DropTargetPos::Below);
+            if lower_hovered {
+                self.hovered = Some(DropAction::After {
+                    parent_id,
+                    child_id: *self.node.get_id(),
+                });
+                ui.painter().set(where_to_put_background, shape);
+            }
         }
 
         let (middle_hover, shape) =
             Self::check_drop_target(ui, row_rect, response.rect, DropTargetPos::On);
         if middle_hover {
-            self.hovered = Some(DropAction::On(*node.get_id()));
+            self.hovered = Some(DropAction::On {
+                parent_id: *self.node.get_id(),
+            });
             ui.painter().set(where_to_put_background, shape);
         }
 
@@ -358,7 +367,6 @@ impl<'a, N> TreeViewContext<'a, N> {
     fn leaf_drop_target<T>(
         &mut self,
         ui: &mut Ui,
-        node: &dyn TreeNode<NodeType = N>,
         mut add_content: impl FnMut(&mut Self, &mut Ui) -> (Rect, T),
     ) -> T {
         let where_to_put_background = ui.painter().add(Shape::Noop);
@@ -372,23 +380,31 @@ impl<'a, N> TreeViewContext<'a, N> {
 
         if self
             .was_dragged_last_frame
-            .map_or(true, |id| &id == node.get_id())
+            .map_or(true, |id| &id == self.node.get_id())
         {
             return result;
         }
 
-        let (upper_hovered, shape) =
-            Self::check_drop_target(ui, row_rect, response.rect, DropTargetPos::Upper);
-        if upper_hovered {
-            self.hovered = Some(DropAction::Before(*node.get_id()));
-            ui.painter().set(where_to_put_background, shape);
-        }
+        if let Some(parent_id) = self.parent {
+            let (upper_hovered, shape) =
+                Self::check_drop_target(ui, row_rect, response.rect, DropTargetPos::Upper);
+            if upper_hovered {
+                self.hovered = Some(DropAction::Before {
+                    parent_id,
+                    child_id: *self.node.get_id(),
+                });
+                ui.painter().set(where_to_put_background, shape);
+            }
 
-        let (lower_hovered, shape) =
-            Self::check_drop_target(ui, row_rect, response.rect, DropTargetPos::Lower);
-        if lower_hovered {
-            self.hovered = Some(DropAction::After(*node.get_id()));
-            ui.painter().set(where_to_put_background, shape);
+            let (lower_hovered, shape) =
+                Self::check_drop_target(ui, row_rect, response.rect, DropTargetPos::Lower);
+            if lower_hovered {
+                self.hovered = Some(DropAction::After {
+                    parent_id,
+                    child_id: *self.node.get_id(),
+                });
+                ui.painter().set(where_to_put_background, shape);
+            }
         }
 
         result
@@ -397,7 +413,6 @@ impl<'a, N> TreeViewContext<'a, N> {
     fn drag_source<T>(
         &mut self,
         ui: &mut Ui,
-        node: &dyn TreeNode<NodeType = N>,
         mut add_content: impl FnMut(&mut Self, &mut Ui) -> ShowNodeResult<T>,
     ) -> ShowNodeResult<T> {
         let rect = Rect::from_min_size(ui.cursor().min, Vec2::ZERO);
@@ -410,7 +425,7 @@ impl<'a, N> TreeViewContext<'a, N> {
             .unwrap_or((false, Vec2::ZERO));
 
         let result = if is_dragged {
-            self.dragged = Some(*node.get_id());
+            self.dragged = Some(*self.node.get_id());
 
             ui.ctx().set_cursor_icon(egui::CursorIcon::Grabbing);
 
@@ -443,17 +458,13 @@ impl<'a, N> TreeViewContext<'a, N> {
         result
     }
 
-    fn show_dir_header(
-        &mut self,
-        ui: &mut Ui,
-        node: &dyn TreeNode<NodeType = N>,
-    ) -> ShowNodeResult<SplitCollapsingState<()>> {
+    fn show_dir_header(&mut self, ui: &mut Ui) -> ShowNodeResult<SplitCollapsingState<()>> {
         // Generate id out of the node id to make sure that the header in the tree
         // and the drag overlay are the same.
-        let collapsing_id = Id::new(node.get_id()).with("dir header");
+        let collapsing_id = Id::new(self.node.get_id()).with("dir header");
 
         let mut state = SplitCollapsingState::show_header(ui, collapsing_id, |ui| {
-            node.show(ui);
+            self.node.show(ui);
             ui.allocate_at_least(vec2(ui.available_width(), 0.0), Sense::hover());
         });
 
@@ -494,23 +505,34 @@ impl<'a, N> TreeViewContext<'a, N> {
             inner: state,
         }
     }
-    fn show_dir_body(
-        &mut self,
-        ui: &mut Ui,
-        state: &SplitCollapsingState<()>,
-        node: &dyn TreeNode<NodeType = N>,
-    ) {
+    fn show_dir_body(&mut self, ui: &mut Ui, state: &SplitCollapsingState<()>) {
         state.show_body(ui, |ui| {
-            for child in node.get_children() {
-                self.show_node(ui, child);
+            for child in self.node.get_children() {
+                let mut c = Self {
+                    bounds: self.bounds,
+                    line_count: self.line_count,
+                    was_dragged_last_frame: self.was_dragged_last_frame,
+                    dragged: self.dragged,
+                    hovered: self.hovered.clone(),
+                    node: child,
+                    selected: self.selected,
+                    parent: Some(*self.node.get_id()),
+                };
+
+                c.show_node(ui);
+
+                self.line_count = c.line_count;
+                self.dragged = c.dragged;
+                self.hovered = c.hovered;
+                self.selected = c.selected;
             }
         });
     }
 
-    fn show_leaf(&mut self, ui: &mut Ui, node: &dyn TreeNode<NodeType = N>) -> ShowNodeResult<()> {
+    fn show_leaf(&mut self, ui: &mut Ui) -> ShowNodeResult<()> {
         let res = ui.scope(|ui| {
             ui.horizontal(|ui| {
-                node.show(ui);
+                self.node.show(ui);
                 ui.allocate_at_least(vec2(ui.available_width(), 0.0), Sense::hover());
             });
         });

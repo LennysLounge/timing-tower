@@ -6,7 +6,7 @@ use bevy_egui::{
     egui::{self, Ui},
     EguiContexts, EguiPlugin,
 };
-use tree_view::{TreeNode, TreeView};
+use tree_view::{DropAction, TreeNode, TreeView};
 use uuid::Uuid;
 
 pub mod split_collapsing_state;
@@ -137,17 +137,16 @@ impl TreeNode for Node {
         let Node::Directory(dir) = self else {
             return;
         };
-
         match drop_action {
-            tree_view::DropAction::On(_) => dir.nodes.push(node),
-            tree_view::DropAction::After(id) => {
-                let position = dir.nodes.iter().position(|n| n.get_id() == id);
+            DropAction::On { .. } => dir.nodes.push(node),
+            DropAction::After { child_id, .. } => {
+                let position = dir.nodes.iter().position(|n| n.get_id() == child_id);
                 if let Some(position) = position {
                     dir.nodes.insert(position + 1, node);
                 }
             }
-            tree_view::DropAction::Before(id) => {
-                let position = dir.nodes.iter().position(|n| n.get_id() == id);
+            DropAction::Before { child_id, .. } => {
+                let position = dir.nodes.iter().position(|n| n.get_id() == child_id);
                 if let Some(position) = position {
                     dir.nodes.insert(position, node);
                 }

@@ -95,11 +95,26 @@ impl TreeNode for Node {
         }
     }
 
+    fn get_children_mut(&mut self) -> Vec<&mut dyn TreeNode> {
+        match self {
+            Node::Directory(d) => d.nodes.iter_mut().map(|n| n as &mut dyn TreeNode).collect(),
+            Node::File(_) => Vec::new(),
+        }
+    }
+
     fn get_id(&self) -> &Uuid {
         match self {
             Node::Directory(d) => &d.id,
             Node::File(f) => &f.id,
         }
+    }
+
+    fn as_trait(&self) -> &dyn TreeNode {
+        self
+    }
+
+    fn as_trait_mut(&mut self) -> &mut dyn TreeNode {
+        self
     }
 }
 

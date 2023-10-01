@@ -14,12 +14,42 @@ pub enum DropAction {
     After(Uuid),
     Before(Uuid),
 }
+impl DropAction {
+    fn get_id(&self) -> &Uuid {
+        match self {
+            DropAction::On(id) => id,
+            DropAction::After(id) => id,
+            DropAction::Before(id) => id,
+        }
+    }
+}
 
 pub trait TreeNode {
     fn is_directory(&self) -> bool;
     fn show(&self, ui: &mut Ui);
     fn get_children(&self) -> Vec<&dyn TreeNode>;
+    fn get_children_mut(&mut self) -> Vec<&mut dyn TreeNode>;
     fn get_id(&self) -> &Uuid;
+    fn as_trait(&self) -> &dyn TreeNode;
+    fn as_trait_mut(&mut self) -> &mut dyn TreeNode;
+
+    fn find(&self, id: &Uuid) -> Option<&dyn TreeNode> {
+        if self.get_id() == id {
+            Some(self.as_trait())
+        } else {
+            self.get_children().iter().find_map(|n| n.find(id))
+        }
+    }
+
+    fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn TreeNode> {
+        if self.get_id() == id {
+            Some(self.as_trait_mut())
+        } else {
+            self.get_children_mut()
+                .into_iter()
+                .find_map(|n| n.find_mut(id))
+        }
+    }
 }
 
 pub const DRAG_LINE_HEIGHT: f32 = 3.0;
@@ -43,11 +73,15 @@ impl TreeView {
 
         let res = ui.allocate_ui(ui.available_size_before_wrap(), |ui| {
             ui.style_mut().spacing.item_spacing.y = 7.0;
+            // Allocate a bit of space to add half of one item spacing worth of space.
+            // Allocating normals adds a full space so we take away half.
             ui.allocate_at_least(
                 vec2(0.0, -ui.spacing().item_spacing.y / 2.0),
                 Sense::hover(),
             );
             context.show_node(ui, root);
+            // Allocate a bit of space to add half of one item spacing worth of space.
+            // Allocating normals adds a full space so we take away half.
             ui.allocate_at_least(
                 vec2(0.0, -ui.spacing().item_spacing.y / 2.0),
                 Sense::hover(),
@@ -58,13 +92,24 @@ impl TreeView {
             dragged, hovered, ..
         } = context;
 
+        self.was_dragged_last_frame = dragged;
+
         ui.painter().rect_stroke(
             res.response.rect,
             Rounding::none(),
             Stroke::new(1.0, Color32::BLACK),
         );
 
-        self.was_dragged_last_frame = dragged;
+        let drag_released = ui.input(|i| i.pointer.any_released());
+        if let (Some(drop_action), Some(drag_source), true) = (&hovered, &dragged, drag_released) {
+            if let Some(drag_target) = root.find(drag_source) {
+                if drag_target.find(drop_action.get_id()).is_some() {
+                    println!("Cannot drop a parent into its child");
+                }
+            }
+            println!("Remove {:?}", drag_source);
+            println!("Place {:?}", drop_action);
+        }
 
         ui.label(format!("Dragged: {:?}", dragged));
         ui.label(format!("Hovered: {:?}", hovered));

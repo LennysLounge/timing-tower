@@ -138,7 +138,8 @@ impl TreeNode for Node {
             return;
         };
         match drop_action {
-            DropAction::On { .. } => dir.nodes.push(node),
+            DropAction::Last { .. } => dir.nodes.push(node),
+            DropAction::First { .. } => dir.nodes.insert(0, node),
             DropAction::After { child_id, .. } => {
                 let position = dir.nodes.iter().position(|n| n.get_id() == child_id);
                 if let Some(position) = position {

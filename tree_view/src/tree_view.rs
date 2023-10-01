@@ -1,5 +1,6 @@
 use bevy_egui::egui::{
     self,
+    collapsing_header::CollapsingState,
     epaint::{self, RectShape},
     pos2, vec2, Color32, Id, InnerResponse, LayerId, Order, Rect, Rounding, Sense, Shape, Stroke,
     Ui, Vec2,
@@ -10,14 +11,16 @@ use crate::split_collapsing_state::SplitCollapsingState;
 
 #[derive(Debug, Clone)]
 pub enum DropAction {
-    On { parent_id: Uuid },
+    Last { parent_id: Uuid },
+    First { parent_id: Uuid },
     After { parent_id: Uuid, child_id: Uuid },
     Before { parent_id: Uuid, child_id: Uuid },
 }
 impl DropAction {
     fn get_parent_node_id(&self) -> &Uuid {
         match self {
-            DropAction::On { parent_id } => parent_id,
+            DropAction::Last { parent_id } => parent_id,
+            DropAction::First { parent_id } => parent_id,
             DropAction::After { parent_id, .. } => parent_id,
             DropAction::Before { parent_id, .. } => parent_id,
         }
@@ -340,22 +343,37 @@ impl<'a, N> TreeViewContext<'a, N> {
                 });
                 ui.painter().set(where_to_put_background, shape);
             }
+        }
 
+        let collapsing_id = Id::new(self.node.get_id()).with("dir header");
+        let is_open = CollapsingState::load(ui.ctx(), collapsing_id).is_some_and(|s| s.is_open());
+        if is_open {
             let (lower_hovered, shape) =
                 Self::check_drop_target(ui, row_rect, response.rect, DropTargetPos::Below);
             if lower_hovered {
-                self.hovered = Some(DropAction::After {
-                    parent_id,
-                    child_id: *self.node.get_id(),
+                self.hovered = Some(DropAction::First {
+                    parent_id: *self.node.get_id(),
                 });
                 ui.painter().set(where_to_put_background, shape);
+            }
+        } else {
+            if let Some(parent_id) = self.parent {
+                let (lower_hovered, shape) =
+                    Self::check_drop_target(ui, row_rect, response.rect, DropTargetPos::Below);
+                if lower_hovered {
+                    self.hovered = Some(DropAction::After {
+                        parent_id,
+                        child_id: *self.node.get_id(),
+                    });
+                    ui.painter().set(where_to_put_background, shape);
+                }
             }
         }
 
         let (middle_hover, shape) =
             Self::check_drop_target(ui, row_rect, response.rect, DropTargetPos::On);
         if middle_hover {
-            self.hovered = Some(DropAction::On {
+            self.hovered = Some(DropAction::Last {
                 parent_id: *self.node.get_id(),
             });
             ui.painter().set(where_to_put_background, shape);

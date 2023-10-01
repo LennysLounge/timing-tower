@@ -34,6 +34,7 @@ impl<T> SplitCollapsingState<T> {
         }
     }
 
+    #[allow(dead_code)] // False positive in rust analyzer
     pub fn toggle(&mut self, ui: &mut Ui) {
         if let Some(mut state) = CollapsingState::load(ui.ctx(), self.id) {
             state.toggle(ui);

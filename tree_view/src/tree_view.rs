@@ -1,10 +1,19 @@
 use bevy_egui::egui::{
-    self, epaint, pos2, vec2, Color32, Id, LayerId, Order, Rect, Rounding, Sense, Shape, Stroke,
+    self,
+    epaint::{self, RectShape},
+    pos2, vec2, Color32, Id, InnerResponse, LayerId, Order, Rect, Rounding, Sense, Shape, Stroke,
     Ui, Vec2,
 };
 use uuid::Uuid;
 
 use crate::split_collapsing_state::SplitCollapsingState;
+
+#[derive(Debug)]
+pub enum DropAction {
+    On(Uuid),
+    After(Uuid),
+    Before(Uuid),
+}
 
 pub trait TreeNode {
     fn is_directory(&self) -> bool;
@@ -13,26 +22,52 @@ pub trait TreeNode {
     fn get_id(&self) -> &Uuid;
 }
 
+pub const DRAG_LINE_HEIGHT: f32 = 3.0;
+pub const DRAG_LINE_HOVER_HEIGHT: f32 = 5.0;
+
 pub struct TreeView {
     pub selected: Option<Uuid>,
+    pub was_dragged_last_frame: Option<Uuid>,
 }
 
 impl TreeView {
     pub fn show(&mut self, ui: &mut Ui, root: &impl TreeNode) {
+        let mut context = TreeViewContext {
+            was_dragged_last_frame: self.was_dragged_last_frame,
+            tree_view: self,
+            bounds: ui.available_rect_before_wrap(),
+            line_count: 0,
+            dragged: None,
+            hovered: None,
+        };
+
         let res = ui.allocate_ui(ui.available_size_before_wrap(), |ui| {
-            let mut context = TreeViewContext {
-                tree_view: self,
-                bounds: ui.available_rect_before_wrap(),
-                line_count: 0,
-            };
+            ui.style_mut().spacing.item_spacing.y = 7.0;
+            ui.allocate_at_least(
+                vec2(0.0, -ui.spacing().item_spacing.y / 2.0),
+                Sense::hover(),
+            );
             context.show_node(ui, root);
+            ui.allocate_at_least(
+                vec2(0.0, -ui.spacing().item_spacing.y / 2.0),
+                Sense::hover(),
+            );
         });
+
+        let TreeViewContext {
+            dragged, hovered, ..
+        } = context;
 
         ui.painter().rect_stroke(
             res.response.rect,
             Rounding::none(),
             Stroke::new(1.0, Color32::BLACK),
         );
+
+        self.was_dragged_last_frame = dragged;
+
+        ui.label(format!("Dragged: {:?}", dragged));
+        ui.label(format!("Hovered: {:?}", hovered));
     }
 }
 
@@ -40,6 +75,9 @@ struct TreeViewContext<'a> {
     tree_view: &'a mut TreeView,
     bounds: Rect,
     line_count: i32,
+    was_dragged_last_frame: Option<Uuid>,
+    dragged: Option<Uuid>,
+    hovered: Option<DropAction>,
 }
 
 struct ShowNodeResult<T> {
@@ -47,6 +85,14 @@ struct ShowNodeResult<T> {
     clicked: bool,
     dragged: bool,
     inner: T,
+}
+
+enum DropTargetPos {
+    Upper,
+    Lower,
+    Above,
+    Below,
+    On,
 }
 
 impl<'a> TreeViewContext<'a> {
@@ -71,8 +117,11 @@ impl<'a> TreeViewContext<'a> {
             .is_some_and(|id| &id == node.get_id());
 
         let node_result = if node.is_directory() {
-            let result = self.drag_source(ui, |me, ui| me.show_dir_header(ui, node));
-            self.show_dir_body(ui, result.inner, node);
+            let result = self.dir_drop_target(ui, node, |me, ui| {
+                let result = me.drag_source(ui, node, |me, ui| me.show_dir_header(ui, node));
+                me.show_dir_body(ui, &result.inner, node);
+                (result.rect, result)
+            });
             ShowNodeResult {
                 rect: result.rect,
                 clicked: result.clicked,
@@ -80,7 +129,12 @@ impl<'a> TreeViewContext<'a> {
                 inner: (),
             }
         } else {
-            self.drag_source(ui, |me, ui| me.show_leaf(ui, node))
+            let result = self.leaf_drop_target(ui, node, |me, ui| {
+                let result = me.drag_source(ui, node, |me, ui| me.show_leaf(ui, node));
+                (result.rect, result)
+            });
+
+            result
         };
 
         if node_result.clicked || node_result.dragged {
@@ -104,41 +158,153 @@ impl<'a> TreeViewContext<'a> {
         );
     }
 
-    fn _drop_target<T>(
+    fn check_drop_target(
+        ui: &mut Ui,
+        hover_rect: Rect,
+        content_rect: Rect,
+        drop_pos: DropTargetPos,
+    ) -> (bool, RectShape) {
+        //let content_rect = hover_rect;
+        let (height, dir, line_height) = match drop_pos {
+            DropTargetPos::Upper => (hover_rect.height() / 2.0, -1.0, DRAG_LINE_HEIGHT),
+            DropTargetPos::Lower => (hover_rect.height() / 2.0, 1.0, DRAG_LINE_HEIGHT),
+            DropTargetPos::Above => (DRAG_LINE_HOVER_HEIGHT, -1.0, DRAG_LINE_HEIGHT),
+            DropTargetPos::Below => (DRAG_LINE_HOVER_HEIGHT, 1.0, DRAG_LINE_HEIGHT),
+            DropTargetPos::On => (
+                hover_rect.height() - DRAG_LINE_HOVER_HEIGHT * 2.0,
+                0.0,
+                hover_rect.height(),
+            ),
+        };
+
+        let drop_rect = Rect::from_center_size(
+            hover_rect.center() + vec2(0.0, (hover_rect.height() - height) * dir / 2.0),
+            vec2(hover_rect.width(), height),
+        );
+        // When checking for interaction, egui adds the item spacing on to. To get
+        // a clean break we take it away again.
+        let drop_rect = drop_rect.expand2(vec2(0.0, -ui.spacing().item_spacing.y / 4.0));
+
+        // ui.painter().rect_filled(
+        //     drop_rect,
+        //     Rounding::none(),
+        //     match dir {
+        //         ref x if *x < -0.5 => Color32::RED,
+        //         ref x if *x > 0.5 => Color32::BLUE,
+        //         _ => Color32::GREEN,
+        //     }
+        //     .linear_multiply(0.05),
+        // );
+
+        let interaction = ui.interact(drop_rect, ui.next_auto_id(), Sense::hover());
+
+        let rect = if interaction.hovered {
+            Rect::from_center_size(
+                pos2(
+                    content_rect.center().x,
+                    hover_rect.center().y + hover_rect.height() * dir / 2.0,
+                ),
+                vec2(content_rect.width(), line_height),
+            )
+        } else {
+            Rect::NOTHING
+        };
+        let shape = epaint::RectShape {
+            rect,
+            rounding: ui.visuals().widgets.active.rounding,
+            fill: ui.visuals().selection.bg_fill,
+            stroke: Stroke::NONE,
+        };
+        (interaction.hovered(), shape)
+    }
+
+    fn dir_drop_target<T>(
         &mut self,
         ui: &mut Ui,
-        mut add_content: impl FnMut(&mut Self, &mut Ui) -> T,
+        node: &dyn TreeNode,
+        mut add_content: impl FnMut(&mut Self, &mut Ui) -> (Rect, T),
     ) -> T {
         let where_to_put_background = ui.painter().add(Shape::Noop);
 
-        let mut content_ui = ui.child_ui(ui.available_rect_before_wrap(), *ui.layout());
+        let InnerResponse {
+            inner: (row_rect, result),
+            response,
+        } = ui.allocate_ui(ui.available_size_before_wrap(), |ui| add_content(self, ui));
 
-        let res = add_content(self, &mut content_ui);
+        if self
+            .was_dragged_last_frame
+            .map_or(true, |id| &id == node.get_id())
+        {
+            return result;
+        }
 
-        let (rect, response) = ui.allocate_at_least(content_ui.min_rect().size(), Sense::hover());
-        let is_hovered = response.hovered();
+        let (upper_hovered, shape) =
+            Self::check_drop_target(ui, row_rect, response.rect, DropTargetPos::Above);
+        if upper_hovered {
+            self.hovered = Some(DropAction::Before(*node.get_id()));
+            ui.painter().set(where_to_put_background, shape);
+        }
 
-        let style = if is_hovered {
-            ui.visuals().widgets.active
-        } else {
-            ui.visuals().widgets.inactive
-        };
+        let (lower_hovered, shape) =
+            Self::check_drop_target(ui, row_rect, response.rect, DropTargetPos::Below);
+        if lower_hovered {
+            self.hovered = Some(DropAction::After(*node.get_id()));
+            ui.painter().set(where_to_put_background, shape);
+        }
 
-        ui.painter().set(
-            where_to_put_background,
-            epaint::RectShape {
-                rect,
-                rounding: style.rounding,
-                fill: Color32::TRANSPARENT,
-                stroke: style.bg_stroke,
-            },
-        );
-        res
+        let (middle_hover, shape) =
+            Self::check_drop_target(ui, row_rect, response.rect, DropTargetPos::On);
+        if middle_hover {
+            self.hovered = Some(DropAction::On(*node.get_id()));
+            ui.painter().set(where_to_put_background, shape);
+        }
+
+        result
+    }
+
+    fn leaf_drop_target<T>(
+        &mut self,
+        ui: &mut Ui,
+        node: &dyn TreeNode,
+        mut add_content: impl FnMut(&mut Self, &mut Ui) -> (Rect, T),
+    ) -> T {
+        let where_to_put_background = ui.painter().add(Shape::Noop);
+        // let where_to_put_upper = ui.painter().add(Shape::Noop);
+        // let where_to_put_lower = ui.painter().add(Shape::Noop);
+
+        let InnerResponse {
+            inner: (row_rect, result),
+            response,
+        } = ui.allocate_ui(ui.available_size_before_wrap(), |ui| add_content(self, ui));
+
+        if self
+            .was_dragged_last_frame
+            .map_or(true, |id| &id == node.get_id())
+        {
+            return result;
+        }
+
+        let (upper_hovered, shape) =
+            Self::check_drop_target(ui, row_rect, response.rect, DropTargetPos::Upper);
+        if upper_hovered {
+            self.hovered = Some(DropAction::Before(*node.get_id()));
+            ui.painter().set(where_to_put_background, shape);
+        }
+
+        let (lower_hovered, shape) =
+            Self::check_drop_target(ui, row_rect, response.rect, DropTargetPos::Lower);
+        if lower_hovered {
+            self.hovered = Some(DropAction::After(*node.get_id()));
+            ui.painter().set(where_to_put_background, shape);
+        }
+
+        result
     }
 
     fn drag_source<T>(
         &mut self,
         ui: &mut Ui,
+        node: &dyn TreeNode,
         mut add_content: impl FnMut(&mut Self, &mut Ui) -> ShowNodeResult<T>,
     ) -> ShowNodeResult<T> {
         let rect = Rect::from_min_size(ui.cursor().min, Vec2::ZERO);
@@ -151,6 +317,8 @@ impl<'a> TreeViewContext<'a> {
             .unwrap_or((false, Vec2::ZERO));
 
         let result = if is_dragged {
+            self.dragged = Some(*node.get_id());
+
             ui.ctx().set_cursor_icon(egui::CursorIcon::Grabbing);
 
             let result = add_content(self, ui);
@@ -226,13 +394,19 @@ impl<'a> TreeViewContext<'a> {
         }
 
         ShowNodeResult {
-            rect: Rect::from_min_max(left.rect.min, right.rect.max),
+            rect: Rect::from_min_max(left.rect.min, right.rect.max)
+                .expand2(vec2(0.0, ui.spacing().item_spacing.y / 2.0)),
             clicked: right.clicked() || left.clicked(),
             dragged: right.dragged() || left.dragged(),
             inner: state,
         }
     }
-    fn show_dir_body(&mut self, ui: &mut Ui, state: SplitCollapsingState<()>, node: &dyn TreeNode) {
+    fn show_dir_body(
+        &mut self,
+        ui: &mut Ui,
+        state: &SplitCollapsingState<()>,
+        node: &dyn TreeNode,
+    ) {
         state.show_body(ui, |ui| {
             for child in node.get_children() {
                 self.show_node(ui, child);
@@ -247,10 +421,12 @@ impl<'a> TreeViewContext<'a> {
                 ui.allocate_at_least(vec2(ui.available_width(), 0.0), Sense::hover());
             });
         });
+
         let full_width = Rect::from_min_max(
             pos2(self.bounds.left(), res.response.rect.top()),
             pos2(self.bounds.right(), res.response.rect.bottom()),
-        );
+        )
+        .expand2(vec2(0.0, ui.spacing().item_spacing.y / 2.0));
 
         let full_width_res =
             ui.interact(full_width, res.response.id.with(1), Sense::click_and_drag());

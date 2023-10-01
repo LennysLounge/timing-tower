@@ -40,6 +40,7 @@ fn setup(mut commands: Commands, mut _ctx: EguiContexts) {
                 ],
             ),
             File::new_box("AAAA"),
+            File::new_box("ABAB"),
             File::new_box("BBBB"),
             Directory::new_box("Dodads", vec![File::new_box("EEEE"), File::new_box("FFFF")]),
         ],
@@ -47,7 +48,10 @@ fn setup(mut commands: Commands, mut _ctx: EguiContexts) {
 
     commands.insert_resource(EditorState {
         tree: root,
-        tree_view: TreeView { selected: None },
+        tree_view: TreeView {
+            selected: None,
+            was_dragged_last_frame: None,
+        },
     });
 
     //dear_egui::set_theme(ctx.ctx_mut(), dear_egui::SKY);

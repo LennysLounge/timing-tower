@@ -74,6 +74,8 @@ enum Node {
 }
 
 impl TreeNode for Node {
+    type NodeType = Node;
+
     fn is_directory(&self) -> bool {
         match self {
             Node::Directory(_) => true,
@@ -88,16 +90,16 @@ impl TreeNode for Node {
         }
     }
 
-    fn get_children(&self) -> Vec<&Node> {
+    fn get_children(&self) -> Vec<&dyn TreeNode<NodeType = Self::NodeType>> {
         match self {
-            Node::Directory(dir) => dir.nodes.iter().collect(),
+            Node::Directory(dir) => dir.nodes.iter().map(|n| n.as_trait()).collect(),
             Node::File(_) => Vec::new(),
         }
     }
 
-    fn get_children_mut(&mut self) -> Vec<&mut Node> {
+    fn get_children_mut(&mut self) -> Vec<&mut dyn TreeNode<NodeType = Self::NodeType>> {
         match self {
-            Node::Directory(d) => d.nodes.iter_mut().collect(),
+            Node::Directory(d) => d.nodes.iter_mut().map(|n| n.as_trait_mut()).collect(),
             Node::File(_) => Vec::new(),
         }
     }
@@ -109,10 +111,15 @@ impl TreeNode for Node {
         }
     }
 
-    fn remove_child(&mut self, id: &Uuid) -> Option<Self>
-    where
-        Self: Sized,
-    {
+    fn as_trait(&self) -> &dyn TreeNode<NodeType = Self::NodeType> {
+        self
+    }
+
+    fn as_trait_mut(&mut self) -> &mut dyn TreeNode<NodeType = Self::NodeType> {
+        self
+    }
+
+    fn remove_child(&mut self, id: &Uuid) -> Option<Self> {
         match self {
             Node::Directory(d) => {
                 let pos = d.nodes.iter().position(|n| n.get_id() == id);
@@ -126,10 +133,7 @@ impl TreeNode for Node {
         }
     }
 
-    fn insert(&mut self, drop_action: &tree_view::DropAction, node: Self)
-    where
-        Self: Sized,
-    {
+    fn insert(&mut self, drop_action: &tree_view::DropAction, node: Self) {
         let Node::Directory(dir) = self else {
             return;
         };

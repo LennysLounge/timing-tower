@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use bevy_egui::egui::{
     self,
     epaint::{self, RectShape},
@@ -25,29 +27,29 @@ impl DropAction {
 }
 
 pub trait TreeNode {
+    type NodeType;
+
     fn is_directory(&self) -> bool;
     fn show(&self, ui: &mut Ui);
-    fn get_children(&self) -> Vec<&Self>;
-    fn get_children_mut(&mut self) -> Vec<&mut Self>;
     fn get_id(&self) -> &Uuid;
-    fn remove_child(&mut self, id: &Uuid) -> Option<Self>
-    where
-        Self: Sized;
-    fn insert(&mut self, drop_action: &DropAction, node: Self)
-    where
-        Self: Sized;
+    fn get_children(&self) -> Vec<&dyn TreeNode<NodeType = Self::NodeType>>;
+    fn get_children_mut(&mut self) -> Vec<&mut dyn TreeNode<NodeType = Self::NodeType>>;
+    fn as_trait(&self) -> &dyn TreeNode<NodeType = Self::NodeType>;
+    fn as_trait_mut(&mut self) -> &mut dyn TreeNode<NodeType = Self::NodeType>;
+    fn remove_child(&mut self, id: &Uuid) -> Option<Self::NodeType>;
+    fn insert(&mut self, drop_action: &DropAction, node: Self::NodeType);
 
-    fn find(&self, id: &Uuid) -> Option<&Self> {
+    fn find(&self, id: &Uuid) -> Option<&dyn TreeNode<NodeType = Self::NodeType>> {
         if self.get_id() == id {
-            Some(self)
+            Some(self.as_trait())
         } else {
             self.get_children().iter().find_map(|n| n.find(id))
         }
     }
 
-    fn find_mut(&mut self, id: &Uuid) -> Option<&mut Self> {
+    fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn TreeNode<NodeType = Self::NodeType>> {
         if self.get_id() == id {
-            Some(self)
+            Some(self.as_trait_mut())
         } else {
             self.get_children_mut()
                 .into_iter()
@@ -55,13 +57,16 @@ pub trait TreeNode {
         }
     }
 
-    fn find_parent_mut(&mut self, child_id: &Uuid) -> Option<&mut Self> {
+    fn find_parent_mut(
+        &mut self,
+        child_id: &Uuid,
+    ) -> Option<&mut dyn TreeNode<NodeType = Self::NodeType>> {
         let has_child = self
             .get_children_mut()
             .into_iter()
             .any(|c| c.get_id() == child_id);
         if has_child {
-            return Some(self);
+            Some(self.as_trait_mut())
         } else {
             self.get_children_mut()
                 .into_iter()
@@ -69,10 +74,7 @@ pub trait TreeNode {
         }
     }
 
-    fn remove(&mut self, id: &Uuid) -> Option<Self>
-    where
-        Self: Sized,
-    {
+    fn remove(&mut self, id: &Uuid) -> Option<Self::NodeType> {
         if let Some(parent) = self.find_parent_mut(id) {
             parent.remove_child(id)
         } else {
@@ -80,10 +82,7 @@ pub trait TreeNode {
         }
     }
 
-    fn drop(&mut self, drop_action: &DropAction, node: Self)
-    where
-        Self: Sized,
-    {
+    fn drop(&mut self, drop_action: &DropAction, node: Self::NodeType) {
         let parent = match drop_action {
             DropAction::On(id) => self.find_mut(id),
             DropAction::After(child_id) => self.find_parent_mut(child_id),
@@ -104,7 +103,7 @@ pub struct TreeView {
 }
 
 impl TreeView {
-    pub fn show(&mut self, ui: &mut Ui, root: &mut impl TreeNode) {
+    pub fn show<N: TreeNode>(&mut self, ui: &mut Ui, root: &mut dyn TreeNode<NodeType = N>) {
         let mut context = TreeViewContext {
             was_dragged_last_frame: self.was_dragged_last_frame,
             tree_view: self,
@@ -112,6 +111,7 @@ impl TreeView {
             line_count: 0,
             dragged: None,
             hovered: None,
+            phantom: PhantomData,
         };
 
         let res = ui.allocate_ui(ui.available_size_before_wrap(), |ui| {
@@ -156,8 +156,6 @@ impl TreeView {
                 root.drop(drop_action, node);
                 println!("Place {:?}", drop_action);
             }
-
-            
         }
 
         ui.label(format!("Dragged: {:?}", dragged));
@@ -165,13 +163,14 @@ impl TreeView {
     }
 }
 
-struct TreeViewContext<'a> {
+struct TreeViewContext<'a, T> {
     tree_view: &'a mut TreeView,
     bounds: Rect,
     line_count: i32,
     was_dragged_last_frame: Option<Uuid>,
     dragged: Option<Uuid>,
     hovered: Option<DropAction>,
+    phantom: PhantomData<T>,
 }
 
 struct ShowNodeResult<T> {
@@ -189,8 +188,8 @@ enum DropTargetPos {
     On,
 }
 
-impl<'a> TreeViewContext<'a> {
-    fn show_node(&mut self, ui: &mut Ui, node: &impl TreeNode) {
+impl<'a, N> TreeViewContext<'a, N> {
+    fn show_node(&mut self, ui: &mut Ui, node: &dyn TreeNode<NodeType = N>) {
         let mut child_ui = ui.child_ui_with_id_source(
             ui.available_rect_before_wrap(),
             *ui.layout(),
@@ -200,7 +199,7 @@ impl<'a> TreeViewContext<'a> {
         ui.allocate_at_least(child_ui.min_rect().size(), Sense::hover());
     }
 
-    fn show_node_ui(&mut self, ui: &mut Ui, node: &impl TreeNode) {
+    fn show_node_ui(&mut self, ui: &mut Ui, node: &dyn TreeNode<NodeType = N>) {
         let where_to_put_background = ui.painter().add(Shape::Noop);
 
         self.line_count += 1;
@@ -315,7 +314,7 @@ impl<'a> TreeViewContext<'a> {
     fn dir_drop_target<T>(
         &mut self,
         ui: &mut Ui,
-        node: &impl TreeNode,
+        node: &dyn TreeNode<NodeType = N>,
         mut add_content: impl FnMut(&mut Self, &mut Ui) -> (Rect, T),
     ) -> T {
         let where_to_put_background = ui.painter().add(Shape::Noop);
@@ -359,7 +358,7 @@ impl<'a> TreeViewContext<'a> {
     fn leaf_drop_target<T>(
         &mut self,
         ui: &mut Ui,
-        node: &impl TreeNode,
+        node: &dyn TreeNode<NodeType = N>,
         mut add_content: impl FnMut(&mut Self, &mut Ui) -> (Rect, T),
     ) -> T {
         let where_to_put_background = ui.painter().add(Shape::Noop);
@@ -398,7 +397,7 @@ impl<'a> TreeViewContext<'a> {
     fn drag_source<T>(
         &mut self,
         ui: &mut Ui,
-        node: &impl TreeNode,
+        node: &dyn TreeNode<NodeType = N>,
         mut add_content: impl FnMut(&mut Self, &mut Ui) -> ShowNodeResult<T>,
     ) -> ShowNodeResult<T> {
         let rect = Rect::from_min_size(ui.cursor().min, Vec2::ZERO);
@@ -447,7 +446,7 @@ impl<'a> TreeViewContext<'a> {
     fn show_dir_header(
         &mut self,
         ui: &mut Ui,
-        node: &impl TreeNode,
+        node: &dyn TreeNode<NodeType = N>,
     ) -> ShowNodeResult<SplitCollapsingState<()>> {
         // Generate id out of the node id to make sure that the header in the tree
         // and the drag overlay are the same.
@@ -499,7 +498,7 @@ impl<'a> TreeViewContext<'a> {
         &mut self,
         ui: &mut Ui,
         state: &SplitCollapsingState<()>,
-        node: &impl TreeNode,
+        node: &dyn TreeNode<NodeType = N>,
     ) {
         state.show_body(ui, |ui| {
             for child in node.get_children() {
@@ -508,7 +507,7 @@ impl<'a> TreeViewContext<'a> {
         });
     }
 
-    fn show_leaf(&mut self, ui: &mut Ui, node: &impl TreeNode) -> ShowNodeResult<()> {
+    fn show_leaf(&mut self, ui: &mut Ui, node: &dyn TreeNode<NodeType = N>) -> ShowNodeResult<()> {
         let res = ui.scope(|ui| {
             ui.horizontal(|ui| {
                 node.show(ui);

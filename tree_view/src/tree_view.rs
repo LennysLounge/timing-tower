@@ -27,27 +27,70 @@ impl DropAction {
 pub trait TreeNode {
     fn is_directory(&self) -> bool;
     fn show(&self, ui: &mut Ui);
-    fn get_children(&self) -> Vec<&dyn TreeNode>;
-    fn get_children_mut(&mut self) -> Vec<&mut dyn TreeNode>;
+    fn get_children(&self) -> Vec<&Self>;
+    fn get_children_mut(&mut self) -> Vec<&mut Self>;
     fn get_id(&self) -> &Uuid;
-    fn as_trait(&self) -> &dyn TreeNode;
-    fn as_trait_mut(&mut self) -> &mut dyn TreeNode;
+    fn remove_child(&mut self, id: &Uuid) -> Option<Self>
+    where
+        Self: Sized;
+    fn insert(&mut self, drop_action: &DropAction, node: Self)
+    where
+        Self: Sized;
 
-    fn find(&self, id: &Uuid) -> Option<&dyn TreeNode> {
+    fn find(&self, id: &Uuid) -> Option<&Self> {
         if self.get_id() == id {
-            Some(self.as_trait())
+            Some(self)
         } else {
             self.get_children().iter().find_map(|n| n.find(id))
         }
     }
 
-    fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn TreeNode> {
+    fn find_mut(&mut self, id: &Uuid) -> Option<&mut Self> {
         if self.get_id() == id {
-            Some(self.as_trait_mut())
+            Some(self)
         } else {
             self.get_children_mut()
                 .into_iter()
                 .find_map(|n| n.find_mut(id))
+        }
+    }
+
+    fn find_parent_mut(&mut self, child_id: &Uuid) -> Option<&mut Self> {
+        let has_child = self
+            .get_children_mut()
+            .into_iter()
+            .any(|c| c.get_id() == child_id);
+        if has_child {
+            return Some(self);
+        } else {
+            self.get_children_mut()
+                .into_iter()
+                .find_map(|c| c.find_parent_mut(child_id))
+        }
+    }
+
+    fn remove(&mut self, id: &Uuid) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        if let Some(parent) = self.find_parent_mut(id) {
+            parent.remove_child(id)
+        } else {
+            None
+        }
+    }
+
+    fn drop(&mut self, drop_action: &DropAction, node: Self)
+    where
+        Self: Sized,
+    {
+        let parent = match drop_action {
+            DropAction::On(id) => self.find_mut(id),
+            DropAction::After(child_id) => self.find_parent_mut(child_id),
+            DropAction::Before(child_id) => self.find_parent_mut(child_id),
+        };
+        if let Some(parent) = parent {
+            parent.insert(&drop_action, node);
         }
     }
 }
@@ -61,7 +104,7 @@ pub struct TreeView {
 }
 
 impl TreeView {
-    pub fn show(&mut self, ui: &mut Ui, root: &impl TreeNode) {
+    pub fn show(&mut self, ui: &mut Ui, root: &mut impl TreeNode) {
         let mut context = TreeViewContext {
             was_dragged_last_frame: self.was_dragged_last_frame,
             tree_view: self,
@@ -107,8 +150,14 @@ impl TreeView {
                     println!("Cannot drop a parent into its child");
                 }
             }
-            println!("Remove {:?}", drag_source);
-            println!("Place {:?}", drop_action);
+
+            if let Some(node) = root.remove(drag_source) {
+                println!("Removed: {:?}", node.get_id());
+                root.drop(drop_action, node);
+                println!("Place {:?}", drop_action);
+            }
+
+            
         }
 
         ui.label(format!("Dragged: {:?}", dragged));
@@ -141,7 +190,7 @@ enum DropTargetPos {
 }
 
 impl<'a> TreeViewContext<'a> {
-    fn show_node(&mut self, ui: &mut Ui, node: &dyn TreeNode) {
+    fn show_node(&mut self, ui: &mut Ui, node: &impl TreeNode) {
         let mut child_ui = ui.child_ui_with_id_source(
             ui.available_rect_before_wrap(),
             *ui.layout(),
@@ -151,7 +200,7 @@ impl<'a> TreeViewContext<'a> {
         ui.allocate_at_least(child_ui.min_rect().size(), Sense::hover());
     }
 
-    fn show_node_ui(&mut self, ui: &mut Ui, node: &dyn TreeNode) {
+    fn show_node_ui(&mut self, ui: &mut Ui, node: &impl TreeNode) {
         let where_to_put_background = ui.painter().add(Shape::Noop);
 
         self.line_count += 1;
@@ -266,7 +315,7 @@ impl<'a> TreeViewContext<'a> {
     fn dir_drop_target<T>(
         &mut self,
         ui: &mut Ui,
-        node: &dyn TreeNode,
+        node: &impl TreeNode,
         mut add_content: impl FnMut(&mut Self, &mut Ui) -> (Rect, T),
     ) -> T {
         let where_to_put_background = ui.painter().add(Shape::Noop);
@@ -310,7 +359,7 @@ impl<'a> TreeViewContext<'a> {
     fn leaf_drop_target<T>(
         &mut self,
         ui: &mut Ui,
-        node: &dyn TreeNode,
+        node: &impl TreeNode,
         mut add_content: impl FnMut(&mut Self, &mut Ui) -> (Rect, T),
     ) -> T {
         let where_to_put_background = ui.painter().add(Shape::Noop);
@@ -349,7 +398,7 @@ impl<'a> TreeViewContext<'a> {
     fn drag_source<T>(
         &mut self,
         ui: &mut Ui,
-        node: &dyn TreeNode,
+        node: &impl TreeNode,
         mut add_content: impl FnMut(&mut Self, &mut Ui) -> ShowNodeResult<T>,
     ) -> ShowNodeResult<T> {
         let rect = Rect::from_min_size(ui.cursor().min, Vec2::ZERO);
@@ -398,7 +447,7 @@ impl<'a> TreeViewContext<'a> {
     fn show_dir_header(
         &mut self,
         ui: &mut Ui,
-        node: &dyn TreeNode,
+        node: &impl TreeNode,
     ) -> ShowNodeResult<SplitCollapsingState<()>> {
         // Generate id out of the node id to make sure that the header in the tree
         // and the drag overlay are the same.
@@ -450,7 +499,7 @@ impl<'a> TreeViewContext<'a> {
         &mut self,
         ui: &mut Ui,
         state: &SplitCollapsingState<()>,
-        node: &dyn TreeNode,
+        node: &impl TreeNode,
     ) {
         state.show_body(ui, |ui| {
             for child in node.get_children() {
@@ -459,7 +508,7 @@ impl<'a> TreeViewContext<'a> {
         });
     }
 
-    fn show_leaf(&mut self, ui: &mut Ui, node: &dyn TreeNode) -> ShowNodeResult<()> {
+    fn show_leaf(&mut self, ui: &mut Ui, node: &impl TreeNode) -> ShowNodeResult<()> {
         let res = ui.scope(|ui| {
             ui.horizontal(|ui| {
                 node.show(ui);

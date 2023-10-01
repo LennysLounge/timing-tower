@@ -88,16 +88,16 @@ impl TreeNode for Node {
         }
     }
 
-    fn get_children(&self) -> Vec<&dyn TreeNode> {
+    fn get_children(&self) -> Vec<&Node> {
         match self {
-            Node::Directory(dir) => dir.nodes.iter().map(|n| n as &dyn TreeNode).collect(),
+            Node::Directory(dir) => dir.nodes.iter().collect(),
             Node::File(_) => Vec::new(),
         }
     }
 
-    fn get_children_mut(&mut self) -> Vec<&mut dyn TreeNode> {
+    fn get_children_mut(&mut self) -> Vec<&mut Node> {
         match self {
-            Node::Directory(d) => d.nodes.iter_mut().map(|n| n as &mut dyn TreeNode).collect(),
+            Node::Directory(d) => d.nodes.iter_mut().collect(),
             Node::File(_) => Vec::new(),
         }
     }
@@ -109,12 +109,46 @@ impl TreeNode for Node {
         }
     }
 
-    fn as_trait(&self) -> &dyn TreeNode {
-        self
+    fn remove_child(&mut self, id: &Uuid) -> Option<Self>
+    where
+        Self: Sized,
+    {
+        match self {
+            Node::Directory(d) => {
+                let pos = d.nodes.iter().position(|n| n.get_id() == id);
+                if let Some(pos) = pos {
+                    Some(d.nodes.remove(pos))
+                } else {
+                    None
+                }
+            }
+            Node::File(_) => None,
+        }
     }
 
-    fn as_trait_mut(&mut self) -> &mut dyn TreeNode {
-        self
+    fn insert(&mut self, drop_action: &tree_view::DropAction, node: Self)
+    where
+        Self: Sized,
+    {
+        let Node::Directory(dir) = self else {
+            return;
+        };
+
+        match drop_action {
+            tree_view::DropAction::On(_) => dir.nodes.push(node),
+            tree_view::DropAction::After(id) => {
+                let position = dir.nodes.iter().position(|n| n.get_id() == id);
+                if let Some(position) = position {
+                    dir.nodes.insert(position + 1, node);
+                }
+            }
+            tree_view::DropAction::Before(id) => {
+                let position = dir.nodes.iter().position(|n| n.get_id() == id);
+                if let Some(position) = position {
+                    dir.nodes.insert(position, node);
+                }
+            }
+        }
     }
 }
 

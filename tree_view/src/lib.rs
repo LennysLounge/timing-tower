@@ -2,12 +2,14 @@ use bevy_egui::egui::{
     self,
     collapsing_header::CollapsingState,
     epaint::{self, RectShape},
-    pos2, vec2, Color32, Id, InnerResponse, LayerId, Order, Rect, Rounding, Sense, Shape, Stroke,
-    Ui, Vec2,
+    pos2, vec2, Color32, Id, InnerResponse, LayerId, NumExt, Order, Rect, Sense, Shape, Stroke, Ui,
+    Vec2,
 };
 use uuid::Uuid;
 
 use crate::split_collapsing_state::SplitCollapsingState;
+
+pub mod split_collapsing_state;
 
 #[derive(Debug, Clone)]
 pub enum DropAction {
@@ -28,29 +30,31 @@ impl DropAction {
 }
 
 pub trait TreeNode {
-    type NodeType;
+    type NodeType: TreeNode<NodeType = Self::NodeType>;
 
     fn is_directory(&self) -> bool;
     fn show(&self, ui: &mut Ui);
     fn get_id(&self) -> &Uuid;
-    fn get_children(&self) -> Vec<&dyn TreeNode<NodeType = Self::NodeType>>;
-    fn get_children_mut(&mut self) -> Vec<&mut dyn TreeNode<NodeType = Self::NodeType>>;
-    fn as_trait(&self) -> &dyn TreeNode<NodeType = Self::NodeType>;
-    fn as_trait_mut(&mut self) -> &mut dyn TreeNode<NodeType = Self::NodeType>;
+    fn get_children(&self) -> Vec<&Self::NodeType>;
+    fn get_children_mut(&mut self) -> Vec<&mut Self::NodeType>;
     fn remove_child(&mut self, id: &Uuid) -> Option<Self::NodeType>;
+    fn can_insert(&self, node: &Self::NodeType) -> bool;
     fn insert(&mut self, drop_action: &DropAction, node: Self::NodeType);
 
-    fn find(&self, id: &Uuid) -> Option<&dyn TreeNode<NodeType = Self::NodeType>> {
+    fn as_node_type(&self) -> &Self::NodeType;
+    fn as_node_type_mut(&mut self) -> &mut Self::NodeType;
+
+    fn find(&self, id: &Uuid) -> Option<&Self::NodeType> {
         if self.get_id() == id {
-            Some(self.as_trait())
+            Some(self.as_node_type())
         } else {
             self.get_children().iter().find_map(|n| n.find(id))
         }
     }
 
-    fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn TreeNode<NodeType = Self::NodeType>> {
+    fn find_mut(&mut self, id: &Uuid) -> Option<&mut Self::NodeType> {
         if self.get_id() == id {
-            Some(self.as_trait_mut())
+            Some(self.as_node_type_mut())
         } else {
             self.get_children_mut()
                 .into_iter()
@@ -58,16 +62,13 @@ pub trait TreeNode {
         }
     }
 
-    fn find_parent_mut(
-        &mut self,
-        child_id: &Uuid,
-    ) -> Option<&mut dyn TreeNode<NodeType = Self::NodeType>> {
+    fn find_parent_mut(&mut self, child_id: &Uuid) -> Option<&mut Self::NodeType> {
         let has_child = self
             .get_children_mut()
             .into_iter()
             .any(|c| c.get_id() == child_id);
         if has_child {
-            Some(self.as_trait_mut())
+            Some(self.as_node_type_mut())
         } else {
             self.get_children_mut()
                 .into_iter()
@@ -99,7 +100,11 @@ pub struct TreeView {
 }
 
 impl TreeView {
-    pub fn show<N: TreeNode>(&mut self, ui: &mut Ui, root: &mut dyn TreeNode<NodeType = N>) {
+    pub fn show<N: TreeNode<NodeType = N>>(
+        &mut self,
+        ui: &mut Ui,
+        root: &mut dyn TreeNode<NodeType = N>,
+    ) {
         let mut context = TreeViewContext {
             was_dragged_last_frame: self.was_dragged_last_frame,
             bounds: ui.available_rect_before_wrap(),
@@ -111,7 +116,7 @@ impl TreeView {
             parent: None,
         };
 
-        let res = ui.allocate_ui(ui.available_size_before_wrap(), |ui| {
+        ui.allocate_ui(ui.available_size_before_wrap(), |ui| {
             ui.style_mut().spacing.item_spacing.y = 7.0;
             // Allocate a bit of space to add half of one item spacing worth of space.
             // Allocating normals adds a full space so we take away half.
@@ -138,33 +143,50 @@ impl TreeView {
         self.selected = selected;
         self.was_dragged_last_frame = dragged;
 
-        ui.painter().rect_stroke(
-            res.response.rect,
-            Rounding::none(),
-            Stroke::new(1.0, Color32::BLACK),
-        );
+        if let (Some(drop_action), Some(drag_source)) = (hovered, dragged) {
+            self.handle_drop(ui, root, drop_action, drag_source);
+        }
+    }
 
-        // Move the node to the drag target.
-        let drag_released = ui.input(|i| i.pointer.any_released());
-        if let (Some(drop_action), Some(drag_source), true) = (&hovered, &dragged, drag_released) {
-            // The node we are dropping on cannot be a child of the node we are dragging.
-            if root
-                .find(drag_source)
-                .and_then(|source| source.find(drop_action.get_parent_node_id()))
-                .is_some()
-            {
-                println!("Cannot drop a parent into its child");
-            } else {
-                if let Some(node) = root.remove(drag_source) {
-                    println!("Removed: {:?}", node.get_id());
-                    root.drop(drop_action, node);
-                    println!("Place {:?}", drop_action);
+    fn handle_drop<N: TreeNode<NodeType = N>>(
+        &self,
+        ui: &mut Ui,
+        root: &mut dyn TreeNode<NodeType = N>,
+        drop_action: DropAction,
+        drag_source: Uuid,
+    ) {
+        if self.can_drop(root, &drop_action, drag_source) {
+            if ui.input(|i| i.pointer.any_released()) {
+                if let Some(node) = root.remove(&drag_source) {
+                    //println!("Removed: {:?}", node.get_id());
+                    root.drop(&drop_action, node);
+                    //println!("Place {:?}", drop_action);
                 }
             }
+        } else {
+            ui.ctx().set_cursor_icon(egui::CursorIcon::NoDrop);
+        }
+    }
+
+    fn can_drop<N: TreeNode<NodeType = N>>(
+        &self,
+        root: &mut dyn TreeNode<NodeType = N>,
+        drop_action: &DropAction,
+        drag_source: Uuid,
+    ) -> bool {
+        let Some(drag_node) = root.find(&drag_source) else {
+            return false;
+        };
+        // we cannot drop a parent to one of its child nodes.
+        if drag_node.find(drop_action.get_parent_node_id()).is_some() {
+            return false;
         }
 
-        ui.label(format!("Dragged: {:?}", dragged));
-        ui.label(format!("Hovered: {:?}", hovered));
+        let Some(drop_node) = root.find(drop_action.get_parent_node_id()) else {
+            return false;
+        };
+
+        drop_node.can_insert(drag_node)
     }
 }
 
@@ -194,7 +216,7 @@ enum DropTargetPos {
     On,
 }
 
-impl<'a, N> TreeViewContext<'a, N> {
+impl<'a, N: TreeNode<NodeType = N>> TreeViewContext<'a, N> {
     fn show_node(&mut self, ui: &mut Ui) {
         let mut child_ui = ui.child_ui_with_id_source(
             ui.available_rect_before_wrap(),
@@ -277,9 +299,17 @@ impl<'a, N> TreeViewContext<'a, N> {
             hover_rect.center() + vec2(0.0, (hover_rect.height() - height) * dir / 2.0),
             vec2(hover_rect.width(), height),
         );
+
         // When checking for interaction, egui adds the item spacing on to. To get
         // a clean break we take it away again.
-        let drop_rect = drop_rect.expand2(vec2(0.0, -ui.spacing().item_spacing.y / 4.0));
+        let drop_rect = {
+            let reduce = vec2(0.0, ui.spacing().item_spacing.y * 0.5 - 0.1)
+                .at_most(Vec2::splat(5.0))
+                .at_least(Vec2::splat(0.0));
+            let mut rect = drop_rect.expand2(reduce * -1.0);
+            *rect.top_mut() += 1.0;
+            rect
+        };
 
         // ui.painter().rect_filled(
         //     drop_rect,
@@ -289,7 +319,7 @@ impl<'a, N> TreeViewContext<'a, N> {
         //         ref x if *x > 0.5 => Color32::BLUE,
         //         _ => Color32::GREEN,
         //     }
-        //     .linear_multiply(0.05),
+        //     .linear_multiply(0.5),
         // );
 
         let interaction = ui.interact(drop_rect, ui.next_auto_id(), Sense::hover());

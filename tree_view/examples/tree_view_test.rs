@@ -9,9 +9,6 @@ use bevy_egui::{
 use tree_view::{DropAction, TreeNode, TreeView};
 use uuid::Uuid;
 
-pub mod split_collapsing_state;
-mod tree_view;
-
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
@@ -90,16 +87,16 @@ impl TreeNode for Node {
         }
     }
 
-    fn get_children(&self) -> Vec<&dyn TreeNode<NodeType = Self::NodeType>> {
+    fn get_children(&self) -> Vec<&Self::NodeType> {
         match self {
-            Node::Directory(dir) => dir.nodes.iter().map(|n| n.as_trait()).collect(),
+            Node::Directory(dir) => dir.nodes.iter().map(|n| n.as_node_type()).collect(),
             Node::File(_) => Vec::new(),
         }
     }
 
-    fn get_children_mut(&mut self) -> Vec<&mut dyn TreeNode<NodeType = Self::NodeType>> {
+    fn get_children_mut(&mut self) -> Vec<&mut Self::NodeType> {
         match self {
-            Node::Directory(d) => d.nodes.iter_mut().map(|n| n.as_trait_mut()).collect(),
+            Node::Directory(d) => d.nodes.iter_mut().map(|n| n.as_node_type_mut()).collect(),
             Node::File(_) => Vec::new(),
         }
     }
@@ -109,14 +106,6 @@ impl TreeNode for Node {
             Node::Directory(d) => &d.id,
             Node::File(f) => &f.id,
         }
-    }
-
-    fn as_trait(&self) -> &dyn TreeNode<NodeType = Self::NodeType> {
-        self
-    }
-
-    fn as_trait_mut(&mut self) -> &mut dyn TreeNode<NodeType = Self::NodeType> {
-        self
     }
 
     fn remove_child(&mut self, id: &Uuid) -> Option<Self> {
@@ -133,7 +122,7 @@ impl TreeNode for Node {
         }
     }
 
-    fn insert(&mut self, drop_action: &tree_view::DropAction, node: Self) {
+    fn insert(&mut self, drop_action: &DropAction, node: Self) {
         let Node::Directory(dir) = self else {
             return;
         };
@@ -153,6 +142,21 @@ impl TreeNode for Node {
                 }
             }
         }
+    }
+
+    fn can_insert(&self, _node: &Self::NodeType) -> bool {
+        match self {
+            Node::Directory(_) => true,
+            Node::File(_) => false,
+        }
+    }
+
+    fn as_node_type(&self) -> &Self::NodeType {
+        self
+    }
+
+    fn as_node_type_mut(&mut self) -> &mut Self::NodeType {
+        self
     }
 }
 

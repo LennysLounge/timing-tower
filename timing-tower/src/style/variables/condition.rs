@@ -4,9 +4,8 @@ use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 
 use crate::{
-    editor::{
-        properties::{BooleanProperty, ColorProperty, NumberProperty, TextProperty},
-        style_elements::reference_editor,
+    style::properties::{
+        reference_editor, BooleanProperty, ColorProperty, NumberProperty, TextProperty,
     },
     variable_repo::{
         BooleanSource, ColorSource, NumberSource, Reference, TextSource, ValueType, VariableId,

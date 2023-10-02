@@ -13,18 +13,9 @@ use bevy_egui::{
     EguiContexts,
 };
 use tracing::error;
-use tree_view::{TreeNode, TreeNodeConverstions, TreeView};
+use tree_view::{TreeNodeConverstions, TreeView};
 
-use crate::{
-    style::{variables::VariableBehavior, StyleDefinition},
-    variable_repo::VariableRepo,
-    MainCamera,
-};
-
-pub mod properties;
-pub mod style_elements;
-pub mod timing_tower_elements;
-//pub mod variable_element;
+use crate::{style::StyleDefinition, variable_repo::VariableRepo, MainCamera};
 
 pub struct EditorPlugin;
 impl Plugin for EditorPlugin {
@@ -112,16 +103,10 @@ fn run_egui_main(
 
     egui::SidePanel::right("Property panel")
         .show(ctx.ctx_mut(), |ui| {
-            if let Some(node) = state
+            state
                 .tree
                 .selected
-                .and_then(|id| style.find_mut(&id))
-                .map(|node| node.as_any_mut())
-            {
-                if let Some(n) = node.downcast_mut::<VariableBehavior>() {
-                    n.property_editor(ui, &variable_repo);
-                }
-            }
+                .map(|id| style.property_editor(ui, &variable_repo, &id));
 
             ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());
         })

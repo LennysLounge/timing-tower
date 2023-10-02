@@ -1,32 +1,15 @@
-use bevy::prelude::{Color, Resource};
-use bevy_egui::egui::{self, ComboBox, Response, Sense, Ui, Vec2};
+use bevy::prelude::Color;
+use bevy_egui::egui::{ComboBox, Ui};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
-use crate::variable_repo::{Reference, Variable, VariableId, VariableRepo};
+use crate::variable_repo::VariableRepo;
 
-use super::{
-    properties::{
-        BooleanProperty, ColorProperty, NumberProperty, TextProperty, Vec2Property, Vec3Property,
-    },
-    timing_tower_elements::TimingTowerElement,
+use super::properties::{
+    BooleanProperty, ColorProperty, NumberProperty, TextProperty, Vec2Property, Vec3Property,
 };
 
-pub trait StyleElement {
-    fn element_tree(&mut self, ui: &mut Ui, selected_element: &mut Option<Uuid>);
-    fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn StyleElement>;
-    fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo);
-}
-
-#[derive(Serialize, Deserialize, Clone, Resource)]
-pub struct RootElement {
-    pub id: Uuid,
-    //pub vars: VariablesElement,
-    pub timing_tower: TimingTowerElement,
-}
-
 #[derive(Serialize, Deserialize, Clone)]
-pub struct CellElement {
+pub struct Cell {
     pub text: TextProperty,
     pub text_color: ColorProperty,
     pub text_size: NumberProperty,
@@ -65,33 +48,7 @@ pub enum TextAlignment {
     Right,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
-pub enum VariableDef {
-    Number(f32),
-    Text(String),
-    Color(Color),
-}
-
-impl StyleElement for RootElement {
-    fn element_tree(&mut self, ui: &mut Ui, selected_element: &mut Option<Uuid>) {
-        //self.vars.element_tree(ui, selected_element);
-        ui.allocate_at_least(Vec2::new(0.0, 5.0), Sense::hover());
-        self.timing_tower.element_tree(ui, selected_element);
-    }
-
-    fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn StyleElement> {
-        self.timing_tower.find_mut(id)
-        // self.vars
-        //     .find_mut(id)
-        //     .or_else(|| self.timing_tower.find_mut(id))
-    }
-
-    fn property_editor(&mut self, ui: &mut Ui, _vars: &VariableRepo) {
-        ui.label("Scene");
-    }
-}
-
-impl Default for CellElement {
+impl Default for Cell {
     fn default() -> Self {
         Self {
             text: TextProperty::Fixed("Column".to_string()),
@@ -125,7 +82,7 @@ impl Default for CellElement {
     }
 }
 
-impl CellElement {
+impl Cell {
     pub fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
         ui.label("Cell:");
         ui.horizontal(|ui| {
@@ -216,55 +173,4 @@ impl CellElement {
             self.rounding.bot_left.editor(ui, vars);
         });
     }
-}
-
-pub fn reference_editor(
-    ui: &mut Ui,
-    vars: &VariableRepo,
-    reference: &mut Reference,
-    use_type: impl Fn(&VariableId) -> bool,
-) -> Option<Reference> {
-    let var_name = match vars.get_var_def(reference) {
-        Some(def) => def.name.as_str(),
-        None => "Ref",
-    };
-    let popup_button = ui.button(var_name);
-    reference_popup(ui, &popup_button, vars, use_type)
-}
-
-pub fn reference_editor_small(
-    ui: &mut Ui,
-    vars: &VariableRepo,
-    use_type: impl Fn(&VariableId) -> bool,
-) -> Option<Reference> {
-    let popup_button = ui.button("R");
-    reference_popup(ui, &popup_button, vars, use_type)
-}
-
-fn reference_popup(
-    ui: &mut Ui,
-    button_response: &Response,
-    vars: &VariableRepo,
-    use_type: impl Fn(&VariableId) -> bool,
-) -> Option<Reference> {
-    let popup_id = ui.next_auto_id();
-    if button_response.clicked() {
-        ui.memory_mut(|mem| mem.toggle_popup(popup_id));
-    }
-    egui::popup::popup_below_widget(ui, popup_id, &button_response, |ui| {
-        ui.set_min_width(200.0);
-        let mut color_vars: Vec<&Variable> =
-            vars.vars.values().filter(|var| use_type(&var.id)).collect();
-        color_vars.sort_by(|v1, v2| v1.id.name.cmp(&v2.id.name));
-
-        let mut result = None;
-        for var in color_vars {
-            if ui.selectable_label(false, &var.id.name).clicked() && result.is_none() {
-                result = Some(var.get_ref());
-                ui.memory_mut(|mem| mem.close_popup());
-            }
-        }
-        result
-    })
-    .flatten()
 }

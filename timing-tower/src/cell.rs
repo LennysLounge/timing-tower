@@ -10,8 +10,8 @@ use bevy::{
 };
 
 use crate::{
-    editor::style_elements::TextAlignment,
     gradient_material::{Gradient, GradientMaterial},
+    style::cell::TextAlignment,
     DefaultFont,
 };
 

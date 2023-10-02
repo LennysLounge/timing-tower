@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 use uuid::{uuid, Uuid};
 
-use crate::editor::properties::{BooleanProperty, ColorProperty, NumberProperty, TextProperty};
+use crate::style::properties::{BooleanProperty, ColorProperty, NumberProperty, TextProperty};
 
 pub trait NumberSource {
     fn resolve(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<f32>;

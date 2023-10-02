@@ -18,11 +18,12 @@ use bevy::{
 };
 use bevy_egui::EguiPlugin;
 use cell::{init_cell, CellPlugin, CellStyle, SetStyle};
-use editor::{style_elements::TextAlignment, EditorPlugin, EditorState};
+use editor::{EditorPlugin, EditorState};
 use gradient_material::CustomMaterialPlugin;
 
-use style::StyleDefinition;
+use style::{cell::TextAlignment, StyleDefinition};
 
+use timing_tower::{init_timing_tower, TimingTowerPlugin};
 use tree_view::TreeView;
 use unified_sim_model::Adapter;
 use variable_repo::VariableRepo;
@@ -46,7 +47,7 @@ fn main() {
         // Crate plugins
         .add_plugins(CellPlugin)
         .add_plugins(CustomMaterialPlugin)
-        //.add_plugins(TimingTowerPlugin)
+        .add_plugins(TimingTowerPlugin)
         .add_plugins(EditorPlugin)
         // Systems
         .add_systems(PreStartup, load)
@@ -141,7 +142,7 @@ fn setup(mut commands: Commands, mut set_style_event: EventWriter<SetStyle>) {
         },
     });
 
-    //commands.spawn_empty().add(init_timing_tower(adapter));
+    commands.spawn_empty().add(init_timing_tower(adapter));
 }
 
 fn move_top_left(

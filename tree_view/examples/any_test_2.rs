@@ -21,6 +21,8 @@ impl Speak for Thing {
         self
     }
 }
+trait Other {}
+impl Other for Thing {}
 
 fn main() {
     let t = Thing;

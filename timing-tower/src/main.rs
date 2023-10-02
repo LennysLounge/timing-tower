@@ -18,20 +18,19 @@ use bevy::{
 };
 use bevy_egui::EguiPlugin;
 use cell::{init_cell, CellPlugin, CellStyle, SetStyle};
-use editor::{
-    style_elements::{RootElement, TextAlignment},
-    EditorPlugin, EditorState,
-};
+use editor::{style_elements::TextAlignment, EditorPlugin, EditorState};
 use gradient_material::CustomMaterialPlugin;
 
-use timing_tower::{init_timing_tower, TimingTowerPlugin};
+use style::StyleDefinition;
+
+use tree_view::TreeView;
 use unified_sim_model::Adapter;
 use variable_repo::VariableRepo;
 
 mod cell;
 mod editor;
 mod gradient_material;
-//mod style_def;
+mod style;
 mod timing_tower;
 mod variable_repo;
 
@@ -47,7 +46,7 @@ fn main() {
         // Crate plugins
         .add_plugins(CellPlugin)
         .add_plugins(CustomMaterialPlugin)
-        .add_plugins(TimingTowerPlugin)
+        //.add_plugins(TimingTowerPlugin)
         .add_plugins(EditorPlugin)
         // Systems
         .add_systems(PreStartup, load)
@@ -97,7 +96,7 @@ fn setup(mut commands: Commands, mut set_style_event: EventWriter<SetStyle>) {
         }
         Ok(s) => s,
     };
-    let elements = match serde_json::from_str::<RootElement>(&s) {
+    let style = match serde_json::from_str::<StyleDefinition>(&s) {
         Ok(o) => o,
         Err(e) => {
             println!("Error parsing json: {}", e);
@@ -128,18 +127,21 @@ fn setup(mut commands: Commands, mut set_style_event: EventWriter<SetStyle>) {
         },
     });
 
-    commands.insert_resource(elements.clone());
+    commands.insert_resource(style.clone());
     let mut repo = VariableRepo {
         vars: HashMap::new(),
     };
-    repo.reload_repo(&elements.vars);
+    repo.reload_repo(&style.vars.vars);
     commands.insert_resource(repo);
 
     commands.insert_resource(EditorState {
-        selected_element: None,
+        tree: TreeView {
+            selected: None,
+            was_dragged_last_frame: None,
+        },
     });
 
-    commands.spawn_empty().add(init_timing_tower(adapter));
+    //commands.spawn_empty().add(init_timing_tower(adapter));
 }
 
 fn move_top_left(

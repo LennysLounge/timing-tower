@@ -1,27 +1,108 @@
 {
-  "vars": {},
-  "timing_tower": {
-    "cell": {
-      "value_source": {
-        "FixedValue": ""
+  "id": "a2191c04-bae5-49b4-9aee-1b55675aba4d",
+  "vars": {
+    "vars": [
+      {
+        "FixedValue": {
+          "id": "9df89401-32e8-4455-ba91-b1421639cd50",
+          "name": "color sample",
+          "value_type": "Color",
+          "value": {
+            "Rgba": {
+              "red": 0.0,
+              "green": 0.0,
+              "blue": 0.0,
+              "alpha": 1.0
+            }
+          }
+        }
       },
-      "color": {
+      {
+        "FixedValue": {
+          "id": "f45338ce-3d52-43b3-85ee-d99352174b79",
+          "name": "Number sample",
+          "value_type": "Number",
+          "value": 13.0
+        }
+      },
+      {
+        "FixedValue": {
+          "id": "aed52af1-aa86-4348-aef6-e86fc2c97cc5",
+          "name": "Text sample",
+          "value_type": "Text",
+          "value": "A. Brodych"
+        }
+      },
+      {
+        "Condition": {
+          "id": "e86a2ae3-6486-4941-bee9-b063f3ff0152",
+          "name": "position color",
+          "value_type": "Color",
+          "left": {
+            "value_type": "Boolean",
+            "key": "de909160-f54b-40cf-a987-6a8453df0914"
+          },
+          "right": {
+            "Boolean": [
+              true,
+              "Is"
+            ]
+          },
+          "true_output": {
+            "Color": {
+              "Rgba": {
+                "red": 0.8649127,
+                "green": 0.0,
+                "blue": 0.0,
+                "alpha": 1.0
+              }
+            }
+          },
+          "false_output": {
+            "Color": {
+              "Rgba": {
+                "red": 0.0,
+                "green": 0.0,
+                "blue": 0.0,
+                "alpha": 1.0
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "timing_tower": {
+    "id": "63777a7c-26e1-4bdc-a840-87ebf3bdcb41",
+    "cell": {
+      "text": "",
+      "text_color": {
         "Rgba": {
-          "red": 0.742857,
+          "red": 0.0,
           "green": 0.0,
-          "blue": 1.0,
+          "blue": 0.0,
           "alpha": 1.0
         }
       },
-      "pos": [
-        338.0,
-        56.0,
-        0.0
-      ],
-      "size": [
-        100.0,
-        100.0
-      ],
+      "text_size": 20.0,
+      "color": {
+        "Rgba": {
+          "red": 0.0,
+          "green": 0.0,
+          "blue": 0.0,
+          "alpha": 0.0
+        }
+      },
+      "image": "",
+      "pos": {
+        "x": 350.0,
+        "y": 56.0,
+        "z": 0.0
+      },
+      "size": {
+        "x": 100.0,
+        "y": 100.0
+      },
       "skew": 3.0,
       "visible": true,
       "rounding": {
@@ -31,16 +112,24 @@
         "bot_right": 0.0
       },
       "text_alginment": "Center",
-      "text_position": [
-        0.0,
-        0.0
-      ]
+      "text_position": {
+        "x": 0.0,
+        "y": 0.0
+      }
     },
     "table": {
+      "id": "9539afda-b875-433f-9bd0-af822088b55d",
       "cell": {
-        "value_source": {
-          "FixedValue": ""
+        "text": "",
+        "text_color": {
+          "Rgba": {
+            "red": 0.0,
+            "green": 0.0,
+            "blue": 0.0,
+            "alpha": 1.0
+          }
         },
+        "text_size": 20.0,
         "color": {
           "Rgba": {
             "red": 0.0,
@@ -49,15 +138,16 @@
             "alpha": 0.0
           }
         },
-        "pos": [
-          113.0,
-          0.0,
-          0.0
-        ],
-        "size": [
-          680.0,
-          1000.0
-        ],
+        "image": "",
+        "pos": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "size": {
+          "x": 680.0,
+          "y": 1000.0
+        },
         "skew": 0.0,
         "visible": true,
         "rounding": {
@@ -67,20 +157,28 @@
           "bot_right": 0.0
         },
         "text_alginment": "Center",
-        "text_position": [
-          0.0,
-          0.0
-        ]
+        "text_position": {
+          "x": 0.0,
+          "y": 0.0
+        }
       },
-      "row_offset": [
-        0.0,
-        2.0
-      ],
-      "row_style": {
+      "row_offset": {
+        "x": 0.0,
+        "y": 2.0
+      },
+      "row": {
+        "id": "23c20135-9036-4628-9c86-5a8f2b39871b",
         "cell": {
-          "value_source": {
-            "FixedValue": ""
+          "text": "",
+          "text_color": {
+            "Rgba": {
+              "red": 0.0,
+              "green": 0.0,
+              "blue": 0.0,
+              "alpha": 1.0
+            }
           },
+          "text_size": 20.0,
           "color": {
             "Rgba": {
               "red": 0.0,
@@ -89,15 +187,16 @@
               "alpha": 0.0
             }
           },
-          "pos": [
-            0.0,
-            0.0,
-            0.0
-          ],
-          "size": [
-            660.0,
-            36.0
-          ],
+          "image": "",
+          "pos": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "size": {
+            "x": 660.0,
+            "y": 36.0
+          },
           "skew": 0.0,
           "visible": true,
           "rounding": {
@@ -107,33 +206,52 @@
             "bot_right": 0.0
           },
           "text_alginment": "Center",
-          "text_position": [
-            0.0,
-            0.0
-          ]
+          "text_position": {
+            "x": 0.0,
+            "y": 0.0
+          }
         },
         "columns": [
           {
+            "id": "7d96c8c6-c978-4258-83c4-9504bccf7256",
             "cell": {
-              "value_source": "Position",
-              "color": {
+              "text": {
+                "Ref": {
+                  "value_type": "Text",
+                  "key": "6330a6bb-51d1-4af7-9bd0-efeb00b1ff52"
+                }
+              },
+              "text_color": {
                 "Rgba": {
-                  "red": 0.0,
-                  "green": 0.0,
-                  "blue": 0.0,
+                  "red": 1.0,
+                  "green": 1.0,
+                  "blue": 1.0,
                   "alpha": 1.0
                 }
               },
-              "pos": [
-                0.0,
-                0.0,
-                3.0
-              ],
-              "size": [
-                36.0,
-                36.0
-              ],
-              "skew": 13.0,
+              "text_size": 19.5,
+              "color": {
+                "Ref": {
+                  "value_type": "Color",
+                  "key": "e86a2ae3-6486-4941-bee9-b063f3ff0152"
+                }
+              },
+              "image": "",
+              "pos": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 3.0
+              },
+              "size": {
+                "x": 36.0,
+                "y": 36.0
+              },
+              "skew": {
+                "Ref": {
+                  "value_type": "Number",
+                  "key": "f45338ce-3d52-43b3-85ee-d99352174b79"
+                }
+              },
               "visible": true,
               "rounding": {
                 "top_left": 12.0,
@@ -142,16 +260,31 @@
                 "bot_right": 0.0
               },
               "text_alginment": "Center",
-              "text_position": [
-                24.5,
-                19.0
-              ]
+              "text_position": {
+                "x": 24.5,
+                "y": 18.0
+              }
             },
             "name": "position"
           },
           {
+            "id": "a275bdc4-ed4a-4dcb-a964-d0646598d64e",
             "cell": {
-              "value_source": "CarNumber",
+              "text": {
+                "Ref": {
+                  "value_type": "Text",
+                  "key": "171d7438-3179-4c70-b818-811cf86d514e"
+                }
+              },
+              "text_color": {
+                "Rgba": {
+                  "red": 1.0,
+                  "green": 1.0,
+                  "blue": 1.0,
+                  "alpha": 1.0
+                }
+              },
+              "text_size": 19.5,
               "color": {
                 "Rgba": {
                   "red": 0.40197778,
@@ -160,15 +293,16 @@
                   "alpha": 1.0
                 }
               },
-              "pos": [
-                225.0,
-                0.0,
-                1.0
-              ],
-              "size": [
-                46.0,
-                36.0
-              ],
+              "image": "",
+              "pos": {
+                "x": 225.0,
+                "y": 0.0,
+                "z": 1.0
+              },
+              "size": {
+                "x": 46.0,
+                "y": 36.0
+              },
               "skew": 0.0,
               "visible": true,
               "rounding": {
@@ -178,16 +312,31 @@
                 "bot_right": 0.0
               },
               "text_alginment": "Center",
-              "text_position": [
-                23.0,
-                18.0
-              ]
+              "text_position": {
+                "x": 23.0,
+                "y": 18.0
+              }
             },
             "name": "car number"
           },
           {
+            "id": "95ab724b-b056-4e76-8153-2f9265aac3cb",
             "cell": {
-              "value_source": "DriverName",
+              "text": {
+                "Ref": {
+                  "value_type": "Text",
+                  "key": "aed52af1-aa86-4348-aef6-e86fc2c97cc5"
+                }
+              },
+              "text_color": {
+                "Rgba": {
+                  "red": 1.0,
+                  "green": 1.0,
+                  "blue": 1.0,
+                  "alpha": 1.0
+                }
+              },
+              "text_size": 19.5,
               "color": {
                 "Rgba": {
                   "red": 0.0,
@@ -196,15 +345,16 @@
                   "alpha": 0.6904762
                 }
               },
-              "pos": [
-                32.0,
-                0.0,
-                0.0
-              ],
-              "size": [
-                250.0,
-                36.0
-              ],
+              "image": "",
+              "pos": {
+                "x": 32.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "size": {
+                "x": 250.0,
+                "y": 36.0
+              },
               "skew": 0.0,
               "visible": true,
               "rounding": {
@@ -214,18 +364,26 @@
                 "bot_right": 0.0
               },
               "text_alginment": "Left",
-              "text_position": [
-                20.0,
-                19.0
-              ]
+              "text_position": {
+                "x": 21.0,
+                "y": 18.0
+              }
             },
             "name": "driver name"
           },
           {
+            "id": "408863e5-c4d7-4721-bb58-2a3887551ea5",
             "cell": {
-              "value_source": {
-                "FixedValue": "M"
+              "text": "M",
+              "text_color": {
+                "Rgba": {
+                  "red": 1.0,
+                  "green": 1.0,
+                  "blue": 1.0,
+                  "alpha": 1.0
+                }
               },
+              "text_size": 19.5,
               "color": {
                 "Rgba": {
                   "red": 0.8549,
@@ -234,15 +392,16 @@
                   "alpha": 1.0
                 }
               },
-              "pos": [
-                189.0,
-                0.0,
-                1.0
-              ],
-              "size": [
-                36.0,
-                36.0
-              ],
+              "image": "",
+              "pos": {
+                "x": 189.0,
+                "y": 0.0,
+                "z": 1.0
+              },
+              "size": {
+                "x": 36.0,
+                "y": 36.0
+              },
               "skew": 0.0,
               "visible": true,
               "rounding": {
@@ -252,12 +411,64 @@
                 "bot_right": 0.0
               },
               "text_alginment": "Center",
-              "text_position": [
-                18.0,
-                18.0
-              ]
+              "text_position": {
+                "x": 18.0,
+                "y": 18.0
+              }
             },
             "name": "manufacturer"
+          },
+          {
+            "id": "12b0a701-6b31-4027-8bbb-0c3011998f4c",
+            "cell": {
+              "text": "P",
+              "text_color": {
+                "Rgba": {
+                  "red": 0.0,
+                  "green": 0.0,
+                  "blue": 0.0,
+                  "alpha": 1.0
+                }
+              },
+              "text_size": 12.0,
+              "color": {
+                "Rgba": {
+                  "red": 1.0,
+                  "green": 1.0,
+                  "blue": 1.0,
+                  "alpha": 1.0
+                }
+              },
+              "image": "",
+              "pos": {
+                "x": 271.0,
+                "y": 0.0,
+                "z": 5.0
+              },
+              "size": {
+                "x": 11.0,
+                "y": 36.0
+              },
+              "skew": 0.0,
+              "visible": {
+                "Ref": {
+                  "value_type": "Boolean",
+                  "key": "c16f71b9-dcc9-4f04-9579-ea5211fa99be"
+                }
+              },
+              "rounding": {
+                "top_left": 0.0,
+                "top_right": 0.0,
+                "bot_left": 0.0,
+                "bot_right": 0.0
+              },
+              "text_alginment": "Center",
+              "text_position": {
+                "x": 5.5,
+                "y": 18.0
+              }
+            },
+            "name": "pit indicator"
           }
         ]
       }

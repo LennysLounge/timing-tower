@@ -13,16 +13,18 @@ use bevy_egui::{
     EguiContexts,
 };
 use tracing::error;
-use uuid::Uuid;
+use tree_view::{TreeNode, TreeNodeConverstions, TreeView};
 
-use crate::{variable_repo::VariableRepo, MainCamera};
-
-use self::style_elements::{RootElement, StyleElement};
+use crate::{
+    style::{variables::VariableBehavior, StyleDefinition},
+    variable_repo::VariableRepo,
+    MainCamera,
+};
 
 pub mod properties;
 pub mod style_elements;
 pub mod timing_tower_elements;
-pub mod variable_element;
+//pub mod variable_element;
 
 pub struct EditorPlugin;
 impl Plugin for EditorPlugin {
@@ -45,14 +47,14 @@ struct OccupiedSpace(f32);
 
 #[derive(Resource)]
 pub struct EditorState {
-    pub selected_element: Option<Uuid>,
+    pub tree: TreeView,
 }
 
 pub fn setup(mut ctx: EguiContexts) {
     dear_egui::set_theme(ctx.ctx_mut(), dear_egui::SKY);
 }
 
-fn save_style(style: &RootElement) {
+fn save_style(style: &StyleDefinition) {
     let s = match serde_json::to_string_pretty(style) {
         Ok(s) => s,
         Err(e) => {
@@ -77,22 +79,18 @@ fn run_egui_main(
     mut ctx: EguiContexts,
     mut occupied_space: ResMut<OccupiedSpace>,
     mut state: ResMut<EditorState>,
-    mut elements: ResMut<RootElement>,
+    mut style: ResMut<StyleDefinition>,
     mut variable_repo: ResMut<VariableRepo>,
 ) {
-    let EditorState {
-        selected_element, ..
-    } = &mut *state;
-
     occupied_space.0 = egui::SidePanel::left("Editor panel")
         .show(ctx.ctx_mut(), |ui| {
             if ui.button("Save").clicked() {
-                save_style(&elements);
+                save_style(&style);
             }
 
             egui::Frame::group(ui.style()).show(ui, |ui| {
                 egui::ScrollArea::vertical().show(ui, |ui| {
-                    elements.element_tree(ui, selected_element);
+                    state.tree.show(ui, style.as_dyn_mut());
                 });
                 ui.allocate_rect(
                     Rect::from_min_size(
@@ -114,8 +112,15 @@ fn run_egui_main(
 
     egui::SidePanel::right("Property panel")
         .show(ctx.ctx_mut(), |ui| {
-            if let Some(element) = selected_element.and_then(|id| elements.find_mut(&id)) {
-                element.property_editor(ui, &variable_repo);
+            if let Some(node) = state
+                .tree
+                .selected
+                .and_then(|id| style.find_mut(&id))
+                .map(|node| node.as_any_mut())
+            {
+                if let Some(n) = node.downcast_mut::<VariableBehavior>() {
+                    n.property_editor(ui, &variable_repo);
+                }
             }
 
             ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());
@@ -123,7 +128,7 @@ fn run_egui_main(
         .response
         .rect
         .width();
-    variable_repo.reload_repo(&elements.vars);
+    variable_repo.reload_repo(&style.vars.vars);
 }
 
 fn update_camera(

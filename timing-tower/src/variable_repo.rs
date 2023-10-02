@@ -5,10 +5,7 @@ use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 use uuid::{uuid, Uuid};
 
-use crate::editor::{
-    properties::{BooleanProperty, ColorProperty, NumberProperty, TextProperty},
-    variable_element::VariablesElement,
-};
+use crate::editor::properties::{BooleanProperty, ColorProperty, NumberProperty, TextProperty};
 
 pub trait NumberSource {
     fn resolve(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<f32>;
@@ -24,6 +21,11 @@ pub trait ColorSource {
 
 pub trait BooleanSource {
     fn resolve(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<bool>;
+}
+
+pub trait VariableDefinition {
+    fn as_variable_source(&self) -> VariableSource;
+    fn get_variable_id(&self) -> &VariableId;
 }
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug, Default)]
@@ -76,16 +78,16 @@ pub struct VariableRepo {
 }
 
 impl VariableRepo {
-    pub fn reload_repo(&mut self, var_defs: &VariablesElement) {
+    pub fn reload_repo(&mut self, var_defs: &Vec<impl VariableDefinition>) {
         self.vars.clear();
 
         generate_game_sources(&mut self.vars);
 
-        for var_def in var_defs.vars.iter() {
+        for var_def in var_defs {
             self.vars.insert(
-                var_def.get_id().id.clone(),
+                var_def.get_variable_id().id.clone(),
                 Variable {
-                    id: var_def.get_id().clone(),
+                    id: var_def.get_variable_id().clone(),
                     source: var_def.as_variable_source(),
                 },
             );

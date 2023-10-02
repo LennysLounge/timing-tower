@@ -3277,6 +3277,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tracing",
+ "tree_view",
  "unified_sim_model",
  "uuid",
 ]

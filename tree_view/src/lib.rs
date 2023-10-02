@@ -36,6 +36,7 @@ pub trait TreeNodeConverstions {
     fn as_dyn_mut(&mut self) -> &mut dyn TreeNode;
     fn into_any(self: Box<Self>) -> Box<dyn Any>;
     fn as_any(&self) -> &dyn Any;
+    fn as_any_mut(&mut self) -> &mut dyn Any;
 }
 
 impl<T: TreeNode + Any> TreeNodeConverstions for T {
@@ -54,11 +55,15 @@ impl<T: TreeNode + Any> TreeNodeConverstions for T {
     fn as_any(&self) -> &dyn Any {
         self
     }
+
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }
 }
 
 pub trait TreeNode: TreeNodeConverstions {
     fn is_directory(&self) -> bool;
-    fn show(&self, ui: &mut Ui);
+    fn show_label(&self, ui: &mut Ui);
     fn get_id(&self) -> &Uuid;
 
     fn get_children(&self) -> Vec<&dyn TreeNode>;
@@ -108,6 +113,8 @@ pub struct TreeView {
     pub selected: Option<Uuid>,
     pub was_dragged_last_frame: Option<Uuid>,
 }
+
+trait Other {}
 
 impl TreeView {
     pub fn show(&mut self, ui: &mut Ui, root: &mut dyn TreeNode) {
@@ -520,7 +527,7 @@ impl<'a> TreeViewContext<'a> {
         let collapsing_id = Id::new(self.node.get_id()).with("dir header");
 
         let mut state = SplitCollapsingState::show_header(ui, collapsing_id, |ui| {
-            self.node.show(ui);
+            self.node.show_label(ui);
             ui.allocate_at_least(vec2(ui.available_width(), 0.0), Sense::hover());
         });
 
@@ -588,7 +595,7 @@ impl<'a> TreeViewContext<'a> {
     fn show_leaf(&mut self, ui: &mut Ui) -> ShowNodeResult<()> {
         let res = ui.scope(|ui| {
             ui.horizontal(|ui| {
-                self.node.show(ui);
+                self.node.show_label(ui);
                 ui.allocate_at_least(vec2(ui.available_width(), 0.0), Sense::hover());
             });
         });

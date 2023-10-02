@@ -90,7 +90,7 @@ impl TreeNode for Node {
         }
     }
 
-    fn show(&self, ui: &mut egui::Ui) {
+    fn show_label(&self, ui: &mut egui::Ui) {
         match self {
             Node::Directory(d) => d.show(ui),
             Node::File(f) => f.show(ui),

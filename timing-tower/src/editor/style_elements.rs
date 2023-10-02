@@ -10,7 +10,6 @@ use super::{
         BooleanProperty, ColorProperty, NumberProperty, TextProperty, Vec2Property, Vec3Property,
     },
     timing_tower_elements::TimingTowerElement,
-    variable_element::VariablesElement,
 };
 
 pub trait StyleElement {
@@ -22,7 +21,7 @@ pub trait StyleElement {
 #[derive(Serialize, Deserialize, Clone, Resource)]
 pub struct RootElement {
     pub id: Uuid,
-    pub vars: VariablesElement,
+    //pub vars: VariablesElement,
     pub timing_tower: TimingTowerElement,
 }
 
@@ -75,15 +74,16 @@ pub enum VariableDef {
 
 impl StyleElement for RootElement {
     fn element_tree(&mut self, ui: &mut Ui, selected_element: &mut Option<Uuid>) {
-        self.vars.element_tree(ui, selected_element);
+        //self.vars.element_tree(ui, selected_element);
         ui.allocate_at_least(Vec2::new(0.0, 5.0), Sense::hover());
         self.timing_tower.element_tree(ui, selected_element);
     }
 
     fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn StyleElement> {
-        self.vars
-            .find_mut(id)
-            .or_else(|| self.timing_tower.find_mut(id))
+        self.timing_tower.find_mut(id)
+        // self.vars
+        //     .find_mut(id)
+        //     .or_else(|| self.timing_tower.find_mut(id))
     }
 
     fn property_editor(&mut self, ui: &mut Ui, _vars: &VariableRepo) {

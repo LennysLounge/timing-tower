@@ -1,3 +1,5 @@
+use std::any::Any;
+
 use bevy::{
     prelude::{App, Commands, ResMut, Resource, Startup, Update},
     DefaultPlugins,
@@ -6,7 +8,7 @@ use bevy_egui::{
     egui::{self, Ui},
     EguiContexts, EguiPlugin,
 };
-use tree_view::{DropAction, TreeNode, TreeView};
+use tree_view::{DropAction, TreeNode, TreeNodeConverstions, TreeView};
 use uuid::Uuid;
 
 fn main() {
@@ -20,7 +22,7 @@ fn main() {
 
 #[derive(Resource)]
 struct EditorState {
-    tree: Node,
+    tree: Box<Node>,
     tree_view: TreeView,
 }
 
@@ -58,7 +60,7 @@ fn egui(mut ctx: EguiContexts, mut state: ResMut<EditorState>) {
     egui::SidePanel::left("left panel").show(ctx.ctx_mut(), |ui| {
         let EditorState { tree, tree_view } = &mut *state;
 
-        tree_view.show(ui, tree);
+        tree_view.show(ui, tree.as_dyn_mut());
         ui.label("After tree view");
 
         ui.allocate_space(ui.available_size_before_wrap());
@@ -70,9 +72,17 @@ enum Node {
     File(File),
 }
 
-impl TreeNode for Node {
-    type NodeType = Node;
+// impl AsDyn for Node {
+//     fn as_dyn(&self) -> &dyn TreeNode {
+//         self
+//     }
 
+//     fn as_dyn_mut(&mut self) -> &mut dyn TreeNode {
+//         self
+//     }
+// }
+
+impl TreeNode for Node {
     fn is_directory(&self) -> bool {
         match self {
             Node::Directory(_) => true,
@@ -87,16 +97,16 @@ impl TreeNode for Node {
         }
     }
 
-    fn get_children(&self) -> Vec<&Self::NodeType> {
+    fn get_children(&self) -> Vec<&dyn TreeNode> {
         match self {
-            Node::Directory(dir) => dir.nodes.iter().map(|n| n.as_node_type()).collect(),
+            Node::Directory(dir) => dir.nodes.iter().map(|n| n.as_dyn()).collect(),
             Node::File(_) => Vec::new(),
         }
     }
 
-    fn get_children_mut(&mut self) -> Vec<&mut Self::NodeType> {
+    fn get_children_mut(&mut self) -> Vec<&mut dyn TreeNode> {
         match self {
-            Node::Directory(d) => d.nodes.iter_mut().map(|n| n.as_node_type_mut()).collect(),
+            Node::Directory(d) => d.nodes.iter_mut().map(|n| n.as_dyn_mut()).collect(),
             Node::File(_) => Vec::new(),
         }
     }
@@ -108,11 +118,10 @@ impl TreeNode for Node {
         }
     }
 
-    fn remove_child(&mut self, id: &Uuid) -> Option<Self> {
+    fn remove(&mut self, id: &Uuid) -> Option<Box<dyn Any>> {
         match self {
             Node::Directory(d) => {
-                let pos = d.nodes.iter().position(|n| n.get_id() == id);
-                if let Some(pos) = pos {
+                if let Some(pos) = d.nodes.iter().position(|n| n.get_id() == id) {
                     Some(d.nodes.remove(pos))
                 } else {
                     None
@@ -122,7 +131,11 @@ impl TreeNode for Node {
         }
     }
 
-    fn insert(&mut self, drop_action: &DropAction, node: Self) {
+    fn insert(&mut self, drop_action: &DropAction, node: Box<dyn Any>) {
+        let Ok(node) = node.downcast::<Node>() else {
+            println!("Not a node");
+            return;
+        };
         let Node::Directory(dir) = self else {
             return;
         };
@@ -144,38 +157,30 @@ impl TreeNode for Node {
         }
     }
 
-    fn can_insert(&self, _node: &Self::NodeType) -> bool {
+    fn can_insert(&self, _node: &dyn Any) -> bool {
         match self {
             Node::Directory(_) => true,
             Node::File(_) => false,
         }
-    }
-
-    fn as_node_type(&self) -> &Self::NodeType {
-        self
-    }
-
-    fn as_node_type_mut(&mut self) -> &mut Self::NodeType {
-        self
     }
 }
 
 struct Directory {
     id: Uuid,
     name: String,
-    nodes: Vec<Node>,
+    nodes: Vec<Box<Node>>,
 }
 
 impl Directory {
-    fn new(name: &str, nodes: Vec<Node>) -> Directory {
+    fn new(name: &str, nodes: Vec<Box<Node>>) -> Directory {
         Self {
             id: Uuid::new_v4(),
             name: name.to_string(),
             nodes,
         }
     }
-    fn new_box(name: &str, nodes: Vec<Node>) -> Node {
-        Node::Directory(Self::new(name, nodes))
+    fn new_box(name: &str, nodes: Vec<Box<Node>>) -> Box<Node> {
+        Box::new(Node::Directory(Self::new(name, nodes)))
     }
 
     fn show(&self, ui: &mut Ui) {
@@ -195,8 +200,8 @@ impl File {
             name: name.to_string(),
         }
     }
-    fn new_box(name: &str) -> Node {
-        Node::File(Self::new(name))
+    fn new_box(name: &str) -> Box<Node> {
+        Box::new(Node::File(Self::new(name)))
     }
 
     fn show(&self, ui: &mut Ui) {

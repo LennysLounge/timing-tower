@@ -1,3 +1,5 @@
+use std::any::Any;
+
 use bevy_egui::egui::{
     self,
     collapsing_header::CollapsingState,
@@ -29,32 +31,54 @@ impl DropAction {
     }
 }
 
-pub trait TreeNode {
-    type NodeType: TreeNode<NodeType = Self::NodeType>;
+pub trait TreeNodeConverstions {
+    fn as_dyn(&self) -> &dyn TreeNode;
+    fn as_dyn_mut(&mut self) -> &mut dyn TreeNode;
+    fn into_any(self: Box<Self>) -> Box<dyn Any>;
+    fn as_any(&self) -> &dyn Any;
+}
 
+impl<T: TreeNode + Any> TreeNodeConverstions for T {
+    fn as_dyn(&self) -> &dyn TreeNode {
+        self
+    }
+
+    fn as_dyn_mut(&mut self) -> &mut dyn TreeNode {
+        self
+    }
+
+    fn into_any(self: Box<Self>) -> Box<dyn Any> {
+        self
+    }
+
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+}
+
+pub trait TreeNode: TreeNodeConverstions {
     fn is_directory(&self) -> bool;
     fn show(&self, ui: &mut Ui);
     fn get_id(&self) -> &Uuid;
-    fn get_children(&self) -> Vec<&Self::NodeType>;
-    fn get_children_mut(&mut self) -> Vec<&mut Self::NodeType>;
-    fn remove_child(&mut self, id: &Uuid) -> Option<Self::NodeType>;
-    fn can_insert(&self, node: &Self::NodeType) -> bool;
-    fn insert(&mut self, drop_action: &DropAction, node: Self::NodeType);
 
-    fn as_node_type(&self) -> &Self::NodeType;
-    fn as_node_type_mut(&mut self) -> &mut Self::NodeType;
+    fn get_children(&self) -> Vec<&dyn TreeNode>;
+    fn get_children_mut(&mut self) -> Vec<&mut dyn TreeNode>;
 
-    fn find(&self, id: &Uuid) -> Option<&Self::NodeType> {
+    fn remove(&mut self, id: &Uuid) -> Option<Box<dyn Any>>;
+    fn can_insert(&self, node: &dyn Any) -> bool;
+    fn insert(&mut self, drop_action: &DropAction, node: Box<dyn Any>);
+
+    fn find(&self, id: &Uuid) -> Option<&dyn TreeNode> {
         if self.get_id() == id {
-            Some(self.as_node_type())
+            Some(self.as_dyn())
         } else {
             self.get_children().iter().find_map(|n| n.find(id))
         }
     }
 
-    fn find_mut(&mut self, id: &Uuid) -> Option<&mut Self::NodeType> {
+    fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn TreeNode> {
         if self.get_id() == id {
-            Some(self.as_node_type_mut())
+            Some(self.as_dyn_mut())
         } else {
             self.get_children_mut()
                 .into_iter()
@@ -62,31 +86,17 @@ pub trait TreeNode {
         }
     }
 
-    fn find_parent_mut(&mut self, child_id: &Uuid) -> Option<&mut Self::NodeType> {
+    fn find_parent_mut(&mut self, child_id: &Uuid) -> Option<&mut dyn TreeNode> {
         let has_child = self
             .get_children_mut()
             .into_iter()
             .any(|c| c.get_id() == child_id);
         if has_child {
-            Some(self.as_node_type_mut())
+            Some(self.as_dyn_mut())
         } else {
             self.get_children_mut()
                 .into_iter()
                 .find_map(|c| c.find_parent_mut(child_id))
-        }
-    }
-
-    fn remove(&mut self, id: &Uuid) -> Option<Self::NodeType> {
-        if let Some(parent) = self.find_parent_mut(id) {
-            parent.remove_child(id)
-        } else {
-            None
-        }
-    }
-
-    fn drop(&mut self, drop_action: &DropAction, node: Self::NodeType) {
-        if let Some(parent) = self.find_mut(drop_action.get_parent_node_id()) {
-            parent.insert(&drop_action, node);
         }
     }
 }
@@ -100,11 +110,7 @@ pub struct TreeView {
 }
 
 impl TreeView {
-    pub fn show<N: TreeNode<NodeType = N>>(
-        &mut self,
-        ui: &mut Ui,
-        root: &mut dyn TreeNode<NodeType = N>,
-    ) {
+    pub fn show(&mut self, ui: &mut Ui, root: &mut dyn TreeNode) {
         let mut context = TreeViewContext {
             was_dragged_last_frame: self.was_dragged_last_frame,
             bounds: ui.available_rect_before_wrap(),
@@ -148,19 +154,21 @@ impl TreeView {
         }
     }
 
-    fn handle_drop<N: TreeNode<NodeType = N>>(
+    fn handle_drop(
         &self,
         ui: &mut Ui,
-        root: &mut dyn TreeNode<NodeType = N>,
+        root: &mut dyn TreeNode,
         drop_action: DropAction,
         drag_source: Uuid,
     ) {
         if self.can_drop(root, &drop_action, drag_source) {
             if ui.input(|i| i.pointer.any_released()) {
-                if let Some(node) = root.remove(&drag_source) {
-                    //println!("Removed: {:?}", node.get_id());
-                    root.drop(&drop_action, node);
-                    //println!("Place {:?}", drop_action);
+                if let Some(node) = root
+                    .find_parent_mut(&drag_source)
+                    .and_then(|parent| parent.remove(&drag_source))
+                {
+                    root.find_mut(drop_action.get_parent_node_id())
+                        .map(|parent| parent.insert(&drop_action, node));
                 }
             }
         } else {
@@ -168,9 +176,9 @@ impl TreeView {
         }
     }
 
-    fn can_drop<N: TreeNode<NodeType = N>>(
+    fn can_drop(
         &self,
-        root: &mut dyn TreeNode<NodeType = N>,
+        root: &mut dyn TreeNode,
         drop_action: &DropAction,
         drag_source: Uuid,
     ) -> bool {
@@ -186,12 +194,12 @@ impl TreeView {
             return false;
         };
 
-        drop_node.can_insert(drag_node)
+        drop_node.can_insert(drag_node.as_any())
     }
 }
 
-struct TreeViewContext<'a, N> {
-    node: &'a dyn TreeNode<NodeType = N>,
+struct TreeViewContext<'a> {
+    node: &'a dyn TreeNode,
     parent: Option<Uuid>,
     bounds: Rect,
     line_count: i32,
@@ -216,7 +224,7 @@ enum DropTargetPos {
     On,
 }
 
-impl<'a, N: TreeNode<NodeType = N>> TreeViewContext<'a, N> {
+impl<'a> TreeViewContext<'a> {
     fn show_node(&mut self, ui: &mut Ui) {
         let mut child_ui = ui.child_ui_with_id_source(
             ui.available_rect_before_wrap(),

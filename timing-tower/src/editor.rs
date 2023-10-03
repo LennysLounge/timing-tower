@@ -20,21 +20,27 @@ use crate::{style::StyleDefinition, variable_repo::VariableRepo, MainCamera};
 pub struct EditorPlugin;
 impl Plugin for EditorPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.insert_resource(OccupiedSpace(0.0))
-            .add_systems(Startup, setup)
-            .add_systems(
-                Update,
-                (
-                    run_egui_main.run_if(resource_exists::<EditorState>()),
-                    update_camera,
-                )
-                    .chain(),
-            );
+        app.insert_resource(OccupiedSpace {
+            top: 0.0,
+            left: 0.0,
+        })
+        .add_systems(Startup, setup)
+        .add_systems(
+            Update,
+            (
+                run_egui_main.run_if(resource_exists::<EditorState>()),
+                update_camera,
+            )
+                .chain(),
+        );
     }
 }
 
 #[derive(Resource)]
-struct OccupiedSpace(f32);
+struct OccupiedSpace {
+    top: f32,
+    left: f32,
+}
 
 #[derive(Resource)]
 pub struct EditorState {
@@ -73,26 +79,25 @@ fn run_egui_main(
     mut style: ResMut<StyleDefinition>,
     mut variable_repo: ResMut<VariableRepo>,
 ) {
-    occupied_space.0 = egui::SidePanel::left("Editor panel")
+    occupied_space.top = egui::TopBottomPanel::top("Top panel")
         .show(ctx.ctx_mut(), |ui| {
-            if ui.button("Save").clicked() {
-                save_style(&style);
-            }
-
-            egui::Frame::group(ui.style()).show(ui, |ui| {
-                egui::ScrollArea::vertical().show(ui, |ui| {
-                    state.tree.show(ui, style.as_dyn_mut());
+            egui::menu::bar(ui, |ui| {
+                ui.menu_button("File", |ui| {
+                    if ui.button("Save").clicked() {
+                        save_style(&style);
+                        ui.close_menu();
+                    }
                 });
-                ui.allocate_rect(
-                    Rect::from_min_size(
-                        ui.cursor().min,
-                        egui::Vec2 {
-                            x: ui.available_width(),
-                            y: 0.0,
-                        },
-                    ),
-                    egui::Sense::hover(),
-                );
+            });
+        })
+        .response
+        .rect
+        .height();
+
+    occupied_space.left = egui::SidePanel::left("Editor panel")
+        .show(ctx.ctx_mut(), |ui| {
+            egui::ScrollArea::vertical().show(ui, |ui| {
+                state.tree.show(ui, style.as_dyn_mut());
             });
 
             ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());
@@ -128,7 +133,8 @@ fn update_camera(
         physical_size: UVec2::new(window.width() as u32, window.height() as u32),
         depth: 0.0..1.0,
     });
-    viewport.physical_size.x = (window.width() - occupied_space.0) as u32;
-    viewport.physical_size.y = window.height() as u32;
-    viewport.physical_position.x = occupied_space.0 as u32;
+    viewport.physical_size.x = (window.width() - occupied_space.left) as u32;
+    viewport.physical_size.y = (window.height() - occupied_space.top) as u32;
+    viewport.physical_position.x = occupied_space.left as u32;
+    viewport.physical_position.y = occupied_space.top as u32;
 }

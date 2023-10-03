@@ -184,7 +184,8 @@ impl Directory {
     }
 
     fn show(&self, ui: &mut Ui) {
-        ui.label(&self.name);
+        //ui.label(&self.name);
+        let _ = ui.button(&self.name);
     }
 }
 

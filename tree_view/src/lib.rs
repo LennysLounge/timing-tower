@@ -4,8 +4,8 @@ use bevy_egui::egui::{
     self,
     collapsing_header::CollapsingState,
     epaint::{self, RectShape},
-    pos2, vec2, Color32, Id, InnerResponse, LayerId, NumExt, Order, Rect, Sense, Shape, Stroke, Ui,
-    Vec2,
+    pos2, vec2, Color32, Id, InnerResponse, LayerId, NumExt, Order, PointerButton, Rect, Sense,
+    Shape, Stroke, Ui, Vec2,
 };
 use uuid::Uuid;
 
@@ -113,8 +113,6 @@ pub struct TreeView {
     pub selected: Option<Uuid>,
     pub was_dragged_last_frame: Option<Uuid>,
 }
-
-trait Other {}
 
 impl TreeView {
     pub fn show(&mut self, ui: &mut Ui, root: &mut dyn TreeNode) {
@@ -250,24 +248,24 @@ impl<'a> TreeViewContext<'a> {
         let is_selected = self.selected.is_some_and(|id| &id == self.node.get_id());
 
         let node_result = if self.node.is_directory() {
-            let result = self.dir_drop_target(ui, |me, ui| {
+            self.dir_drop_target(ui, |me, ui| {
                 let result = me.drag_source(ui, |me, ui| me.show_dir_header(ui));
                 me.show_dir_body(ui, &result.inner);
-                (result.rect, result)
-            });
-            ShowNodeResult {
-                rect: result.rect,
-                clicked: result.clicked,
-                dragged: result.dragged,
-                inner: (),
-            }
+                (
+                    result.rect,
+                    ShowNodeResult {
+                        rect: result.rect,
+                        clicked: result.clicked,
+                        dragged: result.dragged,
+                        inner: (),
+                    },
+                )
+            })
         } else {
-            let result = self.leaf_drop_target(ui, |me, ui| {
+            self.leaf_drop_target(ui, |me, ui| {
                 let result = me.drag_source(ui, |me, ui| me.show_leaf(ui));
                 (result.rect, result)
-            });
-
-            result
+            })
         };
 
         if node_result.clicked || node_result.dragged {
@@ -560,13 +558,16 @@ impl<'a> TreeViewContext<'a> {
             state.toggle(ui);
         }
 
-        ShowNodeResult {
+        let result = ShowNodeResult {
             rect: Rect::from_min_max(left.rect.min, right.rect.max)
                 .expand2(vec2(0.0, ui.spacing().item_spacing.y / 2.0)),
             clicked: right.clicked() || left.clicked(),
-            dragged: right.dragged() || left.dragged(),
+            dragged: right.dragged_by(PointerButton::Primary)
+                || left.dragged_by(PointerButton::Primary),
             inner: state,
-        }
+        };
+
+        result
     }
     fn show_dir_body(&mut self, ui: &mut Ui, state: &SplitCollapsingState<()>) {
         state.show_body(ui, |ui| {
@@ -608,12 +609,13 @@ impl<'a> TreeViewContext<'a> {
 
         let full_width_res =
             ui.interact(full_width, res.response.id.with(1), Sense::click_and_drag());
-        ShowNodeResult {
+        let result = ShowNodeResult {
             rect: full_width,
             clicked: full_width_res.clicked(),
-            dragged: full_width_res.dragged(),
+            dragged: full_width_res.dragged_by(PointerButton::Primary),
             inner: (),
-        }
+        };
+        result
     }
 
     fn drag_overlay_background<T>(

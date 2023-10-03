@@ -9,7 +9,7 @@ use bevy::{
     window::{PrimaryWindow, Window},
 };
 use bevy_egui::{
-    egui::{self, Rect},
+    egui::{self},
     EguiContexts,
 };
 use tracing::error;

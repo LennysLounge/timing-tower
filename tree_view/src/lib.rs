@@ -246,10 +246,12 @@ impl<'a> TreeViewContext<'a> {
             self.selected = Some(*self.node.get_id());
         }
 
+        let rect = node_result.response.rect;
+
         ui.painter().set(
             where_to_put_background,
             epaint::RectShape {
-                rect: node_result.response.rect,
+                rect: rect,
                 rounding: ui.visuals().widgets.active.rounding,
                 fill: if is_selected {
                     ui.style().visuals.selection.bg_fill
@@ -523,7 +525,7 @@ fn row<T>(ui: &mut Ui, bounds: &Rect, add_content: impl Fn(&mut Ui) -> T) -> Inn
         .expand2(vec2(0.0, ui.spacing().item_spacing.y / 2.0));
     ui.data_mut(|d| d.insert_persisted(interact_id, background_area));
 
-    InnerResponse::new(res.inner, interact_res.with_new_rect(background_area))
+    InnerResponse::new(res.inner, interact_res)
 }
 
 /// Draws a background for a drag overlay.

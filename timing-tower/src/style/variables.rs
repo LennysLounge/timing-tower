@@ -1,6 +1,6 @@
 use bevy_egui::egui::ComboBox;
 use serde::{Deserialize, Serialize};
-use tree_view::tree_view_2::{TreeUi, TreeViewBuilder};
+use tree_view::{TreeUi, TreeViewBuilder};
 use uuid::Uuid;
 
 use crate::variable_repo::{VariableDefinition, VariableId};

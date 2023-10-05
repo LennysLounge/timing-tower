@@ -13,7 +13,7 @@ use bevy_egui::{
     EguiContexts,
 };
 use tracing::error;
-use tree_view::tree_view_2::TreeViewBuilder;
+use tree_view::TreeViewBuilder;
 use uuid::Uuid;
 
 use crate::{

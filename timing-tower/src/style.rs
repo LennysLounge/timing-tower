@@ -1,7 +1,7 @@
 use bevy::prelude::Resource;
 use bevy_egui::egui::Ui;
 use serde::{Deserialize, Serialize};
-use tree_view::tree_view_2::TreeUi;
+use tree_view::TreeUi;
 use uuid::Uuid;
 
 use crate::variable_repo::VariableRepo;

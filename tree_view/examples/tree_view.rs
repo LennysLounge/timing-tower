@@ -6,7 +6,7 @@ use bevy_egui::{
     egui::{self},
     EguiContexts, EguiPlugin,
 };
-use tree_view::tree_view_2::{DropPosition, TreeUi, TreeViewBuilder};
+use tree_view::{DropPosition, TreeUi, TreeViewBuilder};
 use uuid::Uuid;
 
 fn main() {

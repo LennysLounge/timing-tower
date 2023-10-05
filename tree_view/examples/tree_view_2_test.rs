@@ -1,5 +1,3 @@
-use std::any::Any;
-
 use bevy::{
     prelude::{App, Commands, ResMut, Resource, Startup, Update},
     DefaultPlugins,
@@ -8,7 +6,7 @@ use bevy_egui::{
     egui::{self},
     EguiContexts, EguiPlugin,
 };
-use tree_view::tree_view_2::{self, DropAction, DropPosition, TreeUi, TreeView};
+use tree_view::tree_view_2::{DropPosition, TreeUi, TreeView};
 use uuid::Uuid;
 
 fn main() {
@@ -57,16 +55,11 @@ fn egui(mut ctx: EguiContexts, mut state: ResMut<EditorState>) {
             state.tree.show_tree(tree_ui);
         });
 
-        if let Some(DropAction { from, to }) = res.dropped {
-            if let Some(node) = state
-                .tree
-                .find_mut(&from.parent_id)
-                .and_then(|node| node.remove(&from.node_id))
-            {
-                state
-                    .tree
-                    .find_mut(to.get_parent_node_id())
-                    .map(|parent| parent.insert(node, to));
+        if let Some(drop_action) = res.dropped {
+            let dragged = state.tree.remove(&drop_action.dragged_node);
+            let target = state.tree.find_mut(&drop_action.target_node);
+            if let (Some(dragged), Some(target)) = (dragged, target) {
+                target.insert(dragged, drop_action.position);
             }
         }
 
@@ -82,7 +75,7 @@ fn egui(mut ctx: EguiContexts, mut state: ResMut<EditorState>) {
     });
 }
 
-trait TreeNode: Any {
+trait TreeNode {
     fn name(&self) -> &String;
     fn find(&self, id: &Uuid) -> Option<&dyn TreeNode>;
     fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn TreeNode>;
@@ -164,7 +157,7 @@ impl Directory {
     }
 
     fn show(&self, tree_ui: &mut TreeUi) {
-        let (header, _) = tree_view_2::Directory::new(self.id).show(
+        let (header, _) = TreeView::dir(self.id).show(
             tree_ui,
             |ui| {
                 ui.label(&self.name);
@@ -211,28 +204,32 @@ impl TreeNode for Directory {
         if let Some(pos) = self.nodes.iter().position(|n| n.id() == id) {
             Some(self.nodes.remove(pos))
         } else {
-            None
+            self.nodes.iter_mut().find_map(|n| n.remove(id))
         }
     }
 
     fn insert(&mut self, node: Node, position: DropPosition) {
-        let pos = match position {
-            DropPosition::Last { .. } => self.nodes.len(),
-            DropPosition::First { .. } => 0,
-            DropPosition::After { after, .. } => {
-                self.nodes
+        match position {
+            DropPosition::First => self.nodes.insert(0, node),
+            DropPosition::Last => self.nodes.push(node),
+            DropPosition::After(id) => {
+                let pos = self
+                    .nodes
                     .iter()
-                    .position(|n| n.id() == &after)
-                    .unwrap_or(self.nodes.len())
-                    + 1
+                    .position(|n| n.id() == &id)
+                    .map(|pos| pos + 1)
+                    .unwrap_or(self.nodes.len());
+                self.nodes.insert(pos, node);
             }
-            DropPosition::Before { before, .. } => self
-                .nodes
-                .iter()
-                .position(|n| n.id() == &before)
-                .unwrap_or(self.nodes.len()),
-        };
-        self.nodes.insert(pos, node);
+            DropPosition::Before(id) => {
+                let pos = self
+                    .nodes
+                    .iter()
+                    .position(|n| n.id() == &id)
+                    .unwrap_or(self.nodes.len());
+                self.nodes.insert(pos, node);
+            }
+        }
     }
 }
 
@@ -249,7 +246,7 @@ impl File {
         })
     }
     fn show(&self, tree_ui: &mut TreeUi) {
-        let res = tree_view_2::Leaf::new(self.id).show(tree_ui, |ui| {
+        let res = TreeView::leaf(self.id).show(tree_ui, |ui| {
             ui.label(&self.name);
         });
 

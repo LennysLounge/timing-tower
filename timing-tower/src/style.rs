@@ -17,6 +17,7 @@ pub trait TreeNode {
     fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn TreeNode>;
     #[allow(unused)]
     fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {}
+    fn tree_view(&mut self, ui: &mut TreeUi);
 }
 
 #[derive(Serialize, Deserialize, Clone, Resource)]
@@ -36,31 +37,8 @@ impl TreeNode for StyleDefinition {
                 .or_else(|| self.timing_tower.find_mut(id))
         }
     }
-}
-
-impl StyleDefinition {
-    pub fn tree_view(&self, ui: &mut TreeUi) {
+    fn tree_view(&mut self, ui: &mut TreeUi) {
         self.vars.tree_view(ui);
         self.timing_tower.tree_view(ui);
     }
-
-    // pub fn property_editor(&mut self, ui: &mut Ui, variable_repo: &VariableRepo, id: &Uuid) {
-    //     self.find_mut(id).map(|n| n.as_any_mut()).map(|node| {
-    //         if let Some(n) = node.downcast_mut::<VariableBehavior>() {
-    //             n.property_editor(ui, &variable_repo);
-    //         }
-    //         if let Some(n) = node.downcast_mut::<TimingTower>() {
-    //             n.property_editor(ui, &variable_repo);
-    //         }
-    //         if let Some(n) = node.downcast_mut::<TimingTowerTable>() {
-    //             n.property_editor(ui, &variable_repo);
-    //         }
-    //         if let Some(n) = node.downcast_mut::<TimingTowerRow>() {
-    //             n.property_editor(ui, &variable_repo);
-    //         }
-    //         if let Some(n) = node.downcast_mut::<TimingTowerColumn>() {
-    //             n.property_editor(ui, &variable_repo);
-    //         }
-    //     });
-    // }
 }

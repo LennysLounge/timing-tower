@@ -26,10 +26,8 @@ impl TreeNode for TimingTower {
     fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
         self.cell.property_editor(ui, vars);
     }
-}
 
-impl TimingTower {
-    pub fn tree_view(&self, ui: &mut TreeUi) {
+    fn tree_view(&mut self, ui: &mut TreeUi) {
         TreeViewBuilder::dir(self.id).show(
             ui,
             |ui| {
@@ -71,10 +69,8 @@ impl TreeNode for TimingTowerTable {
         ui.separator();
         self.cell.property_editor(ui, vars);
     }
-}
 
-impl TimingTowerTable {
-    pub fn tree_view(&self, ui: &mut TreeUi) {
+    fn tree_view(&mut self, ui: &mut TreeUi) {
         TreeViewBuilder::dir(self.id).show(
             ui,
             |ui| {
@@ -105,17 +101,15 @@ impl TreeNode for TimingTowerRow {
     fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
         self.cell.property_editor(ui, vars);
     }
-}
 
-impl TimingTowerRow {
-    pub fn tree_view(&self, ui: &mut TreeUi) {
+    fn tree_view(&mut self, ui: &mut TreeUi) {
         TreeViewBuilder::dir(self.id).show(
             ui,
             |ui| {
                 ui.label("Timing Tower");
             },
             |ui| {
-                for c in self.columns.iter() {
+                for c in self.columns.iter_mut() {
                     c.tree_view(ui);
                 }
             },
@@ -141,10 +135,8 @@ impl TreeNode for TimingTowerColumn {
         ui.separator();
         self.cell.property_editor(ui, vars);
     }
-}
 
-impl TimingTowerColumn {
-    pub fn tree_view(&self, ui: &mut TreeUi) {
+    fn tree_view(&mut self, ui: &mut TreeUi) {
         TreeViewBuilder::leaf(self.id).show(ui, |ui| {
             ui.label(&self.name);
         });

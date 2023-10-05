@@ -26,17 +26,14 @@ impl TreeNode for Variables {
             self.vars.iter_mut().find_map(|v| v.find_mut(id))
         }
     }
-}
-
-impl Variables {
-    pub fn tree_view(&self, ui: &mut TreeUi) {
+    fn tree_view(&mut self, ui: &mut TreeUi) {
         TreeViewBuilder::dir(self.id).show(
             ui,
             |ui| {
                 ui.label("Variables");
             },
             |ui| {
-                for v in self.vars.iter() {
+                for v in self.vars.iter_mut() {
                     v.tree_view(ui);
                 }
             },
@@ -111,14 +108,14 @@ impl TreeNode for VariableBehavior {
             VariableBehavior::Condition(o) => o.property_editor(ui, vars),
         }
     }
-}
-impl VariableBehavior {
-    pub fn tree_view(&self, ui: &mut TreeUi) {
+
+    fn tree_view(&mut self, ui: &mut TreeUi) {
         TreeViewBuilder::leaf(self.get_variable_id().id).show(ui, |ui| {
             ui.label(&self.get_variable_id().name);
         });
     }
-
+}
+impl VariableBehavior {
     fn get_id_mut(&mut self) -> &mut VariableId {
         match self {
             VariableBehavior::FixedValue(o) => o.get_id_mut(),

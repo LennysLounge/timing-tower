@@ -5,7 +5,7 @@ use bevy_egui::egui::{
     epaint::{self},
     layers::ShapeIdx,
     pos2, vec2, Color32, CursorIcon, Id, InnerResponse, LayerId, NumExt, Order, PointerButton,
-    Pos2, Rect, Response, Rounding, Sense, Shape, Stroke, Ui, Vec2,
+    Pos2, Rect, Response, Sense, Shape, Stroke, Ui, Vec2,
 };
 use uuid::Uuid;
 
@@ -14,6 +14,7 @@ use crate::split_collapsing_state::SplitCollapsingState;
 pub struct TreeUi<'a> {
     pub ui: &'a mut Ui,
     pub bounds: RangeInclusive<f32>,
+    tree_config: &'a TreeViewBuilder,
     context: &'a mut TreeContext,
     parent_id: Option<Uuid>,
 }
@@ -42,17 +43,26 @@ pub struct TreeViewResponse {
 
 struct TreeContext {
     line_count: i32,
-    something_dragged_last_frame: bool,
+    dragged_last_frame: Option<Uuid>,
     selected: Option<Uuid>,
     dragged: Option<Uuid>,
     hovered: Option<(Uuid, DropPosition)>,
     drop_disallowed: bool,
 }
 
-pub struct TreeView {}
-impl TreeView {
+pub struct TreeViewBuilder {
+    highlight_odd_rows: bool,
+}
+impl TreeViewBuilder {
     pub fn new() -> Self {
-        Self {}
+        Self {
+            highlight_odd_rows: true,
+        }
+    }
+
+    pub fn highlight_odd_row(mut self, state: bool) -> Self {
+        self.highlight_odd_rows = state;
+        self
     }
 
     pub fn show(self, ui: &mut Ui, add_content: impl FnOnce(&mut TreeUi)) -> TreeViewResponse {
@@ -64,13 +74,13 @@ impl TreeView {
             "Tree view",
         );
         let last_time = ui
-            .data_mut(|d| d.get_persisted::<(Option<Uuid>, bool)>(tree_id))
-            .unwrap_or((None, false));
+            .data_mut(|d| d.get_persisted::<(Option<Uuid>, Option<Uuid>)>(tree_id))
+            .unwrap_or((None, None));
 
         let mut context = TreeContext {
             line_count: 0,
             selected: last_time.0,
-            something_dragged_last_frame: last_time.1,
+            dragged_last_frame: last_time.1,
             dragged: None,
             hovered: None,
             drop_disallowed: false,
@@ -90,6 +100,7 @@ impl TreeView {
                 ui,
                 context: &mut context,
                 parent_id: None,
+                tree_config: &self,
             };
             add_content(&mut tree_ui);
             ui.allocate_at_least(
@@ -98,17 +109,11 @@ impl TreeView {
             );
         });
 
-        ui.painter().rect_stroke(
-            res.response.rect,
-            Rounding::none(),
-            Stroke::new(1.0, Color32::BLACK),
-        );
-
         // Store state
         ui.data_mut(|d| {
-            d.insert_persisted::<(Option<Uuid>, bool)>(
+            d.insert_persisted::<(Option<Uuid>, Option<Uuid>)>(
                 tree_id,
-                (context.selected, context.dragged.is_some()),
+                (context.selected, context.dragged),
             )
         });
 
@@ -139,18 +144,22 @@ impl TreeView {
     pub fn dir(id: Uuid) -> Node<DirectoryMarker> {
         Node {
             id,
-            drop_on_enabled: true,
+            drop_target: true,
             is_open: false,
             phantom: PhantomData,
+            draggable: true,
+            selectable: true,
         }
     }
 
     pub fn leaf(id: Uuid) -> Node<LeafMarker> {
         Node {
             id,
-            drop_on_enabled: false,
+            drop_target: false,
             is_open: false,
             phantom: PhantomData,
+            draggable: true,
+            selectable: true,
         }
     }
 }
@@ -160,9 +169,11 @@ pub struct LeafMarker;
 
 pub struct Node<T> {
     id: Uuid,
-    drop_on_enabled: bool,
+    drop_target: bool,
     is_open: bool,
     phantom: PhantomData<T>,
+    draggable: bool,
+    selectable: bool,
 }
 
 impl Node<DirectoryMarker> {
@@ -184,6 +195,13 @@ impl Node<DirectoryMarker> {
             SplitCollapsingState::show_header(ui, collapsing_id, |ui| add_header(ui))
         });
 
+        if header.double_clicked_by(PointerButton::Primary) {
+            if let Some(mut state) = CollapsingState::load(tree_ui.ui.ctx(), collapsing_id) {
+                state.toggle(tree_ui.ui);
+                state.store(tree_ui.ui.ctx());
+            }
+        }
+
         let hovered_before = tree_ui.context.hovered.clone();
         let body = state.show_body(tree_ui.ui, |ui| {
             let mut tree_ui = TreeUi {
@@ -191,6 +209,7 @@ impl Node<DirectoryMarker> {
                 bounds: tree_ui.bounds.clone(),
                 context: tree_ui.context,
                 parent_id: Some(self.id),
+                tree_config: tree_ui.tree_config,
             };
             add_body(&mut tree_ui)
         });
@@ -225,6 +244,19 @@ impl Node<LeafMarker> {
 }
 
 impl<Marker> Node<Marker> {
+    pub fn draggable(mut self, state: bool) -> Self {
+        self.draggable = state;
+        self
+    }
+    pub fn drop_target(mut self, state: bool) -> Self {
+        self.drop_target = state;
+        self
+    }
+    pub fn selectable(mut self, state: bool) -> Self {
+        self.selectable = state;
+        self
+    }
+
     fn row<T>(
         &self,
         tree_ui: &mut TreeUi,
@@ -241,13 +273,18 @@ impl<Marker> Node<Marker> {
         let hover_background = tree_ui.ui.painter().add(Shape::Noop);
 
         let (interaction, row) = self.row_interaction(tree_ui, |ui| add_content(ui));
-        if interaction.clicked() || interaction.dragged() {
-            tree_ui.context.selected = Some(self.id);
+
+        if self.selectable {
+            if interaction.clicked() || interaction.dragged() {
+                tree_ui.context.selected = Some(self.id);
+            }
         }
 
-        self.draw_drag_overlay(tree_ui, &interaction, &row, |ui| {
-            add_content(ui);
-        });
+        if self.draggable {
+            self.draw_drag_overlay(tree_ui, &interaction, &row, |ui| {
+                add_content(ui);
+            });
+        }
 
         self.drop_targets(tree_ui, &row, hover_background);
 
@@ -258,7 +295,7 @@ impl<Marker> Node<Marker> {
                 rounding: tree_ui.ui.visuals().widgets.active.rounding,
                 fill: if is_selected {
                     tree_ui.ui.style().visuals.selection.bg_fill
-                } else if is_even {
+                } else if is_even && tree_ui.tree_config.highlight_odd_rows {
                     Color32::from_rgba_premultiplied(10, 10, 10, 0)
                 } else {
                     Color32::TRANSPARENT
@@ -319,8 +356,9 @@ impl<Marker> Node<Marker> {
             ui,
             bounds,
             context,
+            tree_config,
             ..
-        } = tree_ui;
+        }: &mut TreeUi<'_> = tree_ui;
 
         let drag_source_id = ui.make_persistent_id("Drag source");
 
@@ -352,6 +390,7 @@ impl<Marker> Node<Marker> {
                         bounds: bounds.clone(),
                         context: context,
                         parent_id: None,
+                        tree_config,
                     };
                     let res = draw_content_at_full_size(&mut tree_ui, add_content);
 
@@ -395,13 +434,13 @@ impl<Marker> Node<Marker> {
         } = tree_ui;
 
         // If there is nothing dragged we dont have to worry about dropping anything either.
-        if !context.something_dragged_last_frame {
+        if context.dragged_last_frame.is_none() {
             return;
         }
 
-        // We dont want to allow dropping on the selected item.
+        // We dont want to allow dropping on the thing that is beind dragged.
         if context
-            .selected
+            .dragged_last_frame
             .is_some_and(|selected_id| self.id == selected_id)
         {
             return;
@@ -432,11 +471,11 @@ impl<Marker> Node<Marker> {
         let drop_position = match y {
             y if y >= h0 && y < h1 => parent_id.map(|id| (id, DropPosition::Before(self.id))),
             y if y >= h1 && y < h2 => self
-                .drop_on_enabled
+                .drop_target
                 .then_some((self.id, DropPosition::Last))
                 .or_else(|| parent_id.map(|id| (id, DropPosition::Before(self.id)))),
             y if y >= h2 && y < h3 => self
-                .drop_on_enabled
+                .drop_target
                 .then_some((self.id, DropPosition::Last))
                 .or_else(|| parent_id.map(|id| (id, DropPosition::After(self.id)))),
             y if y >= h3 && y < h4 => parent_id.map(|id| (id, DropPosition::After(self.id))),
@@ -465,11 +504,11 @@ impl<Marker> Node<Marker> {
             let drop_marker = match y {
                 y if y >= h0 && y < h1 => line_above,
                 y if y >= h1 && y < h2 => self
-                    .drop_on_enabled
+                    .drop_target
                     .then_some(line_background)
                     .unwrap_or(line_above),
                 y if y >= h2 && y < h3 => self
-                    .drop_on_enabled
+                    .drop_target
                     .then_some(line_background)
                     .unwrap_or(line_below),
                 y if y >= h3 && y < h4 => line_below,

@@ -6,7 +6,7 @@ use bevy_egui::{
     egui::{self},
     EguiContexts, EguiPlugin,
 };
-use tree_view::tree_view_2::{DropPosition, TreeUi, TreeView};
+use tree_view::tree_view_2::{DropPosition, TreeUi, TreeViewBuilder};
 use uuid::Uuid;
 
 fn main() {
@@ -51,11 +51,14 @@ fn egui(mut ctx: EguiContexts, mut state: ResMut<EditorState>) {
     egui::SidePanel::left("left panel").show(ctx.ctx_mut(), |ui| {
         let EditorState { tree: _ } = &mut *state;
 
-        let res = TreeView::new().show(ui, |tree_ui| {
-            state.tree.show_tree(tree_ui);
-        });
+        let res = TreeViewBuilder::new()
+            .highlight_odd_row(true)
+            .show(ui, |tree_ui| {
+                state.tree.show_tree(tree_ui);
+            });
 
         if let Some(drop_action) = res.dropped {
+            println!("{:?}", drop_action.position);
             let dragged = state.tree.remove(&drop_action.dragged_node);
             let target = state.tree.find_mut(&drop_action.target_node);
             if let (Some(dragged), Some(target)) = (dragged, target) {
@@ -145,6 +148,7 @@ struct Directory {
     id: Uuid,
     name: String,
     nodes: Vec<Node>,
+    is_root: bool,
 }
 
 impl Directory {
@@ -153,27 +157,45 @@ impl Directory {
             id: Uuid::new_v4(),
             name: name.to_string(),
             nodes,
+            is_root: false,
+        })
+    }
+    fn _new_root(name: &str, nodes: Vec<Node>) -> Node {
+        Node::Directory(Self {
+            id: Uuid::new_v4(),
+            name: name.to_string(),
+            nodes,
+            is_root: true,
         })
     }
 
     fn show(&self, tree_ui: &mut TreeUi) {
-        let (header, _) = TreeView::dir(self.id).show(
-            tree_ui,
-            |ui| {
-                ui.label(&self.name);
-            },
-            |ui| {
-                for node in self.nodes.iter() {
-                    node.show_tree(ui);
-                }
-            },
-        );
-        if header.response.clicked() {
-            println!("{} was clicked", self.name);
+        if self.is_root {
+            for node in self.nodes.iter() {
+                node.show_tree(tree_ui);
+            }
+        } else {
+            let (header, _) = TreeViewBuilder::dir(self.id)
+                .draggable(true)
+                .drop_target(true)
+                .show(
+                    tree_ui,
+                    |ui| {
+                        ui.label(&self.name);
+                    },
+                    |ui| {
+                        for node in self.nodes.iter() {
+                            node.show_tree(ui);
+                        }
+                    },
+                );
+            if header.response.clicked() {
+                println!("{} was clicked", self.name);
+            }
+            header.response.context_menu(|ui| {
+                ui.label(format!("context menu for {}", self.name));
+            });
         }
-        header.response.context_menu(|ui| {
-            ui.label(format!("context menu for {}", self.name));
-        });
     }
     fn id(&self) -> &Uuid {
         &self.id
@@ -246,9 +268,13 @@ impl File {
         })
     }
     fn show(&self, tree_ui: &mut TreeUi) {
-        let res = TreeView::leaf(self.id).show(tree_ui, |ui| {
-            ui.label(&self.name);
-        });
+        let res = TreeViewBuilder::leaf(self.id)
+            .drop_target(false)
+            .draggable(true)
+            .selectable(true)
+            .show(tree_ui, |ui| {
+                ui.label(&self.name);
+            });
 
         if res.response.clicked() {
             println!("{} was clicked", self.name);

@@ -42,11 +42,11 @@ impl<T> SplitCollapsingState<T> {
         }
     }
 
-    pub fn show_body(
+    pub fn show_body<T2>(
         &self,
         ui: &mut Ui,
-        add_body: impl FnMut(&mut Ui) -> T,
-    ) -> Option<InnerResponse<T>> {
+        add_body: impl FnOnce(&mut Ui) -> T2,
+    ) -> Option<InnerResponse<T2>> {
         let mut state = CollapsingState::load_with_default_open(ui.ctx(), self.id, true);
         state.show_body_indented(&self.header_response.response, ui, add_body)
     }

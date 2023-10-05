@@ -12,6 +12,7 @@ use uuid::Uuid;
 use crate::split_collapsing_state::SplitCollapsingState;
 
 pub mod split_collapsing_state;
+pub mod tree_view_2;
 
 #[derive(Debug, Clone)]
 pub enum DropAction {

@@ -17,7 +17,7 @@ use tree_view::TreeViewBuilder;
 use uuid::Uuid;
 
 use crate::{
-    style::{StyleDefinition, StyleTreeNode},
+    style::{StyleDefinition, StyleTreeNode, StyleTreeUi},
     variable_repo::VariableRepo,
     MainCamera,
 };
@@ -135,8 +135,6 @@ fn run_egui_main(
                     if let (Some(node), Some(target)) = (node, target) {
                         target.insert(node, dropped.position);
                     }
-                } else {
-                    println!("illegal drop");
                 }
             }
 

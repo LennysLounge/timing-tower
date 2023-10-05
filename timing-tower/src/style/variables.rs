@@ -7,7 +7,7 @@ use crate::variable_repo::{VariableDefinition, VariableId};
 
 use self::{condition::Condition, fixed_value::FixedValue};
 
-use super::StyleTreeNode;
+use super::{StyleTreeNode, StyleTreeUi};
 
 pub mod condition;
 pub mod fixed_value;
@@ -16,6 +16,22 @@ pub mod fixed_value;
 pub struct Variables {
     pub id: Uuid,
     pub vars: Vec<VariableBehavior>,
+}
+
+impl StyleTreeUi for Variables {
+    fn tree_view(&mut self, ui: &mut TreeUi) {
+        TreeViewBuilder::dir(self.id).show(
+            ui,
+            |ui| {
+                ui.label("Variables");
+            },
+            |ui| {
+                for v in self.vars.iter_mut() {
+                    v.tree_view(ui);
+                }
+            },
+        );
+    }
 }
 
 impl StyleTreeNode for Variables {
@@ -32,20 +48,6 @@ impl StyleTreeNode for Variables {
             .iter_mut()
             .map(|v| v as &mut dyn StyleTreeNode)
             .collect()
-    }
-
-    fn tree_view(&mut self, ui: &mut TreeUi) {
-        TreeViewBuilder::dir(self.id).show(
-            ui,
-            |ui| {
-                ui.label("Variables");
-            },
-            |ui| {
-                for v in self.vars.iter_mut() {
-                    v.tree_view(ui);
-                }
-            },
-        );
     }
 }
 
@@ -71,19 +73,7 @@ impl VariableDefinition for VariableBehavior {
     }
 }
 
-impl StyleTreeNode for VariableBehavior {
-    fn id(&self) -> &Uuid {
-        &self.get_variable_id().id
-    }
-
-    fn chidren(&self) -> Vec<&dyn StyleTreeNode> {
-        Vec::new()
-    }
-
-    fn chidren_mut(&mut self) -> Vec<&mut dyn StyleTreeNode> {
-        Vec::new()
-    }
-
+impl StyleTreeUi for VariableBehavior {
     fn property_editor(
         &mut self,
         ui: &mut bevy_egui::egui::Ui,
@@ -129,6 +119,20 @@ impl StyleTreeNode for VariableBehavior {
         TreeViewBuilder::leaf(self.get_variable_id().id).show(ui, |ui| {
             ui.label(&self.get_variable_id().name);
         });
+    }
+}
+
+impl StyleTreeNode for VariableBehavior {
+    fn id(&self) -> &Uuid {
+        &self.get_variable_id().id
+    }
+
+    fn chidren(&self) -> Vec<&dyn StyleTreeNode> {
+        Vec::new()
+    }
+
+    fn chidren_mut(&mut self) -> Vec<&mut dyn StyleTreeNode> {
+        Vec::new()
     }
 }
 impl VariableBehavior {

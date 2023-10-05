@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 use crate::variable_repo::VariableRepo;
 
-use super::{cell::Cell, properties::Vec2Property, StyleTreeNode};
+use super::{cell::Cell, properties::Vec2Property, StyleTreeNode, StyleTreeUi};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TimingTower {
@@ -16,19 +16,7 @@ pub struct TimingTower {
     pub table: TimingTowerTable,
 }
 
-impl StyleTreeNode for TimingTower {
-    fn id(&self) -> &Uuid {
-        &self.id
-    }
-
-    fn chidren(&self) -> Vec<&dyn StyleTreeNode> {
-        vec![&self.table]
-    }
-
-    fn chidren_mut(&mut self) -> Vec<&mut dyn StyleTreeNode> {
-        vec![&mut self.table]
-    }
-
+impl StyleTreeUi for TimingTower {
     fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
         self.cell.property_editor(ui, vars);
     }
@@ -46,6 +34,20 @@ impl StyleTreeNode for TimingTower {
     }
 }
 
+impl StyleTreeNode for TimingTower {
+    fn id(&self) -> &Uuid {
+        &self.id
+    }
+
+    fn chidren(&self) -> Vec<&dyn StyleTreeNode> {
+        vec![&self.table]
+    }
+
+    fn chidren_mut(&mut self) -> Vec<&mut dyn StyleTreeNode> {
+        vec![&mut self.table]
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TimingTowerTable {
     pub id: Uuid,
@@ -54,19 +56,7 @@ pub struct TimingTowerTable {
     pub row: TimingTowerRow,
 }
 
-impl StyleTreeNode for TimingTowerTable {
-    fn id(&self) -> &Uuid {
-        &self.id
-    }
-
-    fn chidren(&self) -> Vec<&dyn StyleTreeNode> {
-        vec![&self.row]
-    }
-
-    fn chidren_mut(&mut self) -> Vec<&mut dyn StyleTreeNode> {
-        vec![&mut self.row]
-    }
-
+impl StyleTreeUi for TimingTowerTable {
     fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
         ui.label("Row offset:");
         ui.horizontal(|ui| {
@@ -94,19 +84,57 @@ impl StyleTreeNode for TimingTowerTable {
     }
 }
 
+impl StyleTreeNode for TimingTowerTable {
+    fn id(&self) -> &Uuid {
+        &self.id
+    }
+
+    fn chidren(&self) -> Vec<&dyn StyleTreeNode> {
+        vec![&self.row]
+    }
+
+    fn chidren_mut(&mut self) -> Vec<&mut dyn StyleTreeNode> {
+        vec![&mut self.row]
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TimingTowerRow {
     pub id: Uuid,
     pub cell: Cell,
     pub columns: Vec<TimingTowerColumn>,
 }
+
+impl StyleTreeUi for TimingTowerRow {
+    fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
+        self.cell.property_editor(ui, vars);
+    }
+
+    fn tree_view(&mut self, ui: &mut TreeUi) {
+        TreeViewBuilder::dir(self.id).show(
+            ui,
+            |ui| {
+                ui.label("Timing Tower");
+            },
+            |ui| {
+                for c in self.columns.iter_mut() {
+                    c.tree_view(ui);
+                }
+            },
+        );
+    }
+}
+
 impl StyleTreeNode for TimingTowerRow {
     fn id(&self) -> &Uuid {
         &self.id
     }
 
     fn chidren(&self) -> Vec<&dyn StyleTreeNode> {
-        self.columns.iter().map(|c| c as &dyn StyleTreeNode).collect()
+        self.columns
+            .iter()
+            .map(|c| c as &dyn StyleTreeNode)
+            .collect()
     }
 
     fn chidren_mut(&mut self) -> Vec<&mut dyn StyleTreeNode> {
@@ -153,24 +181,6 @@ impl StyleTreeNode for TimingTowerRow {
             }
         }
     }
-
-    fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
-        self.cell.property_editor(ui, vars);
-    }
-
-    fn tree_view(&mut self, ui: &mut TreeUi) {
-        TreeViewBuilder::dir(self.id).show(
-            ui,
-            |ui| {
-                ui.label("Timing Tower");
-            },
-            |ui| {
-                for c in self.columns.iter_mut() {
-                    c.tree_view(ui);
-                }
-            },
-        );
-    }
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -178,6 +188,21 @@ pub struct TimingTowerColumn {
     pub id: Uuid,
     pub cell: Cell,
     pub name: String,
+}
+
+impl StyleTreeUi for TimingTowerColumn {
+    fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
+        ui.label("Name:");
+        ui.text_edit_singleline(&mut self.name);
+        ui.separator();
+        self.cell.property_editor(ui, vars);
+    }
+
+    fn tree_view(&mut self, ui: &mut TreeUi) {
+        TreeViewBuilder::leaf(self.id).show(ui, |ui| {
+            ui.label(&self.name);
+        });
+    }
 }
 
 impl StyleTreeNode for TimingTowerColumn {
@@ -191,18 +216,5 @@ impl StyleTreeNode for TimingTowerColumn {
 
     fn chidren_mut(&mut self) -> Vec<&mut dyn StyleTreeNode> {
         Vec::new()
-    }
-
-    fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
-        ui.label("Name:");
-        ui.text_edit_singleline(&mut self.name);
-        ui.separator();
-        self.cell.property_editor(ui, vars);
-    }
-
-    fn tree_view(&mut self, ui: &mut TreeUi) {
-        TreeViewBuilder::leaf(self.id).show(ui, |ui| {
-            ui.label(&self.name);
-        });
     }
 }

@@ -15,6 +15,12 @@ pub mod properties;
 pub mod timing_tower;
 pub mod variables;
 
+pub trait StyleTreeUi {
+    #[allow(unused)]
+    fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {}
+    fn tree_view(&mut self, ui: &mut TreeUi);
+}
+
 pub trait StyleTreeNodeConversions: Any {
     fn as_any(&self) -> &dyn Any;
     fn as_dyn_mut(&mut self) -> &mut dyn StyleTreeNode;
@@ -29,7 +35,7 @@ impl<T: StyleTreeNode + Any> StyleTreeNodeConversions for T {
     }
 }
 
-pub trait StyleTreeNode: StyleTreeNodeConversions {
+pub trait StyleTreeNode: StyleTreeNodeConversions + StyleTreeUi {
     fn id(&self) -> &Uuid;
     fn chidren(&self) -> Vec<&dyn StyleTreeNode>;
     fn chidren_mut(&mut self) -> Vec<&mut dyn StyleTreeNode>;
@@ -45,10 +51,6 @@ pub trait StyleTreeNode: StyleTreeNodeConversions {
     #[allow(unused)]
     fn insert(&mut self, node: Box<dyn Any>, position: DropPosition) {}
 
-    #[allow(unused)]
-    fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {}
-    fn tree_view(&mut self, ui: &mut TreeUi);
-
     fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn StyleTreeNode> {
         self.chidren_mut().into_iter().find_map(|c| {
             if c.id() == id {
@@ -58,7 +60,6 @@ pub trait StyleTreeNode: StyleTreeNodeConversions {
             }
         })
     }
-
     fn find(&self, id: &Uuid) -> Option<&dyn StyleTreeNode> {
         self.chidren()
             .into_iter()
@@ -82,6 +83,13 @@ pub struct StyleDefinition {
     pub timing_tower: TimingTower,
 }
 
+impl StyleTreeUi for StyleDefinition {
+    fn tree_view(&mut self, ui: &mut TreeUi) {
+        self.vars.tree_view(ui);
+        self.timing_tower.tree_view(ui);
+    }
+}
+
 impl StyleTreeNode for StyleDefinition {
     fn id(&self) -> &Uuid {
         &self.id
@@ -93,10 +101,5 @@ impl StyleTreeNode for StyleDefinition {
 
     fn chidren_mut(&mut self) -> Vec<&mut dyn StyleTreeNode> {
         vec![&mut self.vars, &mut self.timing_tower]
-    }
-
-    fn tree_view(&mut self, ui: &mut TreeUi) {
-        self.vars.tree_view(ui);
-        self.timing_tower.tree_view(ui);
     }
 }

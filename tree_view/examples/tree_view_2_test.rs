@@ -1,3 +1,5 @@
+use std::any::Any;
+
 use bevy::{
     prelude::{App, Commands, ResMut, Resource, Startup, Update},
     DefaultPlugins,
@@ -6,7 +8,7 @@ use bevy_egui::{
     egui::{self},
     EguiContexts, EguiPlugin,
 };
-use tree_view::tree_view_2::{self, TreeUi, TreeView};
+use tree_view::tree_view_2::{self, DropAction, DropPosition, TreeUi, TreeView};
 use uuid::Uuid;
 
 fn main() {
@@ -55,8 +57,37 @@ fn egui(mut ctx: EguiContexts, mut state: ResMut<EditorState>) {
             state.tree.show_tree(tree_ui);
         });
 
+        if let Some(DropAction { from, to }) = res.dropped {
+            if let Some(node) = state
+                .tree
+                .find_mut(&from.parent_id)
+                .and_then(|node| node.remove(&from.node_id))
+            {
+                state
+                    .tree
+                    .find_mut(to.get_parent_node_id())
+                    .map(|parent| parent.insert(node, to));
+            }
+        }
+
+        ui.label("Selected:");
+        let name = res
+            .selected
+            .and_then(|selected_id| state.tree.find(&selected_id))
+            .map(|n| n.name().as_str())
+            .unwrap_or("----");
+        ui.label(name);
+
         ui.allocate_space(ui.available_size_before_wrap());
     });
+}
+
+trait TreeNode: Any {
+    fn name(&self) -> &String;
+    fn find(&self, id: &Uuid) -> Option<&dyn TreeNode>;
+    fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn TreeNode>;
+    fn remove(&mut self, id: &Uuid) -> Option<Node>;
+    fn insert(&mut self, node: Node, position: DropPosition);
 }
 
 enum Node {
@@ -69,6 +100,50 @@ impl Node {
         match self {
             Node::Directory(o) => o.show(tree_ui),
             Node::File(o) => o.show(tree_ui),
+        }
+    }
+
+    fn id(&self) -> &Uuid {
+        match self {
+            Node::Directory(o) => o.id(),
+            Node::File(o) => o.id(),
+        }
+    }
+}
+
+impl TreeNode for Node {
+    fn find(&self, id: &Uuid) -> Option<&dyn TreeNode> {
+        match self {
+            Node::Directory(o) => o.find(id),
+            Node::File(o) => o.find(id),
+        }
+    }
+
+    fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn TreeNode> {
+        match self {
+            Node::Directory(o) => o.find_mut(id),
+            Node::File(o) => o.find_mut(id),
+        }
+    }
+
+    fn name(&self) -> &String {
+        match self {
+            Node::Directory(o) => o.name(),
+            Node::File(o) => o.name(),
+        }
+    }
+
+    fn remove(&mut self, id: &Uuid) -> Option<Node> {
+        match self {
+            Node::Directory(o) => o.remove(id),
+            Node::File(o) => o.remove(id),
+        }
+    }
+
+    fn insert(&mut self, node: Node, position: DropPosition) {
+        match self {
+            Node::Directory(o) => o.insert(node, position),
+            Node::File(o) => o.insert(node, position),
         }
     }
 }
@@ -107,6 +182,58 @@ impl Directory {
             ui.label(format!("context menu for {}", self.name));
         });
     }
+    fn id(&self) -> &Uuid {
+        &self.id
+    }
+}
+
+impl TreeNode for Directory {
+    fn find(&self, id: &Uuid) -> Option<&dyn TreeNode> {
+        if &self.id == id {
+            Some(self as &dyn TreeNode)
+        } else {
+            self.nodes.iter().find_map(|n| n.find(id))
+        }
+    }
+    fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn TreeNode> {
+        if &self.id == id {
+            Some(self as &mut dyn TreeNode)
+        } else {
+            self.nodes.iter_mut().find_map(|n| n.find_mut(id))
+        }
+    }
+
+    fn name(&self) -> &String {
+        &self.name
+    }
+
+    fn remove(&mut self, id: &Uuid) -> Option<Node> {
+        if let Some(pos) = self.nodes.iter().position(|n| n.id() == id) {
+            Some(self.nodes.remove(pos))
+        } else {
+            None
+        }
+    }
+
+    fn insert(&mut self, node: Node, position: DropPosition) {
+        let pos = match position {
+            DropPosition::Last { .. } => self.nodes.len(),
+            DropPosition::First { .. } => 0,
+            DropPosition::After { after, .. } => {
+                self.nodes
+                    .iter()
+                    .position(|n| n.id() == &after)
+                    .unwrap_or(self.nodes.len())
+                    + 1
+            }
+            DropPosition::Before { before, .. } => self
+                .nodes
+                .iter()
+                .position(|n| n.id() == &before)
+                .unwrap_or(self.nodes.len()),
+        };
+        self.nodes.insert(pos, node);
+    }
 }
 
 struct File {
@@ -133,4 +260,35 @@ impl File {
             ui.label(format!("context menu for {}", self.name));
         });
     }
+    fn id(&self) -> &Uuid {
+        &self.id
+    }
+}
+
+impl TreeNode for File {
+    fn find(&self, id: &Uuid) -> Option<&dyn TreeNode> {
+        if &self.id == id {
+            Some(self as &dyn TreeNode)
+        } else {
+            None
+        }
+    }
+
+    fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn TreeNode> {
+        if &self.id == id {
+            Some(self as &mut dyn TreeNode)
+        } else {
+            None
+        }
+    }
+
+    fn name(&self) -> &String {
+        &self.name
+    }
+
+    fn remove(&mut self, _id: &Uuid) -> Option<Node> {
+        None
+    }
+
+    fn insert(&mut self, _node: Node, _position: DropPosition) {}
 }

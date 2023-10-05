@@ -18,7 +18,7 @@ pub struct TreeUi<'a> {
     parent_id: Option<Uuid>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DropPosition {
     Last { parent_id: Uuid },
     First { parent_id: Uuid },
@@ -26,7 +26,7 @@ pub enum DropPosition {
     Before { parent_id: Uuid, before: Uuid },
 }
 impl DropPosition {
-    fn _get_parent_node_id(&self) -> &Uuid {
+    pub fn get_parent_node_id(&self) -> &Uuid {
         match self {
             DropPosition::Last { parent_id } => parent_id,
             DropPosition::First { parent_id } => parent_id,
@@ -36,25 +36,32 @@ impl DropPosition {
     }
 }
 
+#[derive(Clone, PartialEq, Eq)]
+pub struct NodeId {
+    pub parent_id: Uuid,
+    pub node_id: Uuid,
+}
+
 #[derive(Clone)]
 pub struct DropAction {
-    what: Uuid,
-    position: DropPosition,
+    pub from: NodeId,
+    pub to: DropPosition,
 }
 
 pub struct TreeViewResponse {
-    response: Response,
-    selected: Option<Uuid>,
-    hovered: Option<DropAction>,
-    dropped: Option<DropAction>,
+    pub response: Response,
+    pub selected: Option<Uuid>,
+    pub hovered: Option<DropAction>,
+    pub dropped: Option<DropAction>,
 }
 
 struct TreeContext {
     line_count: i32,
     something_dragged_last_frame: bool,
     selected: Option<Uuid>,
-    dragged: Option<Uuid>,
+    dragged: Option<NodeId>,
     hovered: Option<DropPosition>,
+    drop_disallowed: bool,
 }
 
 pub struct TreeView {}
@@ -81,6 +88,7 @@ impl TreeView {
             something_dragged_last_frame: last_time.1,
             dragged: None,
             hovered: None,
+            drop_disallowed: false,
         };
 
         let bounds = ui.available_rect_before_wrap().x_range();
@@ -111,14 +119,6 @@ impl TreeView {
             Stroke::new(1.0, Color32::BLACK),
         );
 
-        ui.label(format!("dragged: {:?}", context.dragged));
-        ui.label(format!("hovered: {:?}", context.hovered));
-
-        if ui.ctx().input(|i| i.pointer.any_released()) {
-            println!("dragged: {:?}", context.dragged);
-            println!("hovered: {:?}", context.hovered);
-        }
-
         // Store state
         ui.data_mut(|d| {
             d.insert_persisted::<(Option<Uuid>, bool)>(
@@ -127,8 +127,10 @@ impl TreeView {
             )
         });
 
-        let drop_action = if let (Some(what), Some(position)) = (context.dragged, context.hovered) {
-            Some(DropAction { what, position })
+        let drop_action = if let (Some(from), Some(to), false) =
+            (context.dragged, context.hovered, context.drop_disallowed)
+        {
+            Some(DropAction { from, to })
         } else {
             None
         };
@@ -184,6 +186,7 @@ impl Directory {
             SplitCollapsingState::show_header(ui, collapsing_id, |ui| add_header(ui))
         });
 
+        let hovered_before = tree_ui.context.hovered.clone();
         let body = state.show_body(tree_ui.ui, |ui| {
             let mut tree_ui = TreeUi {
                 ui,
@@ -193,6 +196,18 @@ impl Directory {
             };
             add_body(&mut tree_ui)
         });
+
+        // It is not allowed to drop a parent node onto one of its child nodes
+        let drop_is_child_node = tree_ui.context.hovered != hovered_before;
+        let parent_is_dragged = tree_ui
+            .context
+            .dragged
+            .as_ref()
+            .is_some_and(|node_id| node_id.node_id == self.node_config.id);
+        if drop_is_child_node && parent_is_dragged {
+            tree_ui.context.drop_disallowed = true;
+            tree_ui.ui.ctx().set_cursor_icon(CursorIcon::NoDrop);
+        }
 
         (
             InnerResponse::new(state.header_response.inner, header),
@@ -319,7 +334,7 @@ fn draw_drag_overlay<T, U>(
         ui,
         bounds,
         context,
-        ..
+        parent_id,
     } = tree_ui;
 
     let drag_source_id = ui.make_persistent_id("Drag source");
@@ -337,8 +352,16 @@ fn draw_drag_overlay<T, U>(
     if interaction.dragged_by(PointerButton::Primary)
         || interaction.drag_released_by(PointerButton::Primary)
     {
-        context.dragged = Some(id);
-        ui.ctx().set_cursor_icon(CursorIcon::Grabbing);
+        // A node without a parent is a root node and cannot be dragged.
+        if let Some(parent_id) = parent_id {
+            context.dragged = Some(NodeId {
+                parent_id: *parent_id,
+                node_id: id,
+            });
+            ui.ctx().set_cursor_icon(CursorIcon::Grabbing);
+        } else {
+            ui.ctx().set_cursor_icon(CursorIcon::NoDrop);
+        }
 
         // Paint the content again to a new layer for the drag overlay.
         let layer_id = LayerId::new(Order::Tooltip, drag_source_id);

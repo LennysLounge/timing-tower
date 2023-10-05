@@ -7,7 +7,7 @@ use crate::variable_repo::{VariableDefinition, VariableId};
 
 use self::{condition::Condition, fixed_value::FixedValue};
 
-use super::TreeNode;
+use super::StyleTreeNode;
 
 pub mod condition;
 pub mod fixed_value;
@@ -18,14 +18,22 @@ pub struct Variables {
     pub vars: Vec<VariableBehavior>,
 }
 
-impl TreeNode for Variables {
-    fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn TreeNode> {
-        if &self.id == id {
-            Some(self)
-        } else {
-            self.vars.iter_mut().find_map(|v| v.find_mut(id))
-        }
+impl StyleTreeNode for Variables {
+    fn id(&self) -> &Uuid {
+        &self.id
     }
+
+    fn chidren(&self) -> Vec<&dyn StyleTreeNode> {
+        self.vars.iter().map(|v| v as &dyn StyleTreeNode).collect()
+    }
+
+    fn chidren_mut(&mut self) -> Vec<&mut dyn StyleTreeNode> {
+        self.vars
+            .iter_mut()
+            .map(|v| v as &mut dyn StyleTreeNode)
+            .collect()
+    }
+
     fn tree_view(&mut self, ui: &mut TreeUi) {
         TreeViewBuilder::dir(self.id).show(
             ui,
@@ -63,9 +71,17 @@ impl VariableDefinition for VariableBehavior {
     }
 }
 
-impl TreeNode for VariableBehavior {
-    fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn TreeNode> {
-        (&self.get_variable_id().id == id).then_some(self)
+impl StyleTreeNode for VariableBehavior {
+    fn id(&self) -> &Uuid {
+        &self.get_variable_id().id
+    }
+
+    fn chidren(&self) -> Vec<&dyn StyleTreeNode> {
+        Vec::new()
+    }
+
+    fn chidren_mut(&mut self) -> Vec<&mut dyn StyleTreeNode> {
+        Vec::new()
     }
 
     fn property_editor(

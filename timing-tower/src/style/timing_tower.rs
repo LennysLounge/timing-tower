@@ -1,11 +1,13 @@
+use std::any::Any;
+
 use bevy_egui::egui::Ui;
 use serde::{Deserialize, Serialize};
-use tree_view::{TreeUi, TreeViewBuilder};
+use tree_view::{DropPosition, TreeUi, TreeViewBuilder};
 use uuid::Uuid;
 
 use crate::variable_repo::VariableRepo;
 
-use super::{cell::Cell, properties::Vec2Property, TreeNode};
+use super::{cell::Cell, properties::Vec2Property, StyleTreeNode};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TimingTower {
@@ -14,13 +16,17 @@ pub struct TimingTower {
     pub table: TimingTowerTable,
 }
 
-impl TreeNode for TimingTower {
-    fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn TreeNode> {
-        if &self.id == id {
-            Some(self)
-        } else {
-            self.table.find_mut(id)
-        }
+impl StyleTreeNode for TimingTower {
+    fn id(&self) -> &Uuid {
+        &self.id
+    }
+
+    fn chidren(&self) -> Vec<&dyn StyleTreeNode> {
+        vec![&self.table]
+    }
+
+    fn chidren_mut(&mut self) -> Vec<&mut dyn StyleTreeNode> {
+        vec![&mut self.table]
     }
 
     fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
@@ -48,14 +54,19 @@ pub struct TimingTowerTable {
     pub row: TimingTowerRow,
 }
 
-impl TreeNode for TimingTowerTable {
-    fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn TreeNode> {
-        if &self.id == id {
-            Some(self)
-        } else {
-            self.row.find_mut(id)
-        }
+impl StyleTreeNode for TimingTowerTable {
+    fn id(&self) -> &Uuid {
+        &self.id
     }
+
+    fn chidren(&self) -> Vec<&dyn StyleTreeNode> {
+        vec![&self.row]
+    }
+
+    fn chidren_mut(&mut self) -> Vec<&mut dyn StyleTreeNode> {
+        vec![&mut self.row]
+    }
+
     fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
         ui.label("Row offset:");
         ui.horizontal(|ui| {
@@ -89,12 +100,57 @@ pub struct TimingTowerRow {
     pub cell: Cell,
     pub columns: Vec<TimingTowerColumn>,
 }
-impl TreeNode for TimingTowerRow {
-    fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn TreeNode> {
-        if &self.id == id {
-            Some(self)
+impl StyleTreeNode for TimingTowerRow {
+    fn id(&self) -> &Uuid {
+        &self.id
+    }
+
+    fn chidren(&self) -> Vec<&dyn StyleTreeNode> {
+        self.columns.iter().map(|c| c as &dyn StyleTreeNode).collect()
+    }
+
+    fn chidren_mut(&mut self) -> Vec<&mut dyn StyleTreeNode> {
+        self.columns
+            .iter_mut()
+            .map(|c| c as &mut dyn StyleTreeNode)
+            .collect()
+    }
+
+    fn can_insert(&self, node: &dyn Any) -> bool {
+        node.downcast_ref::<TimingTowerColumn>().is_some()
+    }
+
+    fn remove(&mut self, id: &Uuid) -> Option<Box<dyn Any>> {
+        if let Some(pos) = self.columns.iter().position(|c| &c.id == id) {
+            let n = self.columns.remove(pos);
+            Some(Box::new(n))
         } else {
-            self.columns.iter_mut().find_map(|c| c.find_mut(id))
+            None
+        }
+    }
+
+    fn insert(&mut self, node: Box<dyn Any>, position: DropPosition) {
+        if let Ok(column) = node.downcast::<TimingTowerColumn>() {
+            match position {
+                DropPosition::First => self.columns.insert(0, *column),
+                DropPosition::Last => self.columns.push(*column),
+                DropPosition::After(id) => {
+                    let pos = self
+                        .columns
+                        .iter()
+                        .position(|c| c.id == id)
+                        .unwrap_or(self.columns.len());
+                    self.columns.insert(pos + 1, *column);
+                }
+                DropPosition::Before(id) => {
+                    let pos = self
+                        .columns
+                        .iter()
+                        .position(|c| c.id == id)
+                        .unwrap_or(self.columns.len());
+                    self.columns.insert(pos, *column);
+                }
+            }
         }
     }
 
@@ -124,9 +180,17 @@ pub struct TimingTowerColumn {
     pub name: String,
 }
 
-impl TreeNode for TimingTowerColumn {
-    fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn TreeNode> {
-        (&self.id == id).then_some(self as &mut dyn TreeNode)
+impl StyleTreeNode for TimingTowerColumn {
+    fn id(&self) -> &Uuid {
+        &self.id
+    }
+
+    fn chidren(&self) -> Vec<&dyn StyleTreeNode> {
+        Vec::new()
+    }
+
+    fn chidren_mut(&mut self) -> Vec<&mut dyn StyleTreeNode> {
+        Vec::new()
     }
 
     fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {

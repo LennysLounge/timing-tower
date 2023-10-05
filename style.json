@@ -269,58 +269,6 @@
             "name": "position"
           },
           {
-            "id": "a275bdc4-ed4a-4dcb-a964-d0646598d64e",
-            "cell": {
-              "text": {
-                "Ref": {
-                  "value_type": "Text",
-                  "key": "171d7438-3179-4c70-b818-811cf86d514e"
-                }
-              },
-              "text_color": {
-                "Rgba": {
-                  "red": 1.0,
-                  "green": 1.0,
-                  "blue": 1.0,
-                  "alpha": 1.0
-                }
-              },
-              "text_size": 19.5,
-              "color": {
-                "Rgba": {
-                  "red": 0.40197778,
-                  "green": 0.40197778,
-                  "blue": 0.40197778,
-                  "alpha": 1.0
-                }
-              },
-              "image": "",
-              "pos": {
-                "x": 225.0,
-                "y": 0.0,
-                "z": 1.0
-              },
-              "size": {
-                "x": 46.0,
-                "y": 36.0
-              },
-              "skew": 0.0,
-              "visible": true,
-              "rounding": {
-                "top_left": 0.0,
-                "top_right": 0.0,
-                "bot_left": 0.0,
-                "bot_right": 0.0
-              },
-              "text_alginment": "Center",
-              "text_position": {
-                "x": 23.0,
-                "y": 18.0
-              }
-            },
-            "name": "car number"
-          },
-          {
             "id": "95ab724b-b056-4e76-8153-2f9265aac3cb",
             "cell": {
               "text": {
@@ -418,6 +366,58 @@
               }
             },
             "name": "manufacturer"
+          },
+          {
+            "id": "a275bdc4-ed4a-4dcb-a964-d0646598d64e",
+            "cell": {
+              "text": {
+                "Ref": {
+                  "value_type": "Text",
+                  "key": "171d7438-3179-4c70-b818-811cf86d514e"
+                }
+              },
+              "text_color": {
+                "Rgba": {
+                  "red": 1.0,
+                  "green": 1.0,
+                  "blue": 1.0,
+                  "alpha": 1.0
+                }
+              },
+              "text_size": 19.5,
+              "color": {
+                "Rgba": {
+                  "red": 0.40197778,
+                  "green": 0.40197778,
+                  "blue": 0.40197778,
+                  "alpha": 1.0
+                }
+              },
+              "image": "",
+              "pos": {
+                "x": 225.0,
+                "y": 0.0,
+                "z": 1.0
+              },
+              "size": {
+                "x": 46.0,
+                "y": 36.0
+              },
+              "skew": 0.0,
+              "visible": true,
+              "rounding": {
+                "top_left": 0.0,
+                "top_right": 0.0,
+                "bot_left": 0.0,
+                "bot_right": 0.0
+              },
+              "text_alginment": "Center",
+              "text_position": {
+                "x": 23.0,
+                "y": 18.0
+              }
+            },
+            "name": "car number"
           },
           {
             "id": "12b0a701-6b31-4027-8bbb-0c3011998f4c",

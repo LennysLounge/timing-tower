@@ -4,8 +4,8 @@ use bevy_egui::egui::{
     collapsing_header::CollapsingState,
     epaint::{self},
     layers::ShapeIdx,
-    pos2, vec2, Color32, CursorIcon, Id, InnerResponse, LayerId, NumExt, Order, PointerButton,
-    Pos2, Rect, Response, Sense, Shape, Stroke, Ui, Vec2,
+    pos2, vec2, Color32, CursorIcon, InnerResponse, LayerId, NumExt, Order, PointerButton, Pos2,
+    Rect, Response, Sense, Shape, Stroke, Ui, Vec2,
 };
 use uuid::Uuid;
 
@@ -183,7 +183,7 @@ impl Node<DirectoryMarker> {
         mut add_header: impl FnMut(&mut Ui) -> T1,
         mut add_body: impl FnMut(&mut TreeUi) -> T2,
     ) -> (InnerResponse<T1>, Option<InnerResponse<T2>>) {
-        let collapsing_id = Id::new(self.id).with("dir header");
+        let collapsing_id = tree_ui.ui.next_auto_id().with("Directory header");
         self.is_open =
             CollapsingState::load_with_default_open(tree_ui.ui.ctx(), collapsing_id, true)
                 .is_open();
@@ -318,7 +318,7 @@ impl<Marker> Node<Marker> {
         // the given area and the element would never be allowed to interact.
         // Do this this right we need to remember the size of the background area from
         // last frame.
-        let interact_id = Id::new(self.id).with("row background interaction");
+        let interact_id = tree_ui.ui.next_auto_id().with("row background interaction");
         let interact_rect = tree_ui
             .ui
             .data_mut(|d| d.get_persisted::<Rect>(interact_id))

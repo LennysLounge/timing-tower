@@ -13,9 +13,14 @@ use bevy_egui::{
     EguiContexts,
 };
 use tracing::error;
-use tree_view::{TreeNodeConverstions, TreeView};
+use tree_view::tree_view_2::TreeViewBuilder;
+use uuid::Uuid;
 
-use crate::{style::StyleDefinition, variable_repo::VariableRepo, MainCamera};
+use crate::{
+    style::{StyleDefinition, TreeNode},
+    variable_repo::VariableRepo,
+    MainCamera,
+};
 
 pub struct EditorPlugin;
 impl Plugin for EditorPlugin {
@@ -44,7 +49,7 @@ struct OccupiedSpace {
 
 #[derive(Resource)]
 pub struct EditorState {
-    pub tree: TreeView,
+    pub selected_node: Option<Uuid>,
 }
 
 pub fn setup(mut ctx: EguiContexts) {
@@ -96,9 +101,10 @@ fn run_egui_main(
 
     occupied_space.left = egui::SidePanel::left("Editor panel")
         .show(ctx.ctx_mut(), |ui| {
-            egui::ScrollArea::vertical().show(ui, |ui| {
-                state.tree.show(ui, style.as_dyn_mut());
+            let res = TreeViewBuilder::new().show(ui, |ui| {
+                style.tree_view(ui);
             });
+            state.selected_node = res.selected;
 
             ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());
         })
@@ -109,9 +115,10 @@ fn run_egui_main(
     egui::SidePanel::right("Property panel")
         .show(ctx.ctx_mut(), |ui| {
             state
-                .tree
-                .selected
-                .map(|id| style.property_editor(ui, &variable_repo, &id));
+                .selected_node
+                .as_ref()
+                .and_then(|id| style.find_mut(id))
+                .map(|selected_node| selected_node.property_editor(ui, &variable_repo));
 
             ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());
         })

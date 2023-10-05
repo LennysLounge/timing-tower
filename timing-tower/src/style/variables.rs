@@ -1,11 +1,13 @@
-use bevy_egui::egui::{ComboBox, Ui};
+use bevy_egui::egui::ComboBox;
 use serde::{Deserialize, Serialize};
-use tree_view::{TreeNode, TreeNodeConverstions};
+use tree_view::tree_view_2::{TreeUi, TreeViewBuilder};
 use uuid::Uuid;
 
-use crate::variable_repo::{VariableDefinition, VariableId, VariableRepo};
+use crate::variable_repo::{VariableDefinition, VariableId};
 
 use self::{condition::Condition, fixed_value::FixedValue};
+
+use super::TreeNode;
 
 pub mod condition;
 pub mod fixed_value;
@@ -14,6 +16,32 @@ pub mod fixed_value;
 pub struct Variables {
     pub id: Uuid,
     pub vars: Vec<VariableBehavior>,
+}
+
+impl TreeNode for Variables {
+    fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn TreeNode> {
+        if &self.id == id {
+            Some(self)
+        } else {
+            self.vars.iter_mut().find_map(|v| v.find_mut(id))
+        }
+    }
+}
+
+impl Variables {
+    pub fn tree_view(&self, ui: &mut TreeUi) {
+        TreeViewBuilder::dir(self.id).show(
+            ui,
+            |ui| {
+                ui.label("Variables");
+            },
+            |ui| {
+                for v in self.vars.iter() {
+                    v.tree_view(ui);
+                }
+            },
+        );
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -33,83 +61,21 @@ impl VariableDefinition for VariableBehavior {
     fn get_variable_id(&self) -> &crate::variable_repo::VariableId {
         match self {
             VariableBehavior::FixedValue(o) => o.get_variable_id(),
-            VariableBehavior::Condition(o) => o.get_id(),
+            VariableBehavior::Condition(o) => o.get_variable_id(),
         }
     }
-}
-
-impl TreeNode for Variables {
-    fn is_directory(&self) -> bool {
-        true
-    }
-
-    fn show_label(&self, ui: &mut bevy_egui::egui::Ui) {
-        ui.label("Variables");
-    }
-
-    fn get_id(&self) -> &uuid::Uuid {
-        &self.id
-    }
-
-    fn get_children(&self) -> Vec<&dyn TreeNode> {
-        self.vars.iter().map(|v| v.as_dyn()).collect()
-    }
-
-    fn get_children_mut(&mut self) -> Vec<&mut dyn TreeNode> {
-        self.vars.iter_mut().map(|v| v.as_dyn_mut()).collect()
-    }
-
-    fn remove(&mut self, _id: &uuid::Uuid) -> Option<Box<dyn std::any::Any>> {
-        None
-    }
-
-    fn can_insert(&self, _node: &dyn std::any::Any) -> bool {
-        false
-    }
-
-    fn insert(&mut self, _drop_action: &tree_view::DropAction, _node: Box<dyn std::any::Any>) {}
 }
 
 impl TreeNode for VariableBehavior {
-    fn is_directory(&self) -> bool {
-        false
+    fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn TreeNode> {
+        (&self.get_variable_id().id == id).then_some(self)
     }
 
-    fn show_label(&self, ui: &mut bevy_egui::egui::Ui) {
-        ui.label(&VariableDefinition::get_variable_id(self).name);
-    }
-
-    fn get_id(&self) -> &Uuid {
-        &self.get_variable_id().id
-    }
-
-    fn get_children(&self) -> Vec<&dyn TreeNode> {
-        vec![]
-    }
-
-    fn get_children_mut(&mut self) -> Vec<&mut dyn TreeNode> {
-        vec![]
-    }
-
-    fn remove(&mut self, _id: &Uuid) -> Option<Box<dyn std::any::Any>> {
-        None
-    }
-
-    fn can_insert(&self, _node: &dyn std::any::Any) -> bool {
-        false
-    }
-
-    fn insert(&mut self, _drop_action: &tree_view::DropAction, _node: Box<dyn std::any::Any>) {}
-}
-
-impl VariableBehavior {
-    fn get_id_mut(&mut self) -> &mut VariableId {
-        match self {
-            VariableBehavior::FixedValue(f) => f.get_id_mut(),
-            VariableBehavior::Condition(c) => c.get_id_mut(),
-        }
-    }
-    pub fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
+    fn property_editor(
+        &mut self,
+        ui: &mut bevy_egui::egui::Ui,
+        vars: &crate::variable_repo::VariableRepo,
+    ) {
         ui.label("Name:");
         ui.text_edit_singleline(&mut self.get_id_mut().name);
 
@@ -138,11 +104,25 @@ impl VariableBehavior {
                     }
                 });
         });
-        ui.separator();
 
+        ui.separator();
         match self {
-            VariableBehavior::FixedValue(v) => v.property_editor(ui),
-            VariableBehavior::Condition(v) => v.property_editor(ui, vars),
+            VariableBehavior::FixedValue(o) => o.property_editor(ui),
+            VariableBehavior::Condition(o) => o.property_editor(ui, vars),
+        }
+    }
+}
+impl VariableBehavior {
+    pub fn tree_view(&self, ui: &mut TreeUi) {
+        TreeViewBuilder::leaf(self.get_variable_id().id).show(ui, |ui| {
+            ui.label(&self.get_variable_id().name);
+        });
+    }
+
+    fn get_id_mut(&mut self) -> &mut VariableId {
+        match self {
+            VariableBehavior::FixedValue(o) => o.get_id_mut(),
+            VariableBehavior::Condition(o) => o.get_id_mut(),
         }
     }
 }

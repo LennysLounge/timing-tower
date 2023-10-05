@@ -8,8 +8,8 @@ use crate::{
         reference_editor, BooleanProperty, ColorProperty, NumberProperty, TextProperty,
     },
     variable_repo::{
-        BooleanSource, ColorSource, NumberSource, Reference, TextSource, ValueType, VariableId,
-        VariableRepo, VariableSource,
+        BooleanSource, ColorSource, NumberSource, Reference, TextSource, ValueType,
+        VariableDefinition, VariableId, VariableRepo, VariableSource,
     },
 };
 
@@ -70,6 +70,43 @@ impl Default for Condition {
     }
 }
 
+impl VariableDefinition for Condition {
+    fn as_variable_source(&self) -> VariableSource {
+        let source = ConditionSource {
+            comparison: match &self.right {
+                RightHandSide::Number(np, c) => Comparison::Number(NumberComparison {
+                    left: self.left.clone(),
+                    comparator: c.clone(),
+                    right: np.clone(),
+                }),
+                RightHandSide::Text(tp, c) => Comparison::Text(TextComparison {
+                    left: self.left.clone(),
+                    comparator: c.clone(),
+                    right: tp.clone(),
+                }),
+                RightHandSide::Boolean(bp, c) => Comparison::Boolean(BooleanComparison {
+                    left: self.left.clone(),
+                    comparator: c.clone(),
+                    right: bp.clone(),
+                }),
+            },
+            true_value: self.true_output.clone(),
+            false_value: self.false_output.clone(),
+        };
+
+        match self.id.value_type {
+            ValueType::Number => VariableSource::Number(Box::new(source)),
+            ValueType::Text => VariableSource::Text(Box::new(source)),
+            ValueType::Color => VariableSource::Color(Box::new(source)),
+            ValueType::Boolean => VariableSource::Bool(Box::new(source)),
+        }
+    }
+
+    fn get_variable_id(&self) -> &VariableId {
+        &self.id
+    }
+}
+
 impl Condition {
     pub fn from_id(id: VariableId) -> Self {
         Self {
@@ -88,10 +125,6 @@ impl Condition {
             id,
             ..Default::default()
         }
-    }
-
-    pub fn get_id(&self) -> &VariableId {
-        &self.id
     }
     pub fn get_id_mut(&mut self) -> &mut VariableId {
         &mut self.id
@@ -257,37 +290,6 @@ impl Condition {
                 Output::Boolean(b) => b.editor(ui, vars),
             }
         });
-    }
-
-    pub fn as_variable_source(&self) -> VariableSource {
-        let source = ConditionSource {
-            comparison: match &self.right {
-                RightHandSide::Number(np, c) => Comparison::Number(NumberComparison {
-                    left: self.left.clone(),
-                    comparator: c.clone(),
-                    right: np.clone(),
-                }),
-                RightHandSide::Text(tp, c) => Comparison::Text(TextComparison {
-                    left: self.left.clone(),
-                    comparator: c.clone(),
-                    right: tp.clone(),
-                }),
-                RightHandSide::Boolean(bp, c) => Comparison::Boolean(BooleanComparison {
-                    left: self.left.clone(),
-                    comparator: c.clone(),
-                    right: bp.clone(),
-                }),
-            },
-            true_value: self.true_output.clone(),
-            false_value: self.false_output.clone(),
-        };
-
-        match self.id.value_type {
-            ValueType::Number => VariableSource::Number(Box::new(source)),
-            ValueType::Text => VariableSource::Text(Box::new(source)),
-            ValueType::Color => VariableSource::Color(Box::new(source)),
-            ValueType::Boolean => VariableSource::Bool(Box::new(source)),
-        }
     }
 }
 

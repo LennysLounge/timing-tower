@@ -24,7 +24,6 @@ use gradient_material::CustomMaterialPlugin;
 use style::{cell::TextAlignment, StyleDefinition};
 
 use timing_tower::{init_timing_tower, TimingTowerPlugin};
-use tree_view::TreeView;
 use unified_sim_model::Adapter;
 use variable_repo::VariableRepo;
 
@@ -136,10 +135,7 @@ fn setup(mut commands: Commands, mut set_style_event: EventWriter<SetStyle>) {
     commands.insert_resource(repo);
 
     commands.insert_resource(EditorState {
-        tree: TreeView {
-            selected: None,
-            was_dragged_last_frame: None,
-        },
+        selected_node: None,
     });
 
     commands.spawn_empty().add(init_timing_tower(adapter));

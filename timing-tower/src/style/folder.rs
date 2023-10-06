@@ -115,9 +115,11 @@ impl<T: StyleTreeNode + FolderActions<FolderType = T>> Folder<T> {
 
     /// Show the contents of this folder without a collapsing header.
     pub fn tree_view_flat(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
-        for c in self.content.iter_mut() {
-            c.tree_view(ui, actions);
-        }
+        TreeViewBuilder::dir(self.id).headless().show(ui, |ui| {
+            for c in self.content.iter_mut() {
+                c.tree_view(ui, actions);
+            }
+        });
     }
 
     fn insert_at(&mut self, node: FolderOrT<T>, position: &DropPosition) {

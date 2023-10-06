@@ -166,6 +166,7 @@ impl TreeViewBuilder {
 }
 
 pub struct DirectoryMarker;
+pub struct DirectoryHeadlessMarker;
 pub struct LeafMarker;
 
 pub struct Node<T> {
@@ -178,6 +179,17 @@ pub struct Node<T> {
 }
 
 impl Node<DirectoryMarker> {
+    pub fn headless(self) -> Node<DirectoryHeadlessMarker> {
+        Node {
+            id: self.id,
+            is_drop_target: self.is_drop_target,
+            is_open: self.is_open,
+            is_draggable: self.is_draggable,
+            is_selectable: self.is_selectable,
+            phantom: PhantomData,
+        }
+    }
+
     pub fn show<T1, T2>(
         &mut self,
         tree_ui: &mut TreeUi,
@@ -231,6 +243,25 @@ impl Node<DirectoryMarker> {
             InnerResponse::new(state.header_response.inner, header),
             body,
         )
+    }
+}
+
+impl Node<DirectoryHeadlessMarker> {
+    pub fn show<T>(
+        &mut self,
+        tree_ui: &mut TreeUi,
+        mut add_body: impl FnMut(&mut TreeUi) -> T,
+    ) -> InnerResponse<T> {
+        tree_ui.ui.scope(|ui| {
+            let mut tree_ui = TreeUi {
+                ui,
+                bounds: tree_ui.bounds.clone(),
+                context: tree_ui.context,
+                parent_id: Some(self.id),
+                tree_config: tree_ui.tree_config,
+            };
+            add_body(&mut tree_ui)
+        })
     }
 }
 

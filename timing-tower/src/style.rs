@@ -3,7 +3,7 @@ use std::any::Any;
 use bevy::prelude::Resource;
 use bevy_egui::egui::Ui;
 use serde::{Deserialize, Serialize};
-use tree_view::{DropAction, DropPosition, TreeUi};
+use tree_view::{DropAction, DropPosition, TreeUi, TreeViewBuilder};
 use uuid::Uuid;
 
 use crate::variable_repo::VariableRepo;
@@ -90,8 +90,10 @@ pub struct StyleDefinition {
 
 impl StyleTreeUi for StyleDefinition {
     fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
-        self.vars.tree_view(ui, actions);
-        self.timing_tower.tree_view(ui, actions);
+        TreeViewBuilder::dir(self.id).headless().show(ui, |ui| {
+            self.vars.tree_view(ui, actions);
+            self.timing_tower.tree_view(ui, actions);
+        });
     }
 }
 

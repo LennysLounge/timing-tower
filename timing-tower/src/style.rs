@@ -8,7 +8,7 @@ use uuid::Uuid;
 
 use crate::variable_repo::VariableRepo;
 
-use self::{timing_tower::TimingTower, variables::Variables};
+use self::{folder::Folder, timing_tower::TimingTower, variables::VariableBehavior};
 
 pub mod cell;
 pub mod folder;
@@ -84,7 +84,7 @@ pub trait StyleTreeNode: StyleTreeNodeConversions + StyleTreeUi {
 #[derive(Serialize, Deserialize, Clone, Resource)]
 pub struct StyleDefinition {
     pub id: Uuid,
-    pub vars: Variables,
+    pub vars: Folder<VariableBehavior>,
     pub timing_tower: TimingTower,
 }
 
@@ -92,7 +92,9 @@ impl StyleTreeUi for StyleDefinition {
     fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
         TreeViewBuilder::dir(self.id).headless().show(ui, |ui| {
             self.vars.tree_view(ui, actions);
+            ui.ui.separator();
             self.timing_tower.tree_view(ui, actions);
+            ui.ui.separator();
         });
     }
 }

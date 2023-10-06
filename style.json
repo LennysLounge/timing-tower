@@ -2,70 +2,176 @@
   "id": "a2191c04-bae5-49b4-9aee-1b55675aba4d",
   "vars": {
     "id": "934a2987-34c0-4b50-b463-f5e6c4e3c4ec",
-    "vars": [
+    "name": "Variables",
+    "content": [
       {
-        "FixedValue": {
-          "id": "9df89401-32e8-4455-ba91-b1421639cd50",
-          "name": "color sample",
-          "value_type": "Color",
-          "value": {
-            "Rgba": {
-              "red": 0.0,
-              "green": 0.0,
-              "blue": 0.0,
-              "alpha": 1.0
+        "Folder": {
+          "id": "a594010f-a612-402e-8bc7-6446c602e1bd",
+          "name": "Colors",
+          "content": [
+            {
+              "Folder": {
+                "id": "f0fab6a7-a6c3-4d46-b05c-f417c04c5be1",
+                "name": "Driver categories",
+                "content": [
+                  {
+                    "T": {
+                      "FixedValue": {
+                        "id": "5a657363-96fc-4329-a580-8ed41b85405e",
+                        "name": "Gold/Plat",
+                        "value_type": "Color",
+                        "value": {
+                          "Rgba": {
+                            "red": 1.0,
+                            "green": 1.0,
+                            "blue": 1.0,
+                            "alpha": 1.0
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "T": {
+                      "FixedValue": {
+                        "id": "ecdfcaf2-d808-4fca-b118-88aee5d1b495",
+                        "name": "Silver",
+                        "value_type": "Color",
+                        "value": {
+                          "Rgba": {
+                            "red": 0.40197778,
+                            "green": 0.40197778,
+                            "blue": 0.40197778,
+                            "alpha": 1.0
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "T": {
+                      "FixedValue": {
+                        "id": "7a126bfa-2fb7-464f-9ed1-1f92665d9460",
+                        "name": "Bronze",
+                        "value_type": "Color",
+                        "value": {
+                          "Rgba": {
+                            "red": 0.8950744,
+                            "green": 0.0,
+                            "blue": 0.0,
+                            "alpha": 1.0
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "T": {
+                "FixedValue": {
+                  "id": "e41f142f-2026-4126-9dc4-bed03fecd31e",
+                  "name": "Manufacturer",
+                  "value_type": "Color",
+                  "value": {
+                    "Rgba": {
+                      "red": 0.8549927,
+                      "green": 0.8549927,
+                      "blue": 0.8549927,
+                      "alpha": 1.0
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "T": {
+                "FixedValue": {
+                  "id": "e63c62b8-900a-476d-973b-2b0f12fb7b26",
+                  "name": "Position",
+                  "value_type": "Color",
+                  "value": {
+                    "Rgba": {
+                      "red": 0.0,
+                      "green": 0.0,
+                      "blue": 0.0,
+                      "alpha": 1.0
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "T": {
+                "FixedValue": {
+                  "id": "3b9c1864-f07f-46ca-aa86-01cba7629860",
+                  "name": "Position selected",
+                  "value_type": "Color",
+                  "value": {
+                    "Rgba": {
+                      "red": 0.8649127,
+                      "green": 0.0,
+                      "blue": 0.0,
+                      "alpha": 1.0
+                    }
+                  }
+                }
+              }
             }
+          ]
+        }
+      },
+      {
+        "T": {
+          "FixedValue": {
+            "id": "f45338ce-3d52-43b3-85ee-d99352174b79",
+            "name": "Number sample",
+            "value_type": "Number",
+            "value": 13.0
           }
         }
       },
       {
-        "FixedValue": {
-          "id": "f45338ce-3d52-43b3-85ee-d99352174b79",
-          "name": "Number sample",
-          "value_type": "Number",
-          "value": 13.0
+        "T": {
+          "FixedValue": {
+            "id": "aed52af1-aa86-4348-aef6-e86fc2c97cc5",
+            "name": "Text sample",
+            "value_type": "Text",
+            "value": "A. Brodych"
+          }
         }
       },
       {
-        "FixedValue": {
-          "id": "aed52af1-aa86-4348-aef6-e86fc2c97cc5",
-          "name": "Text sample",
-          "value_type": "Text",
-          "value": "A. Brodych"
-        }
-      },
-      {
-        "Condition": {
-          "id": "e86a2ae3-6486-4941-bee9-b063f3ff0152",
-          "name": "position color",
-          "value_type": "Color",
-          "left": {
-            "value_type": "Boolean",
-            "key": "de909160-f54b-40cf-a987-6a8453df0914"
-          },
-          "right": {
-            "Boolean": [
-              true,
-              "Is"
-            ]
-          },
-          "true_output": {
-            "Color": {
-              "Rgba": {
-                "red": 0.8649127,
-                "green": 0.0,
-                "blue": 0.0,
-                "alpha": 1.0
+        "T": {
+          "Condition": {
+            "id": "e86a2ae3-6486-4941-bee9-b063f3ff0152",
+            "name": "position color",
+            "value_type": "Color",
+            "left": {
+              "value_type": "Boolean",
+              "key": "de909160-f54b-40cf-a987-6a8453df0914"
+            },
+            "right": {
+              "Boolean": [
+                true,
+                "Is"
+              ]
+            },
+            "true_output": {
+              "Color": {
+                "Ref": {
+                  "value_type": "Color",
+                  "key": "3b9c1864-f07f-46ca-aa86-01cba7629860"
+                }
               }
-            }
-          },
-          "false_output": {
-            "Color": {
-              "Rgba": {
-                "red": 0.0,
-                "green": 0.0,
-                "blue": 0.0,
-                "alpha": 1.0
+            },
+            "false_output": {
+              "Color": {
+                "Ref": {
+                  "value_type": "Color",
+                  "key": "e63c62b8-900a-476d-973b-2b0f12fb7b26"
+                }
               }
             }
           }
@@ -97,7 +203,7 @@
       "image": "",
       "pos": {
         "x": 350.0,
-        "y": 56.0,
+        "y": 55.0,
         "z": 0.0
       },
       "size": {
@@ -342,11 +448,9 @@
                   },
                   "text_size": 19.5,
                   "color": {
-                    "Rgba": {
-                      "red": 0.8549,
-                      "green": 0.8549,
-                      "blue": 0.8549,
-                      "alpha": 1.0
+                    "Ref": {
+                      "value_type": "Color",
+                      "key": "e41f142f-2026-4126-9dc4-bed03fecd31e"
                     }
                   },
                   "image": "",
@@ -396,11 +500,9 @@
                   },
                   "text_size": 19.5,
                   "color": {
-                    "Rgba": {
-                      "red": 0.40197778,
-                      "green": 0.40197778,
-                      "blue": 0.40197778,
-                      "alpha": 1.0
+                    "Ref": {
+                      "value_type": "Color",
+                      "key": "ecdfcaf2-d808-4fca-b118-88aee5d1b495"
                     }
                   },
                   "image": "",

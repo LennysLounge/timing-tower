@@ -131,7 +131,7 @@ fn setup(mut commands: Commands, mut set_style_event: EventWriter<SetStyle>) {
     let mut repo = VariableRepo {
         vars: HashMap::new(),
     };
-    repo.reload_repo(&style.vars.vars);
+    repo.reload_repo(style.vars.all_t());
     commands.insert_resource(repo);
 
     commands.insert_resource(EditorState {

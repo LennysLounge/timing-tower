@@ -1,65 +1,19 @@
 use bevy_egui::egui::ComboBox;
 use serde::{Deserialize, Serialize};
-use tree_view::{TreeUi, TreeViewBuilder};
+use tree_view::{DropPosition, TreeUi, TreeViewBuilder};
 use uuid::Uuid;
 
 use crate::variable_repo::{VariableDefinition, VariableId};
 
 use self::{condition::Condition, fixed_value::FixedValue};
 
-use super::{StyleTreeNode, StyleTreeUi, TreeViewAction};
+use super::{
+    folder::{Folder, FolderActions},
+    StyleTreeNode, StyleTreeUi, TreeViewAction,
+};
 
 pub mod condition;
 pub mod fixed_value;
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct Variables {
-    pub id: Uuid,
-    pub vars: Vec<VariableBehavior>,
-}
-
-impl StyleTreeUi for Variables {
-    fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
-        TreeViewBuilder::dir(self.id).show(
-            ui,
-            |ui| {
-                ui.label("Variables");
-            },
-            |ui| {
-                for v in self.vars.iter_mut() {
-                    v.tree_view(ui, actions);
-                }
-            },
-        );
-    }
-}
-
-impl StyleTreeNode for Variables {
-    fn id(&self) -> &Uuid {
-        &self.id
-    }
-
-    fn chidren(&self) -> Vec<&dyn StyleTreeNode> {
-        self.vars.iter().map(|v| v as &dyn StyleTreeNode).collect()
-    }
-
-    fn chidren_mut(&mut self) -> Vec<&mut dyn StyleTreeNode> {
-        self.vars
-            .iter_mut()
-            .map(|v| v as &mut dyn StyleTreeNode)
-            .collect()
-    }
-
-    fn can_insert(&self, _node: &dyn std::any::Any) -> bool {
-        false
-    }
-
-    fn remove(&mut self, _id: &Uuid) -> Option<Box<dyn std::any::Any>> {
-        None
-    }
-
-    fn insert(&mut self, _node: Box<dyn std::any::Any>, _position: &tree_view::DropPosition) {}
-}
 
 #[derive(Serialize, Deserialize, Clone)]
 pub enum VariableBehavior {
@@ -125,9 +79,31 @@ impl StyleTreeUi for VariableBehavior {
         }
     }
 
-    fn tree_view(&mut self, ui: &mut TreeUi, _actions: &mut Vec<TreeViewAction>) {
-        TreeViewBuilder::leaf(self.get_variable_id().id).show(ui, |ui| {
+    fn tree_view(&mut self, tree_ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
+        let res = TreeViewBuilder::leaf(self.get_variable_id().id).show(tree_ui, |ui| {
             ui.label(&self.get_variable_id().name);
+        });
+        res.response.context_menu(|ui| {
+            if ui.button("add variable").clicked() {
+                actions.push(TreeViewAction::Insert {
+                    target: tree_ui.parent_id.unwrap(),
+                    node: Box::new(VariableBehavior::new()),
+                    position: DropPosition::After(*self.id()),
+                });
+                ui.close_menu();
+            }
+            if ui.button("add group").clicked() {
+                actions.push(TreeViewAction::Insert {
+                    target: tree_ui.parent_id.unwrap(),
+                    node: Box::new(Folder::<VariableBehavior>::new()),
+                    position: DropPosition::After(*self.id()),
+                });
+                ui.close_menu();
+            }
+            if ui.button("delete").clicked() {
+                actions.push(TreeViewAction::Remove { node: *self.id() });
+                ui.close_menu();
+            }
         });
     }
 }
@@ -155,7 +131,42 @@ impl StyleTreeNode for VariableBehavior {
 
     fn insert(&mut self, _node: Box<dyn std::any::Any>, _position: &tree_view::DropPosition) {}
 }
+
+impl FolderActions for VariableBehavior {
+    type FolderType = Self;
+
+    fn context_menu(
+        ui: &mut bevy_egui::egui::Ui,
+        folder: &super::folder::Folder<Self::FolderType>,
+        actions: &mut Vec<TreeViewAction>,
+    ) {
+        if ui.button("add variable").clicked() {
+            actions.push(TreeViewAction::Insert {
+                target: *folder.id(),
+                node: Box::new(VariableBehavior::new()),
+                position: DropPosition::First,
+            });
+            ui.close_menu();
+        }
+        if ui.button("add group").clicked() {
+            actions.push(TreeViewAction::Insert {
+                target: *folder.id(),
+                node: Box::new(Folder::<VariableBehavior>::new()),
+                position: DropPosition::First,
+            });
+            ui.close_menu();
+        }
+        if ui.button("delete").clicked() {
+            actions.push(TreeViewAction::Remove { node: *folder.id() });
+            ui.close_menu();
+        }
+    }
+}
+
 impl VariableBehavior {
+    fn new() -> Self {
+        VariableBehavior::FixedValue(FixedValue::default())
+    }
     fn get_id_mut(&mut self) -> &mut VariableId {
         match self {
             VariableBehavior::FixedValue(o) => o.get_id_mut(),

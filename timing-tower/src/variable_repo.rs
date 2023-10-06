@@ -78,7 +78,7 @@ pub struct VariableRepo {
 }
 
 impl VariableRepo {
-    pub fn reload_repo(&mut self, var_defs: &Vec<impl VariableDefinition>) {
+    pub fn reload_repo(&mut self, var_defs: Vec<&impl VariableDefinition>) {
         self.vars.clear();
 
         generate_game_sources(&mut self.vars);

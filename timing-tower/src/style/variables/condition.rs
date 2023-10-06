@@ -7,16 +7,16 @@ use crate::{
     style::properties::{
         reference_editor, BooleanProperty, ColorProperty, NumberProperty, TextProperty,
     },
-    variable_repo::{
-        BooleanSource, ColorSource, NumberSource, Reference, TextSource, ValueType,
-        VariableDefinition, VariableId, VariableRepo, VariableSource,
+    asset_repo::{
+        BooleanSource, ColorSource, NumberSource, Reference, TextSource, AssetType,
+        VariableDefinition, AssetId, AssetRepo, AssetSource,
     },
 };
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Condition {
     #[serde(flatten)]
-    id: VariableId,
+    id: AssetId,
     left: Reference,
     right: RightHandSide,
     true_output: Output,
@@ -71,7 +71,7 @@ impl Default for Condition {
 }
 
 impl VariableDefinition for Condition {
-    fn as_variable_source(&self) -> VariableSource {
+    fn as_variable_source(&self) -> AssetSource {
         let source = ConditionSource {
             comparison: match &self.right {
                 RightHandSide::Number(np, c) => Comparison::Number(NumberComparison {
@@ -94,74 +94,74 @@ impl VariableDefinition for Condition {
             false_value: self.false_output.clone(),
         };
 
-        match self.id.value_type {
-            ValueType::Number => VariableSource::Number(Box::new(source)),
-            ValueType::Text => VariableSource::Text(Box::new(source)),
-            ValueType::Color => VariableSource::Color(Box::new(source)),
-            ValueType::Boolean => VariableSource::Bool(Box::new(source)),
+        match self.id.asset_type {
+            AssetType::Number => AssetSource::Number(Box::new(source)),
+            AssetType::Text => AssetSource::Text(Box::new(source)),
+            AssetType::Color => AssetSource::Color(Box::new(source)),
+            AssetType::Boolean => AssetSource::Bool(Box::new(source)),
         }
     }
 
-    fn get_variable_id(&self) -> &VariableId {
+    fn get_variable_id(&self) -> &AssetId {
         &self.id
     }
 }
 
 impl Condition {
-    pub fn from_id(id: VariableId) -> Self {
+    pub fn from_id(id: AssetId) -> Self {
         Self {
-            true_output: match &id.value_type {
-                ValueType::Number => Output::Number(NumberProperty::Fixed(0.0)),
-                ValueType::Text => Output::Text(TextProperty::Fixed(String::new())),
-                ValueType::Color => Output::Color(ColorProperty::Fixed(Color::WHITE)),
-                ValueType::Boolean => Output::Boolean(BooleanProperty::Fixed(true)),
+            true_output: match &id.asset_type {
+                AssetType::Number => Output::Number(NumberProperty::Fixed(0.0)),
+                AssetType::Text => Output::Text(TextProperty::Fixed(String::new())),
+                AssetType::Color => Output::Color(ColorProperty::Fixed(Color::WHITE)),
+                AssetType::Boolean => Output::Boolean(BooleanProperty::Fixed(true)),
             },
-            false_output: match &id.value_type {
-                ValueType::Number => Output::Number(NumberProperty::Fixed(0.0)),
-                ValueType::Text => Output::Text(TextProperty::Fixed(String::new())),
-                ValueType::Color => Output::Color(ColorProperty::Fixed(Color::WHITE)),
-                ValueType::Boolean => Output::Boolean(BooleanProperty::Fixed(false)),
+            false_output: match &id.asset_type {
+                AssetType::Number => Output::Number(NumberProperty::Fixed(0.0)),
+                AssetType::Text => Output::Text(TextProperty::Fixed(String::new())),
+                AssetType::Color => Output::Color(ColorProperty::Fixed(Color::WHITE)),
+                AssetType::Boolean => Output::Boolean(BooleanProperty::Fixed(false)),
             },
             id,
             ..Default::default()
         }
     }
-    pub fn get_id_mut(&mut self) -> &mut VariableId {
+    pub fn get_id_mut(&mut self) -> &mut AssetId {
         &mut self.id
     }
 
-    pub fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
+    pub fn property_editor(&mut self, ui: &mut Ui, vars: &AssetRepo) {
         ui.horizontal(|ui| {
             ui.label("Output type:");
             ComboBox::new(ui.next_auto_id(), "")
-                .selected_text(match self.id.value_type {
-                    ValueType::Number => "Number",
-                    ValueType::Text => "Text",
-                    ValueType::Color => "Color",
-                    ValueType::Boolean => "Yes/No",
+                .selected_text(match self.id.asset_type {
+                    AssetType::Number => "Number",
+                    AssetType::Text => "Text",
+                    AssetType::Color => "Color",
+                    AssetType::Boolean => "Yes/No",
                 })
                 .show_ui(ui, |ui| {
-                    let is_number = self.id.value_type == ValueType::Number;
+                    let is_number = self.id.asset_type == AssetType::Number;
                     if ui.selectable_label(is_number, "Number").clicked() && !is_number {
-                        self.id.value_type = ValueType::Number;
+                        self.id.asset_type = AssetType::Number;
                         self.true_output = Output::Number(NumberProperty::Fixed(0.0));
                         self.false_output = Output::Number(NumberProperty::Fixed(0.0));
                     }
-                    let is_text = self.id.value_type == ValueType::Text;
+                    let is_text = self.id.asset_type == AssetType::Text;
                     if ui.selectable_label(is_text, "Text").clicked() && !is_text {
-                        self.id.value_type = ValueType::Text;
+                        self.id.asset_type = AssetType::Text;
                         self.true_output = Output::Text(TextProperty::Fixed(String::new()));
                         self.false_output = Output::Text(TextProperty::Fixed(String::new()));
                     }
-                    let is_color = self.id.value_type == ValueType::Color;
+                    let is_color = self.id.asset_type == AssetType::Color;
                     if ui.selectable_label(is_color, "Color").clicked() && !is_color {
-                        self.id.value_type = ValueType::Color;
+                        self.id.asset_type = AssetType::Color;
                         self.true_output = Output::Color(ColorProperty::Fixed(Color::WHITE));
                         self.false_output = Output::Color(ColorProperty::Fixed(Color::WHITE));
                     }
-                    let is_boolean = self.id.value_type == ValueType::Boolean;
+                    let is_boolean = self.id.asset_type == AssetType::Boolean;
                     if ui.selectable_label(is_boolean, "Yes/No").clicked() && !is_boolean {
-                        self.id.value_type = ValueType::Boolean;
+                        self.id.asset_type = AssetType::Boolean;
                         self.true_output = Output::Boolean(BooleanProperty::Fixed(true));
                         self.false_output = Output::Boolean(BooleanProperty::Fixed(false));
                     }
@@ -173,10 +173,10 @@ impl Condition {
             ui.label("If");
             ui.allocate_at_least(Vec2::new(5.0, 0.0), Sense::hover());
             let new_ref = reference_editor(ui, vars, &mut self.left, |v| {
-                return match v.value_type {
-                    ValueType::Number => true,
-                    ValueType::Text => true,
-                    ValueType::Boolean => true,
+                return match v.asset_type {
+                    AssetType::Number => true,
+                    AssetType::Text => true,
+                    AssetType::Boolean => true,
                     _ => false,
                 } && v.id != self.id.id;
             });
@@ -184,19 +184,19 @@ impl Condition {
                 // Channge the value type of the right side if necessary
                 if self.left.value_type != reference.value_type {
                     self.right = match reference.value_type {
-                        ValueType::Number => RightHandSide::Number(
+                        AssetType::Number => RightHandSide::Number(
                             NumberProperty::Fixed(0.0),
                             NumberComparator::Equal,
                         ),
-                        ValueType::Text => RightHandSide::Text(
+                        AssetType::Text => RightHandSide::Text(
                             TextProperty::Fixed(String::new()),
                             TextComparator::Like,
                         ),
-                        ValueType::Boolean => RightHandSide::Boolean(
+                        AssetType::Boolean => RightHandSide::Boolean(
                             BooleanProperty::Fixed(true),
                             BooleanComparator::Is,
                         ),
-                        ValueType::Color => unreachable!(),
+                        AssetType::Color => unreachable!(),
                     }
                 }
                 self.left = reference;
@@ -300,7 +300,7 @@ struct ConditionSource {
 }
 
 impl ConditionSource {
-    fn evaluate_condition(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<bool> {
+    fn evaluate_condition(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<bool> {
         match &self.comparison {
             Comparison::Number(n) => n.evaluate(vars, entry),
             Comparison::Text(t) => t.evaluate(vars, entry),
@@ -310,7 +310,7 @@ impl ConditionSource {
 }
 
 impl NumberSource for ConditionSource {
-    fn resolve(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<f32> {
+    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<f32> {
         let condition = self.evaluate_condition(vars, entry)?;
         if condition {
             match &self.true_value {
@@ -326,7 +326,7 @@ impl NumberSource for ConditionSource {
     }
 }
 impl TextSource for ConditionSource {
-    fn resolve(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<String> {
+    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<String> {
         let condition = self.evaluate_condition(vars, entry)?;
         if condition {
             match &self.true_value {
@@ -342,7 +342,7 @@ impl TextSource for ConditionSource {
     }
 }
 impl ColorSource for ConditionSource {
-    fn resolve(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<Color> {
+    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<Color> {
         let condition = self.evaluate_condition(vars, entry)?;
         if condition {
             match &self.true_value {
@@ -359,7 +359,7 @@ impl ColorSource for ConditionSource {
 }
 
 impl BooleanSource for ConditionSource {
-    fn resolve(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<bool> {
+    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<bool> {
         let condition = self.evaluate_condition(vars, entry)?;
         if condition {
             match &self.true_value {
@@ -388,7 +388,7 @@ struct NumberComparison {
 }
 
 impl NumberComparison {
-    fn evaluate(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<bool> {
+    fn evaluate(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<bool> {
         let left = vars.get_number(&self.left, entry)?;
         let right = vars.get_number_property(&self.right, entry)?;
         Some(match self.comparator {
@@ -408,7 +408,7 @@ struct TextComparison {
 }
 
 impl TextComparison {
-    fn evaluate(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<bool> {
+    fn evaluate(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<bool> {
         let left = vars.get_text(&self.left, entry)?;
         let right = vars.get_text_property(&self.right, entry)?;
         Some(match self.comparator {
@@ -423,7 +423,7 @@ struct BooleanComparison {
     right: BooleanProperty,
 }
 impl BooleanComparison {
-    fn evaluate(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<bool> {
+    fn evaluate(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<bool> {
         let left = vars.get_bool(&self.left, entry)?;
         let right = vars.get_bool_property(&self.right, entry)?;
         Some(match self.comparator {

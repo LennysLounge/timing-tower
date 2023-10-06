@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use tree_view::{DropPosition, TreeUi, TreeViewBuilder};
 use uuid::Uuid;
 
-use crate::variable_repo::{VariableDefinition, VariableId};
+use crate::asset_repo::{AssetId, VariableDefinition};
 
 use self::{condition::Condition, fixed_value::FixedValue};
 
@@ -22,14 +22,14 @@ pub enum VariableBehavior {
 }
 
 impl VariableDefinition for VariableBehavior {
-    fn as_variable_source(&self) -> crate::variable_repo::VariableSource {
+    fn as_variable_source(&self) -> crate::asset_repo::AssetSource {
         match self {
             VariableBehavior::FixedValue(o) => o.as_variable_source(),
             VariableBehavior::Condition(o) => o.as_variable_source(),
         }
     }
 
-    fn get_variable_id(&self) -> &crate::variable_repo::VariableId {
+    fn get_variable_id(&self) -> &crate::asset_repo::AssetId {
         match self {
             VariableBehavior::FixedValue(o) => o.get_variable_id(),
             VariableBehavior::Condition(o) => o.get_variable_id(),
@@ -41,7 +41,7 @@ impl StyleTreeUi for VariableBehavior {
     fn property_editor(
         &mut self,
         ui: &mut bevy_egui::egui::Ui,
-        vars: &crate::variable_repo::VariableRepo,
+        vars: &crate::asset_repo::AssetRepo,
     ) {
         ui.label("Name:");
         ui.text_edit_singleline(&mut self.get_id_mut().name);
@@ -167,7 +167,7 @@ impl VariableBehavior {
     fn new() -> Self {
         VariableBehavior::FixedValue(FixedValue::default())
     }
-    fn get_id_mut(&mut self) -> &mut VariableId {
+    fn get_id_mut(&mut self) -> &mut AssetId {
         match self {
             VariableBehavior::FixedValue(o) => o.get_id_mut(),
             VariableBehavior::Condition(o) => o.get_id_mut(),

@@ -2,7 +2,7 @@ use bevy::prelude::Color;
 use bevy_egui::egui::{self, ComboBox, DragValue, Response, TextEdit, Ui};
 use serde::{Deserialize, Serialize};
 
-use crate::variable_repo::{Reference, ValueType, Variable, VariableId, VariableRepo};
+use crate::asset_repo::{Reference, AssetType, Asset, AssetId, AssetRepo};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub enum NumberProperty {
@@ -46,12 +46,12 @@ pub struct Vec3Property {
 }
 
 impl TextProperty {
-    pub fn editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
+    pub fn editor(&mut self, ui: &mut Ui, vars: &AssetRepo) {
         match self {
             TextProperty::Fixed(t) => {
                 ui.add(TextEdit::singleline(t).desired_width(100.0));
                 let new_reference = reference_editor_small(ui, vars, |v| {
-                    v.value_type.can_cast_to(&ValueType::Text)
+                    v.asset_type.can_cast_to(&AssetType::Text)
                 });
                 if let Some(reference) = new_reference {
                     *self = TextProperty::Ref(reference);
@@ -59,7 +59,7 @@ impl TextProperty {
             }
             TextProperty::Ref(var_ref) => {
                 let new_ref = reference_editor(ui, vars, var_ref, |v| {
-                    v.value_type.can_cast_to(&ValueType::Text)
+                    v.asset_type.can_cast_to(&AssetType::Text)
                 });
                 if let Some(reference) = new_ref {
                     *var_ref = reference;
@@ -73,12 +73,12 @@ impl TextProperty {
 }
 
 impl NumberProperty {
-    pub fn editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
+    pub fn editor(&mut self, ui: &mut Ui, vars: &AssetRepo) {
         match self {
             NumberProperty::Fixed(c) => {
                 ui.add(DragValue::new(c));
                 let new_reference = reference_editor_small(ui, vars, |v| {
-                    v.value_type.can_cast_to(&ValueType::Number)
+                    v.asset_type.can_cast_to(&AssetType::Number)
                 });
                 if let Some(reference) = new_reference {
                     *self = NumberProperty::Ref(reference);
@@ -86,7 +86,7 @@ impl NumberProperty {
             }
             NumberProperty::Ref(var_ref) => {
                 let new_ref = reference_editor(ui, vars, var_ref, |v| {
-                    v.value_type.can_cast_to(&ValueType::Number)
+                    v.asset_type.can_cast_to(&AssetType::Number)
                 });
                 if let Some(reference) = new_ref {
                     *var_ref = reference;
@@ -100,7 +100,7 @@ impl NumberProperty {
 }
 
 impl ColorProperty {
-    pub fn editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
+    pub fn editor(&mut self, ui: &mut Ui, vars: &AssetRepo) {
         match self {
             ColorProperty::Fixed(c) => {
                 let mut color = c.as_rgba_f32();
@@ -108,7 +108,7 @@ impl ColorProperty {
                 *c = color.into();
 
                 let new_reference = reference_editor_small(ui, vars, |v| {
-                    v.value_type.can_cast_to(&ValueType::Color)
+                    v.asset_type.can_cast_to(&AssetType::Color)
                 });
                 if let Some(reference) = new_reference {
                     *self = ColorProperty::Ref(reference);
@@ -116,7 +116,7 @@ impl ColorProperty {
             }
             ColorProperty::Ref(var_ref) => {
                 let new_ref = reference_editor(ui, vars, var_ref, |v| {
-                    v.value_type.can_cast_to(&ValueType::Color)
+                    v.asset_type.can_cast_to(&AssetType::Color)
                 });
                 if let Some(reference) = new_ref {
                     *var_ref = reference;
@@ -130,7 +130,7 @@ impl ColorProperty {
 }
 
 impl BooleanProperty {
-    pub fn editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
+    pub fn editor(&mut self, ui: &mut Ui, vars: &AssetRepo) {
         match self {
             BooleanProperty::Fixed(b) => {
                 ComboBox::from_id_source(ui.next_auto_id())
@@ -144,7 +144,7 @@ impl BooleanProperty {
                         ui.selectable_value(b, false, "No");
                     });
                 let new_reference = reference_editor_small(ui, vars, |v| {
-                    v.value_type.can_cast_to(&ValueType::Boolean)
+                    v.asset_type.can_cast_to(&AssetType::Boolean)
                 });
                 if let Some(reference) = new_reference {
                     *self = BooleanProperty::Ref(reference);
@@ -152,7 +152,7 @@ impl BooleanProperty {
             }
             BooleanProperty::Ref(var_ref) => {
                 let new_ref = reference_editor(ui, vars, var_ref, |v| {
-                    v.value_type.can_cast_to(&ValueType::Color)
+                    v.asset_type.can_cast_to(&AssetType::Color)
                 });
                 if let Some(reference) = new_ref {
                     *var_ref = reference;
@@ -167,9 +167,9 @@ impl BooleanProperty {
 
 pub fn reference_editor(
     ui: &mut Ui,
-    vars: &VariableRepo,
+    vars: &AssetRepo,
     reference: &mut Reference,
-    use_type: impl Fn(&VariableId) -> bool,
+    use_type: impl Fn(&AssetId) -> bool,
 ) -> Option<Reference> {
     let var_name = match vars.get_var_def(reference) {
         Some(def) => def.name.as_str(),
@@ -181,8 +181,8 @@ pub fn reference_editor(
 
 pub fn reference_editor_small(
     ui: &mut Ui,
-    vars: &VariableRepo,
-    use_type: impl Fn(&VariableId) -> bool,
+    vars: &AssetRepo,
+    use_type: impl Fn(&AssetId) -> bool,
 ) -> Option<Reference> {
     let popup_button = ui.button("R");
     reference_popup(ui, &popup_button, vars, use_type)
@@ -191,8 +191,8 @@ pub fn reference_editor_small(
 fn reference_popup(
     ui: &mut Ui,
     button_response: &Response,
-    vars: &VariableRepo,
-    use_type: impl Fn(&VariableId) -> bool,
+    vars: &AssetRepo,
+    use_type: impl Fn(&AssetId) -> bool,
 ) -> Option<Reference> {
     let popup_id = ui.next_auto_id();
     if button_response.clicked() {
@@ -200,8 +200,8 @@ fn reference_popup(
     }
     egui::popup::popup_below_widget(ui, popup_id, &button_response, |ui| {
         ui.set_min_width(200.0);
-        let mut color_vars: Vec<&Variable> =
-            vars.vars.values().filter(|var| use_type(&var.id)).collect();
+        let mut color_vars: Vec<&Asset> =
+            vars.assets.values().filter(|var| use_type(&var.id)).collect();
         color_vars.sort_by(|v1, v2| v1.id.name.cmp(&v2.id.name));
 
         let mut result = None;

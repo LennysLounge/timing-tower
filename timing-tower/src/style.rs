@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use tree_view::{DropAction, DropPosition, TreeUi, TreeViewBuilder};
 use uuid::Uuid;
 
-use crate::variable_repo::VariableRepo;
+use crate::asset_repo::AssetRepo;
 
 use self::{folder::Folder, timing_tower::TimingTower, variables::VariableBehavior};
 
@@ -29,7 +29,7 @@ pub enum TreeViewAction {
 
 pub trait StyleTreeUi {
     #[allow(unused)]
-    fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {}
+    fn property_editor(&mut self, ui: &mut Ui, vars: &AssetRepo) {}
     fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>);
 }
 

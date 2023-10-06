@@ -2,7 +2,7 @@ use bevy::prelude::Color;
 use bevy_egui::egui::{ComboBox, Ui};
 use serde::{Deserialize, Serialize};
 
-use crate::variable_repo::VariableRepo;
+use crate::asset_repo::AssetRepo;
 
 use super::properties::{
     BooleanProperty, ColorProperty, NumberProperty, TextProperty, Vec2Property, Vec3Property,
@@ -83,7 +83,7 @@ impl Default for Cell {
 }
 
 impl Cell {
-    pub fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {
+    pub fn property_editor(&mut self, ui: &mut Ui, vars: &AssetRepo) {
         ui.label("Cell:");
         ui.horizontal(|ui| {
             ui.label("Visible:");

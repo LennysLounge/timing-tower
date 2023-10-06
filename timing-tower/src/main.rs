@@ -25,14 +25,14 @@ use style::{cell::TextAlignment, StyleDefinition};
 
 use timing_tower::{init_timing_tower, TimingTowerPlugin};
 use unified_sim_model::Adapter;
-use variable_repo::VariableRepo;
+use asset_repo::AssetRepo;
 
 mod cell;
 mod editor;
 mod gradient_material;
 mod style;
 mod timing_tower;
-mod variable_repo;
+mod asset_repo;
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
@@ -128,8 +128,8 @@ fn setup(mut commands: Commands, mut set_style_event: EventWriter<SetStyle>) {
     });
 
     commands.insert_resource(style.clone());
-    let mut repo = VariableRepo {
-        vars: HashMap::new(),
+    let mut repo = AssetRepo {
+        assets: HashMap::new(),
     };
     repo.reload_repo(style.vars.all_t());
     commands.insert_resource(repo);

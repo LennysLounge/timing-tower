@@ -18,7 +18,7 @@ use uuid::Uuid;
 
 use crate::{
     style::{StyleDefinition, StyleTreeNode, StyleTreeUi},
-    variable_repo::VariableRepo,
+    asset_repo::AssetRepo,
     MainCamera,
 };
 
@@ -82,7 +82,7 @@ fn run_egui_main(
     mut occupied_space: ResMut<OccupiedSpace>,
     mut state: ResMut<EditorState>,
     mut style: ResMut<StyleDefinition>,
-    mut variable_repo: ResMut<VariableRepo>,
+    mut variable_repo: ResMut<AssetRepo>,
 ) {
     occupied_space.top = egui::TopBottomPanel::top("Top panel")
         .show(ctx.ctx_mut(), |ui| {

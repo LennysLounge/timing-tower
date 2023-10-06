@@ -8,28 +8,28 @@ use uuid::{uuid, Uuid};
 use crate::style::properties::{BooleanProperty, ColorProperty, NumberProperty, TextProperty};
 
 pub trait NumberSource {
-    fn resolve(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<f32>;
+    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<f32>;
 }
 
 pub trait TextSource {
-    fn resolve(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<String>;
+    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<String>;
 }
 
 pub trait ColorSource {
-    fn resolve(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<Color>;
+    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<Color>;
 }
 
 pub trait BooleanSource {
-    fn resolve(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<bool>;
+    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<bool>;
 }
 
 pub trait VariableDefinition {
-    fn as_variable_source(&self) -> VariableSource;
-    fn get_variable_id(&self) -> &VariableId;
+    fn as_variable_source(&self) -> AssetSource;
+    fn get_variable_id(&self) -> &AssetId;
 }
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug, Default)]
-pub enum ValueType {
+pub enum AssetType {
     #[default]
     Number,
     Text,
@@ -39,33 +39,33 @@ pub enum ValueType {
 
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct Reference {
-    pub value_type: ValueType,
+    pub value_type: AssetType,
     pub key: Uuid,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct VariableId {
+pub struct AssetId {
     pub id: Uuid,
     pub name: String,
-    pub value_type: ValueType,
+    pub asset_type: AssetType,
 }
 
-impl Default for VariableId {
+impl Default for AssetId {
     fn default() -> Self {
         Self {
             name: "Variable".to_string(),
             id: Uuid::new_v4(),
-            value_type: ValueType::default(),
+            asset_type: AssetType::default(),
         }
     }
 }
 
-pub struct Variable {
-    pub id: VariableId,
-    pub source: VariableSource,
+pub struct Asset {
+    pub id: AssetId,
+    pub source: AssetSource,
 }
 
-pub enum VariableSource {
+pub enum AssetSource {
     Number(Box<dyn NumberSource + Send + Sync>),
     Text(Box<dyn TextSource + Send + Sync>),
     Color(Box<dyn ColorSource + Send + Sync>),
@@ -73,20 +73,20 @@ pub enum VariableSource {
 }
 
 #[derive(Resource)]
-pub struct VariableRepo {
-    pub vars: HashMap<Uuid, Variable>,
+pub struct AssetRepo {
+    pub assets: HashMap<Uuid, Asset>,
 }
 
-impl VariableRepo {
+impl AssetRepo {
     pub fn reload_repo(&mut self, var_defs: Vec<&impl VariableDefinition>) {
-        self.vars.clear();
+        self.assets.clear();
 
-        generate_game_sources(&mut self.vars);
+        generate_game_sources(&mut self.assets);
 
         for var_def in var_defs {
-            self.vars.insert(
+            self.assets.insert(
                 var_def.get_variable_id().id.clone(),
-                Variable {
+                Asset {
                     id: var_def.get_variable_id().clone(),
                     source: var_def.as_variable_source(),
                 },
@@ -94,29 +94,29 @@ impl VariableRepo {
         }
     }
 
-    pub fn get_var_def(&self, reference: &Reference) -> Option<&VariableId> {
-        self.vars.get(&reference.key).map(|v| &v.id)
+    pub fn get_var_def(&self, reference: &Reference) -> Option<&AssetId> {
+        self.assets.get(&reference.key).map(|v| &v.id)
     }
 
     pub fn get_number(&self, reference: &Reference, entry: Option<&Entry>) -> Option<f32> {
-        self.vars
+        self.assets
             .get(&reference.key)
             .and_then(|v| v.source.resolve_number(self, entry))
     }
 
     pub fn get_text(&self, reference: &Reference, entry: Option<&Entry>) -> Option<String> {
-        self.vars
+        self.assets
             .get(&reference.key)
             .and_then(|v| v.source.resolve_text(self, entry))
     }
 
     pub fn get_color(&self, reference: &Reference, entry: Option<&Entry>) -> Option<Color> {
-        self.vars
+        self.assets
             .get(&reference.key)
             .and_then(|v| v.source.resolve_color(self, entry))
     }
     pub fn get_bool(&self, reference: &Reference, entry: Option<&Entry>) -> Option<bool> {
-        self.vars
+        self.assets
             .get(&reference.key)
             .and_then(|v| v.source.resolve_bool(self, entry))
     }
@@ -166,50 +166,50 @@ impl VariableRepo {
     }
 }
 
-impl VariableSource {
-    pub fn resolve_number(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<f32> {
+impl AssetSource {
+    pub fn resolve_number(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<f32> {
         match self {
-            VariableSource::Number(s) => s.resolve(vars, entry),
+            AssetSource::Number(s) => s.resolve(vars, entry),
             _ => None,
         }
     }
 
-    pub fn resolve_text(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<String> {
+    pub fn resolve_text(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<String> {
         match self {
-            VariableSource::Text(s) => s.resolve(vars, entry),
-            VariableSource::Number(s) => s.resolve(vars, entry).map(|n| format!("{n}")),
+            AssetSource::Text(s) => s.resolve(vars, entry),
+            AssetSource::Number(s) => s.resolve(vars, entry).map(|n| format!("{n}")),
             _ => None,
         }
     }
 
-    pub fn resolve_color(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<Color> {
+    pub fn resolve_color(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<Color> {
         match self {
-            VariableSource::Color(s) => s.resolve(vars, entry),
+            AssetSource::Color(s) => s.resolve(vars, entry),
             _ => None,
         }
     }
-    pub fn resolve_bool(&self, vars: &VariableRepo, entry: Option<&Entry>) -> Option<bool> {
+    pub fn resolve_bool(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<bool> {
         match self {
-            VariableSource::Bool(s) => s.resolve(vars, entry),
+            AssetSource::Bool(s) => s.resolve(vars, entry),
             _ => None,
         }
     }
 }
 
-impl Variable {
+impl Asset {
     pub fn get_ref(&self) -> Reference {
         Reference {
-            value_type: self.id.value_type.clone(),
+            value_type: self.id.asset_type.clone(),
             key: self.id.id.clone(),
         }
     }
 }
 
-impl ValueType {
-    pub fn can_cast_to(&self, other: &ValueType) -> bool {
+impl AssetType {
+    pub fn can_cast_to(&self, other: &AssetType) -> bool {
         match (self, other) {
             (ref a, ref b) if a == b => true,
-            (ValueType::Number, ValueType::Text) => true,
+            (AssetType::Number, AssetType::Text) => true,
             _ => false,
         }
     }
@@ -222,27 +222,27 @@ impl ValueType {
 
 pub struct StaticNumber(pub f32);
 impl NumberSource for StaticNumber {
-    fn resolve(&self, _vars: &VariableRepo, _entry: Option<&Entry>) -> Option<f32> {
+    fn resolve(&self, _vars: &AssetRepo, _entry: Option<&Entry>) -> Option<f32> {
         Some(self.0)
     }
 }
 
 pub struct StaticText(pub String);
 impl TextSource for StaticText {
-    fn resolve(&self, _vars: &VariableRepo, _entry: Option<&Entry>) -> Option<String> {
+    fn resolve(&self, _vars: &AssetRepo, _entry: Option<&Entry>) -> Option<String> {
         Some(self.0.clone())
     }
 }
 
 pub struct StaticColor(pub Color);
 impl ColorSource for StaticColor {
-    fn resolve(&self, _vars: &VariableRepo, _entry: Option<&Entry>) -> Option<Color> {
+    fn resolve(&self, _vars: &AssetRepo, _entry: Option<&Entry>) -> Option<Color> {
         Some(self.0)
     }
 }
 pub struct StaticBoolean(pub bool);
 impl BooleanSource for StaticBoolean {
-    fn resolve(&self, _vars: &VariableRepo, _entry: Option<&Entry>) -> Option<bool> {
+    fn resolve(&self, _vars: &AssetRepo, _entry: Option<&Entry>) -> Option<bool> {
         Some(self.0)
     }
 }
@@ -251,7 +251,7 @@ pub struct GameNumberSource {
     extractor: fn(Option<&Entry>) -> Option<f32>,
 }
 impl NumberSource for GameNumberSource {
-    fn resolve(&self, _vars: &VariableRepo, entry: Option<&Entry>) -> Option<f32> {
+    fn resolve(&self, _vars: &AssetRepo, entry: Option<&Entry>) -> Option<f32> {
         (self.extractor)(entry)
     }
 }
@@ -260,7 +260,7 @@ pub struct GameTextSource {
     extractor: fn(Option<&Entry>) -> Option<String>,
 }
 impl TextSource for GameTextSource {
-    fn resolve(&self, _vars: &VariableRepo, entry: Option<&Entry>) -> Option<String> {
+    fn resolve(&self, _vars: &AssetRepo, entry: Option<&Entry>) -> Option<String> {
         (self.extractor)(entry)
     }
 }
@@ -269,32 +269,31 @@ pub struct GameBooleanSource {
     extractor: fn(Option<&Entry>) -> Option<bool>,
 }
 impl BooleanSource for GameBooleanSource {
-    fn resolve(&self, _vars: &VariableRepo, entry: Option<&Entry>) -> Option<bool> {
+    fn resolve(&self, _vars: &AssetRepo, entry: Option<&Entry>) -> Option<bool> {
         (self.extractor)(entry)
     }
 }
 
-fn generate_game_sources(vars: &mut HashMap<Uuid, Variable>) {
-    let mut make_source =
-        |uuid: Uuid, name: &str, value_type: ValueType, source: VariableSource| {
-            vars.insert(
-                uuid.clone(),
-                Variable {
-                    id: VariableId {
-                        id: uuid,
-                        name: name.to_string(),
-                        value_type,
-                    },
-                    source,
+fn generate_game_sources(vars: &mut HashMap<Uuid, Asset>) {
+    let mut make_source = |uuid: Uuid, name: &str, value_type: AssetType, source: AssetSource| {
+        vars.insert(
+            uuid.clone(),
+            Asset {
+                id: AssetId {
+                    id: uuid,
+                    name: name.to_string(),
+                    asset_type: value_type,
                 },
-            )
-        };
+                source,
+            },
+        )
+    };
 
     make_source(
         uuid!("6330a6bb-51d1-4af7-9bd0-efeb00b1ff52"),
         "Position",
-        ValueType::Number,
-        VariableSource::Number(Box::new(GameNumberSource {
+        AssetType::Number,
+        AssetSource::Number(Box::new(GameNumberSource {
             extractor: |entry| entry.map(|e| *e.position as f32),
         })),
     );
@@ -302,8 +301,8 @@ fn generate_game_sources(vars: &mut HashMap<Uuid, Variable>) {
     make_source(
         uuid!("171d7438-3179-4c70-b818-811cf86d514e"),
         "Car number",
-        ValueType::Number,
-        VariableSource::Number(Box::new(GameNumberSource {
+        AssetType::Number,
+        AssetSource::Number(Box::new(GameNumberSource {
             extractor: |entry| entry.map(|e| *e.car_number as f32),
         })),
     );
@@ -311,8 +310,8 @@ fn generate_game_sources(vars: &mut HashMap<Uuid, Variable>) {
     make_source(
         uuid!("8abcf9d5-60f7-4886-a716-139d62ad83ac"),
         "Driver name",
-        ValueType::Text,
-        VariableSource::Text(Box::new(GameTextSource {
+        AssetType::Text,
+        AssetSource::Text(Box::new(GameTextSource {
             extractor: |entry| {
                 entry.and_then(|e| {
                     e.drivers.get(&e.current_driver).map(|driver| {
@@ -330,8 +329,8 @@ fn generate_game_sources(vars: &mut HashMap<Uuid, Variable>) {
     make_source(
         uuid!("de909160-f54b-40cf-a987-6a8453df0914"),
         "Is focused",
-        ValueType::Boolean,
-        VariableSource::Bool(Box::new(GameBooleanSource {
+        AssetType::Boolean,
+        AssetSource::Bool(Box::new(GameBooleanSource {
             extractor: |entry| entry.map(|e| e.focused),
         })),
     );
@@ -339,8 +338,8 @@ fn generate_game_sources(vars: &mut HashMap<Uuid, Variable>) {
     make_source(
         uuid!("c16f71b9-dcc9-4f04-9579-ea5211fa99be"),
         "Is in pits",
-        ValueType::Boolean,
-        VariableSource::Bool(Box::new(GameBooleanSource {
+        AssetType::Boolean,
+        AssetSource::Bool(Box::new(GameBooleanSource {
             extractor: |entry| entry.map(|e| *e.in_pits),
         })),
     );

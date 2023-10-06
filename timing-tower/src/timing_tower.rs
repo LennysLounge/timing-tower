@@ -16,7 +16,7 @@ use unified_sim_model::{
 use crate::{
     cell::{init_cell, CellStyle, SetStyle},
     style::{cell::Cell, StyleDefinition},
-    variable_repo::VariableRepo,
+    asset_repo::AssetRepo,
     MainCamera, SpawnAndInitWorld,
 };
 
@@ -80,7 +80,7 @@ pub fn init_timing_tower(adapter: Adapter) -> impl EntityCommand {
 pub fn update_tower(
     main_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
     elements: Res<StyleDefinition>,
-    variables: Res<VariableRepo>,
+    variables: Res<AssetRepo>,
     mut towers: Query<(Entity, &TimingTower), With<TimingTower>>,
     mut set_style_event: EventWriter<SetStyle>,
 ) {
@@ -116,7 +116,7 @@ fn update_table(
     tables: Query<(Entity, &Table)>,
     towers: Query<&TimingTower>,
     elements: Res<StyleDefinition>,
-    variables: Res<VariableRepo>,
+    variables: Res<AssetRepo>,
     mut set_style_event: EventWriter<SetStyle>,
 ) {
     for (table_id, table) in tables.iter() {
@@ -149,7 +149,7 @@ fn update_table(
 fn update_rows(
     towers: Query<&TimingTower>,
     elements: Res<StyleDefinition>,
-    variables: Res<VariableRepo>,
+    variables: Res<AssetRepo>,
     mut tables: Query<(Entity, &mut Table)>,
     mut commands: Commands,
     mut set_style_event: EventWriter<SetStyle>,
@@ -236,7 +236,7 @@ fn update_columns(
     rows: Query<&Row>,
     towers: Query<&TimingTower>,
     elements: Res<StyleDefinition>,
-    variables: Res<VariableRepo>,
+    variables: Res<AssetRepo>,
     mut set_style_event: EventWriter<SetStyle>,
 ) {
     for row in rows.iter() {
@@ -271,7 +271,7 @@ fn update_columns(
     }
 }
 
-fn create_cell_style(cell: &Cell, vars: &VariableRepo, entry: Option<&Entry>) -> CellStyle {
+fn create_cell_style(cell: &Cell, vars: &AssetRepo, entry: Option<&Entry>) -> CellStyle {
     // let text = match &cell.value_source {
     //     ValueSource::FixedValue(s) => s.clone(),
     //     ValueSource::DriverName => {

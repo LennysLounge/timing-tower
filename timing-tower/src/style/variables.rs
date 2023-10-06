@@ -144,7 +144,7 @@ impl FolderActions for VariableBehavior {
             actions.push(TreeViewAction::Insert {
                 target: *folder.id(),
                 node: Box::new(VariableBehavior::new()),
-                position: DropPosition::First,
+                position: DropPosition::Last,
             });
             ui.close_menu();
         }
@@ -152,7 +152,7 @@ impl FolderActions for VariableBehavior {
             actions.push(TreeViewAction::Insert {
                 target: *folder.id(),
                 node: Box::new(Folder::<VariableBehavior>::new()),
-                position: DropPosition::First,
+                position: DropPosition::Last,
             });
             ui.close_menu();
         }

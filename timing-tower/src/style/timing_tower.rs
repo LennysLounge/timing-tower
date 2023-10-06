@@ -282,7 +282,7 @@ impl FolderActions for TimingTowerColumn {
             actions.push(TreeViewAction::Insert {
                 target: *folder.id(),
                 node: Box::new(TimingTowerColumn::new()),
-                position: DropPosition::First,
+                position: DropPosition::Last,
             });
             ui.close_menu();
         }
@@ -290,7 +290,7 @@ impl FolderActions for TimingTowerColumn {
             actions.push(TreeViewAction::Insert {
                 target: *folder.id(),
                 node: Box::new(Folder::<TimingTowerColumn>::new()),
-                position: DropPosition::First,
+                position: DropPosition::Last,
             });
             ui.close_menu();
         }

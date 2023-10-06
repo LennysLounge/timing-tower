@@ -3,7 +3,7 @@ use std::any::Any;
 use bevy::prelude::Resource;
 use bevy_egui::egui::Ui;
 use serde::{Deserialize, Serialize};
-use tree_view::{DropPosition, TreeUi};
+use tree_view::{DropAction, DropPosition, TreeUi};
 use uuid::Uuid;
 
 use crate::variable_repo::VariableRepo;
@@ -40,16 +40,9 @@ pub trait StyleTreeNode: StyleTreeNodeConversions + StyleTreeUi {
     fn chidren(&self) -> Vec<&dyn StyleTreeNode>;
     fn chidren_mut(&mut self) -> Vec<&mut dyn StyleTreeNode>;
 
-    #[allow(unused)]
-    fn can_insert(&self, node: &dyn Any) -> bool {
-        false
-    }
-    #[allow(unused)]
-    fn remove(&mut self, id: &Uuid) -> Option<Box<dyn Any>> {
-        None
-    }
-    #[allow(unused)]
-    fn insert(&mut self, node: Box<dyn Any>, position: DropPosition) {}
+    fn can_insert(&self, node: &dyn Any) -> bool;
+    fn remove(&mut self, id: &Uuid) -> Option<Box<dyn Any>>;
+    fn insert(&mut self, node: Box<dyn Any>, position: &DropPosition);
 
     fn find_mut(&mut self, id: &Uuid) -> Option<&mut dyn StyleTreeNode> {
         self.chidren_mut().into_iter().find_map(|c| {
@@ -101,5 +94,41 @@ impl StyleTreeNode for StyleDefinition {
 
     fn chidren_mut(&mut self) -> Vec<&mut dyn StyleTreeNode> {
         vec![&mut self.vars, &mut self.timing_tower]
+    }
+
+    fn can_insert(&self, _node: &dyn Any) -> bool {
+        false
+    }
+
+    fn remove(&mut self, _id: &Uuid) -> Option<Box<dyn Any>> {
+        None
+    }
+
+    fn insert(&mut self, _node: Box<dyn Any>, _position: &DropPosition) {}
+}
+
+impl StyleDefinition {
+    pub fn can_drop(&self, drop_action: &DropAction) -> bool {
+        let dragged = self.find(&drop_action.dragged_node);
+        let target = self.find(&drop_action.target_node);
+        if let (Some(dragged), Some(target)) = (dragged, target) {
+            target.can_insert(dragged.as_any())
+        } else {
+            false
+        }
+    }
+
+    pub fn perform_drop(&mut self, drop_action: &DropAction) {
+        if !self.can_drop(drop_action) {
+            return;
+        };
+
+        let dragged = self
+            .find_parent_of(&drop_action.dragged_node)
+            .and_then(|parent| parent.remove(&drop_action.dragged_node));
+        let target = self.find_mut(&drop_action.target_node);
+        if let (Some(dragged), Some(target)) = (dragged, target) {
+            target.insert(dragged, &drop_action.position);
+        }
     }
 }

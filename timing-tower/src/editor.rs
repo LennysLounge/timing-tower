@@ -107,36 +107,36 @@ fn run_egui_main(
             state.selected_node = res.selected;
 
             // Set the curso to no drop to show if the drop is not allowed
-            if let Some(hovered) = res.hovered {
-                let dragged_node = style.find(&hovered.dragged_node);
-                let hovered_node = style.find(&hovered.target_node);
-                if let (Some(dragged_node), Some(hovered_node)) = (dragged_node, hovered_node) {
-                    if !hovered_node.can_insert(dragged_node.as_any()) {
-                        ui.ctx().set_cursor_icon(egui::CursorIcon::NoDrop);
-                    }
+            if let Some(hovered_action) = &res.hovered {
+                if !style.can_drop(hovered_action) {
+                    ui.ctx().set_cursor_icon(egui::CursorIcon::NoDrop);
                 }
             }
+
             // perform the drop action.
-            if let Some(dropped) = res.dropped {
-                let can_drop = style
-                    .find(&dropped.dragged_node)
-                    .and_then(|drop| {
-                        style
-                            .find(&dropped.target_node)
-                            .map(|target| (drop, target))
-                    })
-                    .map(|(drop, target)| target.can_insert(drop.as_any()))
-                    .unwrap_or(false);
-                if can_drop {
-                    let node = style
-                        .find_parent_of(&dropped.dragged_node)
-                        .and_then(|n| n.remove(&dropped.dragged_node));
-                    let target = style.find_mut(&dropped.target_node);
-                    if let (Some(node), Some(target)) = (node, target) {
-                        target.insert(node, dropped.position);
-                    }
-                }
+            if let Some(drop_action) = &res.dropped {
+                style.perform_drop(drop_action);
             }
+            // if let Some(dropped) = res.dropped {
+            //     let can_drop = style
+            //         .find(&dropped.dragged_node)
+            //         .and_then(|drop| {
+            //             style
+            //                 .find(&dropped.target_node)
+            //                 .map(|target| (drop, target))
+            //         })
+            //         .map(|(drop, target)| target.can_insert(drop.as_any()))
+            //         .unwrap_or(false);
+            //     if can_drop {
+            //         let node = style
+            //             .find_parent_of(&dropped.dragged_node)
+            //             .and_then(|n| n.remove(&dropped.dragged_node));
+            //         let target = style.find_mut(&dropped.target_node);
+            //         if let (Some(node), Some(target)) = (node, target) {
+            //             target.insert(node, dropped.position);
+            //         }
+            //     }
+            // }
 
             ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());
         })

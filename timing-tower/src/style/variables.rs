@@ -49,6 +49,16 @@ impl StyleTreeNode for Variables {
             .map(|v| v as &mut dyn StyleTreeNode)
             .collect()
     }
+
+    fn can_insert(&self, _node: &dyn std::any::Any) -> bool {
+        false
+    }
+
+    fn remove(&mut self, _id: &Uuid) -> Option<Box<dyn std::any::Any>> {
+        None
+    }
+
+    fn insert(&mut self, _node: Box<dyn std::any::Any>, _position: &tree_view::DropPosition) {}
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -134,6 +144,16 @@ impl StyleTreeNode for VariableBehavior {
     fn chidren_mut(&mut self) -> Vec<&mut dyn StyleTreeNode> {
         Vec::new()
     }
+
+    fn can_insert(&self, _node: &dyn std::any::Any) -> bool {
+        false
+    }
+
+    fn remove(&mut self, _id: &Uuid) -> Option<Box<dyn std::any::Any>> {
+        None
+    }
+
+    fn insert(&mut self, _node: Box<dyn std::any::Any>, _position: &tree_view::DropPosition) {}
 }
 impl VariableBehavior {
     fn get_id_mut(&mut self) -> &mut VariableId {

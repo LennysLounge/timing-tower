@@ -46,6 +46,16 @@ impl StyleTreeNode for TimingTower {
     fn chidren_mut(&mut self) -> Vec<&mut dyn StyleTreeNode> {
         vec![&mut self.table]
     }
+
+    fn can_insert(&self, _node: &dyn Any) -> bool {
+        false
+    }
+
+    fn remove(&mut self, _id: &Uuid) -> Option<Box<dyn Any>> {
+        None
+    }
+
+    fn insert(&mut self, _node: Box<dyn Any>, _position: &DropPosition) {}
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -96,6 +106,16 @@ impl StyleTreeNode for TimingTowerTable {
     fn chidren_mut(&mut self) -> Vec<&mut dyn StyleTreeNode> {
         vec![&mut self.row]
     }
+
+    fn can_insert(&self, _node: &dyn Any) -> bool {
+        false
+    }
+
+    fn remove(&mut self, _id: &Uuid) -> Option<Box<dyn Any>> {
+        None
+    }
+
+    fn insert(&mut self, _node: Box<dyn Any>, _position: &DropPosition) {}
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -157,7 +177,7 @@ impl StyleTreeNode for TimingTowerRow {
         }
     }
 
-    fn insert(&mut self, node: Box<dyn Any>, position: DropPosition) {
+    fn insert(&mut self, node: Box<dyn Any>, position: &DropPosition) {
         if let Ok(column) = node.downcast::<TimingTowerColumn>() {
             match position {
                 DropPosition::First => self.columns.insert(0, *column),
@@ -166,7 +186,7 @@ impl StyleTreeNode for TimingTowerRow {
                     let pos = self
                         .columns
                         .iter()
-                        .position(|c| c.id == id)
+                        .position(|c| &c.id == id)
                         .unwrap_or(self.columns.len());
                     self.columns.insert(pos + 1, *column);
                 }
@@ -174,7 +194,7 @@ impl StyleTreeNode for TimingTowerRow {
                     let pos = self
                         .columns
                         .iter()
-                        .position(|c| c.id == id)
+                        .position(|c| &c.id == id)
                         .unwrap_or(self.columns.len());
                     self.columns.insert(pos, *column);
                 }
@@ -217,4 +237,14 @@ impl StyleTreeNode for TimingTowerColumn {
     fn chidren_mut(&mut self) -> Vec<&mut dyn StyleTreeNode> {
         Vec::new()
     }
+
+    fn can_insert(&self, _node: &dyn Any) -> bool {
+        false
+    }
+
+    fn remove(&mut self, _id: &Uuid) -> Option<Box<dyn Any>> {
+        None
+    }
+
+    fn insert(&mut self, _node: Box<dyn Any>, _position: &DropPosition) {}
 }

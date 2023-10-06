@@ -2,7 +2,7 @@ use bevy::prelude::Color;
 use bevy_egui::egui::{ComboBox, Ui};
 use serde::{Deserialize, Serialize};
 
-use crate::asset_repo::AssetRepo;
+use crate::asset_reference_repo::AssetReferenceRepo;
 
 use super::properties::{
     BooleanProperty, ColorProperty, NumberProperty, TextProperty, Vec2Property, Vec3Property,
@@ -83,23 +83,23 @@ impl Default for Cell {
 }
 
 impl Cell {
-    pub fn property_editor(&mut self, ui: &mut Ui, vars: &AssetRepo) {
+    pub fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) {
         ui.label("Cell:");
         ui.horizontal(|ui| {
             ui.label("Visible:");
-            self.visible.editor(ui, vars);
+            self.visible.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Text:");
-            self.text.editor(ui, vars);
+            self.text.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Text color:");
-            self.text_color.editor(ui, vars);
+            self.text_color.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Text size:");
-            self.text_size.editor(ui, vars);
+            self.text_size.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Text alginment:");
@@ -117,60 +117,60 @@ impl Cell {
         });
         ui.horizontal(|ui| {
             ui.label("Text pos x:");
-            self.text_position.x.editor(ui, vars);
+            self.text_position.x.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Text pos y:");
-            self.text_position.y.editor(ui, vars);
+            self.text_position.y.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Background color:");
-            self.color.editor(ui, vars);
+            self.color.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Background image:");
-            self.image.editor(ui, vars);
+            self.image.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Pos x:");
-            self.pos.x.editor(ui, vars);
+            self.pos.x.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Pos y:");
-            self.pos.y.editor(ui, vars);
+            self.pos.y.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Pos z:");
-            self.pos.z.editor(ui, vars);
+            self.pos.z.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Width:");
-            self.size.x.editor(ui, vars);
+            self.size.x.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Height:");
-            self.size.y.editor(ui, vars);
+            self.size.y.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Skew:");
-            self.skew.editor(ui, vars);
+            self.skew.editor(ui, asset_repo);
         });
         ui.label("Rounding:");
         ui.horizontal(|ui| {
             ui.label("top left:");
-            self.rounding.top_left.editor(ui, vars);
+            self.rounding.top_left.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("top right:");
-            self.rounding.top_right.editor(ui, vars);
+            self.rounding.top_right.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("bottom right:");
-            self.rounding.bot_right.editor(ui, vars);
+            self.rounding.bot_right.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("bottom left:");
-            self.rounding.bot_left.editor(ui, vars);
+            self.rounding.bot_left.editor(ui, asset_repo);
         });
     }
 }

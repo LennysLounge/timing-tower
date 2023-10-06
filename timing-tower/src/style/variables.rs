@@ -3,7 +3,10 @@ use serde::{Deserialize, Serialize};
 use tree_view::{DropPosition, TreeUi, TreeViewBuilder};
 use uuid::Uuid;
 
-use crate::asset_repo::{AssetId, VariableDefinition};
+use crate::{
+    asset_reference_repo::AssetReferenceRepo,
+    asset_repo::{AssetId, VariableDefinition},
+};
 
 use self::{condition::Condition, fixed_value::FixedValue};
 
@@ -41,7 +44,7 @@ impl StyleTreeUi for VariableBehavior {
     fn property_editor(
         &mut self,
         ui: &mut bevy_egui::egui::Ui,
-        vars: &crate::asset_repo::AssetRepo,
+        asset_repo: &AssetReferenceRepo,
     ) {
         ui.label("Name:");
         ui.text_edit_singleline(&mut self.get_id_mut().name);
@@ -75,7 +78,7 @@ impl StyleTreeUi for VariableBehavior {
         ui.separator();
         match self {
             VariableBehavior::FixedValue(o) => o.property_editor(ui),
-            VariableBehavior::Condition(o) => o.property_editor(ui, vars),
+            VariableBehavior::Condition(o) => o.property_editor(ui, asset_repo),
         }
     }
 

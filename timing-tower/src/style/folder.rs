@@ -5,15 +5,15 @@ use serde::{Deserialize, Serialize};
 use tree_view::{DropPosition, TreeUi, TreeViewBuilder};
 use uuid::Uuid;
 
-use crate::asset_repo::AssetRepo;
+use crate::asset_reference_repo::AssetReferenceRepo;
 
 use super::{StyleTreeNode, StyleTreeUi, TreeViewAction};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Folder<T: StyleTreeNode> {
-    id: Uuid,
-    name: String,
-    content: Vec<FolderOrT<T>>,
+    pub id: Uuid,
+    pub name: String,
+    pub content: Vec<FolderOrT<T>>,
 }
 
 pub trait FolderActions {
@@ -45,7 +45,7 @@ impl<T: StyleTreeNode + FolderActions<FolderType = T>> StyleTreeUi for Folder<T>
         });
     }
 
-    fn property_editor(&mut self, ui: &mut Ui, _vars: &AssetRepo) {
+    fn property_editor(&mut self, ui: &mut Ui, _asset_repo: &AssetReferenceRepo) {
         ui.label("Name:");
         ui.text_edit_singleline(&mut self.name);
     }
@@ -147,7 +147,7 @@ impl<T: StyleTreeNode + FolderActions<FolderType = T>> Folder<T> {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
-enum FolderOrT<T: StyleTreeNode> {
+pub enum FolderOrT<T: StyleTreeNode> {
     T(T),
     Folder(Folder<T>),
 }
@@ -159,10 +159,10 @@ impl<T: StyleTreeNode + FolderActions<FolderType = T>> StyleTreeUi for FolderOrT
         }
     }
 
-    fn property_editor(&mut self, ui: &mut Ui, vars: &AssetRepo) {
+    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) {
         match self {
-            FolderOrT::T(o) => o.property_editor(ui, vars),
-            FolderOrT::Folder(o) => o.property_editor(ui, vars),
+            FolderOrT::T(o) => o.property_editor(ui, asset_repo),
+            FolderOrT::Folder(o) => o.property_editor(ui, asset_repo),
         }
     }
 }

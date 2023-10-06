@@ -38,8 +38,8 @@ pub enum AssetType {
 }
 
 #[derive(Serialize, Deserialize, Clone, Default)]
-pub struct Reference {
-    pub value_type: AssetType,
+pub struct AssetReference {
+    pub asset_type: AssetType,
     pub key: Uuid,
 }
 
@@ -56,6 +56,14 @@ impl Default for AssetId {
             name: "Variable".to_string(),
             id: Uuid::new_v4(),
             asset_type: AssetType::default(),
+        }
+    }
+}
+impl AssetId {
+    pub fn get_ref(&self) -> AssetReference {
+        AssetReference {
+            asset_type: self.asset_type.clone(),
+            key: self.id.clone(),
         }
     }
 }
@@ -94,28 +102,24 @@ impl AssetRepo {
         }
     }
 
-    pub fn get_var_def(&self, reference: &Reference) -> Option<&AssetId> {
-        self.assets.get(&reference.key).map(|v| &v.id)
-    }
-
-    pub fn get_number(&self, reference: &Reference, entry: Option<&Entry>) -> Option<f32> {
+    pub fn get_number(&self, reference: &AssetReference, entry: Option<&Entry>) -> Option<f32> {
         self.assets
             .get(&reference.key)
             .and_then(|v| v.source.resolve_number(self, entry))
     }
 
-    pub fn get_text(&self, reference: &Reference, entry: Option<&Entry>) -> Option<String> {
+    pub fn get_text(&self, reference: &AssetReference, entry: Option<&Entry>) -> Option<String> {
         self.assets
             .get(&reference.key)
             .and_then(|v| v.source.resolve_text(self, entry))
     }
 
-    pub fn get_color(&self, reference: &Reference, entry: Option<&Entry>) -> Option<Color> {
+    pub fn get_color(&self, reference: &AssetReference, entry: Option<&Entry>) -> Option<Color> {
         self.assets
             .get(&reference.key)
             .and_then(|v| v.source.resolve_color(self, entry))
     }
-    pub fn get_bool(&self, reference: &Reference, entry: Option<&Entry>) -> Option<bool> {
+    pub fn get_bool(&self, reference: &AssetReference, entry: Option<&Entry>) -> Option<bool> {
         self.assets
             .get(&reference.key)
             .and_then(|v| v.source.resolve_bool(self, entry))
@@ -196,21 +200,20 @@ impl AssetSource {
     }
 }
 
-impl Asset {
-    pub fn get_ref(&self) -> Reference {
-        Reference {
-            value_type: self.id.asset_type.clone(),
-            key: self.id.id.clone(),
-        }
-    }
-}
-
 impl AssetType {
     pub fn can_cast_to(&self, other: &AssetType) -> bool {
         match (self, other) {
             (ref a, ref b) if a == b => true,
             (AssetType::Number, AssetType::Text) => true,
             _ => false,
+        }
+    }
+    pub fn name(&self) -> &str {
+        match self {
+            AssetType::Number => "Number",
+            AssetType::Text => "Text",
+            AssetType::Color => "Color",
+            AssetType::Boolean => "Boolean",
         }
     }
 }

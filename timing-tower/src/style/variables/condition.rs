@@ -4,20 +4,19 @@ use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 
 use crate::{
-    style::properties::{
-        reference_editor, BooleanProperty, ColorProperty, NumberProperty, TextProperty,
-    },
+    asset_reference_repo::AssetReferenceRepo,
     asset_repo::{
-        BooleanSource, ColorSource, NumberSource, Reference, TextSource, AssetType,
-        VariableDefinition, AssetId, AssetRepo, AssetSource,
+        AssetId, AssetReference, AssetRepo, AssetSource, AssetType, BooleanSource, ColorSource,
+        NumberSource, TextSource, VariableDefinition,
     },
+    style::properties::{BooleanProperty, ColorProperty, NumberProperty, TextProperty},
 };
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Condition {
     #[serde(flatten)]
     id: AssetId,
-    left: Reference,
+    left: AssetReference,
     right: RightHandSide,
     true_output: Output,
     false_output: Output,
@@ -130,7 +129,7 @@ impl Condition {
         &mut self.id
     }
 
-    pub fn property_editor(&mut self, ui: &mut Ui, vars: &AssetRepo) {
+    pub fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) {
         ui.horizontal(|ui| {
             ui.label("Output type:");
             ComboBox::new(ui.next_auto_id(), "")
@@ -172,7 +171,7 @@ impl Condition {
         ui.horizontal(|ui| {
             ui.label("If");
             ui.allocate_at_least(Vec2::new(5.0, 0.0), Sense::hover());
-            let new_ref = reference_editor(ui, vars, &mut self.left, |v| {
+            let new_ref = asset_repo.editor(ui, &mut self.left, |v| {
                 return match v.asset_type {
                     AssetType::Number => true,
                     AssetType::Text => true,
@@ -182,8 +181,8 @@ impl Condition {
             });
             if let Some(reference) = new_ref {
                 // Channge the value type of the right side if necessary
-                if self.left.value_type != reference.value_type {
-                    self.right = match reference.value_type {
+                if self.left.asset_type != reference.asset_type {
+                    self.right = match reference.asset_type {
                         AssetType::Number => RightHandSide::Number(
                             NumberProperty::Fixed(0.0),
                             NumberComparator::Equal,
@@ -265,29 +264,29 @@ impl Condition {
             ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
             // show select for right side
             ui.horizontal(|ui| match &mut self.right {
-                RightHandSide::Number(n, _) => n.editor(ui, vars),
-                RightHandSide::Text(t, _) => t.editor(ui, vars),
-                RightHandSide::Boolean(b, _) => b.editor(ui, vars),
+                RightHandSide::Number(n, _) => n.editor(ui, asset_repo),
+                RightHandSide::Text(t, _) => t.editor(ui, asset_repo),
+                RightHandSide::Boolean(b, _) => b.editor(ui, asset_repo),
             });
         });
         ui.label("then:");
         ui.horizontal(|ui| {
             ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
             match &mut self.true_output {
-                Output::Number(n) => n.editor(ui, vars),
-                Output::Text(t) => t.editor(ui, vars),
-                Output::Color(c) => c.editor(ui, vars),
-                Output::Boolean(b) => b.editor(ui, vars),
+                Output::Number(n) => n.editor(ui, asset_repo),
+                Output::Text(t) => t.editor(ui, asset_repo),
+                Output::Color(c) => c.editor(ui, asset_repo),
+                Output::Boolean(b) => b.editor(ui, asset_repo),
             }
         });
         ui.label("else:");
         ui.horizontal(|ui| {
             ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
             match &mut self.false_output {
-                Output::Number(n) => n.editor(ui, vars),
-                Output::Text(t) => t.editor(ui, vars),
-                Output::Color(c) => c.editor(ui, vars),
-                Output::Boolean(b) => b.editor(ui, vars),
+                Output::Number(n) => n.editor(ui, asset_repo),
+                Output::Text(t) => t.editor(ui, asset_repo),
+                Output::Color(c) => c.editor(ui, asset_repo),
+                Output::Boolean(b) => b.editor(ui, asset_repo),
             }
         });
     }
@@ -382,7 +381,7 @@ enum Comparison {
 }
 
 struct NumberComparison {
-    left: Reference,
+    left: AssetReference,
     comparator: NumberComparator,
     right: NumberProperty,
 }
@@ -402,7 +401,7 @@ impl NumberComparison {
 }
 
 struct TextComparison {
-    left: Reference,
+    left: AssetReference,
     comparator: TextComparator,
     right: TextProperty,
 }
@@ -418,7 +417,7 @@ impl TextComparison {
 }
 
 struct BooleanComparison {
-    left: Reference,
+    left: AssetReference,
     comparator: BooleanComparator,
     right: BooleanProperty,
 }

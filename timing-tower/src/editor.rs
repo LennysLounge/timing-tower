@@ -17,8 +17,9 @@ use tree_view::TreeViewBuilder;
 use uuid::Uuid;
 
 use crate::{
-    style::{StyleDefinition, StyleTreeNode, StyleTreeUi},
+    asset_reference_repo::AssetReferenceRepo,
     asset_repo::AssetRepo,
+    style::{StyleDefinition, StyleTreeNode, StyleTreeUi},
     MainCamera,
 };
 
@@ -129,11 +130,12 @@ fn run_egui_main(
 
     egui::SidePanel::right("Property panel")
         .show(ctx.ctx_mut(), |ui| {
+            let asset_reference_repo = AssetReferenceRepo::new(&style.vars);
             state
                 .selected_node
                 .as_ref()
                 .and_then(|id| style.find_mut(id))
-                .map(|selected_node| selected_node.property_editor(ui, &variable_repo));
+                .map(|selected_node| selected_node.property_editor(ui, &asset_reference_repo));
 
             ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());
         })

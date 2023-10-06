@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use tree_view::{DropPosition, TreeUi, TreeViewBuilder};
 use uuid::Uuid;
 
-use crate::asset_repo::AssetRepo;
+use crate::asset_reference_repo::AssetReferenceRepo;
 
 use super::{
     cell::Cell,
@@ -22,8 +22,8 @@ pub struct TimingTower {
 }
 
 impl StyleTreeUi for TimingTower {
-    fn property_editor(&mut self, ui: &mut Ui, vars: &AssetRepo) {
-        self.cell.property_editor(ui, vars);
+    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) {
+        self.cell.property_editor(ui, asset_repo);
     }
 
     fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
@@ -72,18 +72,18 @@ pub struct TimingTowerTable {
 }
 
 impl StyleTreeUi for TimingTowerTable {
-    fn property_editor(&mut self, ui: &mut Ui, vars: &AssetRepo) {
+    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) {
         ui.label("Row offset:");
         ui.horizontal(|ui| {
             ui.label("Offset x:");
-            self.row_offset.x.editor(ui, vars);
+            self.row_offset.x.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Offset y:");
-            self.row_offset.y.editor(ui, vars);
+            self.row_offset.y.editor(ui, asset_repo);
         });
         ui.separator();
-        self.cell.property_editor(ui, vars);
+        self.cell.property_editor(ui, asset_repo);
     }
 
     fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
@@ -131,8 +131,8 @@ pub struct TimingTowerRow {
 }
 
 impl StyleTreeUi for TimingTowerRow {
-    fn property_editor(&mut self, ui: &mut Ui, vars: &AssetRepo) {
-        self.cell.property_editor(ui, vars);
+    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) {
+        self.cell.property_editor(ui, asset_repo);
     }
 
     fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
@@ -200,11 +200,11 @@ pub struct TimingTowerColumn {
 }
 
 impl StyleTreeUi for TimingTowerColumn {
-    fn property_editor(&mut self, ui: &mut Ui, vars: &AssetRepo) {
+    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) {
         ui.label("Name:");
         ui.text_edit_singleline(&mut self.name);
         ui.separator();
-        self.cell.property_editor(ui, vars);
+        self.cell.property_editor(ui, asset_repo);
     }
 
     fn tree_view(&mut self, tree_ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {

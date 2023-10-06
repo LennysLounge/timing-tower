@@ -23,16 +23,17 @@ use gradient_material::CustomMaterialPlugin;
 
 use style::{cell::TextAlignment, StyleDefinition};
 
+use asset_repo::AssetRepo;
 use timing_tower::{init_timing_tower, TimingTowerPlugin};
 use unified_sim_model::Adapter;
-use asset_repo::AssetRepo;
 
+mod asset_reference_repo;
+mod asset_repo;
 mod cell;
 mod editor;
 mod gradient_material;
 mod style;
 mod timing_tower;
-mod asset_repo;
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");

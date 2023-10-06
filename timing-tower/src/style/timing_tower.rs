@@ -27,7 +27,7 @@ impl StyleTreeUi for TimingTower {
     }
 
     fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
-        TreeViewBuilder::dir(self.id).show(
+        TreeViewBuilder::dir(self.id).default_open(true).show(
             ui,
             |ui| {
                 ui.label("Timing Tower");
@@ -87,7 +87,7 @@ impl StyleTreeUi for TimingTowerTable {
     }
 
     fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
-        TreeViewBuilder::dir(self.id).show(
+        TreeViewBuilder::dir(self.id).default_open(true).show(
             ui,
             |ui| {
                 ui.label("Table");
@@ -136,7 +136,7 @@ impl StyleTreeUi for TimingTowerRow {
     }
 
     fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
-        let (header, _) = TreeViewBuilder::dir(self.id).show(
+        let (header, _) = TreeViewBuilder::dir(self.id).default_open(true).show(
             ui,
             |ui| {
                 ui.label("Row");

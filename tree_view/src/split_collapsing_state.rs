@@ -10,9 +10,10 @@ impl<T> SplitCollapsingState<T> {
     pub fn show_header(
         ui: &mut Ui,
         id: Id,
+        default_open: bool,
         mut add_header: impl FnMut(&mut Ui) -> T,
     ) -> SplitCollapsingState<T> {
-        let mut state = CollapsingState::load_with_default_open(ui.ctx(), id, true);
+        let mut state = CollapsingState::load_with_default_open(ui.ctx(), id, default_open);
         let header_response = ui.horizontal(|ui| {
             let prev_item_spacing = ui.spacing_mut().item_spacing;
             ui.spacing_mut().item_spacing.x = 0.0; // the toggler button uses the full indent width

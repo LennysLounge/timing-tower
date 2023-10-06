@@ -150,6 +150,7 @@ impl TreeViewBuilder {
             phantom: PhantomData,
             is_draggable: true,
             is_selectable: true,
+            is_default_open: false,
         }
     }
 
@@ -161,6 +162,7 @@ impl TreeViewBuilder {
             phantom: PhantomData,
             is_draggable: true,
             is_selectable: true,
+            is_default_open: false,
         }
     }
 }
@@ -176,6 +178,7 @@ pub struct Node<T> {
     phantom: PhantomData<T>,
     is_draggable: bool,
     is_selectable: bool,
+    is_default_open: bool,
 }
 
 impl Node<DirectoryMarker> {
@@ -187,7 +190,13 @@ impl Node<DirectoryMarker> {
             is_draggable: self.is_draggable,
             is_selectable: self.is_selectable,
             phantom: PhantomData,
+            is_default_open: false,
         }
+    }
+
+    pub fn default_open(mut self, state: bool) -> Self {
+        self.is_default_open = state;
+        self
     }
 
     pub fn show<T1, T2>(
@@ -197,15 +206,20 @@ impl Node<DirectoryMarker> {
         mut add_body: impl FnMut(&mut TreeUi) -> T2,
     ) -> (InnerResponse<T1>, Option<InnerResponse<T2>>) {
         let collapsing_id = tree_ui.ui.id().with("Directory header").with(self.id);
-        self.is_open =
-            CollapsingState::load_with_default_open(tree_ui.ui.ctx(), collapsing_id, true)
-                .is_open();
+        self.is_open = CollapsingState::load_with_default_open(
+            tree_ui.ui.ctx(),
+            collapsing_id,
+            self.is_default_open,
+        )
+        .is_open();
 
         let InnerResponse {
             inner: state,
             response: header,
         } = self.row(tree_ui, |ui| {
-            SplitCollapsingState::show_header(ui, collapsing_id, |ui| add_header(ui))
+            SplitCollapsingState::show_header(ui, collapsing_id, self.is_default_open, |ui| {
+                add_header(ui)
+            })
         });
 
         if header.double_clicked_by(PointerButton::Primary) {

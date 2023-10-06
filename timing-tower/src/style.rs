@@ -11,6 +11,7 @@ use crate::variable_repo::VariableRepo;
 use self::{timing_tower::TimingTower, variables::Variables};
 
 pub mod cell;
+pub mod folder;
 pub mod properties;
 pub mod timing_tower;
 pub mod variables;
@@ -153,6 +154,8 @@ impl StyleDefinition {
                 } => {
                     if let Some(target) = self.find_mut(&target) {
                         target.insert(node, &position);
+                    } else {
+                        println!("parent not found");
                     }
                 }
                 TreeViewAction::Remove { node } => {

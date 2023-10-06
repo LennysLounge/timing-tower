@@ -7,7 +7,12 @@ use uuid::Uuid;
 
 use crate::variable_repo::VariableRepo;
 
-use super::{cell::Cell, properties::Vec2Property, StyleTreeNode, StyleTreeUi, TreeViewAction};
+use super::{
+    cell::Cell,
+    folder::{Folder, FolderActions},
+    properties::Vec2Property,
+    StyleTreeNode, StyleTreeUi, TreeViewAction,
+};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TimingTower {
@@ -122,7 +127,7 @@ impl StyleTreeNode for TimingTowerTable {
 pub struct TimingTowerRow {
     pub id: Uuid,
     pub cell: Cell,
-    pub columns: Vec<TimingTowerColumn>,
+    pub columns: Folder<TimingTowerColumn>,
 }
 
 impl StyleTreeUi for TimingTowerRow {
@@ -137,9 +142,7 @@ impl StyleTreeUi for TimingTowerRow {
                 ui.label("Row");
             },
             |ui| {
-                for c in self.columns.iter_mut() {
-                    c.tree_view(ui, actions);
-                }
+                self.columns.tree_view_flat(ui, actions);
             },
         );
         header.response.context_menu(|ui| {
@@ -148,6 +151,14 @@ impl StyleTreeUi for TimingTowerRow {
                     target: self.id,
                     node: Box::new(TimingTowerColumn::new()),
                     position: DropPosition::Last,
+                });
+                ui.close_menu();
+            }
+            if ui.button("add group").clicked() {
+                actions.push(TreeViewAction::Insert {
+                    target: self.id,
+                    node: Box::new(Folder::<TimingTowerColumn>::new()),
+                    position: DropPosition::First,
                 });
                 ui.close_menu();
             }
@@ -161,17 +172,11 @@ impl StyleTreeNode for TimingTowerRow {
     }
 
     fn chidren(&self) -> Vec<&dyn StyleTreeNode> {
-        self.columns
-            .iter()
-            .map(|c| c as &dyn StyleTreeNode)
-            .collect()
+        vec![&self.columns]
     }
 
     fn chidren_mut(&mut self) -> Vec<&mut dyn StyleTreeNode> {
-        self.columns
-            .iter_mut()
-            .map(|c| c as &mut dyn StyleTreeNode)
-            .collect()
+        vec![&mut self.columns]
     }
 
     fn can_insert(&self, node: &dyn Any) -> bool {
@@ -179,37 +184,11 @@ impl StyleTreeNode for TimingTowerRow {
     }
 
     fn remove(&mut self, id: &Uuid) -> Option<Box<dyn Any>> {
-        if let Some(pos) = self.columns.iter().position(|c| &c.id == id) {
-            let n = self.columns.remove(pos);
-            Some(Box::new(n))
-        } else {
-            None
-        }
+        self.columns.remove(id)
     }
 
     fn insert(&mut self, node: Box<dyn Any>, position: &DropPosition) {
-        if let Ok(column) = node.downcast::<TimingTowerColumn>() {
-            match position {
-                DropPosition::First => self.columns.insert(0, *column),
-                DropPosition::Last => self.columns.push(*column),
-                DropPosition::After(id) => {
-                    let pos = self
-                        .columns
-                        .iter()
-                        .position(|c| &c.id == id)
-                        .unwrap_or(self.columns.len());
-                    self.columns.insert(pos + 1, *column);
-                }
-                DropPosition::Before(id) => {
-                    let pos = self
-                        .columns
-                        .iter()
-                        .position(|c| &c.id == id)
-                        .unwrap_or(self.columns.len());
-                    self.columns.insert(pos, *column);
-                }
-            }
-        }
+        self.columns.insert(node, position)
     }
 }
 
@@ -238,6 +217,14 @@ impl StyleTreeUi for TimingTowerColumn {
                 actions.push(TreeViewAction::Insert {
                     target: tree_ui.parent_id.unwrap(),
                     node: Box::new(TimingTowerColumn::new()),
+                    position: DropPosition::After(self.id),
+                });
+                ui.close_menu();
+            }
+            if ui.button("add group").clicked() {
+                actions.push(TreeViewAction::Insert {
+                    target: tree_ui.parent_id.unwrap(),
+                    node: Box::new(Folder::<TimingTowerColumn>::new()),
                     position: DropPosition::After(self.id),
                 });
                 ui.close_menu();
@@ -280,6 +267,36 @@ impl TimingTowerColumn {
             id: Uuid::new_v4(),
             cell: Cell::default(),
             name: "new column".to_string(),
+        }
+    }
+}
+impl FolderActions for TimingTowerColumn {
+    type FolderType = Self;
+
+    fn context_menu(
+        ui: &mut Ui,
+        folder: &Folder<Self::FolderType>,
+        actions: &mut Vec<TreeViewAction>,
+    ) {
+        if ui.button("add column").clicked() {
+            actions.push(TreeViewAction::Insert {
+                target: *folder.id(),
+                node: Box::new(TimingTowerColumn::new()),
+                position: DropPosition::First,
+            });
+            ui.close_menu();
+        }
+        if ui.button("add group").clicked() {
+            actions.push(TreeViewAction::Insert {
+                target: *folder.id(),
+                node: Box::new(Folder::<TimingTowerColumn>::new()),
+                position: DropPosition::First,
+            });
+            ui.close_menu();
+        }
+        if ui.button("delete").clicked() {
+            actions.push(TreeViewAction::Remove { node: *folder.id() });
+            ui.close_menu();
         }
     }
 }

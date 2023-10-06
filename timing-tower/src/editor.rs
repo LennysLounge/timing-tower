@@ -117,26 +117,6 @@ fn run_egui_main(
             if let Some(drop_action) = &res.dropped {
                 style.perform_drop(drop_action);
             }
-            // if let Some(dropped) = res.dropped {
-            //     let can_drop = style
-            //         .find(&dropped.dragged_node)
-            //         .and_then(|drop| {
-            //             style
-            //                 .find(&dropped.target_node)
-            //                 .map(|target| (drop, target))
-            //         })
-            //         .map(|(drop, target)| target.can_insert(drop.as_any()))
-            //         .unwrap_or(false);
-            //     if can_drop {
-            //         let node = style
-            //             .find_parent_of(&dropped.dragged_node)
-            //             .and_then(|n| n.remove(&dropped.dragged_node));
-            //         let target = style.find_mut(&dropped.target_node);
-            //         if let (Some(node), Some(target)) = (node, target) {
-            //             target.insert(node, dropped.position);
-            //         }
-            //     }
-            // }
 
             ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());
         })

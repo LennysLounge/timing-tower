@@ -41,11 +41,7 @@ impl VariableDefinition for VariableBehavior {
 }
 
 impl StyleTreeUi for VariableBehavior {
-    fn property_editor(
-        &mut self,
-        ui: &mut bevy_egui::egui::Ui,
-        asset_repo: &AssetReferenceRepo,
-    ) {
+    fn property_editor(&mut self, ui: &mut bevy_egui::egui::Ui, asset_repo: &AssetReferenceRepo) {
         ui.label("Name:");
         ui.text_edit_singleline(&mut self.get_id_mut().name);
 
@@ -88,17 +84,21 @@ impl StyleTreeUi for VariableBehavior {
         });
         res.response.context_menu(|ui| {
             if ui.button("add variable").clicked() {
+                let var = VariableBehavior::new();
+                actions.push(TreeViewAction::Select { node: *var.id() });
                 actions.push(TreeViewAction::Insert {
                     target: tree_ui.parent_id.unwrap(),
-                    node: Box::new(VariableBehavior::new()),
+                    node: Box::new(var),
                     position: DropPosition::After(*self.id()),
                 });
                 ui.close_menu();
             }
             if ui.button("add group").clicked() {
+                let folder = Folder::<VariableBehavior>::new();
+                actions.push(TreeViewAction::Select { node: folder.id });
                 actions.push(TreeViewAction::Insert {
                     target: tree_ui.parent_id.unwrap(),
-                    node: Box::new(Folder::<VariableBehavior>::new()),
+                    node: Box::new(folder),
                     position: DropPosition::After(*self.id()),
                 });
                 ui.close_menu();
@@ -144,17 +144,23 @@ impl FolderActions for VariableBehavior {
         actions: &mut Vec<TreeViewAction>,
     ) {
         if ui.button("add variable").clicked() {
+            let var = VariableBehavior::new();
+            actions.push(TreeViewAction::Select { node: *var.id() });
             actions.push(TreeViewAction::Insert {
                 target: *folder.id(),
-                node: Box::new(VariableBehavior::new()),
+                node: Box::new(var),
                 position: DropPosition::Last,
             });
             ui.close_menu();
         }
         if ui.button("add group").clicked() {
+            let new_folder = Folder::<VariableBehavior>::new();
+            actions.push(TreeViewAction::Select {
+                node: new_folder.id,
+            });
             actions.push(TreeViewAction::Insert {
                 target: *folder.id(),
-                node: Box::new(Folder::<VariableBehavior>::new()),
+                node: Box::new(new_folder),
                 position: DropPosition::Last,
             });
             ui.close_menu();

@@ -53,16 +53,23 @@ struct TreeContext {
 
 pub struct TreeViewBuilder {
     highlight_odd_rows: bool,
+    selected: Option<Uuid>,
 }
 impl TreeViewBuilder {
     pub fn new() -> Self {
         Self {
             highlight_odd_rows: true,
+            selected: None,
         }
     }
 
     pub fn highlight_odd_row(mut self, state: bool) -> Self {
         self.highlight_odd_rows = state;
+        self
+    }
+
+    pub fn selected(mut self, selected: Option<Uuid>) -> Self {
+        self.selected = selected;
         self
     }
 
@@ -74,14 +81,14 @@ impl TreeViewBuilder {
             Rect::from_min_size(ui.cursor().min, Vec2::ZERO),
             "Tree view",
         );
-        let last_time = ui
+        let (selected_last_frame, dragged_last_frame) = ui
             .data_mut(|d| d.get_persisted::<(Option<Uuid>, Option<Uuid>)>(tree_id))
             .unwrap_or((None, None));
 
         let mut context = TreeContext {
             line_count: 0,
-            selected: last_time.0,
-            dragged_last_frame: last_time.1,
+            selected: self.selected.or(selected_last_frame),
+            dragged_last_frame: dragged_last_frame,
             dragged: None,
             hovered: None,
             drop_disallowed: false,

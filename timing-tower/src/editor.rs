@@ -19,7 +19,7 @@ use uuid::Uuid;
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
     asset_repo::AssetRepo,
-    style::{StyleDefinition, StyleTreeNode, StyleTreeUi},
+    style::{StyleDefinition, StyleTreeNode, StyleTreeUi, TreeViewAction},
     MainCamera,
 };
 
@@ -103,9 +103,11 @@ fn run_egui_main(
     occupied_space.left = egui::SidePanel::left("Editor panel")
         .show(ctx.ctx_mut(), |ui| {
             let mut actions = Vec::new();
-            let res = TreeViewBuilder::new().show(ui, |ui| {
-                style.tree_view(ui, &mut actions);
-            });
+            let res = TreeViewBuilder::new()
+                .selected(state.selected_node)
+                .show(ui, |ui| {
+                    style.tree_view(ui, &mut actions);
+                });
             state.selected_node = res.selected;
 
             // Set the curso to no drop to show if the drop is not allowed
@@ -120,7 +122,17 @@ fn run_egui_main(
                 style.perform_drop(drop_action);
             }
 
-            style.perform_actions(actions);
+            for action in actions {
+                match action {
+                    TreeViewAction::Insert {
+                        target,
+                        node,
+                        position,
+                    } => style.insert(&target, node, position),
+                    TreeViewAction::Remove { node } => style.remove(&node),
+                    TreeViewAction::Select { node } => state.selected_node = Some(node),
+                }
+            }
 
             ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());
         })

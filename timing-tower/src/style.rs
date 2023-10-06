@@ -25,6 +25,9 @@ pub enum TreeViewAction {
     Remove {
         node: Uuid,
     },
+    Select {
+        node: Uuid,
+    },
 }
 
 pub trait StyleTreeUi {
@@ -148,25 +151,16 @@ impl StyleDefinition {
         }
     }
 
-    pub fn perform_actions(&mut self, actions: Vec<TreeViewAction>) {
-        for action in actions {
-            match action {
-                TreeViewAction::Insert {
-                    target,
-                    node,
-                    position,
-                } => {
-                    if let Some(target) = self.find_mut(&target) {
-                        target.insert(node, &position);
-                    } else {
-                        println!("parent not found");
-                    }
-                }
-                TreeViewAction::Remove { node } => {
-                    self.find_parent_of(&node)
-                        .map(|parent| parent.remove(&node));
-                }
-            }
+    pub fn insert(&mut self, target: &Uuid, node: Box<dyn Any>, position: DropPosition) {
+        if let Some(target) = self.find_mut(&target) {
+            target.insert(node, &position);
+        } else {
+            println!("parent not found");
         }
+    }
+
+    pub fn remove(&mut self, node: &Uuid) {
+        self.find_parent_of(&node)
+            .map(|parent| parent.remove(&node));
     }
 }

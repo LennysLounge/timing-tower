@@ -147,17 +147,22 @@ impl StyleTreeUi for TimingTowerRow {
         );
         header.response.context_menu(|ui| {
             if ui.button("add column").clicked() {
+                let column = TimingTowerColumn::new();
+                actions.push(TreeViewAction::Select { node: column.id });
                 actions.push(TreeViewAction::Insert {
                     target: self.id,
-                    node: Box::new(TimingTowerColumn::new()),
+                    node: Box::new(column),
                     position: DropPosition::Last,
                 });
+
                 ui.close_menu();
             }
             if ui.button("add group").clicked() {
+                let folder = Folder::<TimingTowerColumn>::new();
+                actions.push(TreeViewAction::Select { node: folder.id });
                 actions.push(TreeViewAction::Insert {
                     target: self.id,
-                    node: Box::new(Folder::<TimingTowerColumn>::new()),
+                    node: Box::new(folder),
                     position: DropPosition::First,
                 });
                 ui.close_menu();

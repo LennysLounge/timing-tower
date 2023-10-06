@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 use crate::variable_repo::VariableRepo;
 
-use super::{cell::Cell, properties::Vec2Property, StyleTreeNode, StyleTreeUi};
+use super::{cell::Cell, properties::Vec2Property, StyleTreeNode, StyleTreeUi, TreeViewAction};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct TimingTower {
@@ -21,14 +21,14 @@ impl StyleTreeUi for TimingTower {
         self.cell.property_editor(ui, vars);
     }
 
-    fn tree_view(&mut self, ui: &mut TreeUi) {
+    fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
         TreeViewBuilder::dir(self.id).show(
             ui,
             |ui| {
                 ui.label("Timing Tower");
             },
             |ui| {
-                self.table.tree_view(ui);
+                self.table.tree_view(ui, actions);
             },
         );
     }
@@ -81,14 +81,14 @@ impl StyleTreeUi for TimingTowerTable {
         self.cell.property_editor(ui, vars);
     }
 
-    fn tree_view(&mut self, ui: &mut TreeUi) {
+    fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
         TreeViewBuilder::dir(self.id).show(
             ui,
             |ui| {
                 ui.label("Table");
             },
             |ui| {
-                self.row.tree_view(ui);
+                self.row.tree_view(ui, actions);
             },
         );
     }
@@ -130,18 +130,28 @@ impl StyleTreeUi for TimingTowerRow {
         self.cell.property_editor(ui, vars);
     }
 
-    fn tree_view(&mut self, ui: &mut TreeUi) {
-        TreeViewBuilder::dir(self.id).show(
+    fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
+        let (header, _) = TreeViewBuilder::dir(self.id).show(
             ui,
             |ui| {
                 ui.label("Timing Tower");
             },
             |ui| {
                 for c in self.columns.iter_mut() {
-                    c.tree_view(ui);
+                    c.tree_view(ui, actions);
                 }
             },
         );
+        header.response.context_menu(|ui| {
+            if ui.button("add column").clicked() {
+                actions.push(TreeViewAction::Insert {
+                    target: self.id,
+                    node: Box::new(TimingTowerColumn::new()),
+                    position: DropPosition::Last,
+                });
+                ui.close_menu();
+            }
+        });
     }
 }
 
@@ -218,9 +228,24 @@ impl StyleTreeUi for TimingTowerColumn {
         self.cell.property_editor(ui, vars);
     }
 
-    fn tree_view(&mut self, ui: &mut TreeUi) {
-        TreeViewBuilder::leaf(self.id).show(ui, |ui| {
+    fn tree_view(&mut self, tree_ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
+        let res = TreeViewBuilder::leaf(self.id).show(tree_ui, |ui| {
             ui.label(&self.name);
+        });
+
+        res.response.context_menu(|ui| {
+            if ui.button("add column").clicked() {
+                actions.push(TreeViewAction::Insert {
+                    target: tree_ui.parent_id.unwrap(),
+                    node: Box::new(TimingTowerColumn::new()),
+                    position: DropPosition::After(self.id),
+                });
+                ui.close_menu();
+            }
+            if ui.button("delete").clicked() {
+                actions.push(TreeViewAction::Remove { node: self.id });
+                ui.close_menu();
+            }
         });
     }
 }
@@ -247,4 +272,14 @@ impl StyleTreeNode for TimingTowerColumn {
     }
 
     fn insert(&mut self, _node: Box<dyn Any>, _position: &DropPosition) {}
+}
+
+impl TimingTowerColumn {
+    fn new() -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            cell: Cell::default(),
+            name: "new column".to_string(),
+        }
+    }
 }

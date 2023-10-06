@@ -7,7 +7,7 @@ use crate::variable_repo::{VariableDefinition, VariableId};
 
 use self::{condition::Condition, fixed_value::FixedValue};
 
-use super::{StyleTreeNode, StyleTreeUi};
+use super::{StyleTreeNode, StyleTreeUi, TreeViewAction};
 
 pub mod condition;
 pub mod fixed_value;
@@ -19,7 +19,7 @@ pub struct Variables {
 }
 
 impl StyleTreeUi for Variables {
-    fn tree_view(&mut self, ui: &mut TreeUi) {
+    fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
         TreeViewBuilder::dir(self.id).show(
             ui,
             |ui| {
@@ -27,7 +27,7 @@ impl StyleTreeUi for Variables {
             },
             |ui| {
                 for v in self.vars.iter_mut() {
-                    v.tree_view(ui);
+                    v.tree_view(ui, actions);
                 }
             },
         );
@@ -125,7 +125,7 @@ impl StyleTreeUi for VariableBehavior {
         }
     }
 
-    fn tree_view(&mut self, ui: &mut TreeUi) {
+    fn tree_view(&mut self, ui: &mut TreeUi, _actions: &mut Vec<TreeViewAction>) {
         TreeViewBuilder::leaf(self.get_variable_id().id).show(ui, |ui| {
             ui.label(&self.get_variable_id().name);
         });

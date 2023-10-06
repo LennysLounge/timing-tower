@@ -15,9 +15,9 @@ pub mod split_collapsing_state;
 pub struct TreeUi<'a> {
     pub ui: &'a mut Ui,
     pub bounds: RangeInclusive<f32>,
+    pub parent_id: Option<Uuid>,
     tree_config: &'a TreeViewBuilder,
     context: &'a mut TreeContext,
-    parent_id: Option<Uuid>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

@@ -15,10 +15,21 @@ pub mod properties;
 pub mod timing_tower;
 pub mod variables;
 
+pub enum TreeViewAction {
+    Insert {
+        target: Uuid,
+        node: Box<dyn Any>,
+        position: DropPosition,
+    },
+    Remove {
+        node: Uuid,
+    },
+}
+
 pub trait StyleTreeUi {
     #[allow(unused)]
     fn property_editor(&mut self, ui: &mut Ui, vars: &VariableRepo) {}
-    fn tree_view(&mut self, ui: &mut TreeUi);
+    fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>);
 }
 
 pub trait StyleTreeNodeConversions: Any {
@@ -77,9 +88,9 @@ pub struct StyleDefinition {
 }
 
 impl StyleTreeUi for StyleDefinition {
-    fn tree_view(&mut self, ui: &mut TreeUi) {
-        self.vars.tree_view(ui);
-        self.timing_tower.tree_view(ui);
+    fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
+        self.vars.tree_view(ui, actions);
+        self.timing_tower.tree_view(ui, actions);
     }
 }
 
@@ -129,6 +140,26 @@ impl StyleDefinition {
         let target = self.find_mut(&drop_action.target_node);
         if let (Some(dragged), Some(target)) = (dragged, target) {
             target.insert(dragged, &drop_action.position);
+        }
+    }
+
+    pub fn perform_actions(&mut self, actions: Vec<TreeViewAction>) {
+        for action in actions {
+            match action {
+                TreeViewAction::Insert {
+                    target,
+                    node,
+                    position,
+                } => {
+                    if let Some(target) = self.find_mut(&target) {
+                        target.insert(node, &position);
+                    }
+                }
+                TreeViewAction::Remove { node } => {
+                    self.find_parent_of(&node)
+                        .map(|parent| parent.remove(&node));
+                }
+            }
         }
     }
 }

@@ -101,8 +101,9 @@ fn run_egui_main(
 
     occupied_space.left = egui::SidePanel::left("Editor panel")
         .show(ctx.ctx_mut(), |ui| {
+            let mut actions = Vec::new();
             let res = TreeViewBuilder::new().show(ui, |ui| {
-                style.tree_view(ui);
+                style.tree_view(ui, &mut actions);
             });
             state.selected_node = res.selected;
 
@@ -117,6 +118,8 @@ fn run_egui_main(
             if let Some(drop_action) = &res.dropped {
                 style.perform_drop(drop_action);
             }
+
+            style.perform_actions(actions);
 
             ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());
         })

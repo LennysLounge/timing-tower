@@ -145,22 +145,22 @@ impl TreeViewBuilder {
     pub fn dir(id: Uuid) -> Node<DirectoryMarker> {
         Node {
             id,
-            drop_target: true,
+            is_drop_target: true,
             is_open: false,
             phantom: PhantomData,
-            draggable: true,
-            selectable: true,
+            is_draggable: true,
+            is_selectable: true,
         }
     }
 
     pub fn leaf(id: Uuid) -> Node<LeafMarker> {
         Node {
             id,
-            drop_target: false,
+            is_drop_target: false,
             is_open: false,
             phantom: PhantomData,
-            draggable: true,
-            selectable: true,
+            is_draggable: true,
+            is_selectable: true,
         }
     }
 }
@@ -170,11 +170,11 @@ pub struct LeafMarker;
 
 pub struct Node<T> {
     id: Uuid,
-    drop_target: bool,
+    is_drop_target: bool,
     is_open: bool,
     phantom: PhantomData<T>,
-    draggable: bool,
-    selectable: bool,
+    is_draggable: bool,
+    is_selectable: bool,
 }
 
 impl Node<DirectoryMarker> {
@@ -245,16 +245,16 @@ impl Node<LeafMarker> {
 }
 
 impl<Marker> Node<Marker> {
-    pub fn draggable(mut self, state: bool) -> Self {
-        self.draggable = state;
+    pub fn is_draggable(mut self, state: bool) -> Self {
+        self.is_draggable = state;
         self
     }
-    pub fn drop_target(mut self, state: bool) -> Self {
-        self.drop_target = state;
+    pub fn is_drop_target(mut self, state: bool) -> Self {
+        self.is_drop_target = state;
         self
     }
-    pub fn selectable(mut self, state: bool) -> Self {
-        self.selectable = state;
+    pub fn is_selectable(mut self, state: bool) -> Self {
+        self.is_selectable = state;
         self
     }
 
@@ -275,13 +275,13 @@ impl<Marker> Node<Marker> {
 
         let (interaction, row) = self.row_interaction(tree_ui, |ui| add_content(ui));
 
-        if self.selectable {
+        if self.is_selectable {
             if interaction.clicked() || interaction.dragged() {
                 tree_ui.context.selected = Some(self.id);
             }
         }
 
-        if self.draggable {
+        if self.is_draggable {
             self.draw_drag_overlay(tree_ui, &interaction, &row, |ui| {
                 add_content(ui);
             });
@@ -470,50 +470,38 @@ impl<Marker> Node<Marker> {
         let h4 = rect.max.y;
 
         let drop_position = match y {
-            y if y >= h0 && y < h1 => parent_id.map(|id| (id, DropPosition::Before(self.id))),
+            y if y >= h0 && y < h1 => parent_id
+                .map(|id| (id, DropPosition::Before(self.id)))
+                .or_else(|| self.is_drop_target.then_some((self.id, DropPosition::Last))),
             y if y >= h1 && y < h2 => self
-                .drop_target
+                .is_drop_target
                 .then_some((self.id, DropPosition::Last))
                 .or_else(|| parent_id.map(|id| (id, DropPosition::Before(self.id)))),
             y if y >= h2 && y < h3 => self
-                .drop_target
+                .is_drop_target
                 .then_some((self.id, DropPosition::Last))
+                .or_else(|| self.is_open.then_some((self.id, DropPosition::First)))
                 .or_else(|| parent_id.map(|id| (id, DropPosition::After(self.id)))),
-            y if y >= h3 && y < h4 => parent_id.map(|id| (id, DropPosition::After(self.id))),
+            y if y >= h3 && y < h4 => self
+                .is_open
+                .then_some((self.id, DropPosition::First))
+                .or_else(|| parent_id.map(|id| (id, DropPosition::After(self.id))))
+                .or_else(|| self.is_drop_target.then_some((self.id, DropPosition::Last))),
             _ => unreachable!(),
         };
 
-        // If the node is a directory and it is open then the bottom drop point should be dropped
-        // as the first element of the directory.
-        let drop_position = if let (Some((_parent_id, DropPosition::After(node_id))), true) =
-            (&drop_position, self.is_open)
-        {
-            Some((*node_id, DropPosition::First))
-        } else {
-            drop_position
-        };
-
-        if drop_position.is_some() {
-            context.hovered = drop_position;
-
+        if let Some((parent_id, drop_position)) = drop_position {
             let line_above =
                 rect.min.y - DROP_LINE_HEIGHT / 2.0..=rect.min.y + DROP_LINE_HEIGHT / 2.0;
             let line_below =
                 rect.max.y - DROP_LINE_HEIGHT / 2.0..=rect.max.y + DROP_LINE_HEIGHT / 2.0;
             let line_background = h0..=h4;
 
-            let drop_marker = match y {
-                y if y >= h0 && y < h1 => line_above,
-                y if y >= h1 && y < h2 => self
-                    .drop_target
-                    .then_some(line_background)
-                    .unwrap_or(line_above),
-                y if y >= h2 && y < h3 => self
-                    .drop_target
-                    .then_some(line_background)
-                    .unwrap_or(line_below),
-                y if y >= h3 && y < h4 => line_below,
-                _ => unreachable!(),
+            let drop_marker = match &drop_position {
+                DropPosition::First => line_below,
+                DropPosition::Last => line_background,
+                DropPosition::After(_) => line_below,
+                DropPosition::Before(_) => line_above,
             };
 
             tree_ui.ui.painter().set(
@@ -525,6 +513,8 @@ impl<Marker> Node<Marker> {
                     stroke: Stroke::NONE,
                 },
             );
+
+            context.hovered = Some((parent_id, drop_position));
         }
     }
 }

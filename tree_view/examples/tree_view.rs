@@ -176,8 +176,8 @@ impl Directory {
             }
         } else {
             let (header, _) = TreeViewBuilder::dir(self.id)
-                .draggable(true)
-                .drop_target(true)
+                .is_draggable(true)
+                .is_drop_target(true)
                 .show(
                     tree_ui,
                     |ui| {
@@ -269,9 +269,9 @@ impl File {
     }
     fn show(&self, tree_ui: &mut TreeUi) {
         let res = TreeViewBuilder::leaf(self.id)
-            .drop_target(false)
-            .draggable(true)
-            .selectable(true)
+            .is_drop_target(false)
+            .is_draggable(true)
+            .is_selectable(true)
             .show(tree_ui, |ui| {
                 ui.label(&self.name);
             });

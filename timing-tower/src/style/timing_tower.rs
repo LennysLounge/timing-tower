@@ -134,7 +134,7 @@ impl StyleTreeUi for TimingTowerRow {
         let (header, _) = TreeViewBuilder::dir(self.id).show(
             ui,
             |ui| {
-                ui.label("Timing Tower");
+                ui.label("Row");
             },
             |ui| {
                 for c in self.columns.iter_mut() {

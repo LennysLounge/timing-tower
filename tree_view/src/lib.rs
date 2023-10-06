@@ -377,7 +377,7 @@ impl<Marker> Node<Marker> {
             || interaction.drag_released_by(PointerButton::Primary)
         {
             context.dragged = Some(self.id);
-            ui.ctx().set_cursor_icon(CursorIcon::Grabbing);
+            ui.ctx().set_cursor_icon(CursorIcon::Alias);
 
             // Paint the content again to a new layer for the drag overlay.
             let layer_id = LayerId::new(Order::Tooltip, drag_source_id);

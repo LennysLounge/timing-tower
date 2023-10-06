@@ -184,7 +184,7 @@ impl Node<DirectoryMarker> {
         mut add_header: impl FnMut(&mut Ui) -> T1,
         mut add_body: impl FnMut(&mut TreeUi) -> T2,
     ) -> (InnerResponse<T1>, Option<InnerResponse<T2>>) {
-        let collapsing_id = tree_ui.ui.next_auto_id().with("Directory header");
+        let collapsing_id = tree_ui.ui.id().with("Directory header").with(self.id);
         self.is_open =
             CollapsingState::load_with_default_open(tree_ui.ui.ctx(), collapsing_id, true)
                 .is_open();

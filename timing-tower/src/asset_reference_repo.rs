@@ -2,7 +2,8 @@ use bevy_egui::egui::Ui;
 use uuid::Uuid;
 
 use crate::{
-    asset_repo::{AssetId, AssetReference, VariableDefinition},
+    asset_repo::{AssetDefinition, AssetId, AssetReference},
+    game_sources::{self, GameSource},
     style::{
         folder::{Folder, FolderOrT},
         variables::VariableBehavior,
@@ -10,16 +11,16 @@ use crate::{
 };
 
 pub struct AssetReferenceRepo {
-    assets: Vec<AssetOrFolder>,
+    game_sources: AssetOrFolder,
+    variables: AssetOrFolder,
 }
 
 impl AssetReferenceRepo {
     pub fn new(vars: &Folder<VariableBehavior>) -> Self {
-        let assets = match AssetOrFolder::from(vars) {
-            AssetOrFolder::Asset(_) => unreachable!(),
-            AssetOrFolder::Folder { assets, .. } => assets,
-        };
-        Self { assets }
+        Self {
+            variables: AssetOrFolder::from_vars(vars),
+            game_sources: AssetOrFolder::from_game(game_sources::get_game_sources()),
+        }
     }
 
     pub fn editor(
@@ -53,7 +54,7 @@ impl AssetReferenceRepo {
     }
 
     fn get(&self, id: &Uuid) -> Option<&AssetId> {
-        self.assets.iter().find_map(|a| a.get(id))
+        self.variables.get(id).or_else(|| self.game_sources.get(id))
     }
 
     fn show_menu(
@@ -62,9 +63,10 @@ impl AssetReferenceRepo {
         selected_asset: &mut Option<AssetId>,
         is_type_allowed: &impl Fn(&AssetId) -> bool,
     ) {
-        for a in self.assets.iter() {
-            a.show_menu(ui, selected_asset, is_type_allowed);
-        }
+        self.game_sources
+            .show_menu(ui, selected_asset, is_type_allowed);
+        self.variables
+            .show_menu(ui, selected_asset, is_type_allowed);
     }
 }
 
@@ -76,16 +78,25 @@ enum AssetOrFolder {
     },
 }
 impl AssetOrFolder {
-    fn from(vars: &Folder<VariableBehavior>) -> Self {
+    fn from_vars(vars: &Folder<VariableBehavior>) -> Self {
         Self::Folder {
             name: vars.name.clone(),
             assets: vars
                 .content
                 .iter()
                 .map(|c| match c {
-                    FolderOrT::T(t) => Self::Asset(t.get_variable_id().clone()),
-                    FolderOrT::Folder(f) => Self::from(f),
+                    FolderOrT::T(t) => Self::Asset(t.asset_id().clone()),
+                    FolderOrT::Folder(f) => Self::from_vars(f),
                 })
+                .collect(),
+        }
+    }
+    fn from_game(game_sources: Vec<&GameSource>) -> Self {
+        Self::Folder {
+            name: "Game".to_string(),
+            assets: game_sources
+                .into_iter()
+                .map(|s| Self::Asset(s.asset_id().clone()))
                 .collect(),
         }
     }

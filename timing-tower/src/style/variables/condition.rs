@@ -7,7 +7,7 @@ use crate::{
     asset_reference_repo::AssetReferenceRepo,
     asset_repo::{
         AssetId, AssetReference, AssetRepo, AssetSource, AssetType, BooleanSource, ColorSource,
-        NumberSource, TextSource, VariableDefinition,
+        NumberSource, TextSource, AssetDefinition,
     },
     style::properties::{BooleanProperty, ColorProperty, NumberProperty, TextProperty},
 };
@@ -69,8 +69,8 @@ impl Default for Condition {
     }
 }
 
-impl VariableDefinition for Condition {
-    fn as_variable_source(&self) -> AssetSource {
+impl AssetDefinition for Condition {
+    fn as_asset_source(&self) -> AssetSource {
         let source = ConditionSource {
             comparison: match &self.right {
                 RightHandSide::Number(np, c) => Comparison::Number(NumberComparison {
@@ -101,7 +101,7 @@ impl VariableDefinition for Condition {
         }
     }
 
-    fn get_variable_id(&self) -> &AssetId {
+    fn asset_id(&self) -> &AssetId {
         &self.id
     }
 }

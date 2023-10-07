@@ -31,6 +31,7 @@ mod asset_reference_repo;
 mod asset_repo;
 mod cell;
 mod editor;
+mod game_sources;
 mod gradient_material;
 mod style;
 mod timing_tower;

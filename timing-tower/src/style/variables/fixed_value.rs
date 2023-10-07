@@ -3,7 +3,7 @@ use bevy_egui::egui::{ComboBox, DragValue, Ui};
 use serde::{Deserialize, Serialize};
 
 use crate::asset_repo::{
-    StaticBoolean, StaticColor, StaticNumber, StaticText, AssetType, VariableDefinition,
+    StaticBoolean, StaticColor, StaticNumber, StaticText, AssetType, AssetDefinition,
     AssetId, AssetSource,
 };
 
@@ -115,11 +115,11 @@ impl FixedValue {
     }
 }
 
-impl VariableDefinition for FixedValue {
-    fn get_variable_id(&self) -> &AssetId {
+impl AssetDefinition for FixedValue {
+    fn asset_id(&self) -> &AssetId {
         &self.id
     }
-    fn as_variable_source(&self) -> AssetSource {
+    fn as_asset_source(&self) -> AssetSource {
         match &self.value {
             FixedValueType::Number(n) => AssetSource::Number(Box::new(StaticNumber(*n))),
             FixedValueType::Text(t) => AssetSource::Text(Box::new(StaticText(t.clone()))),

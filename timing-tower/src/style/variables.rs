@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    asset_repo::{AssetId, VariableDefinition},
+    asset_repo::{AssetId, AssetDefinition},
 };
 
 use self::{condition::Condition, fixed_value::FixedValue};
@@ -24,18 +24,18 @@ pub enum VariableBehavior {
     Condition(Condition),
 }
 
-impl VariableDefinition for VariableBehavior {
-    fn as_variable_source(&self) -> crate::asset_repo::AssetSource {
+impl AssetDefinition for VariableBehavior {
+    fn as_asset_source(&self) -> crate::asset_repo::AssetSource {
         match self {
-            VariableBehavior::FixedValue(o) => o.as_variable_source(),
-            VariableBehavior::Condition(o) => o.as_variable_source(),
+            VariableBehavior::FixedValue(o) => o.as_asset_source(),
+            VariableBehavior::Condition(o) => o.as_asset_source(),
         }
     }
 
-    fn get_variable_id(&self) -> &crate::asset_repo::AssetId {
+    fn asset_id(&self) -> &crate::asset_repo::AssetId {
         match self {
-            VariableBehavior::FixedValue(o) => o.get_variable_id(),
-            VariableBehavior::Condition(o) => o.get_variable_id(),
+            VariableBehavior::FixedValue(o) => o.asset_id(),
+            VariableBehavior::Condition(o) => o.asset_id(),
         }
     }
 }
@@ -58,14 +58,14 @@ impl StyleTreeUi for VariableBehavior {
                         && !is_fixed_value
                     {
                         *self = VariableBehavior::FixedValue(FixedValue::from_id(
-                            self.get_variable_id().clone(),
+                            self.asset_id().clone(),
                         ))
                     }
 
                     let is_condition = matches!(self, VariableBehavior::Condition(_));
                     if ui.selectable_label(is_condition, "Condition").clicked() && !is_condition {
                         *self = VariableBehavior::Condition(Condition::from_id(
-                            self.get_variable_id().clone(),
+                            self.asset_id().clone(),
                         ))
                     }
                 });
@@ -79,8 +79,8 @@ impl StyleTreeUi for VariableBehavior {
     }
 
     fn tree_view(&mut self, tree_ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
-        let res = TreeViewBuilder::leaf(self.get_variable_id().id).show(tree_ui, |ui| {
-            ui.label(&self.get_variable_id().name);
+        let res = TreeViewBuilder::leaf(self.asset_id().id).show(tree_ui, |ui| {
+            ui.label(&self.asset_id().name);
         });
         res.response.context_menu(|ui| {
             if ui.button("add variable").clicked() {
@@ -113,7 +113,7 @@ impl StyleTreeUi for VariableBehavior {
 
 impl StyleTreeNode for VariableBehavior {
     fn id(&self) -> &Uuid {
-        &self.get_variable_id().id
+        &self.asset_id().id
     }
 
     fn chidren(&self) -> Vec<&dyn StyleTreeNode> {

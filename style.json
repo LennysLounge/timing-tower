@@ -12,7 +12,8 @@
           }
         }
       }
-    ]
+    ],
+    "renameable": false
   },
   "vars": {
     "id": "934a2987-34c0-4b50-b463-f5e6c4e3c4ec",
@@ -79,7 +80,8 @@
                       }
                     }
                   }
-                ]
+                ],
+                "renameable": true
               }
             },
             {
@@ -133,7 +135,8 @@
                 }
               }
             }
-          ]
+          ],
+          "renameable": true
         }
       },
       {
@@ -191,7 +194,8 @@
           }
         }
       }
-    ]
+    ],
+    "renameable": false
   },
   "timing_tower": {
     "id": "63777a7c-26e1-4bdc-a840-87ebf3bdcb41",
@@ -600,7 +604,8 @@
                 "name": "pit indicator"
               }
             }
-          ]
+          ],
+          "renameable": true
         }
       }
     }

@@ -14,6 +14,7 @@ pub struct Folder<T: StyleTreeNode + FolderActions<FolderType = T>> {
     pub id: Uuid,
     pub name: String,
     pub content: Vec<FolderOrT<T>>,
+    renameable: bool,
 }
 
 pub trait FolderActions {
@@ -46,8 +47,10 @@ impl<T: StyleTreeNode + FolderActions<FolderType = T>> StyleTreeUi for Folder<T>
     }
 
     fn property_editor(&mut self, ui: &mut Ui, _asset_repo: &AssetReferenceRepo) {
-        ui.label("Name:");
-        ui.text_edit_singleline(&mut self.name);
+        if self.renameable {
+            ui.label("Name:");
+            ui.text_edit_singleline(&mut self.name);
+        }
     }
 }
 
@@ -106,6 +109,7 @@ impl<T: StyleTreeNode + FolderActions<FolderType = T>> Folder<T> {
             id: Uuid::new_v4(),
             name: "new group".to_string(),
             content: Vec::new(),
+            renameable: true,
         }
     }
     /// Get a reference to all contained things of this folder.

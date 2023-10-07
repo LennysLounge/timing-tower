@@ -222,35 +222,3 @@ impl AssetType {
         }
     }
 }
-
-/*
-*-------------------------------------------------------------------------------------------------------
-
-*/
-
-pub struct StaticNumber(pub f32);
-impl NumberSource for StaticNumber {
-    fn resolve(&self, _vars: &AssetRepo, _entry: Option<&Entry>) -> Option<f32> {
-        Some(self.0)
-    }
-}
-
-pub struct StaticText(pub String);
-impl TextSource for StaticText {
-    fn resolve(&self, _vars: &AssetRepo, _entry: Option<&Entry>) -> Option<String> {
-        Some(self.0.clone())
-    }
-}
-
-pub struct StaticColor(pub Color);
-impl ColorSource for StaticColor {
-    fn resolve(&self, _vars: &AssetRepo, _entry: Option<&Entry>) -> Option<Color> {
-        Some(self.0)
-    }
-}
-pub struct StaticBoolean(pub bool);
-impl BooleanSource for StaticBoolean {
-    fn resolve(&self, _vars: &AssetRepo, _entry: Option<&Entry>) -> Option<bool> {
-        Some(self.0)
-    }
-}

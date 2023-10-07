@@ -10,14 +10,14 @@ use crate::asset_reference_repo::AssetReferenceRepo;
 use super::{StyleTreeNode, StyleTreeUi, TreeViewAction};
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct Folder<T: StyleTreeNode> {
+pub struct Folder<T: StyleTreeNode + FolderActions<FolderType = T>> {
     pub id: Uuid,
     pub name: String,
     pub content: Vec<FolderOrT<T>>,
 }
 
 pub trait FolderActions {
-    type FolderType: StyleTreeNode;
+    type FolderType: StyleTreeNode + FolderActions<FolderType = Self::FolderType>;
     #[allow(unused)]
     fn context_menu(
         ui: &mut Ui,
@@ -147,7 +147,7 @@ impl<T: StyleTreeNode + FolderActions<FolderType = T>> Folder<T> {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
-pub enum FolderOrT<T: StyleTreeNode> {
+pub enum FolderOrT<T: StyleTreeNode + FolderActions<FolderType = T>> {
     T(T),
     Folder(Folder<T>),
 }

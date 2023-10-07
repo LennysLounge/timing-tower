@@ -8,8 +8,11 @@ use uuid::Uuid;
 
 use crate::asset_reference_repo::AssetReferenceRepo;
 
-use self::{folder::Folder, timing_tower::TimingTower, variables::VariableBehavior};
+use self::{
+    assets::AssetDefinition, folder::Folder, timing_tower::TimingTower, variables::VariableBehavior,
+};
 
+pub mod assets;
 pub mod cell;
 pub mod folder;
 pub mod properties;
@@ -87,6 +90,7 @@ pub trait StyleTreeNode: StyleTreeNodeConversions + StyleTreeUi {
 #[derive(Serialize, Deserialize, Clone, Resource)]
 pub struct StyleDefinition {
     pub id: Uuid,
+    pub assets: Folder<AssetDefinition>,
     pub vars: Folder<VariableBehavior>,
     pub timing_tower: TimingTower,
 }
@@ -94,6 +98,8 @@ pub struct StyleDefinition {
 impl StyleTreeUi for StyleDefinition {
     fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
         TreeViewBuilder::dir(self.id).headless().show(ui, |ui| {
+            self.assets.tree_view(ui, actions);
+            ui.ui.separator();
             self.vars.tree_view(ui, actions);
             ui.ui.separator();
             self.timing_tower.tree_view(ui, actions);
@@ -108,11 +114,11 @@ impl StyleTreeNode for StyleDefinition {
     }
 
     fn chidren(&self) -> Vec<&dyn StyleTreeNode> {
-        vec![&self.vars, &self.timing_tower]
+        vec![&self.vars, &self.timing_tower, &self.assets]
     }
 
     fn chidren_mut(&mut self) -> Vec<&mut dyn StyleTreeNode> {
-        vec![&mut self.vars, &mut self.timing_tower]
+        vec![&mut self.vars, &mut self.timing_tower, &mut self.assets]
     }
 
     fn can_insert(&self, _node: &dyn Any) -> bool {

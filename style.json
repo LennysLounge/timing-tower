@@ -1,5 +1,19 @@
 {
   "id": "a2191c04-bae5-49b4-9aee-1b55675aba4d",
+  "assets": {
+    "id": "b97dba75-b71c-4cce-b761-c1689ea33585",
+    "name": "Assets",
+    "content": [
+      {
+        "T": {
+          "Image": {
+            "id": "d56688a6-894b-4629-9d83-b4d531e06aab",
+            "name": "Test image"
+          }
+        }
+      }
+    ]
+  },
   "vars": {
     "id": "934a2987-34c0-4b50-b463-f5e6c4e3c4ec",
     "name": "Variables",

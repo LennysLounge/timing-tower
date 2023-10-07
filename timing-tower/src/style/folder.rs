@@ -32,7 +32,7 @@ impl<T: StyleTreeNode + FolderActions<FolderType = T>> StyleTreeUi for Folder<T>
         let (header, _) = TreeViewBuilder::dir(self.id).show(
             ui,
             |ui| {
-                ui.label(&self.name);
+                ui.label(format!("🗀  {}", &self.name));
             },
             |ui| {
                 for c in self.content.iter_mut() {

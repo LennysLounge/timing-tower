@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    asset_repo::{AssetId, AssetDefinition},
+    asset_repo::{AssetId, IntoAssetSource},
 };
 
 use self::{condition::Condition, fixed_value::FixedValue};
@@ -24,11 +24,11 @@ pub enum VariableBehavior {
     Condition(Condition),
 }
 
-impl AssetDefinition for VariableBehavior {
-    fn as_asset_source(&self) -> crate::asset_repo::AssetSource {
+impl IntoAssetSource for VariableBehavior {
+    fn get_asset_source(&self) -> crate::asset_repo::AssetSource {
         match self {
-            VariableBehavior::FixedValue(o) => o.as_asset_source(),
-            VariableBehavior::Condition(o) => o.as_asset_source(),
+            VariableBehavior::FixedValue(o) => o.get_asset_source(),
+            VariableBehavior::Condition(o) => o.get_asset_source(),
         }
     }
 
@@ -64,9 +64,8 @@ impl StyleTreeUi for VariableBehavior {
 
                     let is_condition = matches!(self, VariableBehavior::Condition(_));
                     if ui.selectable_label(is_condition, "Condition").clicked() && !is_condition {
-                        *self = VariableBehavior::Condition(Condition::from_id(
-                            self.asset_id().clone(),
-                        ))
+                        *self =
+                            VariableBehavior::Condition(Condition::from_id(self.asset_id().clone()))
                     }
                 });
         });

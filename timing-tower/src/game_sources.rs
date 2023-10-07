@@ -4,7 +4,7 @@ use unified_sim_model::model::Entry;
 use uuid::{uuid, Uuid};
 
 use crate::asset_repo::{
-    AssetDefinition, AssetId, AssetRepo, AssetSource, AssetType, BooleanSource, NumberSource,
+    IntoAssetSource, AssetId, AssetRepo, AssetSource, AssetType, BooleanSource, NumberSource,
     TextSource,
 };
 
@@ -66,8 +66,8 @@ pub struct GameSource {
     asset_id: AssetId,
     extractor: Extractor,
 }
-impl AssetDefinition for GameSource {
-    fn as_asset_source(&self) -> AssetSource {
+impl IntoAssetSource for GameSource {
+    fn get_asset_source(&self) -> AssetSource {
         match &self.extractor {
             Extractor::Number(f) => AssetSource::Number(Box::new(f.clone())),
             Extractor::Text(f) => AssetSource::Text(Box::new(f.clone())),

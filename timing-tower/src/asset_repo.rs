@@ -26,8 +26,8 @@ pub trait BooleanSource {
     fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<bool>;
 }
 
-pub trait AssetDefinition {
-    fn as_asset_source(&self) -> AssetSource;
+pub trait IntoAssetSource {
+    fn get_asset_source(&self) -> AssetSource;
     fn asset_id(&self) -> &AssetId;
 }
 
@@ -89,19 +89,19 @@ pub struct AssetRepo {
 }
 
 impl AssetRepo {
-    pub fn reload_repo(&mut self, asset_defs: Vec<&impl AssetDefinition>) {
+    pub fn reload_repo(&mut self, asset_defs: Vec<&impl IntoAssetSource>) {
         self.assets.clear();
         self.convert(asset_defs);
         self.convert(game_sources::get_game_sources());
     }
 
-    fn convert(&mut self, asset_defs: Vec<&impl AssetDefinition>) {
+    fn convert(&mut self, asset_defs: Vec<&impl IntoAssetSource>) {
         for var_def in asset_defs {
             self.assets.insert(
                 var_def.asset_id().id.clone(),
                 Asset {
                     id: var_def.asset_id().clone(),
-                    source: var_def.as_asset_source(),
+                    source: var_def.get_asset_source(),
                 },
             );
         }

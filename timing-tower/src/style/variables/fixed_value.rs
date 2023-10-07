@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 
 use crate::asset_repo::{
-    AssetDefinition, AssetId, AssetRepo, AssetSource, AssetType, BooleanSource, ColorSource,
+    IntoAssetSource, AssetId, AssetRepo, AssetSource, AssetType, BooleanSource, ColorSource,
     NumberSource, TextSource,
 };
 
@@ -116,11 +116,11 @@ impl FixedValue {
     }
 }
 
-impl AssetDefinition for FixedValue {
+impl IntoAssetSource for FixedValue {
     fn asset_id(&self) -> &AssetId {
         &self.id
     }
-    fn as_asset_source(&self) -> AssetSource {
+    fn get_asset_source(&self) -> AssetSource {
         match &self.value {
             FixedValueType::Number(n) => AssetSource::Number(Box::new(StaticNumber(*n))),
             FixedValueType::Text(t) => AssetSource::Text(Box::new(StaticText(t.clone()))),

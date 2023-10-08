@@ -1,6 +1,7 @@
 use bevy::prelude::Color;
 use bevy_egui::egui::{ComboBox, DragValue, TextEdit, Ui};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
@@ -33,6 +34,11 @@ pub enum BooleanProperty {
     Ref(AssetReference),
     #[serde(untagged)]
     Fixed(bool),
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct ImageProperty {
+    pub reference: AssetReference,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -160,6 +166,28 @@ impl BooleanProperty {
                     *self = BooleanProperty::Fixed(true);
                 }
             }
+        }
+    }
+}
+
+impl Default for ImageProperty {
+    fn default() -> Self {
+        Self {
+            reference: AssetReference {
+                asset_type: AssetType::Image,
+                key: Uuid::default(),
+            },
+        }
+    }
+}
+
+impl ImageProperty {
+    pub fn editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) {
+        let new_ref = asset_repo.editor(ui, &self.reference, |v| {
+            v.asset_type.can_cast_to(&AssetType::Image)
+        });
+        if let Some(new_ref) = new_ref {
+            self.reference = new_ref;
         }
     }
 }

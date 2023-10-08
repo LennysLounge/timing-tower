@@ -125,7 +125,7 @@ impl IntoAssetSource for FixedValue {
             FixedValueType::Number(n) => AssetSource::Number(Box::new(StaticNumber(*n))),
             FixedValueType::Text(t) => AssetSource::Text(Box::new(StaticText(t.clone()))),
             FixedValueType::Color(c) => AssetSource::Color(Box::new(StaticColor(*c))),
-            FixedValueType::Boolean(b) => AssetSource::Bool(Box::new(StaticBoolean(*b))),
+            FixedValueType::Boolean(b) => AssetSource::Boolean(Box::new(StaticBoolean(*b))),
         }
     }
 }

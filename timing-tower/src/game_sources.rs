@@ -71,7 +71,7 @@ impl IntoAssetSource for GameSource {
         match &self.extractor {
             Extractor::Number(f) => AssetSource::Number(Box::new(f.clone())),
             Extractor::Text(f) => AssetSource::Text(Box::new(f.clone())),
-            Extractor::Boolean(f) => AssetSource::Bool(Box::new(f.clone())),
+            Extractor::Boolean(f) => AssetSource::Boolean(Box::new(f.clone())),
         }
     }
 

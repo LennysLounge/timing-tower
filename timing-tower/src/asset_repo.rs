@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use bevy::prelude::{Color, Resource};
+use bevy::prelude::{Color, Handle, Image, Resource};
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 use uuid::Uuid;
@@ -26,6 +26,10 @@ pub trait BooleanSource {
     fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<bool>;
 }
 
+pub trait ImageSource {
+    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<Handle<Image>>;
+}
+
 pub trait IntoAssetSource {
     fn get_asset_source(&self) -> AssetSource;
     fn asset_id(&self) -> &AssetId;
@@ -38,6 +42,7 @@ pub enum AssetType {
     Text,
     Color,
     Boolean,
+    Image,
 }
 
 #[derive(Serialize, Deserialize, Clone, Default)]
@@ -80,7 +85,8 @@ pub enum AssetSource {
     Number(Box<dyn NumberSource + Send + Sync>),
     Text(Box<dyn TextSource + Send + Sync>),
     Color(Box<dyn ColorSource + Send + Sync>),
-    Bool(Box<dyn BooleanSource + Send + Sync>),
+    Boolean(Box<dyn BooleanSource + Send + Sync>),
+    Image(Box<dyn ImageSource + Send + Sync>),
 }
 
 #[derive(Resource)]
@@ -128,6 +134,15 @@ impl AssetRepo {
         self.assets
             .get(&reference.key)
             .and_then(|v| v.source.resolve_bool(self, entry))
+    }
+    pub fn get_image(
+        &self,
+        reference: &AssetReference,
+        entry: Option<&Entry>,
+    ) -> Option<Handle<Image>> {
+        self.assets
+            .get(&reference.key)
+            .and_then(|v| v.source.resolve_image(self, entry))
     }
 
     pub fn get_number_property(
@@ -199,7 +214,13 @@ impl AssetSource {
     }
     pub fn resolve_bool(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<bool> {
         match self {
-            AssetSource::Bool(s) => s.resolve(vars, entry),
+            AssetSource::Boolean(s) => s.resolve(vars, entry),
+            _ => None,
+        }
+    }
+    pub fn resolve_image(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<Handle<Image>> {
+        match self {
+            AssetSource::Image(s) => s.resolve(vars, entry),
             _ => None,
         }
     }
@@ -219,6 +240,7 @@ impl AssetType {
             AssetType::Text => "Text",
             AssetType::Color => "Color",
             AssetType::Boolean => "Boolean",
+            AssetType::Image => "Image",
         }
     }
 }

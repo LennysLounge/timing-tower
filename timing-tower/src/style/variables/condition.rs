@@ -1,4 +1,4 @@
-use bevy::prelude::Color;
+use bevy::prelude::{Color, Handle, Image};
 use bevy_egui::egui::{ComboBox, Sense, Ui, Vec2};
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
@@ -7,9 +7,11 @@ use crate::{
     asset_reference_repo::AssetReferenceRepo,
     asset_repo::{
         AssetId, AssetReference, AssetRepo, AssetSource, AssetType, BooleanSource, ColorSource,
-        IntoAssetSource, NumberSource, TextSource,
+        ImageSource, IntoAssetSource, NumberSource, TextSource,
     },
-    style::properties::{BooleanProperty, ColorProperty, NumberProperty, TextProperty},
+    style::properties::{
+        BooleanProperty, ColorProperty, ImageProperty, NumberProperty, TextProperty,
+    },
 };
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -55,6 +57,7 @@ enum Output {
     Text(TextProperty),
     Color(ColorProperty),
     Boolean(BooleanProperty),
+    Image(ImageProperty),
 }
 
 impl Default for Condition {
@@ -97,7 +100,8 @@ impl IntoAssetSource for Condition {
             AssetType::Number => AssetSource::Number(Box::new(source)),
             AssetType::Text => AssetSource::Text(Box::new(source)),
             AssetType::Color => AssetSource::Color(Box::new(source)),
-            AssetType::Boolean => AssetSource::Bool(Box::new(source)),
+            AssetType::Boolean => AssetSource::Boolean(Box::new(source)),
+            AssetType::Image => AssetSource::Image(Box::new(source)),
         }
     }
 
@@ -114,12 +118,14 @@ impl Condition {
                 AssetType::Text => Output::Text(TextProperty::Fixed(String::new())),
                 AssetType::Color => Output::Color(ColorProperty::Fixed(Color::WHITE)),
                 AssetType::Boolean => Output::Boolean(BooleanProperty::Fixed(true)),
+                AssetType::Image => Output::Image(ImageProperty::default()),
             },
             false_output: match &id.asset_type {
                 AssetType::Number => Output::Number(NumberProperty::Fixed(0.0)),
                 AssetType::Text => Output::Text(TextProperty::Fixed(String::new())),
                 AssetType::Color => Output::Color(ColorProperty::Fixed(Color::WHITE)),
                 AssetType::Boolean => Output::Boolean(BooleanProperty::Fixed(false)),
+                AssetType::Image => Output::Image(ImageProperty::default()),
             },
             id,
             ..Default::default()
@@ -138,6 +144,7 @@ impl Condition {
                     AssetType::Text => "Text",
                     AssetType::Color => "Color",
                     AssetType::Boolean => "Yes/No",
+                    AssetType::Image => "Image",
                 })
                 .show_ui(ui, |ui| {
                     let is_number = self.id.asset_type == AssetType::Number;
@@ -163,6 +170,12 @@ impl Condition {
                         self.id.asset_type = AssetType::Boolean;
                         self.true_output = Output::Boolean(BooleanProperty::Fixed(true));
                         self.false_output = Output::Boolean(BooleanProperty::Fixed(false));
+                    }
+                    let is_image = self.id.asset_type == AssetType::Image;
+                    if ui.selectable_label(is_image, "Image").clicked() && !is_image {
+                        self.id.asset_type = AssetType::Image;
+                        self.true_output = Output::Image(ImageProperty::default());
+                        self.false_output = Output::Image(ImageProperty::default());
                     }
                 });
         });
@@ -195,7 +208,8 @@ impl Condition {
                             BooleanProperty::Fixed(true),
                             BooleanComparator::Is,
                         ),
-                        AssetType::Color => unreachable!(),
+                        AssetType::Color => unreachable!("Type color not allowed for if condition"),
+                        AssetType::Image => unreachable!("Type image not allowed for if condition"),
                     }
                 }
                 self.left = reference;
@@ -277,6 +291,7 @@ impl Condition {
                 Output::Text(t) => t.editor(ui, asset_repo),
                 Output::Color(c) => c.editor(ui, asset_repo),
                 Output::Boolean(b) => b.editor(ui, asset_repo),
+                Output::Image(i) => i.editor(ui, asset_repo),
             }
         });
         ui.label("else:");
@@ -287,6 +302,7 @@ impl Condition {
                 Output::Text(t) => t.editor(ui, asset_repo),
                 Output::Color(c) => c.editor(ui, asset_repo),
                 Output::Boolean(b) => b.editor(ui, asset_repo),
+                Output::Image(i) => i.editor(ui, asset_repo),
             }
         });
     }
@@ -368,6 +384,23 @@ impl BooleanSource for ConditionSource {
         } else {
             match &self.false_value {
                 Output::Boolean(b) => vars.get_bool_property(&b, entry),
+                _ => unreachable!(),
+            }
+        }
+    }
+}
+
+impl ImageSource for ConditionSource {
+    fn resolve(&self, repo: &AssetRepo, entry: Option<&Entry>) -> Option<Handle<Image>> {
+        let condition = self.evaluate_condition(repo, entry)?;
+        if condition {
+            match &self.true_value {
+                Output::Image(i) => repo.get_image(&i.reference, entry),
+                _ => unreachable!(),
+            }
+        } else {
+            match &self.false_value {
+                Output::Image(i) => repo.get_image(&i.reference, entry),
                 _ => unreachable!(),
             }
         }

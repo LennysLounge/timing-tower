@@ -37,7 +37,7 @@ pub trait IntoAssetSource {
     fn asset_id(&self) -> &AssetId;
 }
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug, Default)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug, Default, Copy)]
 pub enum AssetType {
     #[default]
     Number,

@@ -1,4 +1,6 @@
-use bevy_egui::egui::ComboBox;
+use std::mem::discriminant;
+
+use bevy_egui::egui::{ComboBox, Response, Ui};
 use serde::{Deserialize, Serialize};
 use tree_view::{DropPosition, TreeUi, TreeViewBuilder};
 use uuid::Uuid;
@@ -8,7 +10,7 @@ use crate::{
     asset_repo::{AssetId, IntoAssetSource},
 };
 
-use self::{condition::Condition, fixed_value::FixedValue};
+use self::{condition::Condition, fixed_value::FixedValue, map::Map};
 
 use super::{
     folder::{Folder, FolderActions},
@@ -17,11 +19,13 @@ use super::{
 
 pub mod condition;
 pub mod fixed_value;
+pub mod map;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub enum VariableBehavior {
     FixedValue(FixedValue),
     Condition(Condition),
+    Map(Map),
 }
 
 impl IntoAssetSource for VariableBehavior {
@@ -29,6 +33,7 @@ impl IntoAssetSource for VariableBehavior {
         match self {
             VariableBehavior::FixedValue(o) => o.get_asset_source(),
             VariableBehavior::Condition(o) => o.get_asset_source(),
+            VariableBehavior::Map(o) => o.get_asset_source(),
         }
     }
 
@@ -36,6 +41,7 @@ impl IntoAssetSource for VariableBehavior {
         match self {
             VariableBehavior::FixedValue(o) => o.asset_id(),
             VariableBehavior::Condition(o) => o.asset_id(),
+            VariableBehavior::Map(o) => o.asset_id(),
         }
     }
 }
@@ -59,6 +65,7 @@ impl StyleTreeUi for VariableBehavior {
                 .selected_text(match self {
                     VariableBehavior::FixedValue(_) => "Fixed value",
                     VariableBehavior::Condition(_) => "Condition",
+                    VariableBehavior::Map(_) => "Map",
                 })
                 .show_ui(ui, |ui| {
                     let is_fixed_value = matches!(self, VariableBehavior::FixedValue(_));
@@ -78,6 +85,11 @@ impl StyleTreeUi for VariableBehavior {
                         ));
                         changed = true;
                     }
+                    let is_map = matches!(self, VariableBehavior::Map(_));
+                    if ui.selectable_label(is_map, "Map").clicked() && !is_map {
+                        *self = VariableBehavior::Map(Map::from_id(self.asset_id().clone()));
+                        changed = true;
+                    }
                 });
         });
 
@@ -85,6 +97,7 @@ impl StyleTreeUi for VariableBehavior {
         changed |= match self {
             VariableBehavior::FixedValue(o) => o.property_editor(ui),
             VariableBehavior::Condition(o) => o.property_editor(ui, asset_repo),
+            VariableBehavior::Map(o) => o.property_editor(ui, asset_repo),
         };
         changed
     }
@@ -191,6 +204,34 @@ impl VariableBehavior {
         match self {
             VariableBehavior::FixedValue(o) => o.get_id_mut(),
             VariableBehavior::Condition(o) => o.get_id_mut(),
+            VariableBehavior::Map(o) => o.get_id_mut(),
         }
     }
+}
+
+fn variant_checkbox<T: Clone>(ui: &mut Ui, thing: &mut T, other_things: &[(&T, &str)]) -> Response {
+    let mut changed = false;
+    let mut res = ComboBox::new(ui.next_auto_id(), "")
+        .selected_text({
+            other_things
+                .iter()
+                .find_map(|(other, name)| {
+                    (discriminant(thing) == discriminant(other)).then_some(*name)
+                })
+                .unwrap_or("Not Found")
+        })
+        .show_ui(ui, |ui| {
+            for (other, name) in other_things {
+                let is_same = discriminant(thing) == discriminant(other);
+                if ui.selectable_label(is_same, *name).clicked() && !is_same {
+                    *thing = (*other).clone();
+                    changed = true;
+                }
+            }
+        })
+        .response;
+    if changed {
+        res.mark_changed();
+    }
+    res
 }

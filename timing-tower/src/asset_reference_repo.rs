@@ -138,6 +138,17 @@ impl AssetOrFolder {
             AssetOrFolder::Folder { name: _, assets } => assets.iter().find_map(|a| a.get(id)),
         }
     }
+
+    fn get_all_contained_ids(&self) -> Vec<&AssetId> {
+        match self {
+            AssetOrFolder::Asset(id) => vec![id],
+            AssetOrFolder::Folder { name: _, assets } => assets
+                .iter()
+                .flat_map(|a| a.get_all_contained_ids())
+                .collect(),
+        }
+    }
+
     fn show_menu(
         &self,
         ui: &mut Ui,
@@ -161,11 +172,22 @@ impl AssetOrFolder {
                 }
             }
             AssetOrFolder::Folder { name, assets } => {
-                ui.collapsing(name, |ui| {
-                    for a in assets.iter() {
-                        a.show_menu(ui, selected_asset, is_type_allowed);
-                    }
+                let is_any_allowed = self
+                    .get_all_contained_ids()
+                    .into_iter()
+                    .any(|a| is_type_allowed(a));
+
+                let res = ui.add_enabled_ui(is_any_allowed, |ui| {
+                    ui.collapsing(name, |ui| {
+                        for a in assets.iter() {
+                            a.show_menu(ui, selected_asset, is_type_allowed);
+                        }
+                    });
                 });
+                if !is_any_allowed {
+                    res.response
+                        .on_hover_text("Folder contains no allowed types for this reference");
+                }
             }
         }
     }

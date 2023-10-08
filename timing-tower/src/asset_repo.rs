@@ -7,7 +7,9 @@ use uuid::Uuid;
 
 use crate::{
     game_sources,
-    style::properties::{BooleanProperty, ColorProperty, NumberProperty, TextProperty},
+    style::properties::{
+        BooleanProperty, ColorProperty, ImageProperty, NumberProperty, TextProperty,
+    },
 };
 
 pub trait NumberSource {
@@ -191,6 +193,17 @@ impl AssetRepo {
         match property {
             BooleanProperty::Fixed(b) => Some(*b),
             BooleanProperty::Ref(reference) => self.get_bool(reference, entry),
+        }
+    }
+
+    pub fn get_image_property(
+        &self,
+        property: &ImageProperty,
+        entry: Option<&Entry>,
+    ) -> Option<Handle<Image>> {
+        match property {
+            ImageProperty::None => None,
+            ImageProperty::Ref(reference) => self.get_image(reference, entry),
         }
     }
 }

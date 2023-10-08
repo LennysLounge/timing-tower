@@ -309,7 +309,7 @@ fn create_cell_style(cell: &Cell, vars: &AssetRepo, entry: Option<&Entry>) -> Ce
         color: vars
             .get_color_property(&cell.color, entry)
             .unwrap_or(Color::RED),
-        texture: vars.get_image(&cell.image.reference, entry),
+        texture: vars.get_image_property(&cell.image, entry),
         pos: Vec3::new(
             vars.get_number_property(&cell.pos.x, entry).unwrap_or(0.0),
             vars.get_number_property(&cell.pos.y, entry).unwrap_or(0.0) * -1.0,

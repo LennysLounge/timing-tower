@@ -1,7 +1,6 @@
 use bevy::prelude::Color;
 use bevy_egui::egui::{ComboBox, DragValue, TextEdit, Ui};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
@@ -37,8 +36,10 @@ pub enum BooleanProperty {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct ImageProperty {
-    pub reference: AssetReference,
+pub enum ImageProperty {
+    Ref(AssetReference),
+    #[serde(untagged)]
+    None,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -172,22 +173,31 @@ impl BooleanProperty {
 
 impl Default for ImageProperty {
     fn default() -> Self {
-        Self {
-            reference: AssetReference {
-                asset_type: AssetType::Image,
-                key: Uuid::default(),
-            },
-        }
+        Self::None
     }
 }
 
 impl ImageProperty {
     pub fn editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) {
-        let new_ref = asset_repo.editor(ui, &self.reference, |v| {
-            v.asset_type.can_cast_to(&AssetType::Image)
-        });
-        if let Some(new_ref) = new_ref {
-            self.reference = new_ref;
+        match self {
+            ImageProperty::None => {
+                if let Some(reference) =
+                    asset_repo.editor_none(ui, |v| v.asset_type.can_cast_to(&AssetType::Image))
+                {
+                    *self = ImageProperty::Ref(reference);
+                }
+            }
+            ImageProperty::Ref(asset_ref) => {
+                let new_ref = asset_repo.editor(ui, asset_ref, |v| {
+                    v.asset_type.can_cast_to(&AssetType::Image)
+                });
+                if let Some(new_ref) = new_ref {
+                    *asset_ref = new_ref;
+                }
+                if ui.button("x").clicked() {
+                    *self = ImageProperty::None
+                }
+            }
         }
     }
 }

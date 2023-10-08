@@ -15,6 +15,7 @@ pub struct Cell {
     pub text_color: ColorProperty,
     pub text_size: NumberProperty,
     pub color: ColorProperty,
+    #[serde(default)]
     pub image: ImageProperty,
     pub pos: Vec3Property,
     pub size: Vec2Property,

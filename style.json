@@ -222,12 +222,7 @@
           "alpha": 0.0
         }
       },
-      "image": {
-        "reference": {
-          "asset_type": "Image",
-          "key": "00000000-0000-0000-0000-000000000000"
-        }
-      },
+      "image": null,
       "pos": {
         "x": 350.0,
         "y": 55.0,
@@ -272,12 +267,7 @@
             "alpha": 0.0
           }
         },
-        "image": {
-          "reference": {
-            "asset_type": "Image",
-            "key": "00000000-0000-0000-0000-000000000000"
-          }
-        },
+        "image": null,
         "pos": {
           "x": 0.0,
           "y": 0.0,
@@ -326,12 +316,7 @@
               "alpha": 0.0
             }
           },
-          "image": {
-            "reference": {
-              "asset_type": "Image",
-              "key": "00000000-0000-0000-0000-000000000000"
-            }
-          },
+          "image": null,
           "pos": {
             "x": 0.0,
             "y": 0.0,
@@ -384,12 +369,7 @@
                       "key": "e86a2ae3-6486-4941-bee9-b063f3ff0152"
                     }
                   },
-                  "image": {
-                    "reference": {
-                      "asset_type": "Image",
-                      "key": "00000000-0000-0000-0000-000000000000"
-                    }
-                  },
+                  "image": null,
                   "pos": {
                     "x": 0.0,
                     "y": 0.0,
@@ -448,12 +428,7 @@
                       "alpha": 0.6904762
                     }
                   },
-                  "image": {
-                    "reference": {
-                      "asset_type": "Image",
-                      "key": "00000000-0000-0000-0000-000000000000"
-                    }
-                  },
+                  "image": null,
                   "pos": {
                     "x": 32.0,
                     "y": 0.0,
@@ -500,12 +475,7 @@
                       "key": "e41f142f-2026-4126-9dc4-bed03fecd31e"
                     }
                   },
-                  "image": {
-                    "reference": {
-                      "asset_type": "Image",
-                      "key": "00000000-0000-0000-0000-000000000000"
-                    }
-                  },
+                  "image": null,
                   "pos": {
                     "x": 189.0,
                     "y": 0.0,
@@ -557,12 +527,7 @@
                       "key": "ecdfcaf2-d808-4fca-b118-88aee5d1b495"
                     }
                   },
-                  "image": {
-                    "reference": {
-                      "asset_type": "Image",
-                      "key": "00000000-0000-0000-0000-000000000000"
-                    }
-                  },
+                  "image": null,
                   "pos": {
                     "x": 225.0,
                     "y": 0.0,
@@ -611,12 +576,7 @@
                       "alpha": 1.0
                     }
                   },
-                  "image": {
-                    "reference": {
-                      "asset_type": "Image",
-                      "key": "00000000-0000-0000-0000-000000000000"
-                    }
-                  },
+                  "image": null,
                   "pos": {
                     "x": 271.0,
                     "y": 0.0,

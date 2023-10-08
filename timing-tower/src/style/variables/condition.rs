@@ -395,12 +395,12 @@ impl ImageSource for ConditionSource {
         let condition = self.evaluate_condition(repo, entry)?;
         if condition {
             match &self.true_value {
-                Output::Image(i) => repo.get_image(&i.reference, entry),
+                Output::Image(i) => repo.get_image_property(&i, entry),
                 _ => unreachable!(),
             }
         } else {
             match &self.false_value {
-                Output::Image(i) => repo.get_image(&i.reference, entry),
+                Output::Image(i) => repo.get_image_property(&i, entry),
                 _ => unreachable!(),
             }
         }

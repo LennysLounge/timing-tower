@@ -434,6 +434,16 @@
             }
           }
         }
+      },
+      {
+        "T": {
+          "FixedValue": {
+            "id": "90eb20ce-9b39-41ab-b6c8-626ba182ea6e",
+            "name": "Variable",
+            "asset_type": "Number",
+            "value": 0.0
+          }
+        }
       }
     ],
     "renameable": false
@@ -694,9 +704,56 @@
             },
             {
               "T": {
+                "id": "f7b469e0-7ee6-4553-bba5-1d6b361cb949",
+                "cell": {
+                  "text": "",
+                  "text_color": {
+                    "Rgba": {
+                      "red": 0.0,
+                      "green": 0.0,
+                      "blue": 0.0,
+                      "alpha": 1.0
+                    }
+                  },
+                  "text_size": 20.0,
+                  "color": {
+                    "Ref": {
+                      "asset_type": "Color",
+                      "key": "e41f142f-2026-4126-9dc4-bed03fecd31e"
+                    }
+                  },
+                  "image": null,
+                  "pos": {
+                    "x": 189.0,
+                    "y": 0.0,
+                    "z": 0.5
+                  },
+                  "size": {
+                    "x": 36.0,
+                    "y": 36.0
+                  },
+                  "skew": 0.0,
+                  "visible": true,
+                  "rounding": {
+                    "top_left": 0.0,
+                    "top_right": 0.0,
+                    "bot_left": 0.0,
+                    "bot_right": 0.0
+                  },
+                  "text_alginment": "Left",
+                  "text_position": {
+                    "x": 5.0,
+                    "y": 15.0
+                  }
+                },
+                "name": "manufacturer bg"
+              }
+            },
+            {
+              "T": {
                 "id": "408863e5-c4d7-4721-bb58-2a3887551ea5",
                 "cell": {
-                  "text": "M",
+                  "text": "",
                   "text_color": {
                     "Rgba": {
                       "red": 1.0,
@@ -715,17 +772,17 @@
                   "image": {
                     "Ref": {
                       "asset_type": "Image",
-                      "key": "b7ba5250-cf78-4146-a7c8-f2b85adc4c5f"
+                      "key": "d0edeef4-f187-44df-9c65-d81d405d8062"
                     }
                   },
                   "pos": {
-                    "x": 189.0,
-                    "y": 0.0,
+                    "x": 191.0,
+                    "y": 2.0,
                     "z": 1.0
                   },
                   "size": {
-                    "x": 36.0,
-                    "y": 36.0
+                    "x": 32.0,
+                    "y": 32.0
                   },
                   "skew": 0.0,
                   "visible": true,

@@ -437,11 +437,337 @@
       },
       {
         "T": {
-          "FixedValue": {
+          "Map": {
             "id": "90eb20ce-9b39-41ab-b6c8-626ba182ea6e",
-            "name": "Variable",
-            "asset_type": "Number",
-            "value": 0.0
+            "name": "Manufacturer icons",
+            "asset_type": "Image",
+            "input": {
+              "asset_type": "Number",
+              "key": "6330a6bb-51d1-4af7-9bd0-efeb00b1ff52"
+            },
+            "cases": [
+              {
+                "comparison": {
+                  "Number": [
+                    1.0,
+                    "Equal"
+                  ]
+                },
+                "output": {
+                  "Image": {
+                    "Ref": {
+                      "asset_type": "Image",
+                      "key": "d0edeef4-f187-44df-9c65-d81d405d8062"
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Number": [
+                    2.0,
+                    "Equal"
+                  ]
+                },
+                "output": {
+                  "Image": {
+                    "Ref": {
+                      "asset_type": "Image",
+                      "key": "66146a86-cb01-437f-814d-5c86efd5a777"
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Number": [
+                    3.0,
+                    "Equal"
+                  ]
+                },
+                "output": {
+                  "Image": {
+                    "Ref": {
+                      "asset_type": "Image",
+                      "key": "2295c661-0609-483d-b3df-248efa705f9d"
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Number": [
+                    4.0,
+                    "Equal"
+                  ]
+                },
+                "output": {
+                  "Image": {
+                    "Ref": {
+                      "asset_type": "Image",
+                      "key": "2295c661-0609-483d-b3df-248efa705f9d"
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Number": [
+                    5.0,
+                    "Equal"
+                  ]
+                },
+                "output": {
+                  "Image": {
+                    "Ref": {
+                      "asset_type": "Image",
+                      "key": "ecfb2bad-459a-4b64-b8ed-5d5147053ea2"
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Number": [
+                    6.0,
+                    "Equal"
+                  ]
+                },
+                "output": {
+                  "Image": {
+                    "Ref": {
+                      "asset_type": "Image",
+                      "key": "2295c661-0609-483d-b3df-248efa705f9d"
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Number": [
+                    7.0,
+                    "Equal"
+                  ]
+                },
+                "output": {
+                  "Image": {
+                    "Ref": {
+                      "asset_type": "Image",
+                      "key": "2295c661-0609-483d-b3df-248efa705f9d"
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Number": [
+                    8.0,
+                    "Equal"
+                  ]
+                },
+                "output": {
+                  "Image": {
+                    "Ref": {
+                      "asset_type": "Image",
+                      "key": "afcae1d6-f887-4417-bdfb-c09e91116adb"
+                    }
+                  }
+                },
+                "remove": false
+              }
+            ],
+            "default": {
+              "Image": {
+                "Ref": {
+                  "asset_type": "Image",
+                  "key": "62823f7e-db28-4087-a148-79d943b6ecfc"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "T": {
+          "Map": {
+            "id": "4b349431-364d-4be7-9ff5-442754c67b3a",
+            "name": "Map colors",
+            "asset_type": "Color",
+            "input": {
+              "asset_type": "Number",
+              "key": "6330a6bb-51d1-4af7-9bd0-efeb00b1ff52"
+            },
+            "cases": [
+              {
+                "comparison": {
+                  "Number": [
+                    1.0,
+                    "Equal"
+                  ]
+                },
+                "output": {
+                  "Color": {
+                    "Rgba": {
+                      "red": 0.4279133,
+                      "green": 0.40957415,
+                      "blue": 0.40957415,
+                      "alpha": 1.0
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Number": [
+                    2.0,
+                    "Equal"
+                  ]
+                },
+                "output": {
+                  "Color": {
+                    "Rgba": {
+                      "red": 0.66187567,
+                      "green": 0.32148257,
+                      "blue": 0.0,
+                      "alpha": 1.0
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Number": [
+                    3.0,
+                    "Equal"
+                  ]
+                },
+                "output": {
+                  "Color": {
+                    "Rgba": {
+                      "red": 0.19648848,
+                      "green": 0.68770945,
+                      "blue": 0.0,
+                      "alpha": 1.0
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Number": [
+                    4.0,
+                    "Equal"
+                  ]
+                },
+                "output": {
+                  "Color": {
+                    "Rgba": {
+                      "red": 0.0,
+                      "green": 0.5769624,
+                      "blue": 0.6119301,
+                      "alpha": 1.0
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Number": [
+                    5.0,
+                    "Equal"
+                  ]
+                },
+                "output": {
+                  "Color": {
+                    "Rgba": {
+                      "red": 0.0,
+                      "green": 0.3403931,
+                      "blue": 0.66187567,
+                      "alpha": 1.0
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Number": [
+                    6.0,
+                    "Equal"
+                  ]
+                },
+                "output": {
+                  "Color": {
+                    "Rgba": {
+                      "red": 0.29847836,
+                      "green": 0.0,
+                      "blue": 0.69644904,
+                      "alpha": 1.0
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Number": [
+                    7.0,
+                    "Equal"
+                  ]
+                },
+                "output": {
+                  "Color": {
+                    "Rgba": {
+                      "red": 0.49693304,
+                      "green": 0.0,
+                      "blue": 0.38334858,
+                      "alpha": 1.0
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Number": [
+                    8.0,
+                    "Equal"
+                  ]
+                },
+                "output": {
+                  "Color": {
+                    "Rgba": {
+                      "red": 0.644973,
+                      "green": 0.0,
+                      "blue": 0.3317006,
+                      "alpha": 1.0
+                    }
+                  }
+                },
+                "remove": false
+              }
+            ],
+            "default": {
+              "Color": {
+                "Rgba": {
+                  "red": 0.0,
+                  "green": 0.0,
+                  "blue": 0.0,
+                  "alpha": 1.0
+                }
+              }
+            }
           }
         }
       }
@@ -613,7 +939,7 @@
                   "color": {
                     "Ref": {
                       "asset_type": "Color",
-                      "key": "e86a2ae3-6486-4941-bee9-b063f3ff0152"
+                      "key": "4b349431-364d-4be7-9ff5-442754c67b3a"
                     }
                   },
                   "image": null,
@@ -772,7 +1098,7 @@
                   "image": {
                     "Ref": {
                       "asset_type": "Image",
-                      "key": "d0edeef4-f187-44df-9c65-d81d405d8062"
+                      "key": "90eb20ce-9b39-41ab-b6c8-626ba182ea6e"
                     }
                   },
                   "pos": {

@@ -1,16 +1,20 @@
-use bevy::prelude::Color;
+use bevy::prelude::{Color, Handle, Image};
 use bevy_egui::egui::{vec2, ComboBox, Ui};
 use serde::{Deserialize, Serialize};
+use unified_sim_model::model::Entry;
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    asset_repo::{AssetId, AssetReference, AssetSource, AssetType, IntoAssetSource},
+    asset_repo::{
+        AssetId, AssetReference, AssetRepo, AssetSource, AssetType, BooleanSource, ColorSource,
+        ImageSource, IntoAssetSource, NumberSource, TextSource,
+    },
     style::properties::{
         BooleanProperty, ColorProperty, ImageProperty, NumberProperty, TextProperty,
     },
 };
 
-use super::{fixed_value::StaticNumber, variant_checkbox};
+use super::variant_checkbox;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Map {
@@ -19,16 +23,6 @@ pub struct Map {
     input: AssetReference,
     cases: Vec<Case>,
     default: Output,
-}
-
-impl IntoAssetSource for Map {
-    fn get_asset_source(&self) -> AssetSource {
-        AssetSource::Number(Box::new(StaticNumber(1234.0)))
-    }
-
-    fn asset_id(&self) -> &AssetId {
-        &self.id
-    }
 }
 
 impl Map {
@@ -89,6 +83,11 @@ impl Map {
         if ui.button("add case").clicked() {
             self.cases.push(self.new_case());
         }
+
+        ui.label("Default:");
+        ui.horizontal(|ui| {
+            changed |= self.default.show(ui, asset_repo);
+        });
 
         changed
     }
@@ -156,6 +155,52 @@ impl Map {
             comparison: self.new_comparison(),
             output: self.new_output(),
             remove: false,
+        }
+    }
+}
+
+impl IntoAssetSource for Map {
+    fn asset_id(&self) -> &AssetId {
+        &self.id
+    }
+
+    fn get_asset_source(&self) -> AssetSource {
+        let mut cases = Vec::new();
+        for case in self.cases.iter() {
+            match self.input.asset_type {
+                AssetType::Number => {
+                    let case_comp = match &case.comparison {
+                        Comparison::Number(property, comp) => {
+                            (self.input.clone(), comp.clone(), property.clone())
+                        }
+                        _ => unreachable!(),
+                    };
+                    cases.push((CaseComparison::Number(case_comp), case.output.clone()));
+                }
+                AssetType::Text => {
+                    let case_comp = match &case.comparison {
+                        Comparison::Text(property, comp) => {
+                            (self.input.clone(), comp.clone(), property.clone())
+                        }
+                        _ => unreachable!(),
+                    };
+                    cases.push((CaseComparison::Text(case_comp), case.output.clone()));
+                }
+                _ => unreachable!(),
+            };
+        }
+
+        let source = MapSource {
+            cases,
+            default: self.default.clone(),
+        };
+
+        match self.id.asset_type {
+            AssetType::Number => AssetSource::Number(Box::new(source)),
+            AssetType::Text => AssetSource::Text(Box::new(source)),
+            AssetType::Color => AssetSource::Color(Box::new(source)),
+            AssetType::Boolean => AssetSource::Boolean(Box::new(source)),
+            AssetType::Image => AssetSource::Image(Box::new(source)),
         }
     }
 }
@@ -265,10 +310,28 @@ enum NumberComparator {
     Less,
     LessEqual,
 }
+impl NumberComparator {
+    fn compare(&self, n1: f32, n2: f32) -> bool {
+        match self {
+            NumberComparator::Equal => n1 == n2,
+            NumberComparator::Greater => n1 > n2,
+            NumberComparator::GreaterEqual => n1 >= n2,
+            NumberComparator::Less => n1 < n2,
+            NumberComparator::LessEqual => n1 <= n2,
+        }
+    }
+}
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
 enum TextComparator {
     Like,
+}
+impl TextComparator {
+    fn compare(&self, t1: &String, t2: &String) -> bool {
+        match self {
+            TextComparator::Like => t1 == t2,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -293,5 +356,143 @@ impl Output {
         };
 
         changed
+    }
+}
+
+struct MapSource {
+    cases: Vec<(CaseComparison, Output)>,
+    default: Output,
+}
+impl NumberSource for MapSource {
+    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<f32> {
+        self.cases
+            .iter()
+            .find_map(|(case, output)| {
+                if case.test(vars, entry) {
+                    match output {
+                        Output::Number(n) => vars.get_number_property(n, entry),
+                        _ => unreachable!(),
+                    }
+                } else {
+                    None
+                }
+            })
+            .or_else(|| match &self.default {
+                Output::Number(p) => vars.get_number_property(p, entry),
+                _ => unreachable!(),
+            })
+    }
+}
+
+impl TextSource for MapSource {
+    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<String> {
+        self.cases
+            .iter()
+            .find_map(|(case, output)| {
+                if case.test(vars, entry) {
+                    match output {
+                        Output::Text(n) => vars.get_text_property(n, entry),
+                        _ => unreachable!(),
+                    }
+                } else {
+                    None
+                }
+            })
+            .or_else(|| match &self.default {
+                Output::Text(p) => vars.get_text_property(p, entry),
+                _ => unreachable!(),
+            })
+    }
+}
+
+impl ColorSource for MapSource {
+    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<Color> {
+        self.cases
+            .iter()
+            .find_map(|(case, output)| {
+                if case.test(vars, entry) {
+                    match output {
+                        Output::Color(n) => vars.get_color_property(n, entry),
+                        _ => unreachable!(),
+                    }
+                } else {
+                    None
+                }
+            })
+            .or_else(|| match &self.default {
+                Output::Color(p) => vars.get_color_property(p, entry),
+                _ => unreachable!(),
+            })
+    }
+}
+
+impl BooleanSource for MapSource {
+    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<bool> {
+        self.cases
+            .iter()
+            .find_map(|(case, output)| {
+                if case.test(vars, entry) {
+                    match output {
+                        Output::Boolean(n) => vars.get_bool_property(n, entry),
+                        _ => unreachable!(),
+                    }
+                } else {
+                    None
+                }
+            })
+            .or_else(|| match &self.default {
+                Output::Boolean(p) => vars.get_bool_property(p, entry),
+                _ => unreachable!(),
+            })
+    }
+}
+
+impl ImageSource for MapSource {
+    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<Handle<Image>> {
+        self.cases
+            .iter()
+            .find_map(|(case, output)| {
+                if case.test(vars, entry) {
+                    match output {
+                        Output::Image(n) => vars.get_image_property(n, entry),
+                        _ => unreachable!(),
+                    }
+                } else {
+                    None
+                }
+            })
+            .or_else(|| match &self.default {
+                Output::Image(p) => vars.get_image_property(p, entry),
+                _ => unreachable!(),
+            })
+    }
+}
+
+enum CaseComparison {
+    Number((AssetReference, NumberComparator, NumberProperty)),
+    Text((AssetReference, TextComparator, TextProperty)),
+}
+impl CaseComparison {
+    fn test(&self, asset_repo: &AssetRepo, entry: Option<&Entry>) -> bool {
+        match self {
+            CaseComparison::Number((reference, comp, prop)) => {
+                let value = asset_repo.get_number(reference, entry);
+                let pivot = asset_repo.get_number_property(prop, entry);
+                if let (Some(value), Some(pivot)) = (value, pivot) {
+                    comp.compare(value, pivot)
+                } else {
+                    false
+                }
+            }
+            CaseComparison::Text((reference, comp, prop)) => {
+                let value = asset_repo.get_text(reference, entry);
+                let pivot = asset_repo.get_text_property(prop, entry);
+                if let (Some(value), Some(pivot)) = (value, pivot) {
+                    comp.compare(&value, &pivot)
+                } else {
+                    false
+                }
+            }
+        }
     }
 }

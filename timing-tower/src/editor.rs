@@ -9,7 +9,7 @@ use bevy::{
     window::{PrimaryWindow, Window},
 };
 use bevy_egui::{
-    egui::{self},
+    egui::{self, ScrollArea},
     EguiContexts,
 };
 use tracing::error;
@@ -144,14 +144,23 @@ fn run_egui_main(
 
     egui::SidePanel::right("Property panel")
         .show(ctx.ctx_mut(), |ui| {
-            let asset_reference_repo = AssetReferenceRepo::new(&style.vars, &style.assets);
-            let changed = state
-                .selected_node
-                .as_ref()
-                .and_then(|id| style.find_mut(id))
-                .map(|selected_node| selected_node.property_editor(ui, &asset_reference_repo));
+            let mut changed = false;
 
-            if changed.is_some_and(|b| b) {
+            let asset_reference_repo = AssetReferenceRepo::new(&style.vars, &style.assets);
+            ScrollArea::vertical()
+                .auto_shrink([false, false])
+                .show(ui, |ui| {
+                    changed |= state
+                        .selected_node
+                        .as_ref()
+                        .and_then(|id| style.find_mut(id))
+                        .map(|selected_node| {
+                            selected_node.property_editor(ui, &asset_reference_repo)
+                        })
+                        .is_some_and(|b| b);
+                });
+
+            if changed {
                 style
                     .assets
                     .all_t_mut()

@@ -14,9 +14,9 @@ use unified_sim_model::{
 };
 
 use crate::{
+    asset_repo::AssetRepo,
     cell::{init_cell, CellStyle, SetStyle},
     style::{cell::Cell, StyleDefinition},
-    asset_repo::AssetRepo,
     MainCamera, SpawnAndInitWorld,
 };
 
@@ -309,9 +309,7 @@ fn create_cell_style(cell: &Cell, vars: &AssetRepo, entry: Option<&Entry>) -> Ce
         color: vars
             .get_color_property(&cell.color, entry)
             .unwrap_or(Color::RED),
-        texture: vars
-            .get_text_property(&cell.image, entry)
-            .filter(|path| !path.is_empty()),
+        texture: vars.get_image(&cell.image.reference, entry),
         pos: Vec3::new(
             vars.get_number_property(&cell.pos.x, entry).unwrap_or(0.0),
             vars.get_number_property(&cell.pos.y, entry).unwrap_or(0.0) * -1.0,

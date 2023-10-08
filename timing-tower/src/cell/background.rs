@@ -2,8 +2,8 @@ use std::f32::consts::PI;
 
 use bevy::{
     prelude::{
-        shape, AssetServer, Assets, BuildChildren, Color, Commands, Component, Entity, EventReader,
-        Handle, Mesh, Plugin, PostUpdate, Query, Res, ResMut, Update, Vec2, Vec3, With,
+        shape, Assets, BuildChildren, Color, Commands, Component, Entity, EventReader, Handle,
+        Mesh, Plugin, PostUpdate, Query, ResMut, Update, Vec2, Vec3, With,
     },
     render::{mesh::Indices, primitives::Aabb},
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
@@ -62,7 +62,6 @@ fn update_style(
     cells: Query<&Background>,
     materials_handles: Query<&Handle<GradientMaterial>>,
     mut mesh_handles: Query<(&Mesh2dHandle, &mut Aabb)>,
-    asset_server: Res<AssetServer>,
 ) {
     for event in events.iter() {
         let Ok(background_hadle) = cells.get(event.entity) else {
@@ -75,10 +74,7 @@ fn update_style(
             continue;
         };
         material.color = event.style.color;
-        material.texture = match &event.style.texture {
-            Some(path) => Some(asset_server.load(path)),
-            None => None,
-        };
+        material.texture = event.style.texture.clone();
 
         let Ok((mesh_handle, mut aabb)) = mesh_handles.get_mut(background_hadle.0) else {
             continue;

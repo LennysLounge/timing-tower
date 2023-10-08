@@ -83,7 +83,11 @@ fn load(asset_server: Res<AssetServer>, mut commands: Commands) {
     commands.insert_resource(DefaultFont(font));
 }
 
-fn setup(mut commands: Commands, mut set_style_event: EventWriter<SetStyle>) {
+fn setup(
+    mut commands: Commands,
+    mut set_style_event: EventWriter<SetStyle>,
+    asset_server: Res<AssetServer>,
+) {
     commands.spawn((Camera2dBundle::default(), MainCamera));
 
     let adapter = Adapter::new_dummy();
@@ -120,7 +124,7 @@ fn setup(mut commands: Commands, mut set_style_event: EventWriter<SetStyle>) {
             text_alignment: TextAlignment::Center,
             text_position: Vec2::ZERO,
             color: Color::WHITE,
-            texture: Some("acc6.PNG".to_string()),
+            texture: Some(asset_server.load("acc6.PNG".to_string())),
             pos: Vec3::new(0.0, 0.0, 0.0),
             size: Vec2::new(1920.0, 1080.0),
             skew: 0.0,

@@ -5,7 +5,8 @@ use serde::{Deserialize, Serialize};
 use crate::asset_reference_repo::AssetReferenceRepo;
 
 use super::properties::{
-    BooleanProperty, ColorProperty, NumberProperty, TextProperty, Vec2Property, Vec3Property,
+    BooleanProperty, ColorProperty, ImageProperty, NumberProperty, TextProperty, Vec2Property,
+    Vec3Property,
 };
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -14,7 +15,7 @@ pub struct Cell {
     pub text_color: ColorProperty,
     pub text_size: NumberProperty,
     pub color: ColorProperty,
-    pub image: TextProperty,
+    pub image: ImageProperty,
     pub pos: Vec3Property,
     pub size: Vec2Property,
     pub skew: NumberProperty,
@@ -77,7 +78,7 @@ impl Default for Cell {
                 x: NumberProperty::Fixed(5.0),
                 y: NumberProperty::Fixed(15.0),
             },
-            image: TextProperty::Fixed(String::new()),
+            image: ImageProperty::default(),
         }
     }
 }

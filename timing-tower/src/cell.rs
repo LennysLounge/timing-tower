@@ -1,8 +1,8 @@
 use bevy::{
     prelude::{
         shape, Assets, BuildWorldChildren, Bundle, Color, Component, Entity, Event, EventReader,
-        Mesh, Plugin, PostUpdate, Query, SpatialBundle, Transform, Vec2, Vec3, Visibility, With,
-        World,
+        Handle, Image, Mesh, Plugin, PostUpdate, Query, SpatialBundle, Transform, Vec2, Vec3,
+        Visibility, With, World,
     },
     render::primitives::Aabb,
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
@@ -39,7 +39,7 @@ pub struct CellStyle {
     pub text_alignment: TextAlignment,
     pub text_position: Vec2,
     pub color: Color,
-    pub texture: Option<String>,
+    pub texture: Option<Handle<Image>>,
     pub pos: Vec3,
     pub size: Vec2,
     pub skew: f32,

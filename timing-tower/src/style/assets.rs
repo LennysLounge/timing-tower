@@ -7,7 +7,10 @@ use serde::{Deserialize, Serialize};
 use tree_view::{TreeUi, TreeViewBuilder};
 use uuid::Uuid;
 
-use crate::asset_reference_repo::AssetReferenceRepo;
+use crate::{
+    asset_reference_repo::AssetReferenceRepo,
+    asset_repo::{AssetId, AssetType},
+};
 
 use super::{
     folder::{Folder, FolderActions},
@@ -98,6 +101,11 @@ impl AssetDefinition {
             AssetDefinition::Image(o) => o.load_asset(asset_server),
         }
     }
+    pub fn asset_id(&self) -> AssetId {
+        match self {
+            AssetDefinition::Image(i) => i.asset_id(),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -179,6 +187,14 @@ impl ImageAsset {
         self.handle = Some(asset_server.load(&self.path));
         if let Some(handle) = self.handle.as_ref() {
             self.load_state = asset_server.get_load_state(handle);
+        }
+    }
+
+    pub fn asset_id(&self) -> AssetId {
+        AssetId {
+            id: self.id,
+            name: self.name.clone(),
+            asset_type: AssetType::Image,
         }
     }
 }

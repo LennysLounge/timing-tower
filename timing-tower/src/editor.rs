@@ -143,7 +143,7 @@ fn run_egui_main(
 
     egui::SidePanel::right("Property panel")
         .show(ctx.ctx_mut(), |ui| {
-            let asset_reference_repo = AssetReferenceRepo::new(&style.vars);
+            let asset_reference_repo = AssetReferenceRepo::new(&style.vars, &style.assets);
             state
                 .selected_node
                 .as_ref()

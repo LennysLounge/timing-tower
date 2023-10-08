@@ -5,21 +5,24 @@ use crate::{
     asset_repo::{AssetId, AssetReference, IntoAssetSource},
     game_sources::{self, GameSource},
     style::{
+        assets::AssetDefinition,
         folder::{Folder, FolderOrT},
         variables::VariableBehavior,
     },
 };
 
 pub struct AssetReferenceRepo {
+    assets: AssetOrFolder,
     game_sources: AssetOrFolder,
     variables: AssetOrFolder,
 }
 
 impl AssetReferenceRepo {
-    pub fn new(vars: &Folder<VariableBehavior>) -> Self {
+    pub fn new(vars: &Folder<VariableBehavior>, assets: &Folder<AssetDefinition>) -> Self {
         Self {
             variables: AssetOrFolder::from_vars(vars),
             game_sources: AssetOrFolder::from_game(game_sources::get_game_sources()),
+            assets: AssetOrFolder::from_asset_defs(assets),
         }
     }
 
@@ -54,7 +57,10 @@ impl AssetReferenceRepo {
     }
 
     fn get(&self, id: &Uuid) -> Option<&AssetId> {
-        self.variables.get(id).or_else(|| self.game_sources.get(id))
+        self.variables
+            .get(id)
+            .or_else(|| self.game_sources.get(id))
+            .or_else(|| self.assets.get(id))
     }
 
     fn show_menu(
@@ -63,6 +69,7 @@ impl AssetReferenceRepo {
         selected_asset: &mut Option<AssetId>,
         is_type_allowed: &impl Fn(&AssetId) -> bool,
     ) {
+        self.assets.show_menu(ui, selected_asset, is_type_allowed);
         self.game_sources
             .show_menu(ui, selected_asset, is_type_allowed);
         self.variables
@@ -97,6 +104,19 @@ impl AssetOrFolder {
             assets: game_sources
                 .into_iter()
                 .map(|s| Self::Asset(s.asset_id().clone()))
+                .collect(),
+        }
+    }
+    fn from_asset_defs(assets: &Folder<AssetDefinition>) -> Self {
+        Self::Folder {
+            name: assets.name.clone(),
+            assets: assets
+                .content
+                .iter()
+                .map(|a| match a {
+                    FolderOrT::T(def) => Self::Asset(def.asset_id()),
+                    FolderOrT::Folder(f) => Self::from_asset_defs(f),
+                })
                 .collect(),
         }
     }

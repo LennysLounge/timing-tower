@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 
 use crate::asset_repo::{
-    IntoAssetSource, AssetId, AssetRepo, AssetSource, AssetType, BooleanSource, ColorSource,
+    AssetId, AssetRepo, AssetSource, AssetType, BooleanSource, ColorSource, IntoAssetSource,
     NumberSource, TextSource,
 };
 

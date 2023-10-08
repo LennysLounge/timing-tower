@@ -35,10 +35,26 @@ impl FolderActions for AssetDefinition {
             let image = AssetDefinition::Image(ImageAsset::new());
             actions.push(TreeViewAction::Select { node: *image.id() });
             actions.push(TreeViewAction::Insert {
-                target: *folder.id(),
+                target: folder.id,
                 node: Box::new(image),
                 position: tree_view::DropPosition::Last,
             });
+            ui.close_menu();
+        }
+        if ui.button("add group").clicked() {
+            let new_folder = Folder::<AssetDefinition>::new();
+            actions.push(TreeViewAction::Select {
+                node: *new_folder.id(),
+            });
+            actions.push(TreeViewAction::Insert {
+                target: folder.id,
+                node: Box::new(new_folder),
+                position: tree_view::DropPosition::Last,
+            });
+            ui.close_menu();
+        }
+        if ui.button("delete").clicked() {
+            actions.push(TreeViewAction::Remove { node: folder.id });
             ui.close_menu();
         }
     }
@@ -140,9 +156,35 @@ impl IntoAssetSource for ImageAsset {
 }
 
 impl StyleTreeUi for ImageAsset {
-    fn tree_view(&mut self, ui: &mut TreeUi, _actions: &mut Vec<TreeViewAction>) {
-        TreeViewBuilder::leaf(self.id.id).show(ui, |ui| {
+    fn tree_view(&mut self, tree_ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
+        let res = TreeViewBuilder::leaf(self.id.id).show(tree_ui, |ui| {
             ui.label(&self.id.name);
+        });
+        res.response.context_menu(|ui| {
+            if ui.button("add image").clicked() {
+                let image = AssetDefinition::Image(ImageAsset::new());
+                actions.push(TreeViewAction::Select { node: *image.id() });
+                actions.push(TreeViewAction::Insert {
+                    target: tree_ui.parent_id.unwrap(),
+                    node: Box::new(image),
+                    position: tree_view::DropPosition::After(self.id.id),
+                });
+                ui.close_menu();
+            }
+            if ui.button("add group").clicked() {
+                let folder = Folder::<AssetDefinition>::new();
+                actions.push(TreeViewAction::Select { node: *folder.id() });
+                actions.push(TreeViewAction::Insert {
+                    target: tree_ui.parent_id.unwrap(),
+                    node: Box::new(folder),
+                    position: tree_view::DropPosition::After(self.id.id),
+                });
+                ui.close_menu();
+            }
+            if ui.button("delete").clicked() {
+                actions.push(TreeViewAction::Remove { node: self.id.id });
+                ui.close_menu();
+            }
         });
     }
 

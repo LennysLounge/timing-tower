@@ -166,7 +166,7 @@ impl StyleDefinition {
         if let Some(target) = self.find_mut(&target) {
             target.insert(node, &position);
         } else {
-            println!("parent not found");
+            println!("parent not found id:{}", target);
         }
     }
 

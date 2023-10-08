@@ -161,7 +161,7 @@ fn run_egui_main(
         .response
         .rect
         .width();
-    variable_repo.reload_repo(style.vars.all_t());
+    variable_repo.reload_repo(style.vars.all_t(), style.assets.all_t());
 }
 
 fn update_camera(

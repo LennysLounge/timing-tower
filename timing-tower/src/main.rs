@@ -133,7 +133,7 @@ fn setup(mut commands: Commands, mut set_style_event: EventWriter<SetStyle>) {
     let mut repo = AssetRepo {
         assets: HashMap::new(),
     };
-    repo.reload_repo(style.vars.all_t());
+    repo.reload_repo(style.vars.all_t(), style.assets.all_t());
     commands.insert_resource(repo);
 
     commands.insert_resource(EditorState {

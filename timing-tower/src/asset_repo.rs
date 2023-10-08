@@ -95,9 +95,14 @@ pub struct AssetRepo {
 }
 
 impl AssetRepo {
-    pub fn reload_repo(&mut self, asset_defs: Vec<&impl IntoAssetSource>) {
+    pub fn reload_repo(
+        &mut self,
+        vars: Vec<&impl IntoAssetSource>,
+        assets: Vec<&impl IntoAssetSource>,
+    ) {
         self.assets.clear();
-        self.convert(asset_defs);
+        self.convert(vars);
+        self.convert(assets);
         self.convert(game_sources::get_game_sources());
     }
 

@@ -114,7 +114,7 @@ impl AssetOrFolder {
                 .content
                 .iter()
                 .map(|a| match a {
-                    FolderOrT::T(def) => Self::Asset(def.asset_id()),
+                    FolderOrT::T(def) => Self::Asset(def.asset_id().clone()),
                     FolderOrT::Folder(f) => Self::from_asset_defs(f),
                 })
                 .collect(),

@@ -5,11 +5,12 @@ use bevy::{
 use bevy_egui::egui::Ui;
 use serde::{Deserialize, Serialize};
 use tree_view::{TreeUi, TreeViewBuilder};
+use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    asset_repo::{AssetId, AssetType},
+    asset_repo::{AssetId, AssetRepo, AssetSource, AssetType, ImageSource, IntoAssetSource},
 };
 
 use super::{
@@ -39,6 +40,20 @@ impl FolderActions for AssetDefinition {
                 position: tree_view::DropPosition::Last,
             });
             ui.close_menu();
+        }
+    }
+}
+
+impl IntoAssetSource for AssetDefinition {
+    fn get_asset_source(&self) -> AssetSource {
+        match self {
+            AssetDefinition::Image(i) => i.get_asset_source(),
+        }
+    }
+
+    fn asset_id(&self) -> &AssetId {
+        match self {
+            AssetDefinition::Image(i) => i.asset_id(),
         }
     }
 }
@@ -101,17 +116,11 @@ impl AssetDefinition {
             AssetDefinition::Image(o) => o.load_asset(asset_server),
         }
     }
-    pub fn asset_id(&self) -> AssetId {
-        match self {
-            AssetDefinition::Image(i) => i.asset_id(),
-        }
-    }
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct ImageAsset {
-    pub id: Uuid,
-    pub name: String,
+    pub id: AssetId,
     pub path: String,
     #[serde(skip)]
     handle: Option<Handle<Image>>,
@@ -120,16 +129,26 @@ pub struct ImageAsset {
     load_state: LoadState,
 }
 
+impl IntoAssetSource for ImageAsset {
+    fn get_asset_source(&self) -> AssetSource {
+        AssetSource::Image(Box::new(StaticImage(self.handle.clone())))
+    }
+
+    fn asset_id(&self) -> &AssetId {
+        &self.id
+    }
+}
+
 impl StyleTreeUi for ImageAsset {
     fn tree_view(&mut self, ui: &mut TreeUi, _actions: &mut Vec<TreeViewAction>) {
-        TreeViewBuilder::leaf(self.id).show(ui, |ui| {
-            ui.label(&self.name);
+        TreeViewBuilder::leaf(self.id.id).show(ui, |ui| {
+            ui.label(&self.id.name);
         });
     }
 
     fn property_editor(&mut self, ui: &mut Ui, _asset_repo: &AssetReferenceRepo) {
         ui.label("Name");
-        let res = ui.text_edit_singleline(&mut self.name);
+        let res = ui.text_edit_singleline(&mut self.id.name);
         if res.changed() {
             println!(" was changed");
         }
@@ -150,7 +169,7 @@ impl StyleTreeUi for ImageAsset {
 
 impl StyleTreeNode for ImageAsset {
     fn id(&self) -> &Uuid {
-        &self.id
+        &self.id.id
     }
 
     fn chidren(&self) -> Vec<&dyn StyleTreeNode> {
@@ -175,8 +194,11 @@ impl StyleTreeNode for ImageAsset {
 impl ImageAsset {
     fn new() -> Self {
         Self {
-            id: Uuid::new_v4(),
-            name: "new image".to_string(),
+            id: AssetId {
+                id: Uuid::new_v4(),
+                name: "new image".to_string(),
+                asset_type: AssetType::Image,
+            },
             path: String::new(),
             handle: None,
             load_state: default_load_state(),
@@ -189,16 +211,15 @@ impl ImageAsset {
             self.load_state = asset_server.get_load_state(handle);
         }
     }
-
-    pub fn asset_id(&self) -> AssetId {
-        AssetId {
-            id: self.id,
-            name: self.name.clone(),
-            asset_type: AssetType::Image,
-        }
-    }
 }
 
 fn default_load_state() -> LoadState {
     LoadState::NotLoaded
+}
+
+pub struct StaticImage(pub Option<Handle<Image>>);
+impl ImageSource for StaticImage {
+    fn resolve(&self, _vars: &AssetRepo, _entry: Option<&Entry>) -> Option<Handle<Image>> {
+        self.0.clone()
+    }
 }

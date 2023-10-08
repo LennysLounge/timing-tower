@@ -2,8 +2,8 @@ use std::{fs::File, io::Write};
 
 use bevy::{
     prelude::{
-        resource_exists, AssetServer, Camera, IntoSystemConfigs, Plugin, Query, Res, ResMut,
-        Resource, Startup, UVec2, Update, With,
+        resource_exists, AssetEvent, AssetServer, Camera, EventReader, Image, IntoSystemConfigs,
+        Plugin, Query, Res, ResMut, Resource, Startup, UVec2, Update, With,
     },
     render::camera::Viewport,
     window::{PrimaryWindow, Window},
@@ -38,7 +38,8 @@ impl Plugin for EditorPlugin {
                 update_camera,
             )
                 .chain(),
-        );
+        )
+        .add_systems(Update, update_asset_load_state);
     }
 }
 
@@ -164,6 +165,21 @@ fn run_egui_main(
         .rect
         .width();
     variable_repo.reload_repo(style.vars.all_t(), style.assets.all_t());
+}
+
+fn update_asset_load_state(
+    event: EventReader<AssetEvent<Image>>,
+    asset_server: Res<AssetServer>,
+    mut style: ResMut<StyleDefinition>,
+) {
+    if event.is_empty() {
+        return;
+    }
+    style
+        .assets
+        .all_t_mut()
+        .into_iter()
+        .for_each(|a| a.load_asset(&*asset_server));
 }
 
 fn update_camera(

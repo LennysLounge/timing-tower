@@ -2,8 +2,8 @@ use std::{fs::File, io::Write};
 
 use bevy::{
     prelude::{
-        resource_exists, Camera, IntoSystemConfigs, Plugin, Query, Res, ResMut, Resource, Startup,
-        UVec2, Update, With,
+        resource_exists, AssetServer, Camera, IntoSystemConfigs, Plugin, Query, Res, ResMut,
+        Resource, Startup, UVec2, Update, With,
     },
     render::camera::Viewport,
     window::{PrimaryWindow, Window},
@@ -84,6 +84,7 @@ fn run_egui_main(
     mut state: ResMut<EditorState>,
     mut style: ResMut<StyleDefinition>,
     mut variable_repo: ResMut<AssetRepo>,
+    asset_server: Res<AssetServer>,
 ) {
     occupied_space.top = egui::TopBottomPanel::top("Top panel")
         .show(ctx.ctx_mut(), |ui| {
@@ -148,6 +149,12 @@ fn run_egui_main(
                 .as_ref()
                 .and_then(|id| style.find_mut(id))
                 .map(|selected_node| selected_node.property_editor(ui, &asset_reference_repo));
+
+            style
+                .assets
+                .all_t_mut()
+                .into_iter()
+                .for_each(|a| a.load_asset(&*asset_server));
 
             ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());
         })

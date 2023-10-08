@@ -117,6 +117,14 @@ impl<T: StyleTreeNode + FolderActions<FolderType = T>> Folder<T> {
         self.content.iter().flat_map(|c| c.all_t()).collect()
     }
 
+    /// Get a reference to all contained things of this folder.
+    pub fn all_t_mut(&mut self) -> Vec<&mut T> {
+        self.content
+            .iter_mut()
+            .flat_map(|c| c.all_t_mut())
+            .collect()
+    }
+
     /// Show the contents of this folder without a collapsing header.
     pub fn tree_view_flat(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
         TreeViewBuilder::dir(self.id).headless().show(ui, |ui| {
@@ -219,6 +227,12 @@ impl<T: StyleTreeNode + FolderActions<FolderType = T>> FolderOrT<T> {
         match self {
             FolderOrT::T(t) => vec![t],
             FolderOrT::Folder(f) => f.all_t(),
+        }
+    }
+    pub fn all_t_mut(&mut self) -> Vec<&mut T> {
+        match self {
+            FolderOrT::T(t) => vec![t],
+            FolderOrT::Folder(f) => f.all_t_mut(),
         }
     }
 }

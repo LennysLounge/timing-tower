@@ -8,7 +8,8 @@
         "T": {
           "Image": {
             "id": "d56688a6-894b-4629-9d83-b4d531e06aab",
-            "name": "Test image"
+            "name": "Test image",
+            "path": "branding/icon.png"
           }
         }
       }

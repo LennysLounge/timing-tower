@@ -1,3 +1,7 @@
+use bevy::{
+    asset::LoadState,
+    prelude::{AssetServer, Handle, Image},
+};
 use bevy_egui::egui::Ui;
 use serde::{Deserialize, Serialize};
 use tree_view::{TreeUi, TreeViewBuilder};
@@ -88,10 +92,24 @@ impl StyleTreeNode for AssetDefinition {
     }
 }
 
+impl AssetDefinition {
+    pub fn load_asset(&mut self, asset_server: &AssetServer) {
+        match self {
+            AssetDefinition::Image(o) => o.load_asset(asset_server),
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct ImageAsset {
     pub id: Uuid,
     pub name: String,
+    pub path: String,
+    #[serde(skip)]
+    handle: Option<Handle<Image>>,
+    #[serde(skip)]
+    #[serde(default = "default_load_state")]
+    load_state: LoadState,
 }
 
 impl StyleTreeUi for ImageAsset {
@@ -103,7 +121,22 @@ impl StyleTreeUi for ImageAsset {
 
     fn property_editor(&mut self, ui: &mut Ui, _asset_repo: &AssetReferenceRepo) {
         ui.label("Name");
-        ui.text_edit_singleline(&mut self.name);
+        let res = ui.text_edit_singleline(&mut self.name);
+        if res.changed() {
+            println!(" was changed");
+        }
+        ui.separator();
+        ui.label("Path:");
+        ui.text_edit_singleline(&mut self.path);
+        match self.load_state {
+            LoadState::NotLoaded => ui.label("Asset is not loaded"),
+            LoadState::Loading => ui.label("Asset is loading"),
+            LoadState::Loaded => ui.label("Asset loaded correctly"),
+            LoadState::Failed => ui.label(
+                "Failed to load the asset. Make sure the path is pointing to a valid image file.",
+            ),
+            LoadState::Unloaded => ui.label("The asset was unloaded"),
+        };
     }
 }
 
@@ -136,6 +169,20 @@ impl ImageAsset {
         Self {
             id: Uuid::new_v4(),
             name: "new image".to_string(),
+            path: String::new(),
+            handle: None,
+            load_state: default_load_state(),
         }
     }
+
+    pub fn load_asset(&mut self, asset_server: &AssetServer) {
+        self.handle = Some(asset_server.load(&self.path));
+        if let Some(handle) = self.handle.as_ref() {
+            self.load_state = asset_server.get_load_state(handle);
+        }
+    }
+}
+
+fn default_load_state() -> LoadState {
+    LoadState::NotLoaded
 }

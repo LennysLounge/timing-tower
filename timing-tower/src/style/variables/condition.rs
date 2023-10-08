@@ -135,7 +135,9 @@ impl Condition {
         &mut self.id
     }
 
-    pub fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) {
+    pub fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+        let mut changed = false;
+
         ui.horizontal(|ui| {
             ui.label("Output type:");
             ComboBox::new(ui.next_auto_id(), "")
@@ -152,30 +154,35 @@ impl Condition {
                         self.id.asset_type = AssetType::Number;
                         self.true_output = Output::Number(NumberProperty::Fixed(0.0));
                         self.false_output = Output::Number(NumberProperty::Fixed(0.0));
+                        changed |= true;
                     }
                     let is_text = self.id.asset_type == AssetType::Text;
                     if ui.selectable_label(is_text, "Text").clicked() && !is_text {
                         self.id.asset_type = AssetType::Text;
                         self.true_output = Output::Text(TextProperty::Fixed(String::new()));
                         self.false_output = Output::Text(TextProperty::Fixed(String::new()));
+                        changed |= true;
                     }
                     let is_color = self.id.asset_type == AssetType::Color;
                     if ui.selectable_label(is_color, "Color").clicked() && !is_color {
                         self.id.asset_type = AssetType::Color;
                         self.true_output = Output::Color(ColorProperty::Fixed(Color::WHITE));
                         self.false_output = Output::Color(ColorProperty::Fixed(Color::WHITE));
+                        changed |= true;
                     }
                     let is_boolean = self.id.asset_type == AssetType::Boolean;
                     if ui.selectable_label(is_boolean, "Yes/No").clicked() && !is_boolean {
                         self.id.asset_type = AssetType::Boolean;
                         self.true_output = Output::Boolean(BooleanProperty::Fixed(true));
                         self.false_output = Output::Boolean(BooleanProperty::Fixed(false));
+                        changed |= true;
                     }
                     let is_image = self.id.asset_type == AssetType::Image;
                     if ui.selectable_label(is_image, "Image").clicked() && !is_image {
                         self.id.asset_type = AssetType::Image;
                         self.true_output = Output::Image(ImageProperty::default());
                         self.false_output = Output::Image(ImageProperty::default());
+                        changed |= true;
                     }
                 });
         });
@@ -213,6 +220,7 @@ impl Condition {
                     }
                 }
                 self.left = reference;
+                changed |= true;
             }
             ui.label("is");
         });
@@ -231,15 +239,25 @@ impl Condition {
                             NumberComparator::LessEqual => "less or equal",
                         })
                         .show_ui(ui, |ui| {
-                            ui.selectable_value(c, NumberComparator::Equal, "equal");
-                            ui.selectable_value(c, NumberComparator::Greater, "greater");
+                            changed |= true;
+                            ui.selectable_value(c, NumberComparator::Equal, "equal")
+                                .changed();
+                            changed |= true;
+                            ui.selectable_value(c, NumberComparator::Greater, "greater")
+                                .changed();
+                            changed |= true;
                             ui.selectable_value(
                                 c,
                                 NumberComparator::GreaterEqual,
                                 "greater or equal",
-                            );
-                            ui.selectable_value(c, NumberComparator::Less, "less");
-                            ui.selectable_value(c, NumberComparator::LessEqual, "less or equal");
+                            )
+                            .changed();
+                            changed |= true;
+                            ui.selectable_value(c, NumberComparator::Less, "less")
+                                .changed();
+                            changed |= true;
+                            ui.selectable_value(c, NumberComparator::LessEqual, "less or equal")
+                                .changed();
                         });
                     match c {
                         NumberComparator::Equal => ui.label("to"),
@@ -256,7 +274,9 @@ impl Condition {
                             TextComparator::Like => "like",
                         })
                         .show_ui(ui, |ui| {
+                            changed |= true;
                             ui.selectable_value(c, TextComparator::Like, "like")
+                                .changed()
                         });
                 }
                 RightHandSide::Boolean(_, c) => {
@@ -267,8 +287,12 @@ impl Condition {
                             BooleanComparator::IsNot => "is not",
                         })
                         .show_ui(ui, |ui| {
-                            ui.selectable_value(c, BooleanComparator::Is, "is");
-                            ui.selectable_value(c, BooleanComparator::IsNot, "is not");
+                            changed |= true;
+                            ui.selectable_value(c, BooleanComparator::Is, "is")
+                                .changed();
+                            changed |= true;
+                            ui.selectable_value(c, BooleanComparator::IsNot, "is not")
+                                .changed();
                         });
                 }
             }
@@ -277,34 +301,37 @@ impl Condition {
         ui.horizontal(|ui| {
             ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
             // show select for right side
-            ui.horizontal(|ui| match &mut self.right {
-                RightHandSide::Number(n, _) => n.editor(ui, asset_repo),
-                RightHandSide::Text(t, _) => t.editor(ui, asset_repo),
-                RightHandSide::Boolean(b, _) => b.editor(ui, asset_repo),
-            });
+            changed |= ui
+                .horizontal(|ui| match &mut self.right {
+                    RightHandSide::Number(n, _) => n.editor(ui, asset_repo),
+                    RightHandSide::Text(t, _) => t.editor(ui, asset_repo),
+                    RightHandSide::Boolean(b, _) => b.editor(ui, asset_repo),
+                })
+                .inner;
         });
         ui.label("then:");
         ui.horizontal(|ui| {
             ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
-            match &mut self.true_output {
+            changed |= match &mut self.true_output {
                 Output::Number(n) => n.editor(ui, asset_repo),
                 Output::Text(t) => t.editor(ui, asset_repo),
                 Output::Color(c) => c.editor(ui, asset_repo),
                 Output::Boolean(b) => b.editor(ui, asset_repo),
                 Output::Image(i) => i.editor(ui, asset_repo),
-            }
+            };
         });
         ui.label("else:");
         ui.horizontal(|ui| {
             ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
-            match &mut self.false_output {
+            changed |= match &mut self.false_output {
                 Output::Number(n) => n.editor(ui, asset_repo),
                 Output::Text(t) => t.editor(ui, asset_repo),
                 Output::Color(c) => c.editor(ui, asset_repo),
                 Output::Boolean(b) => b.editor(ui, asset_repo),
                 Output::Image(i) => i.editor(ui, asset_repo),
-            }
+            };
         });
+        changed
     }
 }
 

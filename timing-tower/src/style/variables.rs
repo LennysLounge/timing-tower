@@ -41,9 +41,17 @@ impl IntoAssetSource for VariableBehavior {
 }
 
 impl StyleTreeUi for VariableBehavior {
-    fn property_editor(&mut self, ui: &mut bevy_egui::egui::Ui, asset_repo: &AssetReferenceRepo) {
+    fn property_editor(
+        &mut self,
+        ui: &mut bevy_egui::egui::Ui,
+        asset_repo: &AssetReferenceRepo,
+    ) -> bool {
+        let mut changed = false;
+
         ui.label("Name:");
-        ui.text_edit_singleline(&mut self.get_id_mut().name);
+        changed |= ui
+            .text_edit_singleline(&mut self.get_id_mut().name)
+            .changed();
 
         ui.horizontal(|ui| {
             ui.label("Behavior:");
@@ -59,22 +67,26 @@ impl StyleTreeUi for VariableBehavior {
                     {
                         *self = VariableBehavior::FixedValue(FixedValue::from_id(
                             self.asset_id().clone(),
-                        ))
+                        ));
+                        changed |= true;
                     }
 
                     let is_condition = matches!(self, VariableBehavior::Condition(_));
                     if ui.selectable_label(is_condition, "Condition").clicked() && !is_condition {
-                        *self =
-                            VariableBehavior::Condition(Condition::from_id(self.asset_id().clone()))
+                        *self = VariableBehavior::Condition(Condition::from_id(
+                            self.asset_id().clone(),
+                        ));
+                        changed = true;
                     }
                 });
         });
 
         ui.separator();
-        match self {
+        changed |= match self {
             VariableBehavior::FixedValue(o) => o.property_editor(ui),
             VariableBehavior::Condition(o) => o.property_editor(ui, asset_repo),
-        }
+        };
+        changed
     }
 
     fn tree_view(&mut self, tree_ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {

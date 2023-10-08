@@ -56,14 +56,18 @@ pub struct Vec3Property {
 }
 
 impl TextProperty {
-    pub fn editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) {
+    pub fn editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+        let mut changed = false;
         match self {
             TextProperty::Fixed(t) => {
-                ui.add(TextEdit::singleline(t).desired_width(100.0));
+                changed |= ui
+                    .add(TextEdit::singleline(t).desired_width(100.0))
+                    .changed();
                 if let Some(reference) =
                     asset_repo.editor_small(ui, |v| v.asset_type.can_cast_to(&AssetType::Text))
                 {
                     *self = TextProperty::Ref(reference);
+                    changed |= true;
                 }
             }
             TextProperty::Ref(asset_ref) => {
@@ -72,24 +76,29 @@ impl TextProperty {
                 });
                 if let Some(new_ref) = new_ref {
                     *asset_ref = new_ref;
+                    changed |= true;
                 }
                 if ui.button("x").clicked() {
                     *self = TextProperty::Fixed("".to_string());
+                    changed |= true;
                 }
             }
         }
+        changed
     }
 }
 
 impl NumberProperty {
-    pub fn editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) {
+    pub fn editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+        let mut changed = false;
         match self {
             NumberProperty::Fixed(c) => {
-                ui.add(DragValue::new(c));
+                changed |= ui.add(DragValue::new(c)).changed();
                 if let Some(reference) =
                     asset_repo.editor_small(ui, |v| v.asset_type.can_cast_to(&AssetType::Number))
                 {
                     *self = NumberProperty::Ref(reference);
+                    changed = true;
                 }
             }
             NumberProperty::Ref(asset_ref) => {
@@ -98,27 +107,32 @@ impl NumberProperty {
                 });
                 if let Some(new_ref) = new_ref {
                     *asset_ref = new_ref;
+                    changed = true;
                 }
                 if ui.button("x").clicked() {
                     *self = NumberProperty::Fixed(0.0);
+                    changed = true;
                 }
             }
         }
+        changed
     }
 }
 
 impl ColorProperty {
-    pub fn editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) {
+    pub fn editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+        let mut changed = false;
         match self {
             ColorProperty::Fixed(c) => {
                 let mut color = c.as_rgba_f32();
-                ui.color_edit_button_rgba_unmultiplied(&mut color);
+                changed |= ui.color_edit_button_rgba_unmultiplied(&mut color).changed();
                 *c = color.into();
 
                 if let Some(reference) =
                     asset_repo.editor_small(ui, |v| v.asset_type.can_cast_to(&AssetType::Color))
                 {
                     *self = ColorProperty::Ref(reference);
+                    changed |= true;
                 }
             }
             ColorProperty::Ref(asset_ref) => {
@@ -127,17 +141,21 @@ impl ColorProperty {
                 });
                 if let Some(new_ref) = new_ref {
                     *asset_ref = new_ref;
+                    changed |= true;
                 }
                 if ui.button("x").clicked() {
                     *self = ColorProperty::Fixed(Color::PURPLE);
+                    changed |= true;
                 }
             }
         }
+        changed
     }
 }
 
 impl BooleanProperty {
-    pub fn editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) {
+    pub fn editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+        let mut changed = false;
         match self {
             BooleanProperty::Fixed(b) => {
                 ComboBox::from_id_source(ui.next_auto_id())
@@ -147,13 +165,14 @@ impl BooleanProperty {
                         false => "No",
                     })
                     .show_ui(ui, |ui| {
-                        ui.selectable_value(b, true, "Yes");
-                        ui.selectable_value(b, false, "No");
+                        changed |= ui.selectable_value(b, true, "Yes").changed();
+                        changed |= ui.selectable_value(b, false, "No").changed();
                     });
                 if let Some(reference) =
                     asset_repo.editor_small(ui, |v| v.asset_type.can_cast_to(&AssetType::Boolean))
                 {
                     *self = BooleanProperty::Ref(reference);
+                    changed |= true;
                 }
             }
             BooleanProperty::Ref(asset_ref) => {
@@ -162,12 +181,15 @@ impl BooleanProperty {
                 });
                 if let Some(new_ref) = new_ref {
                     *asset_ref = new_ref;
+                    changed |= true;
                 }
                 if ui.button("x").clicked() {
                     *self = BooleanProperty::Fixed(true);
+                    changed |= true;
                 }
             }
         }
+        changed
     }
 }
 
@@ -178,13 +200,15 @@ impl Default for ImageProperty {
 }
 
 impl ImageProperty {
-    pub fn editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) {
+    pub fn editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+        let mut changed = false;
         match self {
             ImageProperty::None => {
                 if let Some(reference) =
                     asset_repo.editor_none(ui, |v| v.asset_type.can_cast_to(&AssetType::Image))
                 {
                     *self = ImageProperty::Ref(reference);
+                    changed |= true;
                 }
             }
             ImageProperty::Ref(asset_ref) => {
@@ -193,11 +217,14 @@ impl ImageProperty {
                 });
                 if let Some(new_ref) = new_ref {
                     *asset_ref = new_ref;
+                    changed |= true;
                 }
                 if ui.button("x").clicked() {
-                    *self = ImageProperty::None
+                    *self = ImageProperty::None;
+                    changed |= true;
                 }
             }
         }
+        changed
     }
 }

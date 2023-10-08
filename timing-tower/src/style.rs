@@ -35,7 +35,12 @@ pub enum TreeViewAction {
 
 pub trait StyleTreeUi {
     #[allow(unused)]
-    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) {}
+    /// Display the property editor for this tree node and return true if any fields where changed
+    /// Returns falls if no changes were made to the node.
+    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+        false
+    }
+    /// Display the tree view node of this node.
     fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>);
 }
 

@@ -46,11 +46,13 @@ impl<T: StyleTreeNode + FolderActions<FolderType = T>> StyleTreeUi for Folder<T>
         });
     }
 
-    fn property_editor(&mut self, ui: &mut Ui, _asset_repo: &AssetReferenceRepo) {
+    fn property_editor(&mut self, ui: &mut Ui, _asset_repo: &AssetReferenceRepo) -> bool {
+        let mut changed = false;
         if self.renameable {
             ui.label("Name:");
-            ui.text_edit_singleline(&mut self.name);
+            changed |= ui.text_edit_singleline(&mut self.name).changed();
         }
+        changed
     }
 }
 
@@ -171,7 +173,7 @@ impl<T: StyleTreeNode + FolderActions<FolderType = T>> StyleTreeUi for FolderOrT
         }
     }
 
-    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) {
+    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
         match self {
             FolderOrT::T(o) => o.property_editor(ui, asset_repo),
             FolderOrT::Folder(o) => o.property_editor(ui, asset_repo),

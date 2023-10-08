@@ -144,17 +144,19 @@ fn run_egui_main(
     egui::SidePanel::right("Property panel")
         .show(ctx.ctx_mut(), |ui| {
             let asset_reference_repo = AssetReferenceRepo::new(&style.vars, &style.assets);
-            state
+            let changed = state
                 .selected_node
                 .as_ref()
                 .and_then(|id| style.find_mut(id))
                 .map(|selected_node| selected_node.property_editor(ui, &asset_reference_repo));
 
-            style
-                .assets
-                .all_t_mut()
-                .into_iter()
-                .for_each(|a| a.load_asset(&*asset_server));
+            if changed.is_some_and(|b| b) {
+                style
+                    .assets
+                    .all_t_mut()
+                    .into_iter()
+                    .for_each(|a| a.load_asset(&*asset_server));
+            }
 
             ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());
         })

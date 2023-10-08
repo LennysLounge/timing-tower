@@ -42,7 +42,9 @@ impl FixedValue {
         &mut self.id
     }
 
-    pub fn property_editor(&mut self, ui: &mut Ui) {
+    pub fn property_editor(&mut self, ui: &mut Ui) -> bool {
+        let mut changed = false;
+
         ui.horizontal(|ui| {
             ui.label("Type:");
             ComboBox::new(ui.next_auto_id(), "")
@@ -57,21 +59,25 @@ impl FixedValue {
                     if ui.selectable_label(is_number, "Number").clicked() && !is_number {
                         self.value = FixedValueType::Number(0.0);
                         self.id.asset_type = AssetType::Number;
+                        changed |= true;
                     }
                     let is_text = matches!(self.value, FixedValueType::Text(_));
                     if ui.selectable_label(is_text, "Text").clicked() && !is_text {
                         self.value = FixedValueType::Text(String::new());
                         self.id.asset_type = AssetType::Text;
+                        changed |= true;
                     }
                     let is_color = matches!(self.value, FixedValueType::Color(_));
                     if ui.selectable_label(is_color, "Color").clicked() && !is_color {
                         self.value = FixedValueType::Color(Color::WHITE);
                         self.id.asset_type = AssetType::Color;
+                        changed |= true;
                     }
                     let is_boolean = matches!(self.value, FixedValueType::Boolean(_));
                     if ui.selectable_label(is_boolean, "Yes/No").clicked() && !is_boolean {
                         self.value = FixedValueType::Boolean(true);
                         self.id.asset_type = AssetType::Boolean;
+                        changed |= true;
                     }
                 });
         });
@@ -80,20 +86,22 @@ impl FixedValue {
             FixedValueType::Number(number) => {
                 ui.horizontal(|ui| {
                     ui.label("Value");
-                    ui.add(DragValue::new(number));
+                    changed |= ui.add(DragValue::new(number)).changed();
                 });
             }
             FixedValueType::Text(text) => {
                 ui.horizontal(|ui| {
                     ui.label("Text");
-                    ui.text_edit_singleline(text);
+                    changed |= ui.text_edit_singleline(text).changed();
                 });
             }
             FixedValueType::Color(color) => {
                 ui.horizontal(|ui| {
                     ui.label("Color:");
                     let mut color_local = color.as_rgba_f32();
-                    ui.color_edit_button_rgba_unmultiplied(&mut color_local);
+                    changed |= ui
+                        .color_edit_button_rgba_unmultiplied(&mut color_local)
+                        .changed();
                     *color = color_local.into();
                 });
             }
@@ -107,12 +115,13 @@ impl FixedValue {
                             false => "No",
                         })
                         .show_ui(ui, |ui| {
-                            ui.selectable_value(b, true, "Yes");
-                            ui.selectable_value(b, false, "No");
+                            changed |= ui.selectable_value(b, true, "Yes").changed();
+                            changed |= ui.selectable_value(b, false, "No").changed();
                         });
                 });
             }
         }
+        changed
     }
 }
 

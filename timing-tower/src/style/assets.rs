@@ -65,7 +65,7 @@ impl StyleTreeUi for AssetDefinition {
         }
     }
 
-    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) {
+    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
         match self {
             AssetDefinition::Image(o) => o.property_editor(ui, asset_repo),
         }
@@ -146,15 +146,14 @@ impl StyleTreeUi for ImageAsset {
         });
     }
 
-    fn property_editor(&mut self, ui: &mut Ui, _asset_repo: &AssetReferenceRepo) {
+    fn property_editor(&mut self, ui: &mut Ui, _asset_repo: &AssetReferenceRepo) -> bool {
+        let mut changed = false;
+
         ui.label("Name");
-        let res = ui.text_edit_singleline(&mut self.id.name);
-        if res.changed() {
-            println!(" was changed");
-        }
+        changed |= ui.text_edit_singleline(&mut self.id.name).changed();
         ui.separator();
         ui.label("Path:");
-        ui.text_edit_singleline(&mut self.path);
+        changed |= ui.text_edit_singleline(&mut self.path).changed();
         match self.load_state {
             LoadState::NotLoaded => ui.label("Asset is not loaded"),
             LoadState::Loading => ui.label("Asset is loading"),
@@ -164,6 +163,7 @@ impl StyleTreeUi for ImageAsset {
             ),
             LoadState::Unloaded => ui.label("The asset was unloaded"),
         };
+        changed
     }
 }
 

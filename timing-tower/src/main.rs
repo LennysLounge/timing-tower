@@ -102,13 +102,19 @@ fn setup(
         }
         Ok(s) => s,
     };
-    let style = match serde_json::from_str::<StyleDefinition>(&s) {
+    let mut style = match serde_json::from_str::<StyleDefinition>(&s) {
         Ok(o) => o,
         Err(e) => {
             println!("Error parsing json: {}", e);
             return;
         }
     };
+
+    style
+        .assets
+        .all_t_mut()
+        .into_iter()
+        .for_each(|a| a.load_asset(&*asset_server));
 
     let background_id = commands
         .spawn_empty()

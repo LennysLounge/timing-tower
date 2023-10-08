@@ -22,8 +22,8 @@ pub struct TimingTower {
 }
 
 impl StyleTreeUi for TimingTower {
-    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) {
-        self.cell.property_editor(ui, asset_repo);
+    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+        self.cell.property_editor(ui, asset_repo)
     }
 
     fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
@@ -72,18 +72,21 @@ pub struct TimingTowerTable {
 }
 
 impl StyleTreeUi for TimingTowerTable {
-    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) {
+    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+        let mut changed = false;
+
         ui.label("Row offset:");
         ui.horizontal(|ui| {
             ui.label("Offset x:");
-            self.row_offset.x.editor(ui, asset_repo);
+            changed |= self.row_offset.x.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Offset y:");
-            self.row_offset.y.editor(ui, asset_repo);
+            changed |= self.row_offset.y.editor(ui, asset_repo);
         });
         ui.separator();
-        self.cell.property_editor(ui, asset_repo);
+        changed |= self.cell.property_editor(ui, asset_repo);
+        changed
     }
 
     fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
@@ -131,8 +134,8 @@ pub struct TimingTowerRow {
 }
 
 impl StyleTreeUi for TimingTowerRow {
-    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) {
-        self.cell.property_editor(ui, asset_repo);
+    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+        self.cell.property_editor(ui, asset_repo)
     }
 
     fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
@@ -205,11 +208,13 @@ pub struct TimingTowerColumn {
 }
 
 impl StyleTreeUi for TimingTowerColumn {
-    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) {
+    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+        let mut changed = false;
         ui.label("Name:");
-        ui.text_edit_singleline(&mut self.name);
+        changed |= ui.text_edit_singleline(&mut self.name).changed();
         ui.separator();
-        self.cell.property_editor(ui, asset_repo);
+        changed |= self.cell.property_editor(ui, asset_repo);
+        changed
     }
 
     fn tree_view(&mut self, tree_ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {

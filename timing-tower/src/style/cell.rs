@@ -85,23 +85,25 @@ impl Default for Cell {
 }
 
 impl Cell {
-    pub fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) {
+    pub fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+        let mut changed = false;
+
         ui.label("Cell:");
         ui.horizontal(|ui| {
             ui.label("Visible:");
-            self.visible.editor(ui, asset_repo);
+            changed |= self.visible.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Text:");
-            self.text.editor(ui, asset_repo);
+            changed |= self.text.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Text color:");
-            self.text_color.editor(ui, asset_repo);
+            changed |= self.text_color.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Text size:");
-            self.text_size.editor(ui, asset_repo);
+            changed |= self.text_size.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Text alginment:");
@@ -112,67 +114,74 @@ impl Cell {
                     TextAlignment::Right => "Right",
                 })
                 .show_ui(ui, |ui| {
-                    ui.selectable_value(&mut self.text_alginment, TextAlignment::Left, "Left");
-                    ui.selectable_value(&mut self.text_alginment, TextAlignment::Center, "Center");
-                    ui.selectable_value(&mut self.text_alginment, TextAlignment::Right, "Right");
+                    changed |= ui
+                        .selectable_value(&mut self.text_alginment, TextAlignment::Left, "Left")
+                        .changed();
+                    changed |= ui
+                        .selectable_value(&mut self.text_alginment, TextAlignment::Center, "Center")
+                        .changed();
+                    changed |= ui
+                        .selectable_value(&mut self.text_alginment, TextAlignment::Right, "Right")
+                        .changed();
                 });
         });
         ui.horizontal(|ui| {
             ui.label("Text pos x:");
-            self.text_position.x.editor(ui, asset_repo);
+            changed |= self.text_position.x.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Text pos y:");
-            self.text_position.y.editor(ui, asset_repo);
+            changed |= self.text_position.y.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Background color:");
-            self.color.editor(ui, asset_repo);
+            changed |= self.color.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Background image:");
-            self.image.editor(ui, asset_repo);
+            changed |= self.image.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Pos x:");
-            self.pos.x.editor(ui, asset_repo);
+            changed |= self.pos.x.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Pos y:");
-            self.pos.y.editor(ui, asset_repo);
+            changed |= self.pos.y.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Pos z:");
-            self.pos.z.editor(ui, asset_repo);
+            changed |= self.pos.z.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Width:");
-            self.size.x.editor(ui, asset_repo);
+            changed |= self.size.x.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Height:");
-            self.size.y.editor(ui, asset_repo);
+            changed |= self.size.y.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Skew:");
-            self.skew.editor(ui, asset_repo);
+            changed |= self.skew.editor(ui, asset_repo);
         });
         ui.label("Rounding:");
         ui.horizontal(|ui| {
             ui.label("top left:");
-            self.rounding.top_left.editor(ui, asset_repo);
+            changed |= self.rounding.top_left.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("top right:");
-            self.rounding.top_right.editor(ui, asset_repo);
+            changed |= self.rounding.top_right.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("bottom right:");
-            self.rounding.bot_right.editor(ui, asset_repo);
+            changed |= self.rounding.bot_right.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("bottom left:");
-            self.rounding.bot_left.editor(ui, asset_repo);
+            changed |= self.rounding.bot_left.editor(ui, asset_repo);
         });
+        changed
     }
 }

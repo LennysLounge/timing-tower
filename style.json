@@ -5,15 +5,252 @@
     "name": "Assets",
     "content": [
       {
-        "T": {
-          "Image": {
-            "id": {
-              "id": "d56688a6-894b-4629-9d83-b4d531e06aab",
-              "name": "Test image",
-              "asset_type": "Image"
+        "Folder": {
+          "id": "bd6a3f41-6897-41d6-94ed-b02beaca3762",
+          "name": "Constructors",
+          "content": [
+            {
+              "T": {
+                "Image": {
+                  "id": {
+                    "id": "b7ba5250-cf78-4146-a7c8-f2b85adc4c5f",
+                    "name": "Alpine",
+                    "asset_type": "Image"
+                  },
+                  "path": "constructors/Alpine.png"
+                }
+              }
             },
-            "path": "acc6.PNG"
-          }
+            {
+              "T": {
+                "Image": {
+                  "id": {
+                    "id": "3eee3a38-140e-453e-8830-4f256ee83e07",
+                    "name": "Aston-Martin",
+                    "asset_type": "Image"
+                  },
+                  "path": "constructors/Aston-Martin.png"
+                }
+              }
+            },
+            {
+              "T": {
+                "Image": {
+                  "id": {
+                    "id": "1e8814f4-16dd-4ad9-be24-2ea075bcff6a",
+                    "name": "Audi",
+                    "asset_type": "Image"
+                  },
+                  "path": "constructors/Audi.png"
+                }
+              }
+            },
+            {
+              "T": {
+                "Image": {
+                  "id": {
+                    "id": "ecfb2bad-459a-4b64-b8ed-5d5147053ea2",
+                    "name": "Bentley",
+                    "asset_type": "Image"
+                  },
+                  "path": "constructors/Bentley.png"
+                }
+              }
+            },
+            {
+              "T": {
+                "Image": {
+                  "id": {
+                    "id": "ecd425a6-2490-484b-9979-a19933de1193",
+                    "name": "BMW",
+                    "asset_type": "Image"
+                  },
+                  "path": "constructors/BMW.png"
+                }
+              }
+            },
+            {
+              "T": {
+                "Image": {
+                  "id": {
+                    "id": "48368915-4dcb-443b-8f6e-d6ace044ced9",
+                    "name": "Chevrolet",
+                    "asset_type": "Image"
+                  },
+                  "path": "constructors/Chevrolet.png"
+                }
+              }
+            },
+            {
+              "T": {
+                "Image": {
+                  "id": {
+                    "id": "62823f7e-db28-4087-a148-79d943b6ecfc",
+                    "name": "Error",
+                    "asset_type": "Image"
+                  },
+                  "path": "constructors/Error.png"
+                }
+              }
+            },
+            {
+              "T": {
+                "Image": {
+                  "id": {
+                    "id": "afcae1d6-f887-4417-bdfb-c09e91116adb",
+                    "name": "Ferrari",
+                    "asset_type": "Image"
+                  },
+                  "path": "constructors/Ferrari.png"
+                }
+              }
+            },
+            {
+              "T": {
+                "Image": {
+                  "id": {
+                    "id": "77133dec-724a-491a-b2ce-fd2888a78ab1",
+                    "name": "Ginetta",
+                    "asset_type": "Image"
+                  },
+                  "path": "constructors/Ginetta.png"
+                }
+              }
+            },
+            {
+              "T": {
+                "Image": {
+                  "id": {
+                    "id": "c0432571-650f-4fdc-a708-aa9a01117590",
+                    "name": "Honda",
+                    "asset_type": "Image"
+                  },
+                  "path": "constructors/Honda.png"
+                }
+              }
+            },
+            {
+              "T": {
+                "Image": {
+                  "id": {
+                    "id": "95dc96a9-97ce-436b-bf78-8465e0929ce9",
+                    "name": "Jaguar",
+                    "asset_type": "Image"
+                  },
+                  "path": "constructors/Jaguar.png"
+                }
+              }
+            },
+            {
+              "T": {
+                "Image": {
+                  "id": {
+                    "id": "922570d9-792b-4555-aa52-65f1d890996b",
+                    "name": "KTM",
+                    "asset_type": "Image"
+                  },
+                  "path": "constructors/KTM.png"
+                }
+              }
+            },
+            {
+              "T": {
+                "Image": {
+                  "id": {
+                    "id": "fc0aba26-4d09-41a8-982a-d2534c9fdb8c",
+                    "name": "Lamborghini",
+                    "asset_type": "Image"
+                  },
+                  "path": "constructors/Lamborghini.png"
+                }
+              }
+            },
+            {
+              "T": {
+                "Image": {
+                  "id": {
+                    "id": "66146a86-cb01-437f-814d-5c86efd5a777",
+                    "name": "Lexus",
+                    "asset_type": "Image"
+                  },
+                  "path": "constructors/Lexus.png"
+                }
+              }
+            },
+            {
+              "T": {
+                "Image": {
+                  "id": {
+                    "id": "230297a5-ff60-494e-acba-5af35c4f7e99",
+                    "name": "Maserait",
+                    "asset_type": "Image"
+                  },
+                  "path": "constructors/Maserati.png"
+                }
+              }
+            },
+            {
+              "T": {
+                "Image": {
+                  "id": {
+                    "id": "2295c661-0609-483d-b3df-248efa705f9d",
+                    "name": "McLaren",
+                    "asset_type": "Image"
+                  },
+                  "path": "constructors/McLaren.png"
+                }
+              }
+            },
+            {
+              "T": {
+                "Image": {
+                  "id": {
+                    "id": "d0edeef4-f187-44df-9c65-d81d405d8062",
+                    "name": "Mercedes-AMG",
+                    "asset_type": "Image"
+                  },
+                  "path": "constructors/Mercedes-AMG.png"
+                }
+              }
+            },
+            {
+              "T": {
+                "Image": {
+                  "id": {
+                    "id": "1f2524af-9c72-495e-89e2-fda763f2ee18",
+                    "name": "Nissan",
+                    "asset_type": "Image"
+                  },
+                  "path": "constructors/Nissan.png"
+                }
+              }
+            },
+            {
+              "T": {
+                "Image": {
+                  "id": {
+                    "id": "4971fafb-479d-470f-8afd-b85e6820a396",
+                    "name": "Porsche",
+                    "asset_type": "Image"
+                  },
+                  "path": "constructors/Porsche.png"
+                }
+              }
+            },
+            {
+              "T": {
+                "Image": {
+                  "id": {
+                    "id": "109ecca7-9500-4c6a-b496-95a8da13d299",
+                    "name": "Reiter-Engineering",
+                    "asset_type": "Image"
+                  },
+                  "path": "constructors/Reiter-Engineering.png"
+                }
+              }
+            }
+          ],
+          "renameable": true
         }
       }
     ],
@@ -475,7 +712,12 @@
                       "key": "e41f142f-2026-4126-9dc4-bed03fecd31e"
                     }
                   },
-                  "image": null,
+                  "image": {
+                    "Ref": {
+                      "asset_type": "Image",
+                      "key": "b7ba5250-cf78-4146-a7c8-f2b85adc4c5f"
+                    }
+                  },
                   "pos": {
                     "x": 189.0,
                     "y": 0.0,

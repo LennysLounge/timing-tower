@@ -442,22 +442,22 @@
             "name": "Manufacturer icons",
             "asset_type": "Image",
             "input": {
-              "asset_type": "Number",
-              "key": "6330a6bb-51d1-4af7-9bd0-efeb00b1ff52"
+              "asset_type": "Text",
+              "key": "d1a60628-1ac7-4ad4-a502-95bc649edf07"
             },
             "cases": [
               {
                 "comparison": {
-                  "Number": [
-                    1.0,
-                    "Equal"
+                  "Text": [
+                    "Alpine",
+                    "Like"
                   ]
                 },
                 "output": {
                   "Image": {
                     "Ref": {
                       "asset_type": "Image",
-                      "key": "d0edeef4-f187-44df-9c65-d81d405d8062"
+                      "key": "b7ba5250-cf78-4146-a7c8-f2b85adc4c5f"
                     }
                   }
                 },
@@ -465,16 +465,16 @@
               },
               {
                 "comparison": {
-                  "Number": [
-                    2.0,
-                    "Equal"
+                  "Text": [
+                    "Aston-Martin",
+                    "Like"
                   ]
                 },
                 "output": {
                   "Image": {
                     "Ref": {
                       "asset_type": "Image",
-                      "key": "66146a86-cb01-437f-814d-5c86efd5a777"
+                      "key": "3eee3a38-140e-453e-8830-4f256ee83e07"
                     }
                   }
                 },
@@ -482,16 +482,16 @@
               },
               {
                 "comparison": {
-                  "Number": [
-                    3.0,
-                    "Equal"
+                  "Text": [
+                    "Audi",
+                    "Like"
                   ]
                 },
                 "output": {
                   "Image": {
                     "Ref": {
                       "asset_type": "Image",
-                      "key": "2295c661-0609-483d-b3df-248efa705f9d"
+                      "key": "1e8814f4-16dd-4ad9-be24-2ea075bcff6a"
                     }
                   }
                 },
@@ -499,26 +499,9 @@
               },
               {
                 "comparison": {
-                  "Number": [
-                    4.0,
-                    "Equal"
-                  ]
-                },
-                "output": {
-                  "Image": {
-                    "Ref": {
-                      "asset_type": "Image",
-                      "key": "2295c661-0609-483d-b3df-248efa705f9d"
-                    }
-                  }
-                },
-                "remove": false
-              },
-              {
-                "comparison": {
-                  "Number": [
-                    5.0,
-                    "Equal"
+                  "Text": [
+                    "Bentley",
+                    "Like"
                   ]
                 },
                 "output": {
@@ -533,16 +516,16 @@
               },
               {
                 "comparison": {
-                  "Number": [
-                    6.0,
-                    "Equal"
+                  "Text": [
+                    "BMW",
+                    "Like"
                   ]
                 },
                 "output": {
                   "Image": {
                     "Ref": {
                       "asset_type": "Image",
-                      "key": "2295c661-0609-483d-b3df-248efa705f9d"
+                      "key": "ecd425a6-2490-484b-9979-a19933de1193"
                     }
                   }
                 },
@@ -550,16 +533,16 @@
               },
               {
                 "comparison": {
-                  "Number": [
-                    7.0,
-                    "Equal"
+                  "Text": [
+                    "Chevrolet",
+                    "Like"
                   ]
                 },
                 "output": {
                   "Image": {
                     "Ref": {
                       "asset_type": "Image",
-                      "key": "2295c661-0609-483d-b3df-248efa705f9d"
+                      "key": "48368915-4dcb-443b-8f6e-d6ace044ced9"
                     }
                   }
                 },
@@ -567,9 +550,9 @@
               },
               {
                 "comparison": {
-                  "Number": [
-                    8.0,
-                    "Equal"
+                  "Text": [
+                    "Ferrari",
+                    "Like"
                   ]
                 },
                 "output": {
@@ -581,6 +564,210 @@
                   }
                 },
                 "remove": false
+              },
+              {
+                "comparison": {
+                  "Text": [
+                    "Ginetta",
+                    "Like"
+                  ]
+                },
+                "output": {
+                  "Image": {
+                    "Ref": {
+                      "asset_type": "Image",
+                      "key": "77133dec-724a-491a-b2ce-fd2888a78ab1"
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Text": [
+                    "Honda",
+                    "Like"
+                  ]
+                },
+                "output": {
+                  "Image": {
+                    "Ref": {
+                      "asset_type": "Image",
+                      "key": "c0432571-650f-4fdc-a708-aa9a01117590"
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Text": [
+                    "Jaguar",
+                    "Like"
+                  ]
+                },
+                "output": {
+                  "Image": {
+                    "Ref": {
+                      "asset_type": "Image",
+                      "key": "95dc96a9-97ce-436b-bf78-8465e0929ce9"
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Text": [
+                    "KTM",
+                    "Like"
+                  ]
+                },
+                "output": {
+                  "Image": {
+                    "Ref": {
+                      "asset_type": "Image",
+                      "key": "922570d9-792b-4555-aa52-65f1d890996b"
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Text": [
+                    "Lamborghini",
+                    "Like"
+                  ]
+                },
+                "output": {
+                  "Image": {
+                    "Ref": {
+                      "asset_type": "Image",
+                      "key": "fc0aba26-4d09-41a8-982a-d2534c9fdb8c"
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Text": [
+                    "Lexus",
+                    "Like"
+                  ]
+                },
+                "output": {
+                  "Image": {
+                    "Ref": {
+                      "asset_type": "Image",
+                      "key": "66146a86-cb01-437f-814d-5c86efd5a777"
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Text": [
+                    "Maserati",
+                    "Like"
+                  ]
+                },
+                "output": {
+                  "Image": {
+                    "Ref": {
+                      "asset_type": "Image",
+                      "key": "230297a5-ff60-494e-acba-5af35c4f7e99"
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Text": [
+                    "McLaren",
+                    "Like"
+                  ]
+                },
+                "output": {
+                  "Image": {
+                    "Ref": {
+                      "asset_type": "Image",
+                      "key": "2295c661-0609-483d-b3df-248efa705f9d"
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Text": [
+                    "Mercedes-AMG",
+                    "Like"
+                  ]
+                },
+                "output": {
+                  "Image": {
+                    "Ref": {
+                      "asset_type": "Image",
+                      "key": "d0edeef4-f187-44df-9c65-d81d405d8062"
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Text": [
+                    "Nissan",
+                    "Like"
+                  ]
+                },
+                "output": {
+                  "Image": {
+                    "Ref": {
+                      "asset_type": "Image",
+                      "key": "1f2524af-9c72-495e-89e2-fda763f2ee18"
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Text": [
+                    "Porsche",
+                    "Like"
+                  ]
+                },
+                "output": {
+                  "Image": {
+                    "Ref": {
+                      "asset_type": "Image",
+                      "key": "4971fafb-479d-470f-8afd-b85e6820a396"
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Text": [
+                    "Reiter-Engineering",
+                    "Like"
+                  ]
+                },
+                "output": {
+                  "Image": {
+                    "Ref": {
+                      "asset_type": "Image",
+                      "key": "109ecca7-9500-4c6a-b496-95a8da13d299"
+                    }
+                  }
+                },
+                "remove": false
               }
             ],
             "default": {
@@ -588,183 +775,6 @@
                 "Ref": {
                   "asset_type": "Image",
                   "key": "62823f7e-db28-4087-a148-79d943b6ecfc"
-                }
-              }
-            }
-          }
-        }
-      },
-      {
-        "T": {
-          "Map": {
-            "id": "4b349431-364d-4be7-9ff5-442754c67b3a",
-            "name": "Map colors",
-            "asset_type": "Color",
-            "input": {
-              "asset_type": "Number",
-              "key": "6330a6bb-51d1-4af7-9bd0-efeb00b1ff52"
-            },
-            "cases": [
-              {
-                "comparison": {
-                  "Number": [
-                    1.0,
-                    "Equal"
-                  ]
-                },
-                "output": {
-                  "Color": {
-                    "Rgba": {
-                      "red": 0.4279133,
-                      "green": 0.40957415,
-                      "blue": 0.40957415,
-                      "alpha": 1.0
-                    }
-                  }
-                },
-                "remove": false
-              },
-              {
-                "comparison": {
-                  "Number": [
-                    2.0,
-                    "Equal"
-                  ]
-                },
-                "output": {
-                  "Color": {
-                    "Rgba": {
-                      "red": 0.66187567,
-                      "green": 0.32148257,
-                      "blue": 0.0,
-                      "alpha": 1.0
-                    }
-                  }
-                },
-                "remove": false
-              },
-              {
-                "comparison": {
-                  "Number": [
-                    3.0,
-                    "Equal"
-                  ]
-                },
-                "output": {
-                  "Color": {
-                    "Rgba": {
-                      "red": 0.19648848,
-                      "green": 0.68770945,
-                      "blue": 0.0,
-                      "alpha": 1.0
-                    }
-                  }
-                },
-                "remove": false
-              },
-              {
-                "comparison": {
-                  "Number": [
-                    4.0,
-                    "Equal"
-                  ]
-                },
-                "output": {
-                  "Color": {
-                    "Rgba": {
-                      "red": 0.0,
-                      "green": 0.5769624,
-                      "blue": 0.6119301,
-                      "alpha": 1.0
-                    }
-                  }
-                },
-                "remove": false
-              },
-              {
-                "comparison": {
-                  "Number": [
-                    5.0,
-                    "Equal"
-                  ]
-                },
-                "output": {
-                  "Color": {
-                    "Rgba": {
-                      "red": 0.0,
-                      "green": 0.3403931,
-                      "blue": 0.66187567,
-                      "alpha": 1.0
-                    }
-                  }
-                },
-                "remove": false
-              },
-              {
-                "comparison": {
-                  "Number": [
-                    6.0,
-                    "Equal"
-                  ]
-                },
-                "output": {
-                  "Color": {
-                    "Rgba": {
-                      "red": 0.29847836,
-                      "green": 0.0,
-                      "blue": 0.69644904,
-                      "alpha": 1.0
-                    }
-                  }
-                },
-                "remove": false
-              },
-              {
-                "comparison": {
-                  "Number": [
-                    7.0,
-                    "Equal"
-                  ]
-                },
-                "output": {
-                  "Color": {
-                    "Rgba": {
-                      "red": 0.49693304,
-                      "green": 0.0,
-                      "blue": 0.38334858,
-                      "alpha": 1.0
-                    }
-                  }
-                },
-                "remove": false
-              },
-              {
-                "comparison": {
-                  "Number": [
-                    8.0,
-                    "Equal"
-                  ]
-                },
-                "output": {
-                  "Color": {
-                    "Rgba": {
-                      "red": 0.644973,
-                      "green": 0.0,
-                      "blue": 0.3317006,
-                      "alpha": 1.0
-                    }
-                  }
-                },
-                "remove": false
-              }
-            ],
-            "default": {
-              "Color": {
-                "Rgba": {
-                  "red": 0.0,
-                  "green": 0.0,
-                  "blue": 0.0,
-                  "alpha": 1.0
                 }
               }
             }
@@ -939,7 +949,7 @@
                   "color": {
                     "Ref": {
                       "asset_type": "Color",
-                      "key": "4b349431-364d-4be7-9ff5-442754c67b3a"
+                      "key": "e86a2ae3-6486-4941-bee9-b063f3ff0152"
                     }
                   },
                   "image": null,
@@ -981,7 +991,7 @@
                   "text": {
                     "Ref": {
                       "asset_type": "Text",
-                      "key": "aed52af1-aa86-4348-aef6-e86fc2c97cc5"
+                      "key": "8abcf9d5-60f7-4886-a716-139d62ad83ac"
                     }
                   },
                   "text_color": {

@@ -4,7 +4,7 @@ use unified_sim_model::model::Entry;
 use uuid::{uuid, Uuid};
 
 use crate::asset_repo::{
-    IntoAssetSource, AssetId, AssetRepo, AssetSource, AssetType, BooleanSource, NumberSource,
+    AssetId, AssetRepo, AssetSource, AssetType, BooleanSource, IntoAssetSource, NumberSource,
     TextSource,
 };
 
@@ -35,7 +35,7 @@ pub fn get_game_sources() -> Vec<&'static GameSource> {
                                 } else {
                                     &driver.first_name[0..1]
                                 };
-                                format!("{} {}", letter, driver.last_name)
+                                format!("{}. {}", letter, driver.last_name)
                             })
                         })
                     },
@@ -49,6 +49,18 @@ pub fn get_game_sources() -> Vec<&'static GameSource> {
                     uuid!("c16f71b9-dcc9-4f04-9579-ea5211fa99be"),
                     "Is in pits",
                     |_: &AssetRepo, entry: Option<&Entry>| entry.map(|e| *e.in_pits),
+                ),
+                GameSource::new_text(
+                    uuid!("4507167c-4c78-4686-b7a2-44809d969cee"),
+                    "Car name",
+                    |_: &AssetRepo, entry: Option<&Entry>| entry.map(|e| e.car.name().to_owned()),
+                ),
+                GameSource::new_text(
+                    uuid!("d1a60628-1ac7-4ad4-a502-95bc649edf07"),
+                    "Car manufacturer",
+                    |_: &AssetRepo, entry: Option<&Entry>| {
+                        entry.map(|e| e.car.manufacturer().to_owned())
+                    },
                 ),
             ]
         })

@@ -382,26 +382,6 @@
       },
       {
         "T": {
-          "FixedValue": {
-            "id": "f45338ce-3d52-43b3-85ee-d99352174b79",
-            "name": "Number sample",
-            "asset_type": "Number",
-            "value": 13.0
-          }
-        }
-      },
-      {
-        "T": {
-          "FixedValue": {
-            "id": "aed52af1-aa86-4348-aef6-e86fc2c97cc5",
-            "name": "Text sample",
-            "asset_type": "Text",
-            "value": "A. Brodych"
-          }
-        }
-      },
-      {
-        "T": {
           "Condition": {
             "id": "e86a2ae3-6486-4941-bee9-b063f3ff0152",
             "name": "position color",
@@ -780,6 +760,162 @@
             }
           }
         }
+      },
+      {
+        "T": {
+          "Map": {
+            "id": "8536ebf5-82e1-41e3-bc37-b713534a7780",
+            "name": "Cup category background",
+            "asset_type": "Color",
+            "input": {
+              "asset_type": "Number",
+              "key": "4d519d42-52e9-435c-b614-8d70b42ed3b0"
+            },
+            "cases": [
+              {
+                "comparison": {
+                  "Number": [
+                    0.0,
+                    "Equal"
+                  ]
+                },
+                "output": {
+                  "Color": {
+                    "Ref": {
+                      "asset_type": "Color",
+                      "key": "5a657363-96fc-4329-a580-8ed41b85405e"
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Number": [
+                    3.0,
+                    "Equal"
+                  ]
+                },
+                "output": {
+                  "Color": {
+                    "Ref": {
+                      "asset_type": "Color",
+                      "key": "ecdfcaf2-d808-4fca-b118-88aee5d1b495"
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Number": [
+                    2.0,
+                    "Equal"
+                  ]
+                },
+                "output": {
+                  "Color": {
+                    "Ref": {
+                      "asset_type": "Color",
+                      "key": "7a126bfa-2fb7-464f-9ed1-1f92665d9460"
+                    }
+                  }
+                },
+                "remove": false
+              }
+            ],
+            "default": {
+              "Color": {
+                "Ref": {
+                  "asset_type": "Color",
+                  "key": "5a657363-96fc-4329-a580-8ed41b85405e"
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "T": {
+          "Map": {
+            "id": "925dacee-265f-45ee-baf8-668e3005a03d",
+            "name": "Cup Category text color",
+            "asset_type": "Color",
+            "input": {
+              "asset_type": "Number",
+              "key": "4d519d42-52e9-435c-b614-8d70b42ed3b0"
+            },
+            "cases": [
+              {
+                "comparison": {
+                  "Number": [
+                    0.0,
+                    "Equal"
+                  ]
+                },
+                "output": {
+                  "Color": {
+                    "Rgba": {
+                      "red": 0.0,
+                      "green": 0.0,
+                      "blue": 0.0,
+                      "alpha": 1.0
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Number": [
+                    2.0,
+                    "Equal"
+                  ]
+                },
+                "output": {
+                  "Color": {
+                    "Rgba": {
+                      "red": 0.0,
+                      "green": 0.0,
+                      "blue": 0.0,
+                      "alpha": 1.0
+                    }
+                  }
+                },
+                "remove": false
+              },
+              {
+                "comparison": {
+                  "Number": [
+                    3.0,
+                    "Equal"
+                  ]
+                },
+                "output": {
+                  "Color": {
+                    "Rgba": {
+                      "red": 1.0,
+                      "green": 1.0,
+                      "blue": 1.0,
+                      "alpha": 1.0
+                    }
+                  }
+                },
+                "remove": false
+              }
+            ],
+            "default": {
+              "Color": {
+                "Rgba": {
+                  "red": 0.0,
+                  "green": 0.0,
+                  "blue": 0.0,
+                  "alpha": 1.0
+                }
+              }
+            }
+          }
+        }
       }
     ],
     "renameable": false
@@ -962,12 +1098,7 @@
                     "x": 36.0,
                     "y": 36.0
                   },
-                  "skew": {
-                    "Ref": {
-                      "asset_type": "Number",
-                      "key": "f45338ce-3d52-43b3-85ee-d99352174b79"
-                    }
-                  },
+                  "skew": 12.0,
                   "visible": true,
                   "rounding": {
                     "top_left": 12.0,
@@ -1098,7 +1229,7 @@
                       "alpha": 1.0
                     }
                   },
-                  "text_size": 19.5,
+                  "text_size": 20.0,
                   "color": {
                     "Ref": {
                       "asset_type": "Color",
@@ -1148,18 +1279,16 @@
                     }
                   },
                   "text_color": {
-                    "Rgba": {
-                      "red": 1.0,
-                      "green": 1.0,
-                      "blue": 1.0,
-                      "alpha": 1.0
+                    "Ref": {
+                      "asset_type": "Color",
+                      "key": "925dacee-265f-45ee-baf8-668e3005a03d"
                     }
                   },
-                  "text_size": 19.5,
+                  "text_size": 20.0,
                   "color": {
                     "Ref": {
                       "asset_type": "Color",
-                      "key": "ecdfcaf2-d808-4fca-b118-88aee5d1b495"
+                      "key": "8536ebf5-82e1-41e3-bc37-b713534a7780"
                     }
                   },
                   "image": null,

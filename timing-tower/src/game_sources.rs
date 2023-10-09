@@ -30,12 +30,13 @@ pub fn get_game_sources() -> Vec<&'static GameSource> {
                     |_: &AssetRepo, entry: Option<&Entry>| {
                         entry.and_then(|e| {
                             e.drivers.get(&e.current_driver).map(|driver| {
-                                let letter = if driver.first_name.is_empty() {
-                                    ""
-                                } else {
-                                    &driver.first_name[0..1]
-                                };
-                                format!("{}. {}", letter, driver.last_name)
+                                driver
+                                    .first_name
+                                    .chars()
+                                    .into_iter()
+                                    .next()
+                                    .map(|letter| format!("{}. {}", letter, driver.last_name))
+                                    .unwrap_or_else(|| format!(". {}", driver.last_name))
                             })
                         })
                     },
@@ -60,6 +61,18 @@ pub fn get_game_sources() -> Vec<&'static GameSource> {
                     "Car manufacturer",
                     |_: &AssetRepo, entry: Option<&Entry>| {
                         entry.map(|e| e.car.manufacturer().to_owned())
+                    },
+                ),
+                GameSource::new_number(
+                    uuid!("4d519d42-52e9-435c-b614-8d70b42ed3b0"),
+                    "ACC: Cup category",
+                    |_: &AssetRepo, entry: Option<&Entry>| {
+                        entry.map(|e| match &e.game_data {
+                            unified_sim_model::model::EntryGameData::None => 0 as f32,
+                            unified_sim_model::model::EntryGameData::Acc(data) => {
+                                data.cup_category as f32
+                            }
+                        })
                     },
                 ),
             ]

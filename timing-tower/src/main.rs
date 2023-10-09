@@ -90,7 +90,7 @@ fn setup(
 ) {
     commands.spawn((Camera2dBundle::default(), MainCamera));
 
-    let adapter = Adapter::new_dummy();
+    let adapter = Adapter::new_acc();
     commands.insert_resource(GameAdapterResource {
         adapter: adapter.clone(),
     });

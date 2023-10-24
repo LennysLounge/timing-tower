@@ -4,6 +4,7 @@ resolver = "2"
 members = [
     "timing-tower",
     "tree_view",
+    "dear_egui"
 ]
 
 

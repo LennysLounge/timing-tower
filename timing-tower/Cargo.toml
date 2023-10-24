@@ -7,9 +7,9 @@ edition = "2021"
 
 [dependencies]
 bevy = { version = "0.11.2", features = ["dynamic_linking"] }
-bevy_egui = "0.21"
+bevy_egui = "0.22"
 unified_sim_model = { path = "../../unified_sim_model/unified_sim_model" }
-dear_egui = { path = "../../unified_sim_model/dear_egui" }
+dear_egui = { path = "../dear_egui" }
 serde_json = "1.0.107"
 serde = { version = "1.0.188", features = ["rc"] }
 tracing = "0.1.37"

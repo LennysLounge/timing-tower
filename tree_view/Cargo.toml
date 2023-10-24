@@ -7,6 +7,6 @@ edition = "2021"
 
 [dependencies]
 bevy = { version = "0.11.2", features = ["dynamic_linking"] }
-bevy_egui = "0.21"
+bevy_egui = "0.22"
 uuid = { version = "1.4.1", features = ["v4"] }
-dear_egui = { path = "../../unified_sim_model/dear_egui" }
+dear_egui = { path = "../dear_egui" }

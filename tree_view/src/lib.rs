@@ -1,11 +1,11 @@
-use std::{marker::PhantomData, ops::RangeInclusive};
+use std::marker::PhantomData;
 
 use bevy_egui::egui::{
     collapsing_header::CollapsingState,
     epaint::{self},
     layers::ShapeIdx,
     pos2, vec2, Color32, CursorIcon, InnerResponse, LayerId, NumExt, Order, PointerButton, Pos2,
-    Rect, Response, Sense, Shape, Stroke, Ui, Vec2,
+    Rangef, Rect, Response, Sense, Shape, Stroke, Ui, Vec2,
 };
 use split_collapsing_state::SplitCollapsingState;
 use uuid::Uuid;
@@ -14,7 +14,7 @@ pub mod split_collapsing_state;
 
 pub struct TreeUi<'a> {
     pub ui: &'a mut Ui,
-    pub bounds: RangeInclusive<f32>,
+    pub bounds: Rangef,
     pub parent_id: Option<Uuid>,
     tree_config: &'a TreeViewBuilder,
     context: &'a mut TreeContext,
@@ -343,18 +343,18 @@ impl<Marker> Node<Marker> {
 
         tree_ui.ui.painter().set(
             row_background,
-            epaint::RectShape {
-                rect: row.response.rect,
-                rounding: tree_ui.ui.visuals().widgets.active.rounding,
-                fill: if is_selected {
+            epaint::RectShape::new(
+                row.response.rect,
+                tree_ui.ui.visuals().widgets.active.rounding,
+                if is_selected {
                     tree_ui.ui.style().visuals.selection.bg_fill
                 } else if is_even && tree_ui.tree_config.highlight_odd_rows {
                     Color32::from_rgba_premultiplied(10, 10, 10, 0)
                 } else {
                     Color32::TRANSPARENT
                 },
-                stroke: Stroke::NONE,
-            },
+                Stroke::NONE,
+            ),
         );
 
         InnerResponse::new(row.inner.inner, interaction)
@@ -449,12 +449,12 @@ impl<Marker> Node<Marker> {
 
                     ui.painter().set(
                         background,
-                        epaint::RectShape {
-                            rect: res.response.rect,
-                            rounding: ui.visuals().widgets.active.rounding,
-                            fill: ui.visuals().selection.bg_fill.linear_multiply(0.5),
-                            stroke: Stroke::NONE,
-                        },
+                        epaint::RectShape::new(
+                            res.response.rect,
+                            ui.visuals().widgets.active.rounding,
+                            ui.visuals().selection.bg_fill.linear_multiply(0.5),
+                            Stroke::NONE,
+                        ),
                     );
                     res
                 })
@@ -558,12 +558,12 @@ impl<Marker> Node<Marker> {
 
             tree_ui.ui.painter().set(
                 background_pos,
-                epaint::RectShape {
-                    rect: Rect::from_x_y_ranges(row.inner.response.rect.x_range(), drop_marker),
-                    rounding: tree_ui.ui.visuals().widgets.active.rounding,
-                    fill: tree_ui.ui.style().visuals.selection.bg_fill,
-                    stroke: Stroke::NONE,
-                },
+                epaint::RectShape::new(
+                    Rect::from_x_y_ranges(row.inner.response.rect.x_range(), drop_marker),
+                    tree_ui.ui.visuals().widgets.active.rounding,
+                    tree_ui.ui.style().visuals.selection.bg_fill,
+                    Stroke::NONE,
+                ),
             );
 
             context.hovered = Some((parent_id, drop_position));
@@ -587,7 +587,7 @@ fn draw_content_at_full_size<T>(
 
         let background_to_right = Rect::from_min_max(
             res.response.rect.min,
-            pos2(*bounds.end(), res.response.rect.max.y),
+            pos2(bounds.max, res.response.rect.max.y),
         )
         .expand2(vec2(0.0, ui.spacing().item_spacing.y / 2.0));
         InnerResponse::new(res.inner, res.response.with_new_rect(background_to_right))

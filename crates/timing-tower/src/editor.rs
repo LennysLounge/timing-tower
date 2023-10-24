@@ -9,10 +9,10 @@ use bevy::{
     window::{PrimaryWindow, Window},
 };
 use bevy_egui::{
-    egui::{self, Rect, ScrollArea},
+    egui::{self, Rect, ScrollArea, Ui},
     EguiContexts,
 };
-use egui_dock::{DockArea, DockState, TabViewer};
+use egui_dock::{DockArea, DockState, NodeIndex, TabViewer};
 use tracing::error;
 use tree_view::TreeViewBuilder;
 use uuid::Uuid;
@@ -27,39 +27,21 @@ use crate::{
 pub struct EditorPlugin;
 impl Plugin for EditorPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.insert_resource(OccupiedSpace {
-            top: 0.0,
-            left: 0.0,
-        })
-        .add_systems(Startup, setup)
-        // .add_systems(
-        //     Update,
-        //     (
-        //         run_egui_main.run_if(resource_exists::<EditorState>()),
-        //         update_camera,
-        //     )
-        //         .chain(),
-        // )
-        .add_systems(
-            Update,
-            (
-                ui.run_if(resource_exists::<EditorState>()),
-                set_camera_viewport,
+        app.add_systems(Startup, setup)
+            .add_systems(
+                Update,
+                (
+                    ui.run_if(resource_exists::<EditorState>()),
+                    set_camera_viewport,
+                )
+                    .chain(),
             )
-                .chain(),
-        )
-        .add_systems(Update, update_asset_load_state);
+            .add_systems(Update, update_asset_load_state);
     }
 }
 
 pub fn setup(mut ctx: EguiContexts) {
     dear_egui::set_theme(ctx.ctx_mut(), dear_egui::SKY);
-}
-
-#[derive(Resource)]
-struct OccupiedSpace {
-    top: f32,
-    left: f32,
 }
 
 #[derive(Resource)]
@@ -70,9 +52,14 @@ pub struct EditorState {
 }
 impl EditorState {
     pub fn new() -> Self {
+        let mut state = DockState::new(vec![Tab::Scene]);
+        let tree = state.main_surface_mut();
+        let [scene, _tree_view] = tree.split_left(NodeIndex::root(), 0.15, vec![Tab::TreeView]);
+        let [_scene, _tree_view] = tree.split_right(scene, 0.8, vec![Tab::PropertyEditor]);
+
         Self {
             selected_node: None,
-            dock_state: DockState::new(vec![Tab::Scene, Tab::Two, Tab::Three]),
+            dock_state: state,
             viewport: Rect::NOTHING,
         }
     }
@@ -80,12 +67,15 @@ impl EditorState {
 
 enum Tab {
     Scene,
-    Two,
-    Three,
+    TreeView,
+    PropertyEditor,
 }
 
 struct EditorTabViewer<'a> {
     viewport: &'a mut Rect,
+    selected_node: &'a mut Option<Uuid>,
+    style: &'a mut StyleDefinition,
+    asset_server: &'a AssetServer,
 }
 impl<'a> TabViewer for EditorTabViewer<'a> {
     type Tab = Tab;
@@ -93,8 +83,8 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
     fn title(&mut self, tab: &mut Self::Tab) -> egui::WidgetText {
         match tab {
             Tab::Scene => "Scene".into(),
-            Tab::Two => "Two".into(),
-            Tab::Three => "Three".into(),
+            Tab::TreeView => "Tree".into(),
+            Tab::PropertyEditor => "Style".into(),
         }
     }
 
@@ -103,13 +93,21 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
             Tab::Scene => {
                 *self.viewport = ui.clip_rect();
             }
-            Tab::Two => {
-                ui.label("Two");
+            Tab::TreeView => {
+                tree_view(ui, self.selected_node, self.style);
             }
-            Tab::Three => {
-                ui.label("Three");
+            Tab::PropertyEditor => {
+                property_editor(ui, self.selected_node, self.style, self.asset_server);
             }
         }
+    }
+
+    fn scroll_bars(&self, _tab: &Self::Tab) -> [bool; 2] {
+        [false; 2]
+    }
+
+    fn closeable(&mut self, _tab: &mut Self::Tab) -> bool {
+        false
     }
 
     fn clear_background(&self, tab: &Self::Tab) -> bool {
@@ -117,14 +115,127 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
     }
 }
 
-fn ui(mut ctx: EguiContexts, mut state: ResMut<EditorState>) {
+fn ui(
+    mut ctx: EguiContexts,
+    mut state: ResMut<EditorState>,
+    mut style: ResMut<StyleDefinition>,
+    mut variable_repo: ResMut<AssetRepo>,
+    asset_server: Res<AssetServer>,
+) {
+    egui::TopBottomPanel::top("Top panel")
+        .show(ctx.ctx_mut(), |ui| {
+            egui::menu::bar(ui, |ui| {
+                ui.menu_button("File", |ui| {
+                    if ui.button("Save").clicked() {
+                        save_style(&style);
+                        ui.close_menu();
+                    }
+                });
+            });
+        })
+        .response
+        .rect
+        .height();
+
     let EditorState {
         dock_state,
         viewport,
-        ..
+        selected_node,
     } = &mut *state;
+    DockArea::new(dock_state).show(
+        ctx.ctx_mut(),
+        &mut EditorTabViewer {
+            viewport,
+            selected_node,
+            style: &mut *style,
+            asset_server: &asset_server,
+        },
+    );
 
-    DockArea::new(dock_state).show(ctx.ctx_mut(), &mut EditorTabViewer { viewport })
+    variable_repo.reload_repo(style.vars.all_t(), style.assets.all_t());
+}
+
+fn save_style(style: &StyleDefinition) {
+    let s = match serde_json::to_string_pretty(style) {
+        Ok(s) => s,
+        Err(e) => {
+            error!("Error turning style into string: {e}");
+            return;
+        }
+    };
+    let mut file = match File::create("style.json") {
+        Ok(f) => f,
+        Err(e) => {
+            error!("Error opening file: {e}");
+            return;
+        }
+    };
+    if let Err(e) = file.write_all(s.as_bytes()) {
+        error!("Cannot write to file: {e}");
+        return;
+    }
+}
+
+fn tree_view(ui: &mut Ui, selected_node: &mut Option<Uuid>, style: &mut StyleDefinition) {
+    let mut actions = Vec::new();
+    let res = TreeViewBuilder::new()
+        .selected(*selected_node)
+        .show(ui, |ui| {
+            style.tree_view(ui, &mut actions);
+        });
+    *selected_node = res.selected;
+
+    // Set the curso to no drop to show if the drop is not allowed
+    if let Some(hovered_action) = &res.hovered {
+        if !style.can_drop(hovered_action) {
+            ui.ctx().set_cursor_icon(egui::CursorIcon::NoDrop);
+        }
+    }
+
+    // perform the drop action.
+    if let Some(drop_action) = &res.dropped {
+        style.perform_drop(drop_action);
+    }
+
+    for action in actions {
+        match action {
+            TreeViewAction::Insert {
+                target,
+                node,
+                position,
+            } => style.insert(&target, node, position),
+            TreeViewAction::Remove { node } => style.remove(&node),
+            TreeViewAction::Select { node } => *selected_node = Some(node),
+        }
+    }
+}
+
+fn property_editor(
+    ui: &mut Ui,
+    selected_node: &mut Option<Uuid>,
+    style: &mut StyleDefinition,
+    asset_server: &AssetServer,
+) {
+    let mut changed = false;
+
+    let asset_reference_repo = AssetReferenceRepo::new(&style.vars, &style.assets);
+    ScrollArea::vertical()
+        .auto_shrink([false, false])
+        .show(ui, |ui| {
+            changed |= selected_node
+                .as_ref()
+                .and_then(|id| style.find_mut(id))
+                .map(|selected_node| selected_node.property_editor(ui, &asset_reference_repo))
+                .is_some_and(|b| b);
+        });
+
+    if changed {
+        style
+            .assets
+            .all_t_mut()
+            .into_iter()
+            .for_each(|a| a.load_asset(&*asset_server));
+    }
 }
 
 // make camera only render to view not obstructed by UI
@@ -152,124 +263,6 @@ fn set_camera_viewport(
     });
 }
 
-fn save_style(style: &StyleDefinition) {
-    let s = match serde_json::to_string_pretty(style) {
-        Ok(s) => s,
-        Err(e) => {
-            error!("Error turning style into string: {e}");
-            return;
-        }
-    };
-    let mut file = match File::create("style.json") {
-        Ok(f) => f,
-        Err(e) => {
-            error!("Error opening file: {e}");
-            return;
-        }
-    };
-    if let Err(e) = file.write_all(s.as_bytes()) {
-        error!("Cannot write to file: {e}");
-        return;
-    }
-}
-
-fn run_egui_main(
-    mut ctx: EguiContexts,
-    mut occupied_space: ResMut<OccupiedSpace>,
-    mut state: ResMut<EditorState>,
-    mut style: ResMut<StyleDefinition>,
-    mut variable_repo: ResMut<AssetRepo>,
-    asset_server: Res<AssetServer>,
-) {
-    occupied_space.top = egui::TopBottomPanel::top("Top panel")
-        .show(ctx.ctx_mut(), |ui| {
-            egui::menu::bar(ui, |ui| {
-                ui.menu_button("File", |ui| {
-                    if ui.button("Save").clicked() {
-                        save_style(&style);
-                        ui.close_menu();
-                    }
-                });
-            });
-        })
-        .response
-        .rect
-        .height();
-
-    occupied_space.left = egui::SidePanel::left("Editor panel")
-        .show(ctx.ctx_mut(), |ui| {
-            let mut actions = Vec::new();
-            let res = TreeViewBuilder::new()
-                .selected(state.selected_node)
-                .show(ui, |ui| {
-                    style.tree_view(ui, &mut actions);
-                });
-            state.selected_node = res.selected;
-
-            // Set the curso to no drop to show if the drop is not allowed
-            if let Some(hovered_action) = &res.hovered {
-                if !style.can_drop(hovered_action) {
-                    ui.ctx().set_cursor_icon(egui::CursorIcon::NoDrop);
-                }
-            }
-
-            // perform the drop action.
-            if let Some(drop_action) = &res.dropped {
-                style.perform_drop(drop_action);
-            }
-
-            for action in actions {
-                match action {
-                    TreeViewAction::Insert {
-                        target,
-                        node,
-                        position,
-                    } => style.insert(&target, node, position),
-                    TreeViewAction::Remove { node } => style.remove(&node),
-                    TreeViewAction::Select { node } => state.selected_node = Some(node),
-                }
-            }
-
-            ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());
-        })
-        .response
-        .rect
-        .width();
-
-    egui::SidePanel::right("Property panel")
-        .show(ctx.ctx_mut(), |ui| {
-            let mut changed = false;
-
-            let asset_reference_repo = AssetReferenceRepo::new(&style.vars, &style.assets);
-            ScrollArea::vertical()
-                .auto_shrink([false, false])
-                .show(ui, |ui| {
-                    changed |= state
-                        .selected_node
-                        .as_ref()
-                        .and_then(|id| style.find_mut(id))
-                        .map(|selected_node| {
-                            selected_node.property_editor(ui, &asset_reference_repo)
-                        })
-                        .is_some_and(|b| b);
-                });
-
-            if changed {
-                style
-                    .assets
-                    .all_t_mut()
-                    .into_iter()
-                    .for_each(|a| a.load_asset(&*asset_server));
-            }
-
-            ui.allocate_rect(ui.available_rect_before_wrap(), egui::Sense::hover());
-        })
-        .response
-        .rect
-        .width();
-    variable_repo.reload_repo(style.vars.all_t(), style.assets.all_t());
-}
-
 fn update_asset_load_state(
     event: EventReader<AssetEvent<Image>>,
     asset_server: Res<AssetServer>,
@@ -283,22 +276,4 @@ fn update_asset_load_state(
         .all_t_mut()
         .into_iter()
         .for_each(|a| a.load_asset(&*asset_server));
-}
-
-fn update_camera(
-    mut cameras: Query<&mut Camera, With<MainCamera>>,
-    occupied_space: Res<OccupiedSpace>,
-    windows: Query<&Window, With<PrimaryWindow>>,
-) {
-    let window = windows.single();
-    let mut camera = cameras.single_mut();
-    let viewport = camera.viewport.get_or_insert_with(|| Viewport {
-        physical_position: UVec2::new(0, 0),
-        physical_size: UVec2::new(window.width() as u32, window.height() as u32),
-        depth: 0.0..1.0,
-    });
-    viewport.physical_size.x = (window.width() - occupied_space.left) as u32;
-    viewport.physical_size.y = (window.height() - occupied_space.top) as u32;
-    viewport.physical_position.x = occupied_space.left as u32;
-    viewport.physical_position.y = occupied_space.top as u32;
 }

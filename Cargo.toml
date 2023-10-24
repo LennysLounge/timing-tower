@@ -7,6 +7,7 @@ members = ["crates/*"]
 # Dependencies that all use the same egui version
 egui = "0.23"
 bevy_egui = "0.22"
+egui_dock = "0.8"
 
 
 [profile.dev]

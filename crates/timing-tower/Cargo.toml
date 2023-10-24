@@ -8,10 +8,11 @@ edition = "2021"
 [dependencies]
 bevy = { version = "0.11.2", features = ["dynamic_linking"] }
 bevy_egui = {workspace = true}
+egui_dock = {workspace = true}
 unified_sim_model = { path = "../../../unified_sim_model/unified_sim_model" }
 dear_egui = { path = "../dear_egui" }
+tree_view = { path = "../tree_view" }
 serde_json = "1.0.107"
 serde = { version = "1.0.188", features = ["rc"] }
 tracing = "0.1.37"
 uuid = { version = "1.4.1", features = ["v4"] }
-tree_view = { path = "../tree_view" }

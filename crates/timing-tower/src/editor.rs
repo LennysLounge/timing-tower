@@ -9,9 +9,10 @@ use bevy::{
     window::{PrimaryWindow, Window},
 };
 use bevy_egui::{
-    egui::{self, ScrollArea},
+    egui::{self, Rect, ScrollArea},
     EguiContexts,
 };
+use egui_dock::{DockArea, DockState, TabViewer};
 use tracing::error;
 use tree_view::TreeViewBuilder;
 use uuid::Uuid;
@@ -31,16 +32,28 @@ impl Plugin for EditorPlugin {
             left: 0.0,
         })
         .add_systems(Startup, setup)
+        // .add_systems(
+        //     Update,
+        //     (
+        //         run_egui_main.run_if(resource_exists::<EditorState>()),
+        //         update_camera,
+        //     )
+        //         .chain(),
+        // )
         .add_systems(
             Update,
             (
-                run_egui_main.run_if(resource_exists::<EditorState>()),
-                update_camera,
+                ui.run_if(resource_exists::<EditorState>()),
+                set_camera_viewport,
             )
                 .chain(),
         )
         .add_systems(Update, update_asset_load_state);
     }
+}
+
+pub fn setup(mut ctx: EguiContexts) {
+    dear_egui::set_theme(ctx.ctx_mut(), dear_egui::SKY);
 }
 
 #[derive(Resource)]
@@ -51,11 +64,92 @@ struct OccupiedSpace {
 
 #[derive(Resource)]
 pub struct EditorState {
-    pub selected_node: Option<Uuid>,
+    dock_state: DockState<Tab>,
+    viewport: Rect,
+    selected_node: Option<Uuid>,
+}
+impl EditorState {
+    pub fn new() -> Self {
+        Self {
+            selected_node: None,
+            dock_state: DockState::new(vec![Tab::Scene, Tab::Two, Tab::Three]),
+            viewport: Rect::NOTHING,
+        }
+    }
 }
 
-pub fn setup(mut ctx: EguiContexts) {
-    dear_egui::set_theme(ctx.ctx_mut(), dear_egui::SKY);
+enum Tab {
+    Scene,
+    Two,
+    Three,
+}
+
+struct EditorTabViewer<'a> {
+    viewport: &'a mut Rect,
+}
+impl<'a> TabViewer for EditorTabViewer<'a> {
+    type Tab = Tab;
+
+    fn title(&mut self, tab: &mut Self::Tab) -> egui::WidgetText {
+        match tab {
+            Tab::Scene => "Scene".into(),
+            Tab::Two => "Two".into(),
+            Tab::Three => "Three".into(),
+        }
+    }
+
+    fn ui(&mut self, ui: &mut egui::Ui, tab: &mut Self::Tab) {
+        match tab {
+            Tab::Scene => {
+                *self.viewport = ui.clip_rect();
+            }
+            Tab::Two => {
+                ui.label("Two");
+            }
+            Tab::Three => {
+                ui.label("Three");
+            }
+        }
+    }
+
+    fn clear_background(&self, tab: &Self::Tab) -> bool {
+        !matches!(tab, Tab::Scene)
+    }
+}
+
+fn ui(mut ctx: EguiContexts, mut state: ResMut<EditorState>) {
+    let EditorState {
+        dock_state,
+        viewport,
+        ..
+    } = &mut *state;
+
+    DockArea::new(dock_state).show(ctx.ctx_mut(), &mut EditorTabViewer { viewport })
+}
+
+// make camera only render to view not obstructed by UI
+fn set_camera_viewport(
+    state: Res<EditorState>,
+    primary_window: Query<&mut Window, With<PrimaryWindow>>,
+    egui_settings: Res<bevy_egui::EguiSettings>,
+    mut cameras: Query<&mut Camera, With<MainCamera>>,
+) {
+    let mut cam = cameras.single_mut();
+
+    let Ok(window) = primary_window.get_single() else {
+        return;
+    };
+
+    let scale_factor = window.scale_factor() * egui_settings.scale_factor;
+
+    let viewport_pos = state.viewport.left_top().to_vec2() * scale_factor as f32;
+    let viewport_size = state.viewport.size() * scale_factor as f32;
+
+    cam.viewport = Some(Viewport {
+        physical_position: UVec2::new(viewport_pos.x as u32, viewport_pos.y as u32),
+        physical_size: UVec2::new(viewport_size.x as u32, viewport_size.y as u32),
+        depth: 0.0..1.0,
+    });
 }
 
 fn save_style(style: &StyleDefinition) {

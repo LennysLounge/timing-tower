@@ -146,9 +146,7 @@ fn setup(
     repo.reload_repo(style.vars.all_t(), style.assets.all_t());
     commands.insert_resource(repo);
 
-    commands.insert_resource(EditorState {
-        selected_node: None,
-    });
+    commands.insert_resource(EditorState::new());
 
     commands.spawn_empty().add(init_timing_tower(adapter));
 }

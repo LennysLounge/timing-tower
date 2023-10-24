@@ -1,11 +1,12 @@
 [workspace]
 resolver = "2"
 
-members = [
-    "timing-tower",
-    "tree_view",
-    "dear_egui"
-]
+members = ["crates/*"]
+
+[workspace.dependencies]
+# Dependencies that all use the same egui version
+egui = "0.23"
+bevy_egui = "0.22"
 
 
 [profile.dev]

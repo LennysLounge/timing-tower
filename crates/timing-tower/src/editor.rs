@@ -52,9 +52,13 @@ pub struct EditorState {
 }
 impl EditorState {
     pub fn new() -> Self {
-        let mut state = DockState::new(vec![Tab::Scene]);
+        let mut state = DockState::new(vec![Tab::SceneView]);
         let tree = state.main_surface_mut();
-        let [scene, _tree_view] = tree.split_left(NodeIndex::root(), 0.15, vec![Tab::TreeView]);
+        let [scene, _tree_view] = tree.split_left(
+            NodeIndex::root(),
+            0.15,
+            vec![Tab::Elements, Tab::Variables, Tab::Assets],
+        );
         let [_scene, _tree_view] = tree.split_right(scene, 0.8, vec![Tab::PropertyEditor]);
 
         Self {
@@ -66,8 +70,10 @@ impl EditorState {
 }
 
 enum Tab {
-    Scene,
-    TreeView,
+    SceneView,
+    Elements,
+    Variables,
+    Assets,
     PropertyEditor,
 }
 
@@ -82,22 +88,30 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
 
     fn title(&mut self, tab: &mut Self::Tab) -> egui::WidgetText {
         match tab {
-            Tab::Scene => "Scene".into(),
-            Tab::TreeView => "Tree".into(),
+            Tab::SceneView => "Scene view".into(),
+            Tab::Elements => "Elements".into(),
             Tab::PropertyEditor => "Style".into(),
+            Tab::Variables => "Variables".into(),
+            Tab::Assets => "Assets".into(),
         }
     }
 
     fn ui(&mut self, ui: &mut egui::Ui, tab: &mut Self::Tab) {
         match tab {
-            Tab::Scene => {
+            Tab::SceneView => {
                 *self.viewport = ui.clip_rect();
             }
-            Tab::TreeView => {
-                tree_view(ui, self.selected_node, self.style);
+            Tab::Elements => {
+                tree_view_elements(ui, self.selected_node, self.style);
             }
             Tab::PropertyEditor => {
                 property_editor(ui, self.selected_node, self.style, self.asset_server);
+            }
+            Tab::Variables => {
+                tree_view_vars(ui, self.selected_node, self.style);
+            }
+            Tab::Assets => {
+                tree_view_assets(ui, self.selected_node, self.style);
             }
         }
     }
@@ -111,7 +125,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
     }
 
     fn clear_background(&self, tab: &Self::Tab) -> bool {
-        !matches!(tab, Tab::Scene)
+        !matches!(tab, Tab::SceneView)
     }
 }
 
@@ -142,15 +156,17 @@ fn ui(
         viewport,
         selected_node,
     } = &mut *state;
-    DockArea::new(dock_state).show(
-        ctx.ctx_mut(),
-        &mut EditorTabViewer {
-            viewport,
-            selected_node,
-            style: &mut *style,
-            asset_server: &asset_server,
-        },
-    );
+    DockArea::new(dock_state)
+        .style(egui_dock::Style::from_egui(ctx.ctx_mut().style().as_ref()))
+        .show(
+            ctx.ctx_mut(),
+            &mut EditorTabViewer {
+                viewport,
+                selected_node,
+                style: &mut *style,
+                asset_server: &asset_server,
+            },
+        );
 
     variable_repo.reload_repo(style.vars.all_t(), style.assets.all_t());
 }
@@ -176,12 +192,80 @@ fn save_style(style: &StyleDefinition) {
     }
 }
 
-fn tree_view(ui: &mut Ui, selected_node: &mut Option<Uuid>, style: &mut StyleDefinition) {
+fn tree_view_elements(ui: &mut Ui, selected_node: &mut Option<Uuid>, style: &mut StyleDefinition) {
     let mut actions = Vec::new();
     let res = TreeViewBuilder::new()
         .selected(*selected_node)
         .show(ui, |ui| {
-            style.tree_view(ui, &mut actions);
+            style.tree_view_elements(ui, &mut actions);
+        });
+    *selected_node = res.selected;
+
+    // Set the curso to no drop to show if the drop is not allowed
+    if let Some(hovered_action) = &res.hovered {
+        if !style.can_drop(hovered_action) {
+            ui.ctx().set_cursor_icon(egui::CursorIcon::NoDrop);
+        }
+    }
+
+    // perform the drop action.
+    if let Some(drop_action) = &res.dropped {
+        style.perform_drop(drop_action);
+    }
+
+    for action in actions {
+        match action {
+            TreeViewAction::Insert {
+                target,
+                node,
+                position,
+            } => style.insert(&target, node, position),
+            TreeViewAction::Remove { node } => style.remove(&node),
+            TreeViewAction::Select { node } => *selected_node = Some(node),
+        }
+    }
+}
+
+fn tree_view_vars(ui: &mut Ui, selected_node: &mut Option<Uuid>, style: &mut StyleDefinition) {
+    let mut actions = Vec::new();
+    let res = TreeViewBuilder::new()
+        .selected(*selected_node)
+        .show(ui, |ui| {
+            style.tree_view_variables(ui, &mut actions);
+        });
+    *selected_node = res.selected;
+
+    // Set the curso to no drop to show if the drop is not allowed
+    if let Some(hovered_action) = &res.hovered {
+        if !style.can_drop(hovered_action) {
+            ui.ctx().set_cursor_icon(egui::CursorIcon::NoDrop);
+        }
+    }
+
+    // perform the drop action.
+    if let Some(drop_action) = &res.dropped {
+        style.perform_drop(drop_action);
+    }
+
+    for action in actions {
+        match action {
+            TreeViewAction::Insert {
+                target,
+                node,
+                position,
+            } => style.insert(&target, node, position),
+            TreeViewAction::Remove { node } => style.remove(&node),
+            TreeViewAction::Select { node } => *selected_node = Some(node),
+        }
+    }
+}
+
+fn tree_view_assets(ui: &mut Ui, selected_node: &mut Option<Uuid>, style: &mut StyleDefinition) {
+    let mut actions = Vec::new();
+    let res = TreeViewBuilder::new()
+        .selected(*selected_node)
+        .show(ui, |ui| {
+            style.tree_view_assets(ui, &mut actions);
         });
     *selected_node = res.selected;
 

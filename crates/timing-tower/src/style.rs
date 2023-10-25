@@ -138,6 +138,22 @@ impl StyleTreeNode for StyleDefinition {
 }
 
 impl StyleDefinition {
+    pub fn tree_view_elements(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
+        TreeViewBuilder::dir(self.id).headless().show(ui, |ui| {
+            self.timing_tower.tree_view(ui, actions);
+        });
+    }
+    pub fn tree_view_variables(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
+        TreeViewBuilder::dir(self.id).headless().show(ui, |ui| {
+            self.vars.tree_view(ui, actions);
+        });
+    }
+    pub fn tree_view_assets(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
+        TreeViewBuilder::dir(self.id).headless().show(ui, |ui| {
+            self.assets.tree_view(ui, actions);
+        });
+    }
+
     pub fn can_drop(&self, drop_action: &DropAction) -> bool {
         let dragged = self.find(&drop_action.dragged_node);
         let target = self.find(&drop_action.target_node);

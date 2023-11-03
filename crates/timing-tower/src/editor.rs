@@ -211,22 +211,25 @@ fn ui(
     mut state: ResMut<EditorState>,
     mut style: ResMut<StyleDefinition>,
     mut variable_repo: ResMut<AssetRepo>,
+    camera_drag: Query<&CameraDrag, With<MainCamera>>,
     asset_server: Res<AssetServer>,
 ) {
-    egui::TopBottomPanel::top("Top panel")
-        .show(ctx.ctx_mut(), |ui| {
-            egui::menu::bar(ui, |ui| {
-                ui.menu_button("File", |ui| {
-                    if ui.button("Save").clicked() {
-                        save_style(&style);
-                        ui.close_menu();
-                    }
-                });
+    egui::TopBottomPanel::top("Top panel").show(ctx.ctx_mut(), |ui| {
+        egui::menu::bar(ui, |ui| {
+            ui.menu_button("File", |ui| {
+                if ui.button("Save").clicked() {
+                    save_style(&style);
+                    ui.close_menu();
+                }
             });
-        })
-        .response
-        .rect
-        .height();
+        });
+    });
+    egui::TopBottomPanel::bottom("Bottom panel").show(ctx.ctx_mut(), |ui| {
+        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+            let zoom = 1.0 / camera_drag.single().scale * 100.0;
+            ui.label(format!("Zoom: {:.0}%", zoom));
+        });
+    });
 
     let EditorState {
         dock_state,

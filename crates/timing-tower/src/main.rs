@@ -8,9 +8,8 @@ use bevy::{
     diagnostic::FrameTimeDiagnosticsPlugin,
     ecs::{system::EntityCommand, world::EntityMut},
     prelude::{
-        App, AssetServer, Camera, Camera2dBundle, ClearColor, Color, Commands, Component,
-        EventWriter, First, GlobalTransform, Handle, PreStartup, Query, Res, Resource, Startup,
-        Transform, Vec2, Vec3, With, World,
+        App, AssetServer, ClearColor, Color, Commands, Component, EventWriter, Handle, PreStartup,
+        Res, Resource, Startup, Vec2, Vec3, World,
     },
     text::Font,
     time::{Timer, TimerMode},
@@ -53,7 +52,6 @@ fn main() {
         // Systems
         .add_systems(PreStartup, load)
         .add_systems(Startup, setup)
-        .add_systems(First, move_top_left)
         .run();
 }
 
@@ -88,8 +86,6 @@ fn setup(
     mut set_style_event: EventWriter<SetStyle>,
     asset_server: Res<AssetServer>,
 ) {
-    commands.spawn((Camera2dBundle::default(), MainCamera));
-
     let adapter = Adapter::new_dummy();
     commands.insert_resource(GameAdapterResource {
         adapter: adapter.clone(),
@@ -149,18 +145,6 @@ fn setup(
     commands.insert_resource(EditorState::new());
 
     commands.spawn_empty().add(init_timing_tower(adapter));
-}
-
-fn move_top_left(
-    main_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
-    mut bg_images: Query<&mut Transform, With<BackgroundImage>>,
-) {
-    let (camera, camera_transform) = main_camera.single();
-    for mut bg_image in bg_images.iter_mut() {
-        if let Some(top_left) = camera.viewport_to_world_2d(camera_transform, Vec2::new(0.0, 0.0)) {
-            bg_image.translation = Vec3::new(top_left.x, top_left.y, -10.0);
-        }
-    }
 }
 
 pub trait SpawnAndInitWorld {

@@ -1,9 +1,15 @@
 use std::{fs::File, io::Write};
 
 use bevy::{
+    input::{
+        mouse::{MouseButtonInput, MouseWheel},
+        ButtonState,
+    },
+    math::{vec2, vec3},
     prelude::{
-        resource_exists, AssetEvent, AssetServer, Camera, EventReader, Image, IntoSystemConfigs,
-        Plugin, Query, Res, ResMut, Resource, Startup, UVec2, Update, With,
+        resource_exists, AssetEvent, AssetServer, Camera, Camera2dBundle, Commands, Component,
+        EventReader, Image, IntoSystemConfigs, Plugin, Query, Res, ResMut, Resource, Startup,
+        Transform, UVec2, Update, Vec2, With,
     },
     render::camera::Viewport,
     window::{PrimaryWindow, Window},
@@ -20,7 +26,7 @@ use uuid::Uuid;
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
     asset_repo::AssetRepo,
-    style::{StyleDefinition, StyleTreeNode, StyleTreeUi, TreeViewAction},
+    style::{StyleDefinition, StyleTreeNode, TreeViewAction},
     MainCamera,
 };
 
@@ -36,12 +42,83 @@ impl Plugin for EditorPlugin {
                 )
                     .chain(),
             )
+            .add_systems(Update, camera_drag)
             .add_systems(Update, update_asset_load_state);
     }
 }
 
-pub fn setup(mut ctx: EguiContexts) {
+fn setup(mut commands: Commands, mut ctx: EguiContexts) {
     dear_egui::set_theme(ctx.ctx_mut(), dear_egui::SKY);
+
+    commands.spawn((Camera2dBundle::default(), MainCamera, CameraDrag::new()));
+}
+
+#[derive(Component)]
+struct CameraDrag {
+    drag_position: Option<Vec2>,
+    scale: f32,
+}
+impl CameraDrag {
+    fn new() -> Self {
+        Self {
+            drag_position: None,
+            scale: 1.0,
+        }
+    }
+}
+
+fn camera_drag(
+    mut mouse_events: EventReader<MouseButtonInput>,
+    mut scroll_events: EventReader<MouseWheel>,
+    window: Query<&Window, With<PrimaryWindow>>,
+    mut camera: Query<(&mut CameraDrag, &mut Transform, &Camera), With<MainCamera>>,
+) {
+    let window = window.single();
+
+    let (mut camera_drag, mut camera_transform, camera) = camera.single_mut();
+
+    for ev in mouse_events.iter() {
+        match ev.state {
+            ButtonState::Pressed => {
+                let is_cursor_inside_viewport = |cursor_pos: &Vec2| {
+                    camera.viewport.as_ref().is_some_and(|viewport| {
+                        let viewport_max = (viewport.physical_position + viewport.physical_size)
+                            .as_vec2()
+                            - vec2(5.0, 5.0);
+                        let viewport_min = viewport.physical_position.as_vec2() + vec2(5.0, 5.0);
+
+                        viewport_max.x > cursor_pos.x
+                            && viewport_max.y > cursor_pos.y
+                            && viewport_min.x < cursor_pos.x
+                            && viewport_min.y < cursor_pos.y
+                    })
+                };
+                camera_drag.drag_position =
+                    window.cursor_position().filter(is_cursor_inside_viewport);
+            }
+            ButtonState::Released => {
+                camera_drag.drag_position = None;
+            }
+        }
+    }
+
+    for ev in scroll_events.iter() {
+        if ev.y > 0.0 {
+            camera_drag.scale *= 0.9;
+        }
+        if ev.y < 0.0 {
+            camera_drag.scale /= 0.9;
+        }
+        camera_transform.scale = vec3(camera_drag.scale, camera_drag.scale, 1.0);
+    }
+
+    if let Some(drag_position) = camera_drag.drag_position {
+        if let Some(cursor_position) = window.cursor_position() {
+            let delta = drag_position - cursor_position;
+            camera_transform.translation += vec3(delta.x, -delta.y, 0.0) * camera_drag.scale;
+        }
+        camera_drag.drag_position = window.cursor_position();
+    }
 }
 
 #[derive(Resource)]

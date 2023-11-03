@@ -3,9 +3,8 @@ use std::collections::HashMap;
 use bevy::{
     ecs::system::EntityCommand,
     prelude::{
-        BuildChildren, BuildWorldChildren, Bundle, Camera, Color, Commands, Component, Entity,
-        EventWriter, GlobalTransform, IntoSystemConfigs, Plugin, Query, Res, SpatialBundle, Update,
-        Vec2, Vec3, With, World,
+        BuildChildren, BuildWorldChildren, Bundle, Color, Commands, Component, Entity, EventWriter,
+        IntoSystemConfigs, Plugin, Query, Res, SpatialBundle, Update, Vec2, Vec3, With, World,
     },
 };
 use unified_sim_model::{
@@ -17,7 +16,7 @@ use crate::{
     asset_repo::AssetRepo,
     cell::{init_cell, CellStyle, SetStyle},
     style::{cell::Cell, StyleDefinition},
-    MainCamera, SpawnAndInitWorld,
+    SpawnAndInitWorld,
 };
 
 pub struct TimingTowerPlugin;
@@ -78,13 +77,11 @@ pub fn init_timing_tower(adapter: Adapter) -> impl EntityCommand {
 }
 
 pub fn update_tower(
-    main_camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
     elements: Res<StyleDefinition>,
     variables: Res<AssetRepo>,
     mut towers: Query<(Entity, &TimingTower), With<TimingTower>>,
     mut set_style_event: EventWriter<SetStyle>,
 ) {
-    let (camera, camera_transform) = main_camera.single();
     for (tower_id, tower) in towers.iter_mut() {
         let Ok(model) = tower.adapter.model.read() else {
             continue;
@@ -98,13 +95,7 @@ pub fn update_tower(
             continue;
         };
 
-        let mut style = create_cell_style(&elements.timing_tower.cell, &variables, Some(entry));
-        // The cell position is relative to its parent. The timing tower itself doesnt
-        // have a parent so this needs to be added to get it into the right position.
-        let top_left = camera
-            .viewport_to_world_2d(camera_transform, Vec2::new(0.0, 0.0))
-            .unwrap_or(Vec2::ZERO);
-        style.pos += Vec3::new(top_left.x, top_left.y, 0.0);
+        let style = create_cell_style(&elements.timing_tower.cell, &variables, Some(entry));
         set_style_event.send(SetStyle {
             entity: tower_id,
             style,

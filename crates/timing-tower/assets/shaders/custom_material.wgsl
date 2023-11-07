@@ -1,4 +1,4 @@
-#import bevy_pbr::mesh_vertex_output MeshVertexOutput
+#import bevy_pbr::forward_io::VertexOutput;
 
 struct CustomMaterial {
     kind: i32,
@@ -18,7 +18,7 @@ var base_color_sampler: sampler;
 
 @fragment
 fn fragment(
-    mesh: MeshVertexOutput,
+    mesh: VertexOutput,
 ) -> @location(0) vec4<f32> {
 
     var t = 1.0;

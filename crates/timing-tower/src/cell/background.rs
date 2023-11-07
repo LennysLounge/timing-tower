@@ -63,7 +63,7 @@ fn update_style(
     materials_handles: Query<&Handle<GradientMaterial>>,
     mut mesh_handles: Query<(&Mesh2dHandle, &mut Aabb)>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         let Ok(background_hadle) = cells.get(event.entity) else {
             continue;
         };

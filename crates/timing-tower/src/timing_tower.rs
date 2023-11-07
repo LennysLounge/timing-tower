@@ -3,8 +3,9 @@ use std::collections::HashMap;
 use bevy::{
     ecs::system::EntityCommand,
     prelude::{
-        BuildChildren, BuildWorldChildren, Bundle, Color, Commands, Component, Entity, EventWriter,
-        IntoSystemConfigs, Plugin, Query, Res, SpatialBundle, Update, Vec2, Vec3, With, World,
+        BuildChildren, BuildWorldChildren, Bundle, Color, Commands, Component, Entity,
+        EntityWorldMut, EventWriter, IntoSystemConfigs, Plugin, Query, Res, SpatialBundle, Update,
+        Vec2, Vec3, With,
     },
 };
 use unified_sim_model::{
@@ -58,18 +59,23 @@ pub struct Row {
 struct LogPosition(Vec3);
 
 pub fn init_timing_tower(adapter: Adapter) -> impl EntityCommand {
-    |tower_id: Entity, world: &mut World| {
-        let table_id = world
-            .spawn_new(init_cell)
-            .insert(Table {
-                tower_id,
-                rows: HashMap::new(),
-            })
-            .id();
+    |mut entity: EntityWorldMut| {
+        let tower_id = entity.id();
+        let table_id = entity.world_scope(|world| {
+            world
+                .spawn_new(init_cell)
+                .insert(Table {
+                    tower_id,
+                    rows: HashMap::new(),
+                })
+                .id()
+        });
 
-        init_cell(tower_id, world);
-        world
-            .entity_mut(tower_id)
+        entity.world_scope(|world| {
+            init_cell(world.entity_mut(tower_id));
+        });
+
+        entity
             .insert(TimingTower { adapter, table_id })
             .insert(LogPosition(Vec3::ZERO))
             .add_child(table_id);

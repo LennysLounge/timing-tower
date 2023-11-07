@@ -1,10 +1,9 @@
 use bevy::{
     input::mouse::MouseButtonInput,
     prelude::{
-        info, App, Camera2dBundle, ClearColor, Color, EventReader, NonSendMut, Startup, Update,
-        World,
+        App, Camera2dBundle, ClearColor, Color, EventReader, NonSendMut, Startup, Update, World,
     },
-    utils::synccell::SyncCell,
+    utils::{info, synccell::SyncCell},
     DefaultPlugins,
 };
 use ewebsock::{WsMessage, WsReceiver, WsSender};
@@ -24,7 +23,7 @@ struct Websocket {
 }
 
 fn setup(world: &mut World) {
-    info!("Connecting to websocket");
+    info("Connecting to websocket");
     let (mut sender, receiver) = ewebsock::connect("ws://127.0.0.1:8001").unwrap();
     sender.send(ewebsock::WsMessage::Text("Hello Server!".into()));
 
@@ -40,7 +39,7 @@ fn send_message(
     mut websocket: NonSendMut<Websocket>,
     mut mouse_event: EventReader<MouseButtonInput>,
 ) {
-    for ev in mouse_event.iter() {
+    for ev in mouse_event.read() {
         if let bevy::input::ButtonState::Pressed = ev.state {
             websocket
                 .sender

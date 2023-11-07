@@ -1,5 +1,5 @@
 use bevy::{
-    prelude::{Color, Handle, Image, Plugin, Vec2, Vec4},
+    prelude::{Asset, Color, Handle, Image, Plugin, Vec2, Vec4},
     reflect::{TypePath, TypeUuid},
     render::{
         render_asset::RenderAssets,
@@ -49,7 +49,7 @@ pub struct ConicalGradient {
     pub angle: f32,
 }
 
-#[derive(AsBindGroup, TypeUuid, TypePath, Debug, Clone, Default)]
+#[derive(AsBindGroup, Asset, TypeUuid, TypePath, Debug, Clone, Default)]
 #[uuid = "a459baf1-6fbd-4c97-bbee-4c8a3fae6a3b"]
 #[uniform(0, MaterialUniform)]
 pub struct GradientMaterial {

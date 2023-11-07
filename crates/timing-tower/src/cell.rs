@@ -1,8 +1,8 @@
 use bevy::{
     prelude::{
-        shape, Assets, BuildWorldChildren, Bundle, Color, Component, Entity, Event, EventReader,
-        Handle, Image, Mesh, Plugin, PostUpdate, Query, SpatialBundle, Transform, Vec2, Vec3,
-        Visibility, With, World,
+        shape, Assets, BuildWorldChildren, Bundle, Color, Component, Entity, EntityWorldMut, Event,
+        EventReader, Handle, Image, Mesh, Plugin, PostUpdate, Query, SpatialBundle, Transform,
+        Vec2, Vec3, Visibility, With,
     },
     render::primitives::Aabb,
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
@@ -63,49 +63,51 @@ pub struct CellBundle {
     pub add_foreground: AddForeground,
 }
 
-pub fn init_cell(entity_id: Entity, world: &mut World) {
-    let mesh: Mesh2dHandle = world
-        .resource_mut::<Assets<Mesh>>()
-        .add(shape::RegularPolygon::new(50.0, 80).into())
-        .into();
+pub fn init_cell(mut entity: EntityWorldMut) {
+    let (foreground_id, background_id) = entity.world_scope(|world| {
+        let mesh: Mesh2dHandle = world
+            .resource_mut::<Assets<Mesh>>()
+            .add(shape::RegularPolygon::new(50.0, 80).into())
+            .into();
 
-    let material = world
-        .resource_mut::<Assets<GradientMaterial>>()
-        .add(GradientMaterial {
-            color: Color::PURPLE,
-            gradient: Gradient::None,
-            texture: None,
-        });
+        let material = world
+            .resource_mut::<Assets<GradientMaterial>>()
+            .add(GradientMaterial {
+                color: Color::PURPLE,
+                gradient: Gradient::None,
+                texture: None,
+            });
 
-    let background_id = world
-        .spawn((
-            MaterialMesh2dBundle {
-                mesh,
-                material,
-                ..Default::default()
-            },
-            Aabb::default(),
-        ))
-        .id();
-
-    let default_font = world.resource::<DefaultFont>().0.clone();
-    let foreground_id = world
-        .spawn(Text2dBundle {
-            text: Text::from_section(
-                "World",
-                TextStyle {
-                    font: default_font,
-                    font_size: 20.0,
-                    color: Color::WHITE,
+        let background_id = world
+            .spawn((
+                MaterialMesh2dBundle {
+                    mesh,
+                    material,
+                    ..Default::default()
                 },
-            ),
-            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
-            ..Default::default()
-        })
-        .id();
+                Aabb::default(),
+            ))
+            .id();
 
-    world
-        .entity_mut(entity_id)
+        let default_font = world.resource::<DefaultFont>().0.clone();
+        let foreground_id = world
+            .spawn(Text2dBundle {
+                text: Text::from_section(
+                    "World",
+                    TextStyle {
+                        font: default_font,
+                        font_size: 20.0,
+                        color: Color::WHITE,
+                    },
+                ),
+                transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
+                ..Default::default()
+            })
+            .id();
+        (foreground_id, background_id)
+    });
+
+    entity
         .insert((
             SpatialBundle {
                 visibility: Visibility::Inherited,
@@ -123,7 +125,7 @@ pub fn update_style(
     mut events: EventReader<SetStyle>,
     mut cells: Query<(&mut Transform, &mut Visibility), With<CellMarker>>,
 ) {
-    for SetStyle { entity, style } in events.iter() {
+    for SetStyle { entity, style } in events.read() {
         let Ok((mut transform, mut visibility)) = cells.get_mut(*entity) else {
             println!("Cell not found for update");
             continue;

@@ -57,7 +57,7 @@ fn update_style(
     mut events: EventReader<SetStyle>,
     font: Res<DefaultFont>,
 ) {
-    for event in events.iter() {
+    for event in events.read() {
         let Ok(foreground) = cells.get(event.entity) else {
             continue;
         };

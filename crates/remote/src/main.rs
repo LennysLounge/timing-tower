@@ -1,7 +1,8 @@
 use std::thread;
 
 use bevy::{
-    prelude::{info, App, Startup},
+    prelude::{App, Startup},
+    utils::info,
     DefaultPlugins,
 };
 
@@ -14,14 +15,14 @@ fn main() {
 
 fn setup() {
     thread::spawn(|| {
-        info!("Starting web server");
+        info("Starting web server");
         rouille::start_server("0.0.0.0:8000", move |request| {
             println!("Requested: {}", request.url());
             rouille::match_assets(&request, concat!(file!(), "/../../assets"))
         });
     });
     thread::spawn(|| {
-        info!("Starting websocket server");
+        info("Starting websocket server");
         let server = websocket::sync::Server::bind("0.0.0.0:8001").unwrap();
         for connection in server.filter_map(Result::ok) {
             thread::spawn(move || {

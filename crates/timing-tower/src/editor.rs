@@ -77,7 +77,7 @@ fn camera_drag(
 
     let (mut camera_drag, mut camera_transform, camera) = camera.single_mut();
 
-    for ev in mouse_events.iter() {
+    for ev in mouse_events.read() {
         match ev.state {
             ButtonState::Pressed => {
                 let is_cursor_inside_viewport = |cursor_pos: &Vec2| {
@@ -102,7 +102,7 @@ fn camera_drag(
         }
     }
 
-    for ev in scroll_events.iter() {
+    for ev in scroll_events.read() {
         if ev.y > 0.0 {
             camera_drag.scale *= 0.9;
         }

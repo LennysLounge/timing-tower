@@ -203,7 +203,6 @@ impl StyleTreeUi for ImageAsset {
             LoadState::Failed => ui.label(
                 "Failed to load the asset. Make sure the path is pointing to a valid image file.",
             ),
-            LoadState::Unloaded => ui.label("The asset was unloaded"),
         };
         changed
     }
@@ -249,8 +248,12 @@ impl ImageAsset {
 
     pub fn load_asset(&mut self, asset_server: &AssetServer) {
         self.handle = Some(asset_server.load(&self.path));
-        if let Some(handle) = self.handle.as_ref() {
-            self.load_state = asset_server.get_load_state(handle);
+        if let Some(load_state) = self
+            .handle
+            .as_ref()
+            .and_then(|handle| asset_server.get_load_state(handle))
+        {
+            self.load_state = load_state;
         }
     }
 }

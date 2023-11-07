@@ -6,10 +6,10 @@ use std::{
 
 use bevy::{
     diagnostic::FrameTimeDiagnosticsPlugin,
-    ecs::{system::EntityCommand, world::EntityMut},
+    ecs::system::EntityCommand,
     prelude::{
-        App, AssetServer, ClearColor, Color, Commands, Component, EventWriter, Handle, PreStartup,
-        Res, Resource, Startup, Vec2, Vec3, World,
+        App, AssetServer, ClearColor, Color, Commands, Component, EntityWorldMut, EventWriter,
+        Handle, PreStartup, Res, Resource, Startup, Vec2, Vec3, World,
     },
     text::Font,
     time::{Timer, TimerMode},
@@ -148,11 +148,11 @@ fn setup(
 }
 
 pub trait SpawnAndInitWorld {
-    fn spawn_new<C: EntityCommand>(&mut self, command: C) -> EntityMut;
+    fn spawn_new<C: EntityCommand>(&mut self, command: C) -> EntityWorldMut;
 }
 
 impl SpawnAndInitWorld for World {
-    fn spawn_new<C: EntityCommand>(&mut self, command: C) -> EntityMut {
+    fn spawn_new<C: EntityCommand>(&mut self, command: C) -> EntityWorldMut {
         let id = self.spawn_empty().id();
         command.apply(id, self);
         self.entity_mut(id)

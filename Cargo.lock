@@ -2043,6 +2043,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "editor"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "bevy_egui",
+ "dear_egui",
+ "egui_dock",
+ "serde",
+ "serde_json",
+ "tracing",
+ "tree_view",
+ "unified_sim_model",
+ "uuid",
+]
+
+[[package]]
 name = "eframe"
 version = "0.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5116,22 +5132,6 @@ name = "time-core"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ef927ca75afb808a4d64dd374f00a2adf8d0fcff8e7b184af886c3c87ec4a3f3"
-
-[[package]]
-name = "timing_tower"
-version = "0.1.0"
-dependencies = [
- "bevy",
- "bevy_egui",
- "dear_egui",
- "egui_dock",
- "serde",
- "serde_json",
- "tracing",
- "tree_view",
- "unified_sim_model",
- "uuid",
-]
 
 [[package]]
 name = "tiny-skia"

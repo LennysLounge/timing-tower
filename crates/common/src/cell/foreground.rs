@@ -1,13 +1,15 @@
 use bevy::{
     prelude::{
-        BuildChildren, Color, Commands, Component, Entity, EventReader, Plugin, PostUpdate, Query,
-        Res, Transform, Update, Vec3, With,
+        BuildChildren, Color, Commands, Component, Entity, EventReader, Handle, Plugin, PostUpdate,
+        Query, Transform, Update, Vec3, With,
     },
     sprite::Anchor,
-    text::{Text, Text2dBundle, TextStyle},
+    text::{Font, Text, Text2dBundle, TextStyle},
 };
 
-use crate::{cell::SetStyle, style::cell::TextAlignment, DefaultFont};
+use crate::cell::SetStyle;
+
+use super::TextAlignment;
 
 pub struct ForegroundPlugin;
 impl Plugin for ForegroundPlugin {
@@ -23,18 +25,14 @@ pub struct AddForeground;
 #[derive(Component)]
 pub struct Foreground(pub Entity);
 
-fn add_foreground(
-    mut commands: Commands,
-    font: Res<DefaultFont>,
-    entities: Query<Entity, With<AddForeground>>,
-) {
+fn add_foreground(mut commands: Commands, entities: Query<Entity, With<AddForeground>>) {
     for entity in entities.iter() {
         let text = commands
             .spawn(Text2dBundle {
                 text: Text::from_section(
                     "Text",
                     TextStyle {
-                        font: font.0.clone(),
+                        font: Handle::<Font>::default(),
                         font_size: 100.0,
                         color: Color::WHITE,
                     },
@@ -55,7 +53,6 @@ fn update_style(
     cells: Query<&Foreground>,
     mut texts: Query<(&mut Text, &mut Anchor, &mut Transform)>,
     mut events: EventReader<SetStyle>,
-    font: Res<DefaultFont>,
 ) {
     for event in events.read() {
         let Ok(foreground) = cells.get(event.entity) else {
@@ -67,7 +64,7 @@ fn update_style(
         *text = Text::from_section(
             event.style.text.clone(),
             TextStyle {
-                font: font.0.clone(),
+                font: Handle::<Font>::default(),
                 font_size: event.style.text_size,
                 color: event.style.text_color,
             },

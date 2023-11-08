@@ -1,5 +1,6 @@
 use bevy::{
-    prelude::{Asset, Color, Handle, Image, Plugin, Vec2, Vec4},
+    asset::load_internal_asset,
+    prelude::{Asset, Color, Handle, Image, Plugin, Shader, Vec2, Vec4},
     reflect::{TypePath, TypeUuid},
     render::{
         render_asset::RenderAssets,
@@ -7,11 +8,21 @@ use bevy::{
     },
     sprite::{Material2d, Material2dPlugin},
 };
+use uuid::uuid;
+
+const SHADER_HANDLE: Handle<Shader> =
+    Handle::weak_from_u128(uuid!("0fa5e2a8-e998-40d4-a183-5d806b2f1e8d").as_u128());
 
 pub struct CustomMaterialPlugin;
-
 impl Plugin for CustomMaterialPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
+        load_internal_asset!(
+            app,
+            SHADER_HANDLE,
+            "../shaders/custom_material.wgsl",
+            Shader::from_wgsl
+        );
+
         app.add_plugins(Material2dPlugin::<GradientMaterial>::default());
     }
 }
@@ -62,7 +73,7 @@ pub struct GradientMaterial {
 
 impl Material2d for GradientMaterial {
     fn fragment_shader() -> bevy::render::render_resource::ShaderRef {
-        "shaders/custom_material.wgsl".into()
+        SHADER_HANDLE.into()
     }
 }
 

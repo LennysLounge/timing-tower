@@ -6,14 +6,10 @@ use bevy::{
     },
     render::primitives::Aabb,
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
-    text::{Text, Text2dBundle, TextStyle},
+    text::{Font, Text, Text2dBundle, TextStyle},
 };
 
-use crate::{
-    gradient_material::{Gradient, GradientMaterial},
-    style::cell::TextAlignment,
-    DefaultFont,
-};
+use crate::gradient_material::{Gradient, GradientMaterial};
 
 use self::{
     background::{AddBackground, Background, BackgroundPlugin},
@@ -45,6 +41,14 @@ pub struct CellStyle {
     pub skew: f32,
     pub visible: bool,
     pub rounding: [f32; 4],
+}
+
+#[derive(Clone, Default, PartialEq, Eq)]
+pub enum TextAlignment {
+    #[default]
+    Left,
+    Center,
+    Right,
 }
 
 #[derive(Event)]
@@ -89,13 +93,12 @@ pub fn init_cell(mut entity: EntityWorldMut) {
             ))
             .id();
 
-        let default_font = world.resource::<DefaultFont>().0.clone();
         let foreground_id = world
             .spawn(Text2dBundle {
                 text: Text::from_section(
                     "World",
                     TextStyle {
-                        font: default_font,
+                        font: Handle::<Font>::default(),
                         font_size: 20.0,
                         color: Color::WHITE,
                     },

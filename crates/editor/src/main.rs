@@ -22,6 +22,7 @@ use common::{
 };
 use editor::{EditorPlugin, EditorState};
 
+use savefile::SaveFilePlugin;
 use style::StyleDefinition;
 
 use asset_repo::AssetRepo;
@@ -32,6 +33,7 @@ mod asset_reference_repo;
 mod asset_repo;
 mod editor;
 mod game_sources;
+mod savefile;
 mod style;
 mod timing_tower;
 
@@ -40,6 +42,8 @@ fn main() {
     App::new()
         .insert_resource(ClearColor(Color::rgba(0.1, 0.1, 0.1, 0.0)))
         .insert_resource(SimpleTimer(Timer::from_seconds(1.0, TimerMode::Repeating)))
+        // Crate plugins
+        .add_plugins(SaveFilePlugin)
         // Plugins
         .add_plugins(DefaultPlugins)
         .add_plugins(FrameTimeDiagnosticsPlugin)
@@ -91,7 +95,7 @@ fn setup(
         adapter: adapter.clone(),
     });
 
-    let s = match fs::read_to_string("style.json") {
+    let s = match fs::read_to_string("crates/editor/savefile/style.json") {
         Err(e) => {
             eprintln!("Cannot read 'style.json': {}", e);
             return;

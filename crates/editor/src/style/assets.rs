@@ -247,7 +247,7 @@ impl ImageAsset {
     }
 
     pub fn load_asset(&mut self, asset_server: &AssetServer) {
-        self.handle = Some(asset_server.load(&self.path));
+        self.handle = Some(asset_server.load(format!("savefile://{}", &self.path)));
         if let Some(load_state) = self
             .handle
             .as_ref()

@@ -9,7 +9,7 @@ use bevy::{
 
 use crate::cell::SetStyle;
 
-use super::TextAlignment;
+use super::style::TextAlignment;
 
 pub struct ForegroundPlugin;
 impl Plugin for ForegroundPlugin {

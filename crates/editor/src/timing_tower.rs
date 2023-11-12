@@ -8,7 +8,10 @@ use bevy::{
         Vec2, Vec3, With,
     },
 };
-use common::cell::{init_cell, CellStyle, SetStyle};
+use common::cell::{
+    init_cell,
+    style::{CellStyle, SetStyle},
+};
 use unified_sim_model::{
     model::{Entry, EntryId},
     Adapter,
@@ -297,9 +300,9 @@ fn create_cell_style(cell: &Cell, vars: &AssetRepo, entry: Option<&Entry>) -> Ce
             .get_number_property(&cell.text_size, entry)
             .unwrap_or(20.0),
         text_alignment: match cell.text_alginment {
-            crate::style::cell::TextAlignment::Left => common::cell::TextAlignment::Left,
-            crate::style::cell::TextAlignment::Center => common::cell::TextAlignment::Center,
-            crate::style::cell::TextAlignment::Right => common::cell::TextAlignment::Right,
+            crate::style::cell::TextAlignment::Left => common::cell::style::TextAlignment::Left,
+            crate::style::cell::TextAlignment::Center => common::cell::style::TextAlignment::Center,
+            crate::style::cell::TextAlignment::Right => common::cell::style::TextAlignment::Right,
         },
         text_position: Vec2::new(
             vars.get_number_property(&cell.text_position.x, entry)

@@ -1,8 +1,7 @@
 use bevy::{
     prelude::{
-        shape, Assets, BuildWorldChildren, Bundle, Color, Component, Entity, EntityWorldMut, Event,
-        EventReader, Handle, Image, Mesh, Plugin, PostUpdate, Query, SpatialBundle, Transform,
-        Vec2, Vec3, Visibility, With,
+        shape, Assets, BuildWorldChildren, Bundle, Color, Component, EntityWorldMut, EventReader,
+        Handle, Mesh, Plugin, PostUpdate, Query, SpatialBundle, Transform, Vec3, Visibility, With,
     },
     render::primitives::Aabb,
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
@@ -14,10 +13,12 @@ use crate::gradient_material::{Gradient, GradientMaterial};
 use self::{
     background::{AddBackground, Background, BackgroundPlugin},
     foreground::{AddForeground, Foreground, ForegroundPlugin},
+    style::SetStyle,
 };
 
 pub mod background;
 pub mod foreground;
+pub mod style;
 
 pub struct CellPlugin;
 impl Plugin for CellPlugin {
@@ -27,34 +28,6 @@ impl Plugin for CellPlugin {
             .add_event::<SetStyle>()
             .add_systems(PostUpdate, update_style);
     }
-}
-pub struct CellStyle {
-    pub text: String,
-    pub text_color: Color,
-    pub text_size: f32,
-    pub text_alignment: TextAlignment,
-    pub text_position: Vec2,
-    pub color: Color,
-    pub texture: Option<Handle<Image>>,
-    pub pos: Vec3,
-    pub size: Vec2,
-    pub skew: f32,
-    pub visible: bool,
-    pub rounding: [f32; 4],
-}
-
-#[derive(Clone, Default, PartialEq, Eq)]
-pub enum TextAlignment {
-    #[default]
-    Left,
-    Center,
-    Right,
-}
-
-#[derive(Event)]
-pub struct SetStyle {
-    pub entity: Entity,
-    pub style: CellStyle,
 }
 
 #[derive(Component)]

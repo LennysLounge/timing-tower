@@ -11,7 +11,7 @@ use bevy::{
 
 use crate::gradient_material::{Gradient, GradientMaterial};
 
-use super::{CellStyle, SetStyle};
+use super::{style::CellStyle, SetStyle};
 
 pub struct BackgroundPlugin;
 impl Plugin for BackgroundPlugin {

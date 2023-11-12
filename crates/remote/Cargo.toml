@@ -9,3 +9,4 @@ edition = "2021"
 bevy = {workspace = true}
 rouille = "3.6"
 websocket = "0.27"
+tracing = {workspace = true}

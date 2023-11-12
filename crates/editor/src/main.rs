@@ -17,7 +17,11 @@ use bevy::{
 };
 use bevy_egui::EguiPlugin;
 use common::{
-    cell::{init_cell, CellPlugin, CellStyle, SetStyle, TextAlignment},
+    cell::{
+        init_cell,
+        style::{CellStyle, SetStyle, TextAlignment},
+        CellPlugin,
+    },
     gradient_material::CustomMaterialPlugin,
 };
 use editor::{EditorPlugin, EditorState};

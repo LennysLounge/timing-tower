@@ -4513,6 +4513,7 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "rouille",
+ "tracing",
  "websocket",
 ]
 
@@ -4528,6 +4529,7 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "ewebsock",
+ "tracing",
  "wasm-bindgen",
 ]
 

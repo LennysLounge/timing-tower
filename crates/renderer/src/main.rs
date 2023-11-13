@@ -5,6 +5,7 @@ use bevy::{
     },
     DefaultPlugins,
 };
+use common::test::CellStyle;
 use ewebsock::{WsMessage, WsReceiver, WsSender};
 use tracing::info;
 
@@ -38,10 +39,25 @@ fn read_cell_render(websocket: NonSendMut<Websocket>) {
     if let Some(event) = websocket.receiver.try_recv() {
         match event {
             ewebsock::WsEvent::Opened => info!("socket opened"),
-            ewebsock::WsEvent::Message(message) => info!("message: {message:?}"),
+            ewebsock::WsEvent::Message(message) => read_message(&message),
             ewebsock::WsEvent::Error(e) => info!("socket error: {e}"),
             ewebsock::WsEvent::Closed => info!("socket closed"),
         }
+    }
+}
+
+fn read_message(message: &WsMessage) {
+    match message {
+        WsMessage::Binary(b) => {
+            let cell_style: CellStyle = postcard::from_bytes(b).expect("Cannot deserialize");
+
+            info!(
+                "Received cell style with message: {} and id: {}",
+                cell_style.message, cell_style.number
+            );
+        }
+        WsMessage::Text(text) => info!("Received message: {text}"),
+        _ => (),
     }
 }
 

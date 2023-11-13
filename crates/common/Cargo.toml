@@ -5,4 +5,5 @@ edition = "2021"
 
 [dependencies]
 bevy = { workspace = true }
+serde = { workspace = true }
 uuid = { version = "1.5", features = ["v4"] }

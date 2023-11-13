@@ -10,6 +10,7 @@ use bevy::{
     utils::info,
     DefaultPlugins,
 };
+use common::test::CellStyle;
 use tracing::error;
 use websocket::{sync::Client, Message, WebSocketError};
 
@@ -96,12 +97,21 @@ fn send_render_cell(
     websocket_connections: Res<WebsocketConnections>,
 ) {
     if render_timer.0.tick(time.delta()).just_finished() {
+        let cell_style = CellStyle {
+            message: String::from("Hello from server"),
+            number: time.elapsed_seconds() as i32,
+        };
+        let cell_style = postcard::to_allocvec(&cell_style).expect("Cannot serialize");
+
         let mut clients = websocket_connections
             .connections
             .lock()
             .expect("Poisoned lock");
         for client in clients.iter_mut() {
-            if let Err(e) = client.client.send_message(&Message::text("Render cell!")) {
+            if let Err(e) = client
+                .client
+                .send_message(&Message::binary(cell_style.clone()))
+            {
                 client.connected = false;
                 error!("Error trying to send on websocket: {e}")
             }

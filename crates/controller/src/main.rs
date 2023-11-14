@@ -13,7 +13,10 @@ use bevy::{
     utils::info,
     DefaultPlugins,
 };
-use common::cell::style::CellStyleMessage;
+use common::{
+    cell::style::CellStyleMessage,
+    communication::{ToControllerMessage, ToRendererMessage},
+};
 use tracing::error;
 use websocket::{sync::Client, Message, WebSocketError};
 
@@ -81,39 +84,42 @@ fn setup(websocket_writers: ResMut<WebsocketConnections>) {
 }
 
 fn send_cell_style(client: &mut Client<TcpStream>) {
-    let style = CellStyleMessage {
-        text: String::from("Hello World"),
-        text_color: Color::BLACK,
-        text_size: 40.0,
-        text_alignment: common::cell::style::TextAlignment::Center,
-        text_position: vec2(0.0, 0.0),
-        color: Color::Hsla {
-            hue: rand::random::<f32>() * 360.0,
-            saturation: rand::random::<f32>(),
-            lightness: rand::random::<f32>(),
-            alpha: 1.0,
-        },
-        pos: vec3(
-            rand::random::<f32>() * 1180.0,
-            rand::random::<f32>() * 620.0,
-            rand::random::<f32>() * 1.0,
-        ),
-        size: vec2(
-            rand::random::<f32>() * 80.0 + 20.0,
-            rand::random::<f32>() * 80.0 + 20.0,
-        ),
-        skew: rand::random::<f32>() * 50.0 - 25.0,
-        visible: true,
-        rounding: [
-            rand::random::<f32>() * 20.0,
-            rand::random::<f32>() * 20.0,
-            rand::random::<f32>() * 20.0,
-            rand::random::<f32>() * 20.0,
-        ],
-    };
+    let mut styles = Vec::new();
+    for _ in 0..400 {
+        styles.push(CellStyleMessage {
+            text: String::from("Hello World"),
+            text_color: Color::BLACK,
+            text_size: 40.0,
+            text_alignment: common::cell::style::TextAlignment::Center,
+            text_position: vec2(0.0, 0.0),
+            color: Color::Hsla {
+                hue: rand::random::<f32>() * 360.0,
+                saturation: rand::random::<f32>(),
+                lightness: rand::random::<f32>(),
+                alpha: 1.0,
+            },
+            pos: vec3(
+                rand::random::<f32>() * 1180.0,
+                rand::random::<f32>() * 620.0,
+                rand::random::<f32>() * 1.0,
+            ),
+            size: vec2(
+                rand::random::<f32>() * 80.0 + 20.0,
+                rand::random::<f32>() * 80.0 + 20.0,
+            ),
+            skew: rand::random::<f32>() * 50.0 - 25.0,
+            visible: true,
+            rounding: [
+                rand::random::<f32>() * 20.0,
+                rand::random::<f32>() * 20.0,
+                rand::random::<f32>() * 20.0,
+                rand::random::<f32>() * 20.0,
+            ],
+        });
+    }
+    let message = ToRendererMessage::CellStyle(styles);
 
-    let data = postcard::to_allocvec(&style).expect("Cannot convert to postcard");
-    println!("data size: {}", data.len());
+    let data = postcard::to_allocvec(&message).expect("Cannot convert to postcard");
     client
         .send_message(&Message::binary(data))
         .expect("Cannot send");
@@ -129,14 +135,13 @@ fn read_websockets(websocket_connections: Res<WebsocketConnections>) {
             Ok(m) => match m {
                 websocket::OwnedMessage::Close(_) => client.connected = false,
                 websocket::OwnedMessage::Binary(data) => {
-                    let message = postcard::from_bytes::<common::websocket::Message>(&data)
+                    let message = postcard::from_bytes::<ToControllerMessage>(&data)
                         .expect("Cannot deserialize");
 
                     match message {
-                        common::websocket::Message::Opened => {
+                        ToControllerMessage::Opened => {
                             send_cell_style(&mut client.client);
                         }
-                        common::websocket::Message::CellStyle(_) => (),
                     }
                 }
                 m @ _ => println!("Incomming message: {m:?}"),
@@ -155,25 +160,25 @@ fn read_websockets(websocket_connections: Res<WebsocketConnections>) {
 struct RenderTimer(Timer);
 
 fn send_render_cell(
-    time: Res<Time>,
-    mut render_timer: ResMut<RenderTimer>,
+    _time: Res<Time>,
+    mut _render_timer: ResMut<RenderTimer>,
     websocket_connections: Res<WebsocketConnections>,
 ) {
-    if render_timer.0.tick(time.delta()).just_finished() {
-        let mut clients = websocket_connections
-            .connections
-            .lock()
-            .expect("Poisoned lock");
-        for client in clients.iter_mut() {
-            // if let Err(e) = client
-            //     .client
-            //     .send_message(&Message::text("Hello from server"))
-            // {
-            //     client.connected = false;
-            //     error!("Error trying to send on websocket: {e}")
-            // }
-            send_cell_style(&mut client.client);
-        }
-        //println!("Render cell!");
+    //if render_timer.0.tick(time.delta()).just_finished() {
+    let mut clients = websocket_connections
+        .connections
+        .lock()
+        .expect("Poisoned lock");
+    for client in clients.iter_mut() {
+        // if let Err(e) = client
+        //     .client
+        //     .send_message(&Message::text("Hello from server"))
+        // {
+        //     client.connected = false;
+        //     error!("Error trying to send on websocket: {e}")
+        // }
+        send_cell_style(&mut client.client);
     }
+    //println!("Render cell!");
+    //}
 }

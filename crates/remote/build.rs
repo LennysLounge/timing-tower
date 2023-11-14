@@ -1,7 +1,7 @@
 use std::process::Command;
 
 fn main() {
-    Command::new("cargo")
+    if !Command::new("cargo")
         .args(&[
             "build",
             "--package",
@@ -11,10 +11,12 @@ fn main() {
             "wasm32-unknown-unknown",
         ])
         .status()
-        .unwrap();
-    Command::new("cmd").args(&["pwd"]).status().unwrap();
-    println!("was");
-    Command::new("wasm-bindgen")
+        .unwrap()
+        .success()
+    {
+        panic!();
+    };
+    if !Command::new("wasm-bindgen")
         .args(&[
             "--no-typescript",
             "--out-dir",
@@ -24,7 +26,11 @@ fn main() {
             "../../target/wasm32-unknown-unknown/release/renderer.wasm",
         ])
         .status()
-        .unwrap();
+        .unwrap()
+        .success()
+    {
+        panic!();
+    };
     println!("cargo:rerun-if-changed=../renderer/src");
     println!("cargo:rerun-if-changed=./web/renderer");
 }

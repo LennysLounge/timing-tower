@@ -4577,6 +4577,7 @@ dependencies = [
  "bevy",
  "common",
  "postcard",
+ "rand 0.8.5",
  "rouille",
  "tracing",
  "websocket",

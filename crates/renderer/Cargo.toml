@@ -10,6 +10,6 @@ common = { path = "../common" }
 
 bevy = { workspace = true }
 tracing = { workspace = true }
-postcard = { workspace = true }
+postcard = { workspace = true, features = ["alloc"] }
 ewebsock = "0.4"
 wasm-bindgen = "0.2.88"

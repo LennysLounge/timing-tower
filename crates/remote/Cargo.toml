@@ -13,3 +13,4 @@ postcard = { workspace = true, features = ["alloc"] }
 tracing = { workspace = true }
 rouille = "3.6"
 websocket = "0.27"
+rand = "0.8.5"

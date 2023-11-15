@@ -1,61 +1,19 @@
 use std::f32::consts::PI;
 
 use bevy::{
-    prelude::{
-        shape, Assets, BuildChildren, Color, Commands, Component, Entity, EventReader, Handle,
-        Mesh, Plugin, PostUpdate, Query, ResMut, Update, Vec2, Vec3, With,
-    },
+    prelude::{Assets, Component, Entity, EventReader, Handle, Mesh, Query, ResMut, Vec2, Vec3},
     render::{mesh::Indices, primitives::Aabb},
-    sprite::{MaterialMesh2dBundle, Mesh2dHandle},
+    sprite::Mesh2dHandle,
 };
 
-use crate::gradient_material::{Gradient, GradientMaterial};
+use crate::gradient_material::GradientMaterial;
 
 use super::{style::CellStyle, SetStyle};
-
-pub struct BackgroundPlugin;
-impl Plugin for BackgroundPlugin {
-    fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_systems(Update, add_background)
-            .add_systems(PostUpdate, update_style);
-    }
-}
-
-#[derive(Component, Default)]
-pub struct AddBackground;
 
 #[derive(Component)]
 pub struct Background(pub Entity);
 
-fn add_background(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<GradientMaterial>>,
-    entities: Query<Entity, With<AddBackground>>,
-) {
-    for entity in entities.iter() {
-        let background = commands
-            .spawn(MaterialMesh2dBundle {
-                mesh: meshes
-                    .add(shape::RegularPolygon::new(50.0, 80).into())
-                    .into(),
-                material: materials.add(GradientMaterial {
-                    color: Color::PURPLE,
-                    gradient: Gradient::None,
-                    texture: None,
-                }),
-                ..Default::default()
-            })
-            .id();
-
-        let mut entity = commands.entity(entity);
-        entity.remove::<AddBackground>();
-        entity.add_child(background);
-        entity.insert(Background(background));
-    }
-}
-
-fn update_style(
+pub fn update_style(
     mut events: EventReader<SetStyle>,
     mut materials_assets: ResMut<Assets<GradientMaterial>>,
     mut mesh_assets: ResMut<Assets<Mesh>>,

@@ -12,4 +12,5 @@ pub enum ToRendererMessage {
 #[derive(Serialize, Deserialize)]
 pub enum ToControllerMessage {
     Opened,
+    Debug(String),
 }

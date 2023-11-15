@@ -1,7 +1,9 @@
 use bevy::{
+    app::PostUpdate,
+    ecs::schedule::{IntoSystemConfigs, SystemSet},
     prelude::{
-        shape, Assets, BuildWorldChildren, Bundle, Color, Component, EntityWorldMut, EventReader,
-        Handle, Mesh, Plugin, PostUpdate, Query, SpatialBundle, Transform, Vec3, Visibility, With,
+        shape, Assets, BuildWorldChildren, Color, Component, EntityWorldMut, EventReader, Handle,
+        Mesh, Plugin, Query, SpatialBundle, Transform, Vec3, Visibility, With,
     },
     render::primitives::Aabb,
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
@@ -10,35 +12,33 @@ use bevy::{
 
 use crate::gradient_material::{Gradient, GradientMaterial};
 
-use self::{
-    background::{AddBackground, Background, BackgroundPlugin},
-    foreground::{AddForeground, Foreground, ForegroundPlugin},
-    style::SetStyle,
-};
+use self::{background::Background, foreground::Foreground, style::SetStyle};
 
 pub mod background;
 pub mod foreground;
 pub mod style;
 
+#[derive(Debug, PartialEq, Eq, Clone, Hash, SystemSet)]
+pub struct CellSystem;
+
 pub struct CellPlugin;
 impl Plugin for CellPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_plugins(BackgroundPlugin)
-            .add_plugins(ForegroundPlugin)
-            .add_event::<SetStyle>()
-            .add_systems(PostUpdate, update_style);
+        app.add_event::<SetStyle>().add_systems(
+            PostUpdate,
+            (
+                update_style,
+                foreground::update_style,
+                background::update_style,
+            )
+                .in_set(CellSystem)
+                .before(bevy::text::update_text2d_layout),
+        );
     }
 }
 
 #[derive(Component)]
 pub struct CellMarker;
-
-#[derive(Bundle, Default)]
-pub struct CellBundle {
-    pub spatial: SpatialBundle,
-    pub add_background: AddBackground,
-    pub add_foreground: AddForeground,
-}
 
 pub fn init_cell(mut entity: EntityWorldMut) {
     let (foreground_id, background_id) = entity.world_scope(|world| {
@@ -97,7 +97,7 @@ pub fn init_cell(mut entity: EntityWorldMut) {
         .add_child(foreground_id);
 }
 
-pub fn update_style(
+fn update_style(
     mut events: EventReader<SetStyle>,
     mut cells: Query<(&mut Transform, &mut Visibility), With<CellMarker>>,
 ) {

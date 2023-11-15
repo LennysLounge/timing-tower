@@ -1,55 +1,17 @@
 use bevy::{
-    prelude::{
-        BuildChildren, Color, Commands, Component, Entity, EventReader, Handle, Plugin, PostUpdate,
-        Query, Transform, Update, Vec3, With,
-    },
+    prelude::{Component, Entity, EventReader, Handle, Query, Transform, Vec3},
     sprite::Anchor,
-    text::{Font, Text, Text2dBundle, TextStyle},
+    text::{Font, Text, TextStyle},
 };
 
 use crate::cell::SetStyle;
 
 use super::style::TextAlignment;
 
-pub struct ForegroundPlugin;
-impl Plugin for ForegroundPlugin {
-    fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_systems(Update, add_foreground)
-            .add_systems(PostUpdate, update_style);
-    }
-}
-
-#[derive(Component, Default)]
-pub struct AddForeground;
-
 #[derive(Component)]
 pub struct Foreground(pub Entity);
 
-fn add_foreground(mut commands: Commands, entities: Query<Entity, With<AddForeground>>) {
-    for entity in entities.iter() {
-        let text = commands
-            .spawn(Text2dBundle {
-                text: Text::from_section(
-                    "Text",
-                    TextStyle {
-                        font: Handle::<Font>::default(),
-                        font_size: 100.0,
-                        color: Color::WHITE,
-                    },
-                ),
-                transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
-                ..Default::default()
-            })
-            .id();
-
-        let mut entity = commands.entity(entity);
-        entity.remove::<AddForeground>();
-        entity.add_child(text);
-        entity.insert(Foreground(text));
-    }
-}
-
-fn update_style(
+pub fn update_style(
     cells: Query<&Foreground>,
     mut texts: Query<(&mut Text, &mut Anchor, &mut Transform)>,
     mut events: EventReader<SetStyle>,

@@ -23,7 +23,7 @@ use websocket::{sync::Client, Message, WebSocketError};
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .insert_resource(RenderTimer(Timer::from_seconds(1.0, TimerMode::Repeating)))
+        .insert_resource(RenderTimer(Timer::from_seconds(0.25, TimerMode::Repeating)))
         .insert_resource(WebsocketConnections {
             connections: Arc::new(Mutex::new(Vec::new())),
         })
@@ -37,18 +37,18 @@ struct WebsocketConnections {
     connections: Arc<Mutex<Vec<WebsocketClient>>>,
 }
 
-// impl WebsocketConnections {
-//     fn send(&mut self, data: &[u8]) {
-//         let message = Message::binary(data);
-//         let mut connections = self.connections.lock().expect("Poisoned lock");
-//         for connection in connections.iter_mut() {
-//             if let Err(e) = connection.client.send_message(&message) {
-//                 connection.connected = false;
-//                 error!("Error trying to send on websocket: {e}")
-//             }
-//         }
-//     }
-// }
+impl WebsocketConnections {
+    fn send(&mut self, data: &[u8]) {
+        let message = Message::binary(data);
+        let mut connections = self.connections.lock().expect("Poisoned lock");
+        for connection in connections.iter_mut() {
+            if let Err(e) = connection.client.send_message(&message) {
+                connection.connected = false;
+                error!("Error trying to send on websocket: {e:?}")
+            }
+        }
+    }
+}
 
 struct WebsocketClient {
     connected: bool,
@@ -69,9 +69,13 @@ fn setup(websocket_writers: ResMut<WebsocketConnections>) {
         info("Starting websocket server");
         let server = websocket::sync::Server::bind("0.0.0.0:8001").unwrap();
         for connection in server.filter_map(Result::ok) {
-            let client = connection.accept().unwrap();
+            let mut client = connection.accept().unwrap();
             if let Err(e) = client.set_nonblocking(true) {
                 error!("Error setting websocket to non blocking: {e}");
+                continue;
+            }
+            if let Err(e) = client.set_nodelay(true) {
+                error!("Error setting websocket to no delay: {e}");
                 continue;
             }
             let mut clients = connections.lock().expect("Poisoned lock");
@@ -83,11 +87,11 @@ fn setup(websocket_writers: ResMut<WebsocketConnections>) {
     });
 }
 
-fn send_cell_style(client: &mut Client<TcpStream>) {
+fn send_cell_style(connections: &mut WebsocketConnections) {
     let mut styles = Vec::new();
-    for _ in 0..400 {
+    for _ in 0..300 {
         styles.push(CellStyleMessage {
-            text: String::from("Hello World"),
+            text: String::from("AABB"),
             text_color: Color::BLACK,
             text_size: 40.0,
             text_alignment: common::cell::style::TextAlignment::Center,
@@ -120,9 +124,7 @@ fn send_cell_style(client: &mut Client<TcpStream>) {
     let message = ToRendererMessage::CellStyle(styles);
 
     let data = postcard::to_allocvec(&message).expect("Cannot convert to postcard");
-    client
-        .send_message(&Message::binary(data))
-        .expect("Cannot send");
+    connections.send(&data);
 }
 
 fn read_websockets(websocket_connections: Res<WebsocketConnections>) {
@@ -140,7 +142,10 @@ fn read_websockets(websocket_connections: Res<WebsocketConnections>) {
 
                     match message {
                         ToControllerMessage::Opened => {
-                            send_cell_style(&mut client.client);
+                            //send_cell_style(&mut client.client);
+                        }
+                        ToControllerMessage::Debug(message) => {
+                            println!("Message from renderer: {message}");
                         }
                     }
                 }
@@ -162,23 +167,21 @@ struct RenderTimer(Timer);
 fn send_render_cell(
     _time: Res<Time>,
     mut _render_timer: ResMut<RenderTimer>,
-    websocket_connections: Res<WebsocketConnections>,
+    mut websocket_connections: ResMut<WebsocketConnections>,
 ) {
     //if render_timer.0.tick(time.delta()).just_finished() {
-    let mut clients = websocket_connections
-        .connections
-        .lock()
-        .expect("Poisoned lock");
-    for client in clients.iter_mut() {
-        // if let Err(e) = client
-        //     .client
-        //     .send_message(&Message::text("Hello from server"))
-        // {
-        //     client.connected = false;
-        //     error!("Error trying to send on websocket: {e}")
-        // }
-        send_cell_style(&mut client.client);
-    }
+        send_cell_style(&mut *websocket_connections);
+    //}
+    //for client in clients.iter_mut() {
+    // if let Err(e) = client
+    //     .client
+    //     .send_message(&Message::text("Hello from server"))
+    // {
+    //     client.connected = false;
+    //     error!("Error trying to send on websocket: {e}")
+    // }
+
+    //}
     //println!("Render cell!");
     //}
 }

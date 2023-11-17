@@ -1,6 +1,7 @@
 use bevy::{
     app::PostUpdate,
     ecs::schedule::{IntoSystemConfigs, SystemSet},
+    math::{Vec2, Vec4},
     prelude::{
         shape, Assets, BuildWorldChildren, Color, Component, EntityWorldMut, EventReader, Handle,
         Mesh, Plugin, Query, SpatialBundle, Transform, Vec3, Visibility, With,
@@ -10,7 +11,7 @@ use bevy::{
     text::{Font, Text, Text2dBundle, TextStyle},
 };
 
-use crate::gradient_material::{Gradient, GradientMaterial};
+use crate::cell_material::{CellMaterial, Gradient};
 
 use self::{background::Background, foreground::Foreground, style::SetStyle};
 
@@ -48,11 +49,13 @@ pub fn init_cell(mut entity: EntityWorldMut) {
             .into();
 
         let material = world
-            .resource_mut::<Assets<GradientMaterial>>()
-            .add(GradientMaterial {
+            .resource_mut::<Assets<CellMaterial>>()
+            .add(CellMaterial {
                 color: Color::PURPLE,
                 gradient: Gradient::None,
                 texture: None,
+                size: Vec2::ZERO,
+                rounding: Vec4::ZERO,
             });
 
         let background_id = world

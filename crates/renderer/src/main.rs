@@ -11,7 +11,7 @@ use bevy::{
         system::{Commands, Query, ResMut},
     },
     input::mouse::MouseButtonInput,
-    math::vec3,
+    math::{vec2, vec3},
     prelude::{App, Camera2dBundle, ClearColor, Color, EventReader, Startup},
     transform::components::Transform,
     window::{PrimaryWindow, Window},
@@ -41,6 +41,28 @@ fn main() {
             (mouse_click_send_message, spawn_cells.before(CellSystem)),
         )
         .run();
+}
+
+#[allow(unused)]
+fn setup_cell(mut commands: Commands, mut set_style: EventWriter<SetStyle>) {
+    let cell_id = commands.spawn_empty().add(init_cell).id();
+    set_style.send(SetStyle {
+        entity: cell_id,
+        style: CellStyle {
+            text: String::from(""),
+            text_color: Color::BLACK,
+            text_size: 40.0,
+            text_alignment: common::cell::style::TextAlignment::Center,
+            text_position: vec2(0.0, 0.0),
+            color: Color::BLUE,
+            texture: None,
+            pos: vec3(320.0, 540.0, 0.0),
+            size: vec2(640.0, 360.0),
+            skew: 0.0,
+            visible: true,
+            rounding: [100.0, 200.0, 50.0, 150.0],
+        },
+    });
 }
 
 fn setup_camera(mut commands: Commands, window: Query<&Window, With<PrimaryWindow>>) {

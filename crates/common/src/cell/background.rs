@@ -1,12 +1,11 @@
-use std::f32::consts::PI;
-
 use bevy::{
-    prelude::{Assets, Component, Entity, EventReader, Handle, Mesh, Query, ResMut, Vec2, Vec3},
+    math::{vec2, vec3},
+    prelude::{Assets, Component, Entity, EventReader, Handle, Mesh, Query, ResMut},
     render::{mesh::Indices, primitives::Aabb},
     sprite::Mesh2dHandle,
 };
 
-use crate::gradient_material::GradientMaterial;
+use crate::cell_material::CellMaterial;
 
 use super::{style::CellStyle, SetStyle};
 
@@ -15,10 +14,10 @@ pub struct Background(pub Entity);
 
 pub fn update_style(
     mut events: EventReader<SetStyle>,
-    mut materials_assets: ResMut<Assets<GradientMaterial>>,
+    mut materials_assets: ResMut<Assets<CellMaterial>>,
     mut mesh_assets: ResMut<Assets<Mesh>>,
     cells: Query<&Background>,
-    materials_handles: Query<&Handle<GradientMaterial>>,
+    materials_handles: Query<&Handle<CellMaterial>>,
     mut mesh_handles: Query<(&Mesh2dHandle, &mut Aabb)>,
 ) {
     for event in events.read() {
@@ -31,8 +30,11 @@ pub fn update_style(
         let Some(material) = materials_assets.get_mut(material_handle) else {
             continue;
         };
+
         material.color = event.style.color;
         material.texture = event.style.texture.clone();
+        material.size = event.style.size;
+        material.rounding = event.style.rounding.into();
 
         let Ok((mesh_handle, mut aabb)) = mesh_handles.get_mut(background_hadle.0) else {
             continue;
@@ -46,78 +48,34 @@ pub fn update_style(
 }
 
 fn update_mesh(style: &CellStyle, mesh: &mut Mesh, aabb: &mut Aabb) {
-    // Corner of the box with skew applied
-    let corners = vec![
-        Vec3::new(style.skew, 0.0, 0.0),
-        Vec3::new(style.size.x + style.skew, 0.0, 0.0),
-        Vec3::new(style.size.x, -style.size.y, 0.0),
-        Vec3::new(0.0, -style.size.y, 0.0),
-    ];
-
-    // To calculate the rounded corners we first have to trasnlate the rounding radius
-    // into the distance 'l'. 'l' describes the distance from the corner to the point where
-    // the circle touches the edge. For corner rounding with a circle, the distance 'l' is
-    // the same for both edges.
-
-    // Step skipped for simplicity
-    let l = vec![
-        style.rounding[0],
-        style.rounding[1],
-        style.rounding[2],
-        style.rounding[3],
-    ];
-
-    // Next we calculate the normalised vectors for the edges
-    let edges = vec![
-        (corners[0] - corners[3]).normalize(),
-        (corners[1] - corners[0]).normalize(),
-        (corners[2] - corners[1]).normalize(),
-        (corners[3] - corners[2]).normalize(),
-    ];
-
-    // Now calculate the rounding for each corner
-    let mut positions = Vec::new();
-    for i in 0..4 {
-        let steps = 50;
-        for j in 0..steps {
-            let angle = PI / (2.0 * (steps - 1) as f32) * j as f32;
-            positions.push(
-                corners[i] - edges[i] * l[i] * (1.0 - angle.sin())
-                    + edges[(i + 1) % 4] * l[i] * (1.0 - angle.cos()),
-            );
-        }
-    }
-
-    let mut min = Vec2::new(f32::MAX, f32::MAX);
-    let mut max = Vec2::new(f32::MIN, f32::MIN);
-    for vertex in positions.iter() {
-        min.x = min.x.min(vertex.x);
-        min.y = min.y.min(vertex.y);
-        max.x = max.x.max(vertex.x);
-        max.y = max.y.max(vertex.y);
-    }
-    let width = max.x - min.x;
-    let height = max.y - min.y;
-
-    let mut normals = Vec::new();
-    let mut uvs = Vec::new();
-    for vertex in positions.iter() {
-        normals.push([0.0, 0.0, 1.0]);
-        uvs.push([
-            (vertex.x - min.x) / width,
-            (vertex.y - max.y) / height * -1.0,
-        ]);
-    }
-
-    let mut indices = Vec::new();
-    for i in 1..(positions.len() - 1) {
-        indices.extend([0, i as u32, i as u32 + 1]);
-    }
-
-    mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
-    mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
-    mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
-    mesh.set_indices(Some(Indices::U32(indices)));
+    mesh.insert_attribute(
+        Mesh::ATTRIBUTE_POSITION,
+        vec![
+            vec3(style.skew, 0.0, 0.0),
+            vec3(style.size.x + style.skew, 0.0, 0.0),
+            vec3(style.size.x, -style.size.y, 0.0),
+            vec3(0.0, -style.size.y, 0.0),
+        ],
+    );
+    mesh.insert_attribute(
+        Mesh::ATTRIBUTE_NORMAL,
+        vec![
+            vec3(0.0, 0.0, 1.0),
+            vec3(0.0, 0.0, 1.0),
+            vec3(0.0, 0.0, 1.0),
+            vec3(0.0, 0.0, 1.0),
+        ],
+    );
+    mesh.insert_attribute(
+        Mesh::ATTRIBUTE_UV_0,
+        vec![
+            vec2(0.0, 0.0),
+            vec2(1.0, 0.0),
+            vec2(1.0, 1.0),
+            vec2(0.0, 1.0),
+        ],
+    );
+    mesh.set_indices(Some(Indices::U32(vec![0, 1, 2, 0, 2, 3])));
 
     if let Some(new_aabb) = mesh.compute_aabb() {
         *aabb = new_aabb;

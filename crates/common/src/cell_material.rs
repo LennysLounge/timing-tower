@@ -10,23 +10,20 @@ use bevy::{
 };
 use uuid::uuid;
 
-use crate::cell_material::CellMaterialPlugin;
-
 const SHADER_HANDLE: Handle<Shader> =
-    Handle::weak_from_u128(uuid!("0fa5e2a8-e998-40d4-a183-5d806b2f1e8d").as_u128());
+    Handle::weak_from_u128(uuid!("eb34f151-aa39-4148-8e01-7c801b4b8566").as_u128());
 
-pub struct CustomMaterialPlugin;
-impl Plugin for CustomMaterialPlugin {
+pub struct CellMaterialPlugin;
+impl Plugin for CellMaterialPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_plugins(CellMaterialPlugin);
         load_internal_asset!(
             app,
             SHADER_HANDLE,
-            "../shaders/custom_material.wgsl",
+            "../shaders/cell.wgsl",
             Shader::from_wgsl
         );
 
-        app.add_plugins(Material2dPlugin::<GradientMaterial>::default());
+        app.add_plugins(Material2dPlugin::<CellMaterial>::default());
     }
 }
 
@@ -64,17 +61,19 @@ pub struct ConicalGradient {
 }
 
 #[derive(AsBindGroup, Asset, TypeUuid, TypePath, Debug, Clone, Default)]
-#[uuid = "a459baf1-6fbd-4c97-bbee-4c8a3fae6a3b"]
+#[uuid = "02ff810f-b8de-4d62-8b09-7da5072fae14"]
 #[uniform(0, MaterialUniform)]
-pub struct GradientMaterial {
+pub struct CellMaterial {
     pub color: Color,
     pub gradient: Gradient,
+    pub size: Vec2,
+    pub rounding: Vec4,
     #[texture(1)]
     #[sampler(2)]
     pub texture: Option<Handle<Image>>,
 }
 
-impl Material2d for GradientMaterial {
+impl Material2d for CellMaterial {
     fn fragment_shader() -> bevy::render::render_resource::ShaderRef {
         SHADER_HANDLE.into()
     }
@@ -88,9 +87,11 @@ struct MaterialUniform {
     pos: Vec2,
     spread: f32,
     param_1: f32,
+    size: Vec2,
+    rounding: Vec4,
 }
 
-impl AsBindGroupShaderType<MaterialUniform> for GradientMaterial {
+impl AsBindGroupShaderType<MaterialUniform> for CellMaterial {
     fn as_bind_group_shader_type(&self, _images: &RenderAssets<Image>) -> MaterialUniform {
         let (kind, color_2, position, spread, param_1) = match &self.gradient {
             Gradient::None => (0, Color::default(), Vec2::default(), 0.0, 0.0),
@@ -105,6 +106,8 @@ impl AsBindGroupShaderType<MaterialUniform> for GradientMaterial {
             pos: position.clone(),
             spread,
             param_1,
+            size: self.size,
+            rounding: self.rounding,
         }
     }
 }

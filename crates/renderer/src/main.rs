@@ -10,7 +10,6 @@ use bevy::{
         schedule::IntoSystemConfigs,
         system::{Commands, Query, ResMut},
     },
-    hierarchy::DespawnRecursiveExt,
     input::mouse::MouseButtonInput,
     math::vec3,
     prelude::{App, Camera2dBundle, ClearColor, Color, EventReader, Startup},
@@ -79,11 +78,12 @@ fn spawn_cells(
         for message in messages.messages.iter() {
             match message {
                 ToRendererMessage::CellStyle(styles) => {
-                    for cell_id in cells.iter() {
-                        commands.entity(cell_id).despawn_recursive();
-                    }
-                    for style in styles.iter() {
-                        let cell_id = commands.spawn_empty().add(init_cell).id();
+                    let cell_ids: Vec<Entity> = cells.iter().collect();
+                    for (index, style) in styles.iter().enumerate() {
+                        let cell_id = cell_ids
+                            .get(index)
+                            .map(|e| *e)
+                            .unwrap_or_else(|| commands.spawn_empty().add(init_cell).id());
                         set_style.send(SetStyle {
                             entity: cell_id,
                             style: CellStyle {

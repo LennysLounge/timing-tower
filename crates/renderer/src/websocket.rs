@@ -3,10 +3,10 @@ use bevy::{
     ecs::{
         event::{Event, EventReader, EventWriter},
         schedule::IntoSystemConfigs,
-        system::{NonSendMut, Res},
+        system::NonSendMut,
         world::World,
     },
-    time::{Time, TimeSystem},
+    time::TimeSystem,
 };
 use common::communication::{ToControllerMessage, ToRendererMessage};
 use ewebsock::{WsMessage, WsReceiver, WsSender};
@@ -56,7 +56,6 @@ fn read_websocket(
     mut websocket: NonSendMut<Websocket>,
     mut send_message: EventWriter<SendMessage>,
     mut received_messages: EventWriter<ReceivedMessages>,
-    time: Res<Time>,
 ) {
     let mut messages = Vec::new();
     while let Some(event) = websocket.receiver.try_recv() {
@@ -84,7 +83,6 @@ fn read_websocket(
         return;
     }
 
-    let messages_read = messages.len();
     //Remove all but the last CellStyle message
     let last_cell_style_index = messages
         .iter()
@@ -100,12 +98,6 @@ fn read_websocket(
         index += 1;
         retain
     });
-
-    info!(
-        "Messages read: {messages_read}, messages kept: {} delta: {:.5}",
-        messages.len(),
-        time.delta().as_secs_f64(),
-    );
 
     if !messages.is_empty() {
         received_messages.send(ReceivedMessages { messages });

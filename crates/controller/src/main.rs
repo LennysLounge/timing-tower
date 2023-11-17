@@ -89,7 +89,7 @@ fn setup(websocket_writers: ResMut<WebsocketConnections>) {
 
 fn send_cell_style(connections: &mut WebsocketConnections) {
     let mut styles = Vec::new();
-    for _ in 0..300 {
+    for _ in 0..200 {
         styles.push(CellStyleMessage {
             text: String::from("AABB"),
             text_color: Color::BLACK,
@@ -170,7 +170,7 @@ fn send_render_cell(
     mut websocket_connections: ResMut<WebsocketConnections>,
 ) {
     //if render_timer.0.tick(time.delta()).just_finished() {
-        send_cell_style(&mut *websocket_connections);
+    send_cell_style(&mut *websocket_connections);
     //}
     //for client in clients.iter_mut() {
     // if let Err(e) = client

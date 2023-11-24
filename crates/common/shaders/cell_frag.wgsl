@@ -1,4 +1,7 @@
-#import bevy_pbr::forward_io::VertexOutput
+#import bevy_sprite::{
+    mesh2d_functions as mesh_functions,
+    mesh2d_vertex_output::VertexOutput,
+}
 
 struct CustomMaterial {
     kind: i32,
@@ -17,7 +20,6 @@ var<uniform> material: CustomMaterial;
 var base_color_texture: texture_2d<f32>;
 @group(1) @binding(2)
 var base_color_sampler: sampler;
-
 
 @fragment
 fn fragment(
@@ -39,7 +41,7 @@ fn get_color(mesh: VertexOutput) -> vec4<f32> {
             sin(material.param_1),
             cos(material.param_1)
         );
-        let to_pixel = mesh.world_position.xy - material.pos;
+        let to_pixel = mesh.position.xy - material.pos;
         t = clamp(
                 (dot(n, to_pixel) / material.spread + 0.5),
                 0.0,
@@ -49,14 +51,14 @@ fn get_color(mesh: VertexOutput) -> vec4<f32> {
     // Radial gradient
     else if material.kind == 2 {
         t = clamp(
-                (distance(material.pos, mesh.world_position.xy) - material.param_1) / material.spread,
+                (distance(material.pos, mesh.position.xy) - material.param_1) / material.spread,
                 0.0,
                 1.0
             );
     }
     // Conical gradient
     else if material.kind == 3 {
-        let to_pixel = mesh.world_position.xy - material.pos;
+        let to_pixel = mesh.position.xy - material.pos;
         var angle = (atan2(to_pixel.y, to_pixel.x) + material.param_1) / 6.2831853 + 0.5;
         t = clamp(angle % 1.0, 0.0, 1.0);
     }

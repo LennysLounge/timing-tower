@@ -10,7 +10,9 @@ use bevy::{
 };
 use uuid::uuid;
 
-const SHADER_HANDLE: Handle<Shader> =
+const VERT_SHADER_HANDLE: Handle<Shader> =
+    Handle::weak_from_u128(uuid!("8f2e85d4-c560-410c-9159-c37a95e865e5").as_u128());
+const FRAG_SHADER_HANDLE: Handle<Shader> =
     Handle::weak_from_u128(uuid!("eb34f151-aa39-4148-8e01-7c801b4b8566").as_u128());
 
 pub struct CellMaterialPlugin;
@@ -18,8 +20,14 @@ impl Plugin for CellMaterialPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         load_internal_asset!(
             app,
-            SHADER_HANDLE,
-            "../shaders/cell.wgsl",
+            FRAG_SHADER_HANDLE,
+            "../shaders/cell_frag.wgsl",
+            Shader::from_wgsl
+        );
+        load_internal_asset!(
+            app,
+            VERT_SHADER_HANDLE,
+            "../shaders/cell_vert.wgsl",
             Shader::from_wgsl
         );
 
@@ -75,7 +83,11 @@ pub struct CellMaterial {
 
 impl Material2d for CellMaterial {
     fn fragment_shader() -> bevy::render::render_resource::ShaderRef {
-        SHADER_HANDLE.into()
+        FRAG_SHADER_HANDLE.into()
+    }
+
+    fn vertex_shader() -> bevy::render::render_resource::ShaderRef {
+        VERT_SHADER_HANDLE.into()
     }
 }
 

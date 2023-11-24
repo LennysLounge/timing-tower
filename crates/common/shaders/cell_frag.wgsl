@@ -3,31 +3,32 @@
     mesh2d_vertex_output::VertexOutput,
 }
 
-struct CustomMaterial {
+struct Gradient {
     kind: i32,
     color: vec4<f32>,
     color_2: vec4<f32>,
     pos: vec2<f32>,
     spread: f32,
     param_1: f32,
+};
+
+struct Shape {
     size: vec2<f32>,
     rounding: vec4<f32>,
 };
 
-@group(1) @binding(0)
-var<uniform> material: CustomMaterial;
-@group(1) @binding(1)
-var base_color_texture: texture_2d<f32>;
-@group(1) @binding(2)
-var base_color_sampler: sampler;
+@group(1) @binding(0) var<uniform> gradient: Gradient;
+@group(1) @binding(1) var<uniform> shape: Shape;
+@group(1) @binding(2) var base_color_texture: texture_2d<f32>;
+@group(1) @binding(3) var base_color_sampler: sampler;
 
 @fragment
 fn fragment(
     mesh: VertexOutput,
 ) -> @location(0) vec4<f32> {
 
-    let xy = (mesh.uv * vec2(material.size.x, material.size.y));
-    let rounding_mask = get_rounding_mask(xy, material.size, material.rounding);
+    let xy = (mesh.uv * vec2(shape.size.x, shape.size.y));
+    let rounding_mask = get_rounding_mask(xy, shape.size, shape.rounding);
 
     return get_color(mesh) * vec4(1.0, 1.0, 1.0, rounding_mask);   
 }
@@ -36,37 +37,37 @@ fn get_color(mesh: VertexOutput) -> vec4<f32> {
     var t = 1.0;
 
     // Linear gradient
-    if material.kind == 1 {
+    if gradient.kind == 1 {
         let n = vec2f(
-            sin(material.param_1),
-            cos(material.param_1)
+            sin(gradient.param_1),
+            cos(gradient.param_1)
         );
-        let to_pixel = mesh.position.xy - material.pos;
+        let to_pixel = mesh.position.xy - gradient.pos;
         t = clamp(
-                (dot(n, to_pixel) / material.spread + 0.5),
+                (dot(n, to_pixel) / gradient.spread + 0.5),
                 0.0,
                 1.0
             );
     }
     // Radial gradient
-    else if material.kind == 2 {
+    else if gradient.kind == 2 {
         t = clamp(
-                (distance(material.pos, mesh.position.xy) - material.param_1) / material.spread,
+                (distance(gradient.pos, mesh.position.xy) - gradient.param_1) / gradient.spread,
                 0.0,
                 1.0
             );
     }
     // Conical gradient
-    else if material.kind == 3 {
-        let to_pixel = mesh.position.xy - material.pos;
-        var angle = (atan2(to_pixel.y, to_pixel.x) + material.param_1) / 6.2831853 + 0.5;
+    else if gradient.kind == 3 {
+        let to_pixel = mesh.position.xy - gradient.pos;
+        var angle = (atan2(to_pixel.y, to_pixel.x) + gradient.param_1) / 6.2831853 + 0.5;
         t = clamp(angle % 1.0, 0.0, 1.0);
     }
 
     // Turn linear value into a sin value.
     t = (1.0-cos(t*3.1415926)) / 2.0;
     
-    return (material.color * t + material.color_2 * (1.0-t))
+    return (gradient.color * t + gradient.color_2 * (1.0-t))
         * textureSample(base_color_texture, base_color_sampler, mesh.uv);
 }
 

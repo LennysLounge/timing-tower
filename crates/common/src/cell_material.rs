@@ -70,14 +70,15 @@ pub struct ConicalGradient {
 
 #[derive(AsBindGroup, Asset, TypeUuid, TypePath, Debug, Clone, Default)]
 #[uuid = "02ff810f-b8de-4d62-8b09-7da5072fae14"]
-#[uniform(0, MaterialUniform)]
+#[uniform(0, GradientUniform)]
+#[uniform(1, ShapeUniform)]
 pub struct CellMaterial {
     pub color: Color,
     pub gradient: Gradient,
     pub size: Vec2,
     pub rounding: Vec4,
-    #[texture(1)]
-    #[sampler(2)]
+    #[texture(2)]
+    #[sampler(3)]
     pub texture: Option<Handle<Image>>,
 }
 
@@ -91,35 +92,46 @@ impl Material2d for CellMaterial {
     }
 }
 
-#[derive(Clone, Default, ShaderType)]
-struct MaterialUniform {
+#[derive(ShaderType)]
+struct GradientUniform {
     kind: i32,
     color: Vec4,
     color_2: Vec4,
     pos: Vec2,
     spread: f32,
     param_1: f32,
-    size: Vec2,
-    rounding: Vec4,
 }
 
-impl AsBindGroupShaderType<MaterialUniform> for CellMaterial {
-    fn as_bind_group_shader_type(&self, _images: &RenderAssets<Image>) -> MaterialUniform {
-        let (kind, color_2, position, spread, param_1) = match &self.gradient {
+impl From<&CellMaterial> for GradientUniform {
+    fn from(value: &CellMaterial) -> Self {
+        let (kind, color_2, position, spread, param_1) = match &value.gradient {
             Gradient::None => (0, Color::default(), Vec2::default(), 0.0, 0.0),
             Gradient::Linear(g) => (1, g.color, g.position, g.spread, g.angle),
             Gradient::Radial(g) => (2, g.color, g.position, g.spread, g.distance),
             Gradient::Conical(g) => (3, g.color, g.position, 0.0, g.angle),
         };
-        MaterialUniform {
+        GradientUniform {
             kind,
-            color: self.color.as_linear_rgba_f32().into(),
+            color: value.color.as_linear_rgba_f32().into(),
             color_2: color_2.as_linear_rgba_f32().into(),
             pos: position.clone(),
             spread,
             param_1,
-            size: self.size,
-            rounding: self.rounding,
+        }
+    }
+}
+
+#[derive(ShaderType)]
+struct ShapeUniform {
+    size: Vec2,
+    rounding: Vec4,
+}
+
+impl From<&CellMaterial> for ShapeUniform {
+    fn from(value: &CellMaterial) -> Self {
+        ShapeUniform {
+            size: value.size,
+            rounding: value.rounding,
         }
     }
 }

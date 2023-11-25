@@ -1,12 +1,15 @@
 use bevy::{
     app::PostUpdate,
-    ecs::schedule::{IntoSystemConfigs, SystemSet},
-    math::{Vec2, Vec4},
-    prelude::{
-        shape, Assets, BuildWorldChildren, Color, Component, EntityWorldMut, EventReader, Handle,
-        Mesh, Plugin, Query, SpatialBundle, Transform, Vec3, Visibility, With,
+    ecs::{
+        schedule::{IntoSystemConfigs, SystemSet},
+        system::Resource,
     },
-    render::primitives::Aabb,
+    math::{vec2, vec3, Vec2, Vec4},
+    prelude::{
+        Assets, BuildWorldChildren, Color, Component, EntityWorldMut, EventReader, Handle, Mesh,
+        Plugin, Query, SpatialBundle, Transform, Vec3, Visibility, With,
+    },
+    render::{mesh::Indices, primitives::Aabb, render_resource::PrimitiveTopology},
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
     text::{Font, Text, Text2dBundle, TextStyle},
 };
@@ -41,12 +44,19 @@ impl Plugin for CellPlugin {
 #[derive(Component)]
 pub struct CellMarker;
 
+#[derive(Resource)]
+struct CellMesh {
+    mesh: Mesh2dHandle,
+}
+
 pub fn init_cell(mut entity: EntityWorldMut) {
     let (foreground_id, background_id) = entity.world_scope(|world| {
-        let mesh: Mesh2dHandle = world
-            .resource_mut::<Assets<Mesh>>()
-            .add(shape::RegularPolygon::new(50.0, 80).into())
-            .into();
+        if !world.contains_resource::<CellMesh>() {
+            let mut meshes = world.resource_mut::<Assets<Mesh>>();
+            let mesh = meshes.add(create_mesh()).into();
+            world.insert_resource(CellMesh { mesh });
+        }
+        let mesh = world.resource::<CellMesh>().mesh.clone();
 
         let material = world
             .resource_mut::<Assets<CellMaterial>>()
@@ -98,6 +108,34 @@ pub fn init_cell(mut entity: EntityWorldMut) {
         ))
         .add_child(background_id)
         .add_child(foreground_id);
+}
+
+fn create_mesh() -> Mesh {
+    let positions = vec![
+        vec3(0.0, 0.0, 0.0),
+        vec3(0.0, 0.0, 0.0),
+        vec3(0.0, 0.0, 0.0),
+        vec3(0.0, 0.0, 0.0),
+    ];
+    let normals = vec![
+        vec3(0.0, 0.0, 1.0),
+        vec3(0.0, 0.0, 1.0),
+        vec3(0.0, 0.0, 1.0),
+        vec3(0.0, 0.0, 1.0),
+    ];
+    let uvs = vec![
+        vec2(0.0, 0.0),
+        vec2(1.0, 0.0),
+        vec2(1.0, 1.0),
+        vec2(0.0, 1.0),
+    ];
+    let indices = vec![0, 1, 2, 0, 2, 3];
+
+    Mesh::new(PrimitiveTopology::TriangleList)
+        .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, positions)
+        .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, normals)
+        .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, uvs)
+        .with_indices(Some(Indices::U32(indices)))
 }
 
 fn update_style(

@@ -36,6 +36,7 @@ fn main() {
         .add_plugins((CellPlugin, CustomMaterialPlugin))
         .add_plugins((WebsocketPlugin, FrameratePlugin))
         .add_systems(Startup, setup_camera)
+        //.add_systems(Startup, setup_cell)
         .add_systems(
             Update,
             (mouse_click_send_message, spawn_cells.before(CellSystem)),

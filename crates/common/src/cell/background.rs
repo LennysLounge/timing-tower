@@ -36,14 +36,14 @@ pub fn update_style(
         material.size = event.style.size;
         material.rounding = event.style.rounding.into();
 
-        let Ok((mesh_handle, mut aabb)) = mesh_handles.get_mut(background_hadle.0) else {
-            continue;
-        };
+        // let Ok((mesh_handle, mut aabb)) = mesh_handles.get_mut(background_hadle.0) else {
+        //     continue;
+        // };
 
-        let Some(mesh) = mesh_assets.get_mut(&mesh_handle.0) else {
-            continue;
-        };
-        update_mesh(&event.style, mesh, &mut aabb);
+        // let Some(mesh) = mesh_assets.get_mut(&mesh_handle.0) else {
+        //     continue;
+        // };
+        // update_mesh(&event.style, mesh, &mut aabb);
     }
 }
 

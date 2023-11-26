@@ -122,7 +122,8 @@ pub fn set_camera_viewport(
 
     cam.viewport = Some(Viewport {
         physical_position: UVec2::new(viewport_pos.x as u32, viewport_pos.y as u32),
-        physical_size: UVec2::new(viewport_size.x as u32, viewport_size.y as u32),
+        // make the size always odd to prevent the camera from being between two pixels.
+        physical_size: UVec2::new((viewport_size.x as u32) & !1, (viewport_size.y as u32) & !1),
         depth: 0.0..1.0,
     });
 }

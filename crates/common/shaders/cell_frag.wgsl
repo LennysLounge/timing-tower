@@ -30,7 +30,7 @@ fn fragment(
     let xy = (mesh.uv * vec2(shape.size.x, shape.size.y));
     let rounding_mask = get_rounding_mask(xy, shape.size, shape.rounding);
 
-    return get_color(mesh) * vec4(1.0, 1.0, 1.0, rounding_mask);   
+    return get_color(mesh) * rounding_mask;   
 }
 
 fn get_color(mesh: VertexOutput) -> vec4<f32> {
@@ -77,7 +77,7 @@ fn map_clamp(value: f32, high: f32, low: f32, to_high: f32, to_low: f32) -> f32{
     return x;
 }
 
-fn get_rounding_mask(param_pos: vec2<f32>, param_size: vec2<f32>, rounding: vec4<f32>) -> f32{
+fn get_rounding_mask(param_pos: vec2<f32>, param_size: vec2<f32>, rounding: vec4<f32>) -> vec4<f32>{
     let smoothing_distance = 1.0;
 
     let pos = param_pos - vec2(smoothing_distance / 2.0, smoothing_distance / 2.0);
@@ -120,5 +120,5 @@ fn get_rounding_mask(param_pos: vec2<f32>, param_size: vec2<f32>, rounding: vec4
         let dist = distance(pos, mask);
         rounding_mask *= map_clamp(dist, r, r+smoothing_distance, 1.0, 0.0);
     }
-    return rounding_mask;
+    return vec4(1.0, 1.0, 1.0, rounding_mask);
 }

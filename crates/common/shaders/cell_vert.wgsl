@@ -5,6 +5,7 @@
 
 struct Shape {
     size: vec2<f32>,
+    skew: f32,
     rounding: vec4<f32>,
 };
 @group(1) @binding(1) var<uniform> shape: Shape;
@@ -21,7 +22,7 @@ fn vertex(vertex: Vertex) -> VertexOutput {
     var out: VertexOutput;
     out.uv = vertex.uv;
 
-    let position = shape.size * vertex.uv * vec2(1.0, -1.0);
+    let position = shape.size * vertex.uv * vec2(1.0, -1.0) + vec2(shape.skew, 0.0) * (1.0-vertex.uv.y);
     out.world_position = mesh_functions::mesh2d_position_local_to_world(
         mesh_functions::get_model_matrix(vertex.instance_index),
         vec4<f32>(position, 0.0, 1.0)

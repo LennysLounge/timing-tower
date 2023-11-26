@@ -65,6 +65,7 @@ pub fn init_cell(mut entity: EntityWorldMut) {
                 gradient: Gradient::None,
                 texture: None,
                 size: Vec2::ZERO,
+                skew: 0.0,
                 rounding: Vec4::ZERO,
             });
 

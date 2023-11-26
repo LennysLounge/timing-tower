@@ -2,10 +2,7 @@ use bevy::{
     asset::load_internal_asset,
     prelude::{Asset, Color, Handle, Image, Plugin, Shader, Vec2, Vec4},
     reflect::{TypePath, TypeUuid},
-    render::{
-        render_asset::RenderAssets,
-        render_resource::{AsBindGroup, AsBindGroupShaderType, ShaderType},
-    },
+    render::render_resource::{AsBindGroup, ShaderType},
     sprite::{Material2d, Material2dPlugin},
 };
 use uuid::uuid;
@@ -76,6 +73,7 @@ pub struct CellMaterial {
     pub color: Color,
     pub gradient: Gradient,
     pub size: Vec2,
+    pub skew: f32,
     pub rounding: Vec4,
     #[texture(2)]
     #[sampler(3)]
@@ -124,6 +122,7 @@ impl From<&CellMaterial> for GradientUniform {
 #[derive(ShaderType)]
 struct ShapeUniform {
     size: Vec2,
+    skew: f32,
     rounding: Vec4,
 }
 
@@ -131,6 +130,7 @@ impl From<&CellMaterial> for ShapeUniform {
     fn from(value: &CellMaterial) -> Self {
         ShapeUniform {
             size: value.size,
+            skew: value.skew,
             rounding: value.rounding,
         }
     }

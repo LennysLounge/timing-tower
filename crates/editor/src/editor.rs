@@ -3,11 +3,12 @@ pub mod camera;
 use std::{fs::File, io::Write};
 
 use bevy::{
+    math::vec3,
     prelude::{
         resource_exists, AssetEvent, AssetServer, EventReader, Image, IntoSystemConfigs, Plugin,
         Query, Res, ResMut, Resource, Startup, Update, With,
     },
-    transform::components::{GlobalTransform, Transform}, math::vec3,
+    transform::components::Transform,
 };
 use bevy_egui::{
     egui::{self, Rect, ScrollArea, Ui},

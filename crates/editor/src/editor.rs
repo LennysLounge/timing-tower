@@ -2,9 +2,12 @@ pub mod camera;
 
 use std::{fs::File, io::Write};
 
-use bevy::prelude::{
-    resource_exists, AssetEvent, AssetServer, EventReader, Image, IntoSystemConfigs, Plugin, Query,
-    Res, ResMut, Resource, Startup, Update, With,
+use bevy::{
+    prelude::{
+        resource_exists, AssetEvent, AssetServer, EventReader, Image, IntoSystemConfigs, Plugin,
+        Query, Res, ResMut, Resource, Startup, Update, With,
+    },
+    transform::components::{GlobalTransform, Transform}, math::vec3,
 };
 use bevy_egui::{
     egui::{self, Rect, ScrollArea, Ui},
@@ -130,7 +133,7 @@ fn ui(
     mut state: ResMut<EditorState>,
     mut style: ResMut<StyleDefinition>,
     mut variable_repo: ResMut<AssetRepo>,
-    mut editor_camera: Query<&mut EditorCamera, With<MainCamera>>,
+    mut editor_camera: Query<(&mut EditorCamera, &mut Transform), With<MainCamera>>,
     asset_server: Res<AssetServer>,
 ) {
     egui::TopBottomPanel::top("Top panel").show(ctx.ctx_mut(), |ui| {
@@ -141,12 +144,30 @@ fn ui(
                     ui.close_menu();
                 }
             });
+            ui.menu_button("View", |ui| {
+                if ui.button("reset camera").clicked() {
+                    let (mut camera, mut transform) = editor_camera.single_mut();
+                    camera.scale = 1.0;
+                    transform.translation = vec3(
+                        transform.translation.x.round(),
+                        transform.translation.y.round(),
+                        transform.translation.z.round(),
+                    );
+                    ui.close_menu();
+                }
+            });
         });
     });
     egui::TopBottomPanel::bottom("Bottom panel").show(ctx.ctx_mut(), |ui| {
         ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-            let zoom = 1.0 / editor_camera.single().scale * 100.0;
+            let (cam, trans) = editor_camera.single();
+            let zoom = 1.0 / cam.scale * 100.0;
             ui.label(format!("Zoom: {:.0}%", zoom));
+            ui.separator();
+
+            ui.label(format!("Zoom raw: {:.10}", cam.scale));
+            ui.separator();
+            ui.label(format!("pos: {:?}", trans.translation));
         });
     });
 
@@ -154,7 +175,7 @@ fn ui(
         dock_state,
         selected_node,
     } = &mut *state;
-    let viewport = &mut editor_camera.single_mut().raw_viewport;
+    let viewport = &mut editor_camera.single_mut().0.raw_viewport;
     DockArea::new(dock_state)
         .style(egui_dock::Style::from_egui(ctx.ctx_mut().style().as_ref()))
         .show(

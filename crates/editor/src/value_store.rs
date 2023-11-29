@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use bevy::prelude::{Color, Handle, Image, Resource};
 use serde::{Deserialize, Serialize};
+use thiserror::Error;
 use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
@@ -11,6 +12,102 @@ use crate::{
         BooleanProperty, ColorProperty, ImageProperty, NumberProperty, TextProperty,
     },
 };
+
+use self::types::{Boolean, Number, Text, Texture, Tint, ValueType};
+
+mod types {
+    use std::fmt::Display;
+
+    use bevy::{
+        asset::Handle,
+        render::{color::Color, texture::Image},
+    };
+
+    pub struct Number(pub f32);
+    pub struct Text(pub String);
+    pub struct Tint(pub Color);
+    pub struct Boolean(pub bool);
+    pub struct Texture(pub Handle<Image>);
+
+    #[derive(Debug)]
+    pub enum ValueType {
+        Number,
+        Text,
+        Tint,
+        Boolean,
+        Texture,
+    }
+    impl Display for ValueType {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            match self {
+                ValueType::Number => write!(f, "Number"),
+                ValueType::Text => write!(f, "Text"),
+                ValueType::Tint => write!(f, "Tint"),
+                ValueType::Boolean => write!(f, "Boolean"),
+                ValueType::Texture => write!(f, "Texture"),
+            }
+        }
+    }
+}
+
+#[derive(Error, Debug)]
+pub enum ValueProducerError {
+    #[error("Producer does not produce values of type {0}")]
+    DoesNotProduceValueOfType(ValueType),
+}
+
+pub trait ValueProducer {
+    #[allow(unused)]
+    fn get_number(
+        &self,
+        value_store: &ValueStore,
+        entry: Option<&Entry>,
+    ) -> Result<Number, ValueProducerError> {
+        Err(ValueProducerError::DoesNotProduceValueOfType(
+            ValueType::Number,
+        ))
+    }
+    #[allow(unused)]
+    fn get_text(
+        &self,
+        value_store: &ValueStore,
+        entry: Option<&Entry>,
+    ) -> Result<Text, ValueProducerError> {
+        Err(ValueProducerError::DoesNotProduceValueOfType(
+            ValueType::Text,
+        ))
+    }
+    #[allow(unused)]
+    fn get_color(
+        &self,
+        value_store: &ValueStore,
+        entry: Option<&Entry>,
+    ) -> Result<Tint, ValueProducerError> {
+        Err(ValueProducerError::DoesNotProduceValueOfType(
+            ValueType::Tint,
+        ))
+    }
+    #[allow(unused)]
+    fn get_boolean(
+        &self,
+        value_store: &ValueStore,
+        entry: Option<&Entry>,
+    ) -> Result<Boolean, ValueProducerError> {
+        Err(ValueProducerError::DoesNotProduceValueOfType(
+            ValueType::Boolean,
+        ))
+    }
+    #[allow(unused)]
+    fn get_texture(
+        &self,
+        value_store: &ValueStore,
+        entry: Option<&Entry>,
+    ) -> Result<Texture, ValueProducerError> {
+        Err(ValueProducerError::DoesNotProduceValueOfType(
+            ValueType::Texture,
+        ))
+    }
+}
 
 pub trait NumberSource {
     fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<f32>;

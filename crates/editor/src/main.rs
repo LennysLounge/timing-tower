@@ -29,12 +29,12 @@ use editor::{EditorPlugin, EditorState};
 use savefile::SaveFilePlugin;
 use style::StyleDefinition;
 
-use asset_repo::AssetRepo;
+use value_store::ValueStore;
 use timing_tower::{init_timing_tower, TimingTowerPlugin};
 use unified_sim_model::Adapter;
 
 mod asset_reference_repo;
-mod asset_repo;
+mod value_store;
 mod editor;
 mod game_sources;
 mod savefile;
@@ -144,7 +144,7 @@ fn setup(
     });
 
     commands.insert_resource(style.clone());
-    let mut repo = AssetRepo {
+    let mut repo = ValueStore {
         assets: HashMap::new(),
     };
     repo.reload_repo(style.vars.all_t(), style.assets.all_t());

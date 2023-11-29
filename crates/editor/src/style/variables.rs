@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    asset_repo::{AssetId, IntoAssetSource},
+    value_store::{AssetId, IntoAssetSource},
 };
 
 use self::{condition::Condition, fixed_value::FixedValue, map::Map};
@@ -29,7 +29,7 @@ pub enum VariableBehavior {
 }
 
 impl IntoAssetSource for VariableBehavior {
-    fn get_asset_source(&self) -> crate::asset_repo::AssetSource {
+    fn get_asset_source(&self) -> crate::value_store::AssetSource {
         match self {
             VariableBehavior::FixedValue(o) => o.get_asset_source(),
             VariableBehavior::Condition(o) => o.get_asset_source(),
@@ -37,7 +37,7 @@ impl IntoAssetSource for VariableBehavior {
         }
     }
 
-    fn asset_id(&self) -> &crate::asset_repo::AssetId {
+    fn asset_id(&self) -> &crate::value_store::AssetId {
         match self {
             VariableBehavior::FixedValue(o) => o.asset_id(),
             VariableBehavior::Condition(o) => o.asset_id(),

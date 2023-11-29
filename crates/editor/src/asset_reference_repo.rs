@@ -2,7 +2,7 @@ use bevy_egui::egui::Ui;
 use uuid::Uuid;
 
 use crate::{
-    asset_repo::{AssetId, AssetReference, IntoAssetSource},
+    value_store::{AssetId, AssetReference, IntoAssetSource},
     game_sources::{self, GameSource},
     style::{
         assets::AssetDefinition,

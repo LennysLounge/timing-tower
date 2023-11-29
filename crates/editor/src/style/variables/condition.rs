@@ -5,8 +5,8 @@ use unified_sim_model::model::Entry;
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    asset_repo::{
-        AssetId, AssetReference, AssetRepo, AssetSource, AssetType, BooleanSource, ColorSource,
+    value_store::{
+        AssetId, AssetReference, ValueStore, AssetSource, AssetType, BooleanSource, ColorSource,
         ImageSource, IntoAssetSource, NumberSource, TextSource,
     },
     style::properties::{
@@ -342,7 +342,7 @@ struct ConditionSource {
 }
 
 impl ConditionSource {
-    fn evaluate_condition(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<bool> {
+    fn evaluate_condition(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
         match &self.comparison {
             Comparison::Number(n) => n.evaluate(vars, entry),
             Comparison::Text(t) => t.evaluate(vars, entry),
@@ -352,7 +352,7 @@ impl ConditionSource {
 }
 
 impl NumberSource for ConditionSource {
-    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<f32> {
+    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<f32> {
         let condition = self.evaluate_condition(vars, entry)?;
         if condition {
             match &self.true_value {
@@ -368,7 +368,7 @@ impl NumberSource for ConditionSource {
     }
 }
 impl TextSource for ConditionSource {
-    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<String> {
+    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<String> {
         let condition = self.evaluate_condition(vars, entry)?;
         if condition {
             match &self.true_value {
@@ -384,7 +384,7 @@ impl TextSource for ConditionSource {
     }
 }
 impl ColorSource for ConditionSource {
-    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<Color> {
+    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<Color> {
         let condition = self.evaluate_condition(vars, entry)?;
         if condition {
             match &self.true_value {
@@ -401,7 +401,7 @@ impl ColorSource for ConditionSource {
 }
 
 impl BooleanSource for ConditionSource {
-    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<bool> {
+    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
         let condition = self.evaluate_condition(vars, entry)?;
         if condition {
             match &self.true_value {
@@ -418,7 +418,7 @@ impl BooleanSource for ConditionSource {
 }
 
 impl ImageSource for ConditionSource {
-    fn resolve(&self, repo: &AssetRepo, entry: Option<&Entry>) -> Option<Handle<Image>> {
+    fn resolve(&self, repo: &ValueStore, entry: Option<&Entry>) -> Option<Handle<Image>> {
         let condition = self.evaluate_condition(repo, entry)?;
         if condition {
             match &self.true_value {
@@ -447,7 +447,7 @@ struct NumberComparison {
 }
 
 impl NumberComparison {
-    fn evaluate(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<bool> {
+    fn evaluate(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
         let left = vars.get_number(&self.left, entry)?;
         let right = vars.get_number_property(&self.right, entry)?;
         Some(match self.comparator {
@@ -467,7 +467,7 @@ struct TextComparison {
 }
 
 impl TextComparison {
-    fn evaluate(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<bool> {
+    fn evaluate(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
         let left = vars.get_text(&self.left, entry)?;
         let right = vars.get_text_property(&self.right, entry)?;
         Some(match self.comparator {
@@ -482,7 +482,7 @@ struct BooleanComparison {
     right: BooleanProperty,
 }
 impl BooleanComparison {
-    fn evaluate(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<bool> {
+    fn evaluate(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
         let left = vars.get_bool(&self.left, entry)?;
         let right = vars.get_bool_property(&self.right, entry)?;
         Some(match self.comparator {

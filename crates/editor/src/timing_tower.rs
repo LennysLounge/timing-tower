@@ -18,7 +18,7 @@ use unified_sim_model::{
 };
 
 use crate::{
-    asset_repo::AssetRepo,
+    value_store::ValueStore,
     style::{cell::Cell, StyleDefinition},
     SpawnAndInitWorld,
 };
@@ -87,7 +87,7 @@ pub fn init_timing_tower(adapter: Adapter) -> impl EntityCommand {
 
 pub fn update_tower(
     elements: Res<StyleDefinition>,
-    variables: Res<AssetRepo>,
+    variables: Res<ValueStore>,
     mut towers: Query<(Entity, &TimingTower), With<TimingTower>>,
     mut set_style_event: EventWriter<SetStyle>,
 ) {
@@ -116,7 +116,7 @@ fn update_table(
     tables: Query<(Entity, &Table)>,
     towers: Query<&TimingTower>,
     elements: Res<StyleDefinition>,
-    variables: Res<AssetRepo>,
+    variables: Res<ValueStore>,
     mut set_style_event: EventWriter<SetStyle>,
 ) {
     for (table_id, table) in tables.iter() {
@@ -149,7 +149,7 @@ fn update_table(
 fn update_rows(
     towers: Query<&TimingTower>,
     elements: Res<StyleDefinition>,
-    variables: Res<AssetRepo>,
+    variables: Res<ValueStore>,
     mut tables: Query<(Entity, &mut Table)>,
     mut commands: Commands,
     mut set_style_event: EventWriter<SetStyle>,
@@ -236,7 +236,7 @@ fn update_columns(
     rows: Query<&Row>,
     towers: Query<&TimingTower>,
     elements: Res<StyleDefinition>,
-    variables: Res<AssetRepo>,
+    variables: Res<ValueStore>,
     mut set_style_event: EventWriter<SetStyle>,
 ) {
     for row in rows.iter() {
@@ -271,7 +271,7 @@ fn update_columns(
     }
 }
 
-fn create_cell_style(cell: &Cell, vars: &AssetRepo, entry: Option<&Entry>) -> CellStyle {
+fn create_cell_style(cell: &Cell, vars: &ValueStore, entry: Option<&Entry>) -> CellStyle {
     // let text = match &cell.value_source {
     //     ValueSource::FixedValue(s) => s.clone(),
     //     ValueSource::DriverName => {

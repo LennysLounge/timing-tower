@@ -3,8 +3,8 @@ use std::sync::OnceLock;
 use unified_sim_model::model::Entry;
 use uuid::{uuid, Uuid};
 
-use crate::asset_repo::{
-    AssetId, AssetRepo, AssetSource, AssetType, BooleanSource, IntoAssetSource, NumberSource,
+use crate::value_store::{
+    AssetId, ValueStore, AssetSource, AssetType, BooleanSource, IntoAssetSource, NumberSource,
     TextSource,
 };
 
@@ -17,17 +17,17 @@ pub fn get_game_sources() -> Vec<&'static GameSource> {
                 GameSource::new_number(
                     uuid!("6330a6bb-51d1-4af7-9bd0-efeb00b1ff52"),
                     "Position",
-                    |_: &AssetRepo, entry: Option<&Entry>| entry.map(|e| *e.position as f32),
+                    |_: &ValueStore, entry: Option<&Entry>| entry.map(|e| *e.position as f32),
                 ),
                 GameSource::new_number(
                     uuid!("171d7438-3179-4c70-b818-811cf86d514e"),
                     "Car number",
-                    |_: &AssetRepo, entry: Option<&Entry>| entry.map(|e| *e.car_number as f32),
+                    |_: &ValueStore, entry: Option<&Entry>| entry.map(|e| *e.car_number as f32),
                 ),
                 GameSource::new_text(
                     uuid!("8abcf9d5-60f7-4886-a716-139d62ad83ac"),
                     "Driver name",
-                    |_: &AssetRepo, entry: Option<&Entry>| {
+                    |_: &ValueStore, entry: Option<&Entry>| {
                         entry.and_then(|e| {
                             e.drivers.get(&e.current_driver).map(|driver| {
                                 driver
@@ -44,29 +44,29 @@ pub fn get_game_sources() -> Vec<&'static GameSource> {
                 GameSource::new_bool(
                     uuid!("de909160-f54b-40cf-a987-6a8453df0914"),
                     "Is focused",
-                    |_: &AssetRepo, entry: Option<&Entry>| entry.map(|e| e.focused),
+                    |_: &ValueStore, entry: Option<&Entry>| entry.map(|e| e.focused),
                 ),
                 GameSource::new_bool(
                     uuid!("c16f71b9-dcc9-4f04-9579-ea5211fa99be"),
                     "Is in pits",
-                    |_: &AssetRepo, entry: Option<&Entry>| entry.map(|e| *e.in_pits),
+                    |_: &ValueStore, entry: Option<&Entry>| entry.map(|e| *e.in_pits),
                 ),
                 GameSource::new_text(
                     uuid!("4507167c-4c78-4686-b7a2-44809d969cee"),
                     "Car name",
-                    |_: &AssetRepo, entry: Option<&Entry>| entry.map(|e| e.car.name().to_owned()),
+                    |_: &ValueStore, entry: Option<&Entry>| entry.map(|e| e.car.name().to_owned()),
                 ),
                 GameSource::new_text(
                     uuid!("d1a60628-1ac7-4ad4-a502-95bc649edf07"),
                     "Car manufacturer",
-                    |_: &AssetRepo, entry: Option<&Entry>| {
+                    |_: &ValueStore, entry: Option<&Entry>| {
                         entry.map(|e| e.car.manufacturer().to_owned())
                     },
                 ),
                 GameSource::new_number(
                     uuid!("4d519d42-52e9-435c-b614-8d70b42ed3b0"),
                     "ACC: Cup category",
-                    |_: &AssetRepo, entry: Option<&Entry>| {
+                    |_: &ValueStore, entry: Option<&Entry>| {
                         entry.map(|e| match &e.game_data {
                             unified_sim_model::model::EntryGameData::None => 0 as f32,
                             unified_sim_model::model::EntryGameData::Acc(data) => {
@@ -82,9 +82,9 @@ pub fn get_game_sources() -> Vec<&'static GameSource> {
 }
 
 enum Extractor {
-    Number(fn(&AssetRepo, Option<&Entry>) -> Option<f32>),
-    Text(fn(&AssetRepo, Option<&Entry>) -> Option<String>),
-    Boolean(fn(&AssetRepo, Option<&Entry>) -> Option<bool>),
+    Number(fn(&ValueStore, Option<&Entry>) -> Option<f32>),
+    Text(fn(&ValueStore, Option<&Entry>) -> Option<String>),
+    Boolean(fn(&ValueStore, Option<&Entry>) -> Option<bool>),
 }
 
 pub struct GameSource {
@@ -109,7 +109,7 @@ impl GameSource {
     fn new_number(
         id: Uuid,
         name: &str,
-        extractor: fn(&AssetRepo, Option<&Entry>) -> Option<f32>,
+        extractor: fn(&ValueStore, Option<&Entry>) -> Option<f32>,
     ) -> Self {
         Self {
             asset_id: AssetId {
@@ -123,7 +123,7 @@ impl GameSource {
     fn new_text(
         id: Uuid,
         name: &str,
-        extractor: fn(&AssetRepo, Option<&Entry>) -> Option<String>,
+        extractor: fn(&ValueStore, Option<&Entry>) -> Option<String>,
     ) -> Self {
         Self {
             asset_id: AssetId {
@@ -137,7 +137,7 @@ impl GameSource {
     fn new_bool(
         id: Uuid,
         name: &str,
-        extractor: fn(&AssetRepo, Option<&Entry>) -> Option<bool>,
+        extractor: fn(&ValueStore, Option<&Entry>) -> Option<bool>,
     ) -> Self {
         Self {
             asset_id: AssetId {
@@ -152,27 +152,27 @@ impl GameSource {
 
 impl<F> NumberSource for F
 where
-    F: Fn(&AssetRepo, Option<&Entry>) -> Option<f32>,
+    F: Fn(&ValueStore, Option<&Entry>) -> Option<f32>,
 {
-    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<f32> {
+    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<f32> {
         (self)(vars, entry)
     }
 }
 
 impl<F> TextSource for F
 where
-    F: Fn(&AssetRepo, Option<&Entry>) -> Option<String>,
+    F: Fn(&ValueStore, Option<&Entry>) -> Option<String>,
 {
-    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<String> {
+    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<String> {
         (self)(vars, entry)
     }
 }
 
 impl<F> BooleanSource for F
 where
-    F: Fn(&AssetRepo, Option<&Entry>) -> Option<bool>,
+    F: Fn(&ValueStore, Option<&Entry>) -> Option<bool>,
 {
-    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<bool> {
+    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
         (self)(vars, entry)
     }
 }

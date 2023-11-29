@@ -13,23 +13,23 @@ use crate::{
 };
 
 pub trait NumberSource {
-    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<f32>;
+    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<f32>;
 }
 
 pub trait TextSource {
-    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<String>;
+    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<String>;
 }
 
 pub trait ColorSource {
-    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<Color>;
+    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<Color>;
 }
 
 pub trait BooleanSource {
-    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<bool>;
+    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool>;
 }
 
 pub trait ImageSource {
-    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<Handle<Image>>;
+    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<Handle<Image>>;
 }
 
 pub trait IntoAssetSource {
@@ -92,11 +92,11 @@ pub enum AssetSource {
 }
 
 #[derive(Resource)]
-pub struct AssetRepo {
+pub struct ValueStore {
     pub assets: HashMap<Uuid, Asset>,
 }
 
-impl AssetRepo {
+impl ValueStore {
     pub fn reload_repo(
         &mut self,
         vars: Vec<&impl IntoAssetSource>,
@@ -209,14 +209,14 @@ impl AssetRepo {
 }
 
 impl AssetSource {
-    pub fn resolve_number(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<f32> {
+    pub fn resolve_number(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<f32> {
         match self {
             AssetSource::Number(s) => s.resolve(vars, entry),
             _ => None,
         }
     }
 
-    pub fn resolve_text(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<String> {
+    pub fn resolve_text(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<String> {
         match self {
             AssetSource::Text(s) => s.resolve(vars, entry),
             AssetSource::Number(s) => s.resolve(vars, entry).map(|n| format!("{n}")),
@@ -224,19 +224,19 @@ impl AssetSource {
         }
     }
 
-    pub fn resolve_color(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<Color> {
+    pub fn resolve_color(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<Color> {
         match self {
             AssetSource::Color(s) => s.resolve(vars, entry),
             _ => None,
         }
     }
-    pub fn resolve_bool(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<bool> {
+    pub fn resolve_bool(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
         match self {
             AssetSource::Boolean(s) => s.resolve(vars, entry),
             _ => None,
         }
     }
-    pub fn resolve_image(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<Handle<Image>> {
+    pub fn resolve_image(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<Handle<Image>> {
         match self {
             AssetSource::Image(s) => s.resolve(vars, entry),
             _ => None,

@@ -21,7 +21,7 @@ use uuid::Uuid;
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    asset_repo::AssetRepo,
+    value_store::ValueStore,
     style::{StyleDefinition, StyleTreeNode, TreeViewAction},
     MainCamera,
 };
@@ -133,7 +133,7 @@ fn ui(
     mut ctx: EguiContexts,
     mut state: ResMut<EditorState>,
     mut style: ResMut<StyleDefinition>,
-    mut variable_repo: ResMut<AssetRepo>,
+    mut variable_repo: ResMut<ValueStore>,
     mut editor_camera: Query<(&mut EditorCamera, &mut Transform), With<MainCamera>>,
     asset_server: Res<AssetServer>,
 ) {

@@ -10,7 +10,7 @@ use uuid::Uuid;
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    asset_repo::{AssetId, AssetRepo, AssetSource, AssetType, ImageSource, IntoAssetSource},
+    value_store::{AssetId, ValueStore, AssetSource, AssetType, ImageSource, IntoAssetSource},
 };
 
 use super::{
@@ -264,7 +264,7 @@ fn default_load_state() -> LoadState {
 
 pub struct StaticImage(pub Option<Handle<Image>>);
 impl ImageSource for StaticImage {
-    fn resolve(&self, _vars: &AssetRepo, _entry: Option<&Entry>) -> Option<Handle<Image>> {
+    fn resolve(&self, _vars: &ValueStore, _entry: Option<&Entry>) -> Option<Handle<Image>> {
         self.0.clone()
     }
 }

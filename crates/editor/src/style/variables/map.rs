@@ -5,8 +5,8 @@ use unified_sim_model::model::Entry;
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    asset_repo::{
-        AssetId, AssetReference, AssetRepo, AssetSource, AssetType, BooleanSource, ColorSource,
+    value_store::{
+        AssetId, AssetReference, ValueStore, AssetSource, AssetType, BooleanSource, ColorSource,
         ImageSource, IntoAssetSource, NumberSource, TextSource,
     },
     style::properties::{
@@ -364,7 +364,7 @@ struct MapSource {
     default: Output,
 }
 impl NumberSource for MapSource {
-    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<f32> {
+    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<f32> {
         self.cases
             .iter()
             .find_map(|(case, output)| {
@@ -385,7 +385,7 @@ impl NumberSource for MapSource {
 }
 
 impl TextSource for MapSource {
-    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<String> {
+    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<String> {
         self.cases
             .iter()
             .find_map(|(case, output)| {
@@ -406,7 +406,7 @@ impl TextSource for MapSource {
 }
 
 impl ColorSource for MapSource {
-    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<Color> {
+    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<Color> {
         self.cases
             .iter()
             .find_map(|(case, output)| {
@@ -427,7 +427,7 @@ impl ColorSource for MapSource {
 }
 
 impl BooleanSource for MapSource {
-    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<bool> {
+    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
         self.cases
             .iter()
             .find_map(|(case, output)| {
@@ -448,7 +448,7 @@ impl BooleanSource for MapSource {
 }
 
 impl ImageSource for MapSource {
-    fn resolve(&self, vars: &AssetRepo, entry: Option<&Entry>) -> Option<Handle<Image>> {
+    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<Handle<Image>> {
         self.cases
             .iter()
             .find_map(|(case, output)| {
@@ -473,7 +473,7 @@ enum CaseComparison {
     Text((AssetReference, TextComparator, TextProperty)),
 }
 impl CaseComparison {
-    fn test(&self, asset_repo: &AssetRepo, entry: Option<&Entry>) -> bool {
+    fn test(&self, asset_repo: &ValueStore, entry: Option<&Entry>) -> bool {
         match self {
             CaseComparison::Number((reference, comp, prop)) => {
                 let value = asset_repo.get_number(reference, entry);

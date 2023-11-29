@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    asset_repo::{AssetReference, AssetType},
+    value_store::{AssetReference, AssetType},
 };
 
 #[derive(Serialize, Deserialize, Clone)]

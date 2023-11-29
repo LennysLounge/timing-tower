@@ -2140,7 +2140,6 @@ dependencies = [
  "egui_dock",
  "serde",
  "serde_json",
- "thiserror",
  "tracing",
  "tree_view",
  "unified_sim_model",

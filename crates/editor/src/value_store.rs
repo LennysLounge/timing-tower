@@ -2,7 +2,6 @@ use std::collections::HashMap;
 
 use bevy::prelude::{Color, Handle, Image, Resource};
 use serde::{Deserialize, Serialize};
-use thiserror::Error;
 use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
@@ -13,11 +12,9 @@ use crate::{
     },
 };
 
-use self::types::{Boolean, Number, Text, Texture, Tint, ValueType};
+use self::types::{Boolean, Number, Text, Texture, Tint};
 
 mod types {
-    use std::fmt::Display;
-
     use bevy::{
         asset::Handle,
         render::{color::Color, texture::Image},
@@ -28,84 +25,28 @@ mod types {
     pub struct Tint(pub Color);
     pub struct Boolean(pub bool);
     pub struct Texture(pub Handle<Image>);
-
-    #[derive(Debug)]
-    pub enum ValueType {
-        Number,
-        Text,
-        Tint,
-        Boolean,
-        Texture,
-    }
-    impl Display for ValueType {
-        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            match self {
-                ValueType::Number => write!(f, "Number"),
-                ValueType::Text => write!(f, "Text"),
-                ValueType::Tint => write!(f, "Tint"),
-                ValueType::Boolean => write!(f, "Boolean"),
-                ValueType::Texture => write!(f, "Texture"),
-            }
-        }
-    }
-}
-
-#[derive(Error, Debug)]
-pub enum ValueProducerError {
-    #[error("Producer does not produce values of type {0}")]
-    DoesNotProduceValueOfType(ValueType),
 }
 
 pub trait ValueProducer {
     #[allow(unused)]
-    fn get_number(
-        &self,
-        value_store: &ValueStore,
-        entry: Option<&Entry>,
-    ) -> Result<Number, ValueProducerError> {
-        Err(ValueProducerError::DoesNotProduceValueOfType(
-            ValueType::Number,
-        ))
+    fn get_number(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
+        None
     }
     #[allow(unused)]
-    fn get_text(
-        &self,
-        value_store: &ValueStore,
-        entry: Option<&Entry>,
-    ) -> Result<Text, ValueProducerError> {
-        Err(ValueProducerError::DoesNotProduceValueOfType(
-            ValueType::Text,
-        ))
+    fn get_text(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
+        None
     }
     #[allow(unused)]
-    fn get_color(
-        &self,
-        value_store: &ValueStore,
-        entry: Option<&Entry>,
-    ) -> Result<Tint, ValueProducerError> {
-        Err(ValueProducerError::DoesNotProduceValueOfType(
-            ValueType::Tint,
-        ))
+    fn get_color(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Tint> {
+        None
     }
     #[allow(unused)]
-    fn get_boolean(
-        &self,
-        value_store: &ValueStore,
-        entry: Option<&Entry>,
-    ) -> Result<Boolean, ValueProducerError> {
-        Err(ValueProducerError::DoesNotProduceValueOfType(
-            ValueType::Boolean,
-        ))
+    fn get_boolean(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
+        None
     }
     #[allow(unused)]
-    fn get_texture(
-        &self,
-        value_store: &ValueStore,
-        entry: Option<&Entry>,
-    ) -> Result<Texture, ValueProducerError> {
-        Err(ValueProducerError::DoesNotProduceValueOfType(
-            ValueType::Texture,
-        ))
+    fn get_texture(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Texture> {
+        None
     }
 }
 

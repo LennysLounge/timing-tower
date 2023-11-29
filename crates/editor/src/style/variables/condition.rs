@@ -5,12 +5,13 @@ use unified_sim_model::model::Entry;
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    value_store::{
-        AssetId, AssetReference, ValueStore, AssetSource, AssetType, BooleanSource, ColorSource,
-        ImageSource, IntoAssetSource, NumberSource, TextSource,
-    },
     style::properties::{
         BooleanProperty, ColorProperty, ImageProperty, NumberProperty, TextProperty,
+    },
+    value_store::{
+        types::{Boolean, Number, Text, Texture, Tint},
+        AssetId, AssetReference, AssetType, BooleanSource, ColorSource, ImageSource,
+        IntoValueProducer, NumberSource, TextSource, ValueProducer, ValueStore,
     },
 };
 
@@ -72,8 +73,8 @@ impl Default for Condition {
     }
 }
 
-impl IntoAssetSource for Condition {
-    fn get_asset_source(&self) -> AssetSource {
+impl IntoValueProducer for Condition {
+    fn get_value_producer(&self) -> Box<dyn ValueProducer + Send + Sync> {
         let source = ConditionSource {
             comparison: match &self.right {
                 RightHandSide::Number(np, c) => Comparison::Number(NumberComparison {
@@ -96,13 +97,7 @@ impl IntoAssetSource for Condition {
             false_value: self.false_output.clone(),
         };
 
-        match self.id.asset_type {
-            AssetType::Number => AssetSource::Number(Box::new(source)),
-            AssetType::Text => AssetSource::Text(Box::new(source)),
-            AssetType::Color => AssetSource::Color(Box::new(source)),
-            AssetType::Boolean => AssetSource::Boolean(Box::new(source)),
-            AssetType::Image => AssetSource::Image(Box::new(source)),
-        }
+        Box::new(source)
     }
 
     fn asset_id(&self) -> &AssetId {
@@ -348,6 +343,88 @@ impl ConditionSource {
             Comparison::Text(t) => t.evaluate(vars, entry),
             Comparison::Boolean(b) => b.evaluate(vars, entry),
         }
+    }
+}
+
+impl ValueProducer for ConditionSource {
+    fn get_number(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
+        let condition = self.evaluate_condition(value_store, entry)?;
+        if condition {
+            match &self.true_value {
+                Output::Number(n) => value_store.get_number_property(&n, entry),
+                _ => unreachable!(),
+            }
+        } else {
+            match &self.false_value {
+                Output::Number(n) => value_store.get_number_property(&n, entry),
+                _ => unreachable!(),
+            }
+        }
+        .map(|n| Number(n))
+    }
+
+    fn get_text(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
+        let condition = self.evaluate_condition(value_store, entry)?;
+        if condition {
+            match &self.true_value {
+                Output::Text(n) => value_store.get_text_property(&n, entry),
+                _ => unreachable!(),
+            }
+        } else {
+            match &self.false_value {
+                Output::Text(n) => value_store.get_text_property(&n, entry),
+                _ => unreachable!(),
+            }
+        }
+        .map(|n| Text(n))
+    }
+
+    fn get_tint(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Tint> {
+        let condition = self.evaluate_condition(value_store, entry)?;
+        if condition {
+            match &self.true_value {
+                Output::Color(n) => value_store.get_color_property(&n, entry),
+                _ => unreachable!(),
+            }
+        } else {
+            match &self.false_value {
+                Output::Color(n) => value_store.get_color_property(&n, entry),
+                _ => unreachable!(),
+            }
+        }
+        .map(|n| Tint(n))
+    }
+
+    fn get_boolean(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
+        let condition = self.evaluate_condition(value_store, entry)?;
+        if condition {
+            match &self.true_value {
+                Output::Boolean(b) => value_store.get_bool_property(&b, entry),
+                _ => unreachable!(),
+            }
+        } else {
+            match &self.false_value {
+                Output::Boolean(b) => value_store.get_bool_property(&b, entry),
+                _ => unreachable!(),
+            }
+        }
+        .map(|n| Boolean(n))
+    }
+
+    fn get_texture(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Texture> {
+        let condition = self.evaluate_condition(value_store, entry)?;
+        if condition {
+            match &self.true_value {
+                Output::Image(i) => value_store.get_image_property(&i, entry),
+                _ => unreachable!(),
+            }
+        } else {
+            match &self.false_value {
+                Output::Image(i) => value_store.get_image_property(&i, entry),
+                _ => unreachable!(),
+            }
+        }
+        .map(|n| Texture(n))
     }
 }
 

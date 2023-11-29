@@ -5,12 +5,13 @@ use unified_sim_model::model::Entry;
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    value_store::{
-        AssetId, AssetReference, ValueStore, AssetSource, AssetType, BooleanSource, ColorSource,
-        ImageSource, IntoAssetSource, NumberSource, TextSource,
-    },
     style::properties::{
         BooleanProperty, ColorProperty, ImageProperty, NumberProperty, TextProperty,
+    },
+    value_store::{
+        types::{Boolean, Number, Text, Texture, Tint},
+        AssetId, AssetReference, AssetType, BooleanSource, ColorSource, ImageSource,
+        IntoValueProducer, NumberSource, TextSource, ValueProducer, ValueStore,
     },
 };
 
@@ -159,12 +160,12 @@ impl Map {
     }
 }
 
-impl IntoAssetSource for Map {
+impl IntoValueProducer for Map {
     fn asset_id(&self) -> &AssetId {
         &self.id
     }
 
-    fn get_asset_source(&self) -> AssetSource {
+    fn get_value_producer(&self) -> Box<dyn ValueProducer + Send + Sync> {
         let mut cases = Vec::new();
         for case in self.cases.iter() {
             match self.input.asset_type {
@@ -195,13 +196,7 @@ impl IntoAssetSource for Map {
             default: self.default.clone(),
         };
 
-        match self.id.asset_type {
-            AssetType::Number => AssetSource::Number(Box::new(source)),
-            AssetType::Text => AssetSource::Text(Box::new(source)),
-            AssetType::Color => AssetSource::Color(Box::new(source)),
-            AssetType::Boolean => AssetSource::Boolean(Box::new(source)),
-            AssetType::Image => AssetSource::Image(Box::new(source)),
-        }
+        Box::new(source)
     }
 }
 
@@ -363,14 +358,14 @@ struct MapSource {
     cases: Vec<(CaseComparison, Output)>,
     default: Output,
 }
-impl NumberSource for MapSource {
-    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<f32> {
+impl ValueProducer for MapSource {
+    fn get_number(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
         self.cases
             .iter()
             .find_map(|(case, output)| {
-                if case.test(vars, entry) {
+                if case.test(value_store, entry) {
                     match output {
-                        Output::Number(n) => vars.get_number_property(n, entry),
+                        Output::Number(n) => value_store.get_number_property(n, entry),
                         _ => unreachable!(),
                     }
                 } else {
@@ -378,20 +373,121 @@ impl NumberSource for MapSource {
                 }
             })
             .or_else(|| match &self.default {
-                Output::Number(p) => vars.get_number_property(p, entry),
+                Output::Number(p) => value_store.get_number_property(p, entry),
+                _ => unreachable!(),
+            })
+            .map(|n| Number(n))
+    }
+
+    fn get_text(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
+        self.cases
+            .iter()
+            .find_map(|(case, output)| {
+                if case.test(value_store, entry) {
+                    match output {
+                        Output::Text(n) => value_store.get_text_property(n, entry),
+                        _ => unreachable!(),
+                    }
+                } else {
+                    None
+                }
+            })
+            .or_else(|| match &self.default {
+                Output::Text(p) => value_store.get_text_property(p, entry),
+                _ => unreachable!(),
+            })
+            .map(|t| Text(t))
+    }
+
+    fn get_tint(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Tint> {
+        self.cases
+            .iter()
+            .find_map(|(case, output)| {
+                if case.test(value_store, entry) {
+                    match output {
+                        Output::Color(n) => value_store.get_color_property(n, entry),
+                        _ => unreachable!(),
+                    }
+                } else {
+                    None
+                }
+            })
+            .or_else(|| match &self.default {
+                Output::Color(p) => value_store.get_color_property(p, entry),
+                _ => unreachable!(),
+            })
+            .map(|t| Tint(t))
+    }
+
+    fn get_boolean(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
+        self.cases
+            .iter()
+            .find_map(|(case, output)| {
+                if case.test(value_store, entry) {
+                    match output {
+                        Output::Boolean(n) => value_store.get_bool_property(n, entry),
+                        _ => unreachable!(),
+                    }
+                } else {
+                    None
+                }
+            })
+            .or_else(|| match &self.default {
+                Output::Boolean(p) => value_store.get_bool_property(p, entry),
+                _ => unreachable!(),
+            })
+            .map(|b| Boolean(b))
+    }
+
+    fn get_texture(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Texture> {
+        self.cases
+            .iter()
+            .find_map(|(case, output)| {
+                if case.test(value_store, entry) {
+                    match output {
+                        Output::Image(n) => value_store.get_image_property(n, entry),
+                        _ => unreachable!(),
+                    }
+                } else {
+                    None
+                }
+            })
+            .or_else(|| match &self.default {
+                Output::Image(p) => value_store.get_image_property(p, entry),
+                _ => unreachable!(),
+            })
+            .map(|t| Texture(t))
+    }
+}
+impl NumberSource for MapSource {
+    fn resolve(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<f32> {
+        self.cases
+            .iter()
+            .find_map(|(case, output)| {
+                if case.test(value_store, entry) {
+                    match output {
+                        Output::Number(n) => value_store.get_number_property(n, entry),
+                        _ => unreachable!(),
+                    }
+                } else {
+                    None
+                }
+            })
+            .or_else(|| match &self.default {
+                Output::Number(p) => value_store.get_number_property(p, entry),
                 _ => unreachable!(),
             })
     }
 }
 
 impl TextSource for MapSource {
-    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<String> {
+    fn resolve(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<String> {
         self.cases
             .iter()
             .find_map(|(case, output)| {
-                if case.test(vars, entry) {
+                if case.test(value_store, entry) {
                     match output {
-                        Output::Text(n) => vars.get_text_property(n, entry),
+                        Output::Text(n) => value_store.get_text_property(n, entry),
                         _ => unreachable!(),
                     }
                 } else {
@@ -399,20 +495,20 @@ impl TextSource for MapSource {
                 }
             })
             .or_else(|| match &self.default {
-                Output::Text(p) => vars.get_text_property(p, entry),
+                Output::Text(p) => value_store.get_text_property(p, entry),
                 _ => unreachable!(),
             })
     }
 }
 
 impl ColorSource for MapSource {
-    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<Color> {
+    fn resolve(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Color> {
         self.cases
             .iter()
             .find_map(|(case, output)| {
-                if case.test(vars, entry) {
+                if case.test(value_store, entry) {
                     match output {
-                        Output::Color(n) => vars.get_color_property(n, entry),
+                        Output::Color(n) => value_store.get_color_property(n, entry),
                         _ => unreachable!(),
                     }
                 } else {
@@ -420,20 +516,20 @@ impl ColorSource for MapSource {
                 }
             })
             .or_else(|| match &self.default {
-                Output::Color(p) => vars.get_color_property(p, entry),
+                Output::Color(p) => value_store.get_color_property(p, entry),
                 _ => unreachable!(),
             })
     }
 }
 
 impl BooleanSource for MapSource {
-    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
+    fn resolve(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
         self.cases
             .iter()
             .find_map(|(case, output)| {
-                if case.test(vars, entry) {
+                if case.test(value_store, entry) {
                     match output {
-                        Output::Boolean(n) => vars.get_bool_property(n, entry),
+                        Output::Boolean(n) => value_store.get_bool_property(n, entry),
                         _ => unreachable!(),
                     }
                 } else {
@@ -441,20 +537,20 @@ impl BooleanSource for MapSource {
                 }
             })
             .or_else(|| match &self.default {
-                Output::Boolean(p) => vars.get_bool_property(p, entry),
+                Output::Boolean(p) => value_store.get_bool_property(p, entry),
                 _ => unreachable!(),
             })
     }
 }
 
 impl ImageSource for MapSource {
-    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<Handle<Image>> {
+    fn resolve(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Handle<Image>> {
         self.cases
             .iter()
             .find_map(|(case, output)| {
-                if case.test(vars, entry) {
+                if case.test(value_store, entry) {
                     match output {
-                        Output::Image(n) => vars.get_image_property(n, entry),
+                        Output::Image(n) => value_store.get_image_property(n, entry),
                         _ => unreachable!(),
                     }
                 } else {
@@ -462,7 +558,7 @@ impl ImageSource for MapSource {
                 }
             })
             .or_else(|| match &self.default {
-                Output::Image(p) => vars.get_image_property(p, entry),
+                Output::Image(p) => value_store.get_image_property(p, entry),
                 _ => unreachable!(),
             })
     }

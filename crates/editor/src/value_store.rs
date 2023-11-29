@@ -14,7 +14,7 @@ use crate::{
 
 use self::types::{Boolean, Number, Text, Texture, Tint};
 
-mod types {
+pub mod types {
     use bevy::{
         asset::Handle,
         render::{color::Color, texture::Image},
@@ -37,7 +37,7 @@ pub trait ValueProducer {
         None
     }
     #[allow(unused)]
-    fn get_color(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Tint> {
+    fn get_tint(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Tint> {
         None
     }
     #[allow(unused)]
@@ -70,8 +70,8 @@ pub trait ImageSource {
     fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<Handle<Image>>;
 }
 
-pub trait IntoAssetSource {
-    fn get_asset_source(&self) -> AssetSource;
+pub trait IntoValueProducer {
+    fn get_value_producer(&self) -> Box<dyn ValueProducer + Send + Sync>;
     fn asset_id(&self) -> &AssetId;
 }
 
@@ -118,15 +118,7 @@ impl AssetId {
 
 pub struct Asset {
     pub id: AssetId,
-    pub source: AssetSource,
-}
-
-pub enum AssetSource {
-    Number(Box<dyn NumberSource + Send + Sync>),
-    Text(Box<dyn TextSource + Send + Sync>),
-    Color(Box<dyn ColorSource + Send + Sync>),
-    Boolean(Box<dyn BooleanSource + Send + Sync>),
-    Image(Box<dyn ImageSource + Send + Sync>),
+    pub source: Box<dyn ValueProducer + Send + Sync>,
 }
 
 #[derive(Resource)]
@@ -137,8 +129,8 @@ pub struct ValueStore {
 impl ValueStore {
     pub fn reload_repo(
         &mut self,
-        vars: Vec<&impl IntoAssetSource>,
-        assets: Vec<&impl IntoAssetSource>,
+        vars: Vec<&impl IntoValueProducer>,
+        assets: Vec<&impl IntoValueProducer>,
     ) {
         self.assets.clear();
         self.convert(vars);
@@ -146,13 +138,13 @@ impl ValueStore {
         self.convert(game_sources::get_game_sources());
     }
 
-    fn convert(&mut self, asset_defs: Vec<&impl IntoAssetSource>) {
+    fn convert(&mut self, asset_defs: Vec<&impl IntoValueProducer>) {
         for var_def in asset_defs {
             self.assets.insert(
                 var_def.asset_id().id.clone(),
                 Asset {
                     id: var_def.asset_id().clone(),
-                    source: var_def.get_asset_source(),
+                    source: var_def.get_value_producer(),
                 },
             );
         }
@@ -161,24 +153,28 @@ impl ValueStore {
     pub fn get_number(&self, reference: &AssetReference, entry: Option<&Entry>) -> Option<f32> {
         self.assets
             .get(&reference.key)
-            .and_then(|v| v.source.resolve_number(self, entry))
+            .and_then(|v| v.source.get_number(self, entry))
+            .map(|n| n.0)
     }
 
     pub fn get_text(&self, reference: &AssetReference, entry: Option<&Entry>) -> Option<String> {
         self.assets
             .get(&reference.key)
-            .and_then(|v| v.source.resolve_text(self, entry))
+            .and_then(|v| v.source.get_text(self, entry))
+            .map(|t| t.0)
     }
 
     pub fn get_color(&self, reference: &AssetReference, entry: Option<&Entry>) -> Option<Color> {
         self.assets
             .get(&reference.key)
-            .and_then(|v| v.source.resolve_color(self, entry))
+            .and_then(|v| v.source.get_tint(self, entry))
+            .map(|t| t.0)
     }
     pub fn get_bool(&self, reference: &AssetReference, entry: Option<&Entry>) -> Option<bool> {
         self.assets
             .get(&reference.key)
-            .and_then(|v| v.source.resolve_bool(self, entry))
+            .and_then(|v| v.source.get_boolean(self, entry))
+            .map(|t| t.0)
     }
     pub fn get_image(
         &self,
@@ -187,7 +183,8 @@ impl ValueStore {
     ) -> Option<Handle<Image>> {
         self.assets
             .get(&reference.key)
-            .and_then(|v| v.source.resolve_image(self, entry))
+            .and_then(|v| v.source.get_texture(self, entry))
+            .map(|t| t.0)
     }
 
     pub fn get_number_property(
@@ -242,42 +239,6 @@ impl ValueStore {
         match property {
             ImageProperty::None => None,
             ImageProperty::Ref(reference) => self.get_image(reference, entry),
-        }
-    }
-}
-
-impl AssetSource {
-    pub fn resolve_number(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<f32> {
-        match self {
-            AssetSource::Number(s) => s.resolve(vars, entry),
-            _ => None,
-        }
-    }
-
-    pub fn resolve_text(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<String> {
-        match self {
-            AssetSource::Text(s) => s.resolve(vars, entry),
-            AssetSource::Number(s) => s.resolve(vars, entry).map(|n| format!("{n}")),
-            _ => None,
-        }
-    }
-
-    pub fn resolve_color(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<Color> {
-        match self {
-            AssetSource::Color(s) => s.resolve(vars, entry),
-            _ => None,
-        }
-    }
-    pub fn resolve_bool(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
-        match self {
-            AssetSource::Boolean(s) => s.resolve(vars, entry),
-            _ => None,
-        }
-    }
-    pub fn resolve_image(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<Handle<Image>> {
-        match self {
-            AssetSource::Image(s) => s.resolve(vars, entry),
-            _ => None,
         }
     }
 }

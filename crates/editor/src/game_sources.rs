@@ -4,8 +4,8 @@ use unified_sim_model::model::Entry;
 use uuid::{uuid, Uuid};
 
 use crate::value_store::{
-    AssetId, ValueStore, AssetSource, AssetType, BooleanSource, IntoAssetSource, NumberSource,
-    TextSource,
+    types::{Boolean, Number, Text},
+    AssetId, AssetType, IntoValueProducer, ValueProducer, ValueStore,
 };
 
 static GAME_SOURCES: OnceLock<Vec<GameSource>> = OnceLock::new();
@@ -81,27 +81,50 @@ pub fn get_game_sources() -> Vec<&'static GameSource> {
         .collect()
 }
 
+#[derive(Clone)]
 enum Extractor {
     Number(fn(&ValueStore, Option<&Entry>) -> Option<f32>),
     Text(fn(&ValueStore, Option<&Entry>) -> Option<String>),
     Boolean(fn(&ValueStore, Option<&Entry>) -> Option<bool>),
 }
 
+impl ValueProducer for Extractor {
+    fn get_number(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
+        if let Extractor::Number(f) = self {
+            (f)(value_store, entry).map(|n| Number(n))
+        } else {
+            None
+        }
+    }
+
+    fn get_text(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
+        if let Extractor::Text(f) = self {
+            (f)(value_store, entry).map(|t| Text(t))
+        } else {
+            None
+        }
+    }
+
+    fn get_boolean(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
+        if let Extractor::Boolean(f) = self {
+            (f)(value_store, entry).map(|b| Boolean(b))
+        } else {
+            None
+        }
+    }
+}
+
 pub struct GameSource {
     asset_id: AssetId,
     extractor: Extractor,
 }
-impl IntoAssetSource for GameSource {
-    fn get_asset_source(&self) -> AssetSource {
-        match &self.extractor {
-            Extractor::Number(f) => AssetSource::Number(Box::new(f.clone())),
-            Extractor::Text(f) => AssetSource::Text(Box::new(f.clone())),
-            Extractor::Boolean(f) => AssetSource::Boolean(Box::new(f.clone())),
-        }
-    }
-
+impl IntoValueProducer for GameSource {
     fn asset_id(&self) -> &AssetId {
         &self.asset_id
+    }
+
+    fn get_value_producer(&self) -> Box<dyn ValueProducer + Send + Sync> {
+        Box::new(self.extractor.clone())
     }
 }
 
@@ -147,32 +170,5 @@ impl GameSource {
             },
             extractor: Extractor::Boolean(extractor),
         }
-    }
-}
-
-impl<F> NumberSource for F
-where
-    F: Fn(&ValueStore, Option<&Entry>) -> Option<f32>,
-{
-    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<f32> {
-        (self)(vars, entry)
-    }
-}
-
-impl<F> TextSource for F
-where
-    F: Fn(&ValueStore, Option<&Entry>) -> Option<String>,
-{
-    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<String> {
-        (self)(vars, entry)
-    }
-}
-
-impl<F> BooleanSource for F
-where
-    F: Fn(&ValueStore, Option<&Entry>) -> Option<bool>,
-{
-    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
-        (self)(vars, entry)
     }
 }

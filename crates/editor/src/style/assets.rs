@@ -10,7 +10,9 @@ use uuid::Uuid;
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    value_store::{AssetId, ValueStore, AssetSource, AssetType, ImageSource, IntoAssetSource},
+    value_store::{
+        types::Texture, AssetId, AssetType, IntoValueProducer, ValueProducer, ValueStore,
+    },
 };
 
 use super::{
@@ -60,10 +62,10 @@ impl FolderActions for AssetDefinition {
     }
 }
 
-impl IntoAssetSource for AssetDefinition {
-    fn get_asset_source(&self) -> AssetSource {
+impl IntoValueProducer for AssetDefinition {
+    fn get_value_producer(&self) -> Box<dyn ValueProducer + Send + Sync> {
         match self {
-            AssetDefinition::Image(i) => i.get_asset_source(),
+            AssetDefinition::Image(i) => i.get_value_producer(),
         }
     }
 
@@ -145,9 +147,9 @@ pub struct ImageAsset {
     load_state: LoadState,
 }
 
-impl IntoAssetSource for ImageAsset {
-    fn get_asset_source(&self) -> AssetSource {
-        AssetSource::Image(Box::new(StaticImage(self.handle.clone())))
+impl IntoValueProducer for ImageAsset {
+    fn get_value_producer(&self) -> Box<dyn ValueProducer + Send + Sync> {
+        Box::new(StaticImage(self.handle.clone()))
     }
 
     fn asset_id(&self) -> &AssetId {
@@ -263,8 +265,8 @@ fn default_load_state() -> LoadState {
 }
 
 pub struct StaticImage(pub Option<Handle<Image>>);
-impl ImageSource for StaticImage {
-    fn resolve(&self, _vars: &ValueStore, _entry: Option<&Entry>) -> Option<Handle<Image>> {
-        self.0.clone()
+impl ValueProducer for StaticImage {
+    fn get_texture(&self, _vars: &ValueStore, _entry: Option<&Entry>) -> Option<Texture> {
+        self.0.clone().map(|h| Texture(h))
     }
 }

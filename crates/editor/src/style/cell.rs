@@ -153,7 +153,9 @@ impl Cell {
         });
         ui.horizontal(|ui| {
             ui.label("Background image:");
-            changed |= self.image.editor(ui, asset_repo);
+            changed |= ui
+                .add(PropertyEditor::new(&mut self.image, asset_repo))
+                .changed();
         });
         ui.horizontal(|ui| {
             ui.label("Pos x:");

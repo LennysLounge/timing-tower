@@ -131,35 +131,8 @@ impl ValueTypeEditor for Boolean {
     }
 }
 
-impl Property<Texture> {
-    pub fn editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
-        let mut changed = false;
-        match self {
-            Property::Fixed(..) => {
-                if let Some(reference) = asset_repo
-                    .untyped_editor_none(ui, |v| v.asset_type.can_cast_to(&ValueType::Texture))
-                {
-                    *self = Property::ValueRef(ValueRef {
-                        id: reference.id,
-                        phantom: std::marker::PhantomData,
-                    });
-                    changed |= true;
-                }
-            }
-            Property::ValueRef(value_ref) => {
-                let new_ref = asset_repo.untyped_editor(ui, &value_ref.id, |v| {
-                    v.asset_type.can_cast_to(&ValueType::Texture)
-                });
-                if let Some(new_ref) = new_ref.inner {
-                    value_ref.id = new_ref.id;
-                    changed |= true;
-                }
-                if ui.button("x").clicked() {
-                    *self = Property::Fixed(Texture::None);
-                    changed |= true;
-                }
-            }
-        }
-        changed
+impl ValueTypeEditor for Texture {
+    fn editor(&mut self, ui: &mut Ui) -> Response {
+        ui.label("None")
     }
 }

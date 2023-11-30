@@ -96,18 +96,6 @@ impl ReferenceStore {
         InnerResponse::new(selected_asset.map(|a| a.get_ref()), res.response)
     }
 
-    pub fn untyped_editor_none(
-        &self,
-        ui: &mut Ui,
-        is_type_allowed: impl Fn(&AssetId) -> bool,
-    ) -> Option<UntypedValueRef> {
-        let mut selected_asset = None;
-        ui.menu_button("None", |ui| {
-            self.show_menu(ui, &mut selected_asset, &is_type_allowed);
-        });
-        selected_asset.map(|a| a.get_ref())
-    }
-
     pub fn untyped_editor_small(
         &self,
         ui: &mut Ui,

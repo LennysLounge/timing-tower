@@ -320,23 +320,25 @@ impl Condition {
         ui.horizontal(|ui| {
             ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
             changed |= match &mut self.true_output {
-                Output::Number(n) => ui.add(PropertyEditor::new(n, asset_repo)).changed(),
-                Output::Text(t) => ui.add(PropertyEditor::new(t, asset_repo)).changed(),
-                Output::Color(c) => ui.add(PropertyEditor::new(c, asset_repo)).changed(),
-                Output::Boolean(b) => ui.add(PropertyEditor::new(b, asset_repo)).changed(),
-                Output::Image(i) => i.editor(ui, asset_repo),
-            };
+                Output::Number(n) => ui.add(PropertyEditor::new(n, asset_repo)),
+                Output::Text(t) => ui.add(PropertyEditor::new(t, asset_repo)),
+                Output::Color(c) => ui.add(PropertyEditor::new(c, asset_repo)),
+                Output::Boolean(b) => ui.add(PropertyEditor::new(b, asset_repo)),
+                Output::Image(i) => ui.add(PropertyEditor::new(i, asset_repo)),
+            }
+            .changed();
         });
         ui.label("else:");
         ui.horizontal(|ui| {
             ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
             changed |= match &mut self.false_output {
-                Output::Number(n) => ui.add(PropertyEditor::new(n, asset_repo)).changed(),
-                Output::Text(t) => ui.add(PropertyEditor::new(t, asset_repo)).changed(),
-                Output::Color(c) => ui.add(PropertyEditor::new(c, asset_repo)).changed(),
-                Output::Boolean(b) => ui.add(PropertyEditor::new(b, asset_repo)).changed(),
-                Output::Image(i) => i.editor(ui, asset_repo),
-            };
+                Output::Number(n) => ui.add(PropertyEditor::new(n, asset_repo)),
+                Output::Text(t) => ui.add(PropertyEditor::new(t, asset_repo)),
+                Output::Color(c) => ui.add(PropertyEditor::new(c, asset_repo)),
+                Output::Boolean(b) => ui.add(PropertyEditor::new(b, asset_repo)),
+                Output::Image(i) => ui.add(PropertyEditor::new(i, asset_repo)),
+            }
+            .changed();
         });
         changed
     }

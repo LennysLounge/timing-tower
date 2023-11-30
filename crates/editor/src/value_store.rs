@@ -98,6 +98,11 @@ impl ValueTypeOf<Boolean> for ValueType {
         ValueType::Boolean
     }
 }
+impl ValueTypeOf<Texture> for ValueType {
+    fn get() -> Self {
+        ValueType::Texture
+    }
+}
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(transparent)]
@@ -141,6 +146,14 @@ impl ToUntypedValueRef<Boolean> for ValueRef<Boolean> {
         UntypedValueRef {
             id: self.id,
             value_type: ValueType::Boolean,
+        }
+    }
+}
+impl ToUntypedValueRef<Texture> for ValueRef<Texture> {
+    fn to_untyped(&self) -> UntypedValueRef {
+        UntypedValueRef {
+            id: self.id,
+            value_type: ValueType::Texture,
         }
     }
 }
@@ -195,6 +208,17 @@ impl ToTypedValueRef<Boolean> for UntypedValueRef {
     fn to_typed(&self) -> Option<ValueRef<Boolean>> {
         match self.value_type {
             ValueType::Boolean => Some(ValueRef {
+                id: self.id,
+                phantom: PhantomData,
+            }),
+            _ => None,
+        }
+    }
+}
+impl ToTypedValueRef<Texture> for UntypedValueRef {
+    fn to_typed(&self) -> Option<ValueRef<Texture>> {
+        match self.value_type {
+            ValueType::Texture => Some(ValueRef {
                 id: self.id,
                 phantom: PhantomData,
             }),

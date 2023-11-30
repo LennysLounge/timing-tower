@@ -15,7 +15,7 @@
                   "id": {
                     "id": "b7ba5250-cf78-4146-a7c8-f2b85adc4c5f",
                     "name": "Alpine",
-                    "asset_type": "Image"
+                    "asset_type": "Texture"
                   },
                   "path": "constructors/Alpine.png"
                 }
@@ -27,7 +27,7 @@
                   "id": {
                     "id": "3eee3a38-140e-453e-8830-4f256ee83e07",
                     "name": "Aston-Martin",
-                    "asset_type": "Image"
+                    "asset_type": "Texture"
                   },
                   "path": "constructors/Aston-Martin.png"
                 }
@@ -39,7 +39,7 @@
                   "id": {
                     "id": "1e8814f4-16dd-4ad9-be24-2ea075bcff6a",
                     "name": "Audi",
-                    "asset_type": "Image"
+                    "asset_type": "Texture"
                   },
                   "path": "constructors/Audi.png"
                 }
@@ -51,7 +51,7 @@
                   "id": {
                     "id": "ecfb2bad-459a-4b64-b8ed-5d5147053ea2",
                     "name": "Bentley",
-                    "asset_type": "Image"
+                    "asset_type": "Texture"
                   },
                   "path": "constructors/Bentley.png"
                 }
@@ -63,7 +63,7 @@
                   "id": {
                     "id": "ecd425a6-2490-484b-9979-a19933de1193",
                     "name": "BMW",
-                    "asset_type": "Image"
+                    "asset_type": "Texture"
                   },
                   "path": "constructors/BMW.png"
                 }
@@ -75,7 +75,7 @@
                   "id": {
                     "id": "48368915-4dcb-443b-8f6e-d6ace044ced9",
                     "name": "Chevrolet",
-                    "asset_type": "Image"
+                    "asset_type": "Texture"
                   },
                   "path": "constructors/Chevrolet.png"
                 }
@@ -87,7 +87,7 @@
                   "id": {
                     "id": "62823f7e-db28-4087-a148-79d943b6ecfc",
                     "name": "Error",
-                    "asset_type": "Image"
+                    "asset_type": "Texture"
                   },
                   "path": "constructors/Error.png"
                 }
@@ -99,7 +99,7 @@
                   "id": {
                     "id": "afcae1d6-f887-4417-bdfb-c09e91116adb",
                     "name": "Ferrari",
-                    "asset_type": "Image"
+                    "asset_type": "Texture"
                   },
                   "path": "constructors/Ferrari.png"
                 }
@@ -111,7 +111,7 @@
                   "id": {
                     "id": "77133dec-724a-491a-b2ce-fd2888a78ab1",
                     "name": "Ginetta",
-                    "asset_type": "Image"
+                    "asset_type": "Texture"
                   },
                   "path": "constructors/Ginetta.png"
                 }
@@ -123,7 +123,7 @@
                   "id": {
                     "id": "c0432571-650f-4fdc-a708-aa9a01117590",
                     "name": "Honda",
-                    "asset_type": "Image"
+                    "asset_type": "Texture"
                   },
                   "path": "constructors/Honda.png"
                 }
@@ -135,7 +135,7 @@
                   "id": {
                     "id": "95dc96a9-97ce-436b-bf78-8465e0929ce9",
                     "name": "Jaguar",
-                    "asset_type": "Image"
+                    "asset_type": "Texture"
                   },
                   "path": "constructors/Jaguar.png"
                 }
@@ -147,7 +147,7 @@
                   "id": {
                     "id": "922570d9-792b-4555-aa52-65f1d890996b",
                     "name": "KTM",
-                    "asset_type": "Image"
+                    "asset_type": "Texture"
                   },
                   "path": "constructors/KTM.png"
                 }
@@ -159,7 +159,7 @@
                   "id": {
                     "id": "fc0aba26-4d09-41a8-982a-d2534c9fdb8c",
                     "name": "Lamborghini",
-                    "asset_type": "Image"
+                    "asset_type": "Texture"
                   },
                   "path": "constructors/Lamborghini.png"
                 }
@@ -171,7 +171,7 @@
                   "id": {
                     "id": "66146a86-cb01-437f-814d-5c86efd5a777",
                     "name": "Lexus",
-                    "asset_type": "Image"
+                    "asset_type": "Texture"
                   },
                   "path": "constructors/Lexus.png"
                 }
@@ -183,7 +183,7 @@
                   "id": {
                     "id": "230297a5-ff60-494e-acba-5af35c4f7e99",
                     "name": "Maserait",
-                    "asset_type": "Image"
+                    "asset_type": "Texture"
                   },
                   "path": "constructors/Maserati.png"
                 }
@@ -195,7 +195,7 @@
                   "id": {
                     "id": "2295c661-0609-483d-b3df-248efa705f9d",
                     "name": "McLaren",
-                    "asset_type": "Image"
+                    "asset_type": "Texture"
                   },
                   "path": "constructors/McLaren.png"
                 }
@@ -207,7 +207,7 @@
                   "id": {
                     "id": "d0edeef4-f187-44df-9c65-d81d405d8062",
                     "name": "Mercedes-AMG",
-                    "asset_type": "Image"
+                    "asset_type": "Texture"
                   },
                   "path": "constructors/Mercedes-AMG.png"
                 }
@@ -219,7 +219,7 @@
                   "id": {
                     "id": "1f2524af-9c72-495e-89e2-fda763f2ee18",
                     "name": "Nissan",
-                    "asset_type": "Image"
+                    "asset_type": "Texture"
                   },
                   "path": "constructors/Nissan.png"
                 }
@@ -231,7 +231,7 @@
                   "id": {
                     "id": "4971fafb-479d-470f-8afd-b85e6820a396",
                     "name": "Porsche",
-                    "asset_type": "Image"
+                    "asset_type": "Texture"
                   },
                   "path": "constructors/Porsche.png"
                 }
@@ -243,7 +243,7 @@
                   "id": {
                     "id": "109ecca7-9500-4c6a-b496-95a8da13d299",
                     "name": "Reiter-Engineering",
-                    "asset_type": "Image"
+                    "asset_type": "Texture"
                   },
                   "path": "constructors/Reiter-Engineering.png"
                 }
@@ -275,7 +275,7 @@
                       "FixedValue": {
                         "id": "5a657363-96fc-4329-a580-8ed41b85405e",
                         "name": "Gold/Plat",
-                        "asset_type": "Color",
+                        "asset_type": "Tint",
                         "value": {
                           "Rgba": {
                             "red": 1.0,
@@ -292,7 +292,7 @@
                       "FixedValue": {
                         "id": "ecdfcaf2-d808-4fca-b118-88aee5d1b495",
                         "name": "Silver",
-                        "asset_type": "Color",
+                        "asset_type": "Tint",
                         "value": {
                           "Rgba": {
                             "red": 0.40197778,
@@ -309,7 +309,7 @@
                       "FixedValue": {
                         "id": "7a126bfa-2fb7-464f-9ed1-1f92665d9460",
                         "name": "Bronze",
-                        "asset_type": "Color",
+                        "asset_type": "Tint",
                         "value": {
                           "Rgba": {
                             "red": 0.8950744,
@@ -330,7 +330,7 @@
                 "FixedValue": {
                   "id": "e41f142f-2026-4126-9dc4-bed03fecd31e",
                   "name": "Manufacturer",
-                  "asset_type": "Color",
+                  "asset_type": "Tint",
                   "value": {
                     "Rgba": {
                       "red": 0.8549927,
@@ -347,7 +347,7 @@
                 "FixedValue": {
                   "id": "e63c62b8-900a-476d-973b-2b0f12fb7b26",
                   "name": "Position",
-                  "asset_type": "Color",
+                  "asset_type": "Tint",
                   "value": {
                     "Rgba": {
                       "red": 0.0,
@@ -364,7 +364,7 @@
                 "FixedValue": {
                   "id": "3b9c1864-f07f-46ca-aa86-01cba7629860",
                   "name": "Position selected",
-                  "asset_type": "Color",
+                  "asset_type": "Tint",
                   "value": {
                     "Rgba": {
                       "red": 0.8649127,
@@ -385,10 +385,10 @@
           "Condition": {
             "id": "e86a2ae3-6486-4941-bee9-b063f3ff0152",
             "name": "position color",
-            "asset_type": "Color",
+            "asset_type": "Tint",
             "left": {
-              "asset_type": "Boolean",
-              "key": "de909160-f54b-40cf-a987-6a8453df0914"
+              "value_type": "Boolean",
+              "id": "de909160-f54b-40cf-a987-6a8453df0914"
             },
             "right": {
               "Boolean": [
@@ -414,10 +414,10 @@
           "Map": {
             "id": "90eb20ce-9b39-41ab-b6c8-626ba182ea6e",
             "name": "Manufacturer icons",
-            "asset_type": "Image",
+            "asset_type": "Texture",
             "input": {
-              "asset_type": "Text",
-              "key": "d1a60628-1ac7-4ad4-a502-95bc649edf07"
+              "value_type": "Text",
+              "id": "d1a60628-1ac7-4ad4-a502-95bc649edf07"
             },
             "cases": [
               {
@@ -700,10 +700,10 @@
           "Map": {
             "id": "8536ebf5-82e1-41e3-bc37-b713534a7780",
             "name": "Cup category background",
-            "asset_type": "Color",
+            "asset_type": "Tint",
             "input": {
-              "asset_type": "Number",
-              "key": "4d519d42-52e9-435c-b614-8d70b42ed3b0"
+              "value_type": "Number",
+              "id": "4d519d42-52e9-435c-b614-8d70b42ed3b0"
             },
             "cases": [
               {
@@ -762,10 +762,10 @@
           "Map": {
             "id": "925dacee-265f-45ee-baf8-668e3005a03d",
             "name": "Cup Category text color",
-            "asset_type": "Color",
+            "asset_type": "Tint",
             "input": {
-              "asset_type": "Number",
-              "key": "4d519d42-52e9-435c-b614-8d70b42ed3b0"
+              "value_type": "Number",
+              "id": "4d519d42-52e9-435c-b614-8d70b42ed3b0"
             },
             "cases": [
               {

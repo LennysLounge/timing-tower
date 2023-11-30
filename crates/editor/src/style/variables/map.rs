@@ -5,7 +5,7 @@ use unified_sim_model::model::Entry;
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    style::properties::{text_property_editor, Property},
+    style::properties::Property,
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
         AssetId, AssetReference, AssetType, IntoValueProducer, TypedValueProducer, ValueProducer,
@@ -292,7 +292,7 @@ impl Comparison {
                             .changed()
                     });
                 ui.horizontal(|ui| {
-                    changed |= text_property_editor(ui, tp, asset_repo);
+                    changed |= tp.editor(ui, asset_repo);
                 });
             }
         });
@@ -348,7 +348,7 @@ impl Output {
 
         changed |= match self {
             Output::Number(p) => p.editor(ui, asset_repo),
-            Output::Text(p) => text_property_editor(ui, p, asset_repo),
+            Output::Text(p) => p.editor(ui, asset_repo),
             Output::Color(p) => p.editor(ui, asset_repo),
             Output::Boolean(p) => p.editor(ui, asset_repo),
             Output::Image(p) => p.editor(ui, asset_repo),

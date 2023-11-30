@@ -36,42 +36,40 @@ pub struct Vec3Property {
     pub z: Property<Number>,
 }
 
-pub fn text_property_editor(
-    ui: &mut Ui,
-    property: &mut Property<Text>,
-    asset_repo: &AssetReferenceRepo,
-) -> bool {
-    let mut changed = false;
-    match property {
-        Property::Fixed(text) => {
-            changed |= ui
-                .add(TextEdit::singleline(&mut text.0).desired_width(100.0))
-                .changed();
-            if let Some(reference) =
-                asset_repo.editor_small(ui, |v| v.asset_type.can_cast_to(&AssetType::Text))
-            {
-                *property = Property::ValueRef(ValueRef::<Text> {
-                    id: reference.key,
-                    phantom: std::marker::PhantomData,
+impl Property<Text> {
+    pub fn editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+        let mut changed = false;
+        match self {
+            Property::Fixed(text) => {
+                changed |= ui
+                    .add(TextEdit::singleline(&mut text.0).desired_width(100.0))
+                    .changed();
+                if let Some(reference) =
+                    asset_repo.editor_small(ui, |v| v.asset_type.can_cast_to(&AssetType::Text))
+                {
+                    *self = Property::ValueRef(ValueRef::<Text> {
+                        id: reference.key,
+                        phantom: std::marker::PhantomData,
+                    });
+                    changed |= true;
+                }
+            }
+            Property::ValueRef(value_ref) => {
+                let new_ref = asset_repo.editor(ui, &value_ref.id, |v| {
+                    v.asset_type.can_cast_to(&AssetType::Text)
                 });
-                changed |= true;
+                if let Some(new_ref) = new_ref {
+                    value_ref.id = new_ref.key;
+                    changed |= true;
+                }
+                if ui.button("x").clicked() {
+                    *self = Property::Fixed(Text("".to_string()));
+                    changed |= true;
+                }
             }
         }
-        Property::ValueRef(value_ref) => {
-            let new_ref = asset_repo.editor(ui, &value_ref.id, |v| {
-                v.asset_type.can_cast_to(&AssetType::Text)
-            });
-            if let Some(new_ref) = new_ref {
-                value_ref.id = new_ref.key;
-                changed |= true;
-            }
-            if ui.button("x").clicked() {
-                *property = Property::Fixed(Text("".to_string()));
-                changed |= true;
-            }
-        }
+        changed
     }
-    changed
 }
 
 impl Property<Number> {

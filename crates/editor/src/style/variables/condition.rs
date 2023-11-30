@@ -5,7 +5,7 @@ use unified_sim_model::model::Entry;
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    style::properties::{text_property_editor, Property},
+    style::properties::Property,
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
         AssetId, AssetReference, AssetType, IntoValueProducer, TypedValueProducer, ValueProducer,
@@ -303,7 +303,7 @@ impl Condition {
             changed |= ui
                 .horizontal(|ui| match &mut self.right {
                     RightHandSide::Number(n, _) => n.editor(ui, asset_repo),
-                    RightHandSide::Text(t, _) => text_property_editor(ui, t, asset_repo),
+                    RightHandSide::Text(t, _) => t.editor(ui, asset_repo),
                     RightHandSide::Boolean(b, _) => b.editor(ui, asset_repo),
                 })
                 .inner;
@@ -313,7 +313,7 @@ impl Condition {
             ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
             changed |= match &mut self.true_output {
                 Output::Number(n) => n.editor(ui, asset_repo),
-                Output::Text(t) => text_property_editor(ui, t, asset_repo),
+                Output::Text(t) => t.editor(ui, asset_repo),
                 Output::Color(c) => c.editor(ui, asset_repo),
                 Output::Boolean(b) => b.editor(ui, asset_repo),
                 Output::Image(i) => i.editor(ui, asset_repo),
@@ -324,7 +324,7 @@ impl Condition {
             ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
             changed |= match &mut self.false_output {
                 Output::Number(n) => n.editor(ui, asset_repo),
-                Output::Text(t) => text_property_editor(ui, t, asset_repo),
+                Output::Text(t) => t.editor(ui, asset_repo),
                 Output::Color(c) => c.editor(ui, asset_repo),
                 Output::Boolean(b) => b.editor(ui, asset_repo),
                 Output::Image(i) => i.editor(ui, asset_repo),

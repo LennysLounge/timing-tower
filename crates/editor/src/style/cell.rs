@@ -7,7 +7,7 @@ use crate::{
     value_store::types::{Boolean, Number, Text, Texture, Tint},
 };
 
-use super::properties::{text_property_editor, Property, Vec2Property, Vec3Property};
+use super::properties::{Property, Vec2Property, Vec3Property};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Cell {
@@ -95,7 +95,7 @@ impl Cell {
         });
         ui.horizontal(|ui| {
             ui.label("Text:");
-            changed |= text_property_editor(ui, &mut self.text, asset_repo);
+            changed |= self.text.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Text color:");

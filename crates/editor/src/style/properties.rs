@@ -70,20 +70,14 @@ impl Widget for PropertyEditor<'_, Number> {
                 Response::union(&value_res, editor_res.response)
             }
             Property::ValueRef(value_ref) => {
-                let mut editor_res = self.reference_store.untyped_editor(ui, &value_ref.id, |v| {
-                    v.asset_type.can_cast_to(&ValueType::Number)
-                });
+                let editor_res = self.reference_store.editor(ui, value_ref);
 
-                if let Some(new_ref) = editor_res.inner {
-                    value_ref.id = new_ref.id;
-                    editor_res.response.mark_changed()
-                }
                 let mut button_res = ui.button("x");
                 if button_res.clicked() {
                     *self.property = Property::Fixed(Number(0.0));
                     button_res.mark_changed();
                 }
-                Response::union(&editor_res.response, button_res)
+                Response::union(&editor_res, button_res)
             }
         }
     }
@@ -248,8 +242,8 @@ impl Property<Texture> {
         let mut changed = false;
         match self {
             Property::Fixed(..) => {
-                if let Some(reference) =
-                    asset_repo.untyped_editor_none(ui, |v| v.asset_type.can_cast_to(&ValueType::Texture))
+                if let Some(reference) = asset_repo
+                    .untyped_editor_none(ui, |v| v.asset_type.can_cast_to(&ValueType::Texture))
                 {
                     *self = Property::ValueRef(ValueRef {
                         id: reference.id,

@@ -1,4 +1,4 @@
-use bevy_egui::egui::{InnerResponse, Ui};
+use bevy_egui::egui::{InnerResponse, Response, Ui};
 use uuid::Uuid;
 
 use crate::{
@@ -8,7 +8,9 @@ use crate::{
         folder::{Folder, FolderOrT},
         variables::VariableBehavior,
     },
-    value_store::{AssetId, IntoValueProducer, UntypedValueRef},
+    value_store::{
+        AssetId, IntoValueProducer, ToTypedValueRef, ToUntypedValueRef, UntypedValueRef, ValueRef,
+    },
 };
 
 pub struct ReferenceStore {
@@ -24,6 +26,30 @@ impl ReferenceStore {
             game_sources: AssetOrFolder::from_game(game_sources::get_game_sources()),
             assets: AssetOrFolder::from_asset_defs(assets),
         }
+    }
+
+    pub fn editor<T>(&self, ui: &mut Ui, value_ref: &mut ValueRef<T>) -> Response
+    where
+        ValueRef<T>: ToUntypedValueRef<T>,
+        UntypedValueRef: ToTypedValueRef<T>,
+    {
+        let untyped_value_ref = value_ref.to_untyped();
+
+        let mut editor_res = self.untyped_editor(ui, &untyped_value_ref.id, |v| {
+            v.asset_type.can_cast_to(&untyped_value_ref.value_type)
+        });
+        if let Some(new_untyped_value_ref) = editor_res.inner {
+            let Some(new_value_ref) = ToTypedValueRef::<T>::to_typed(&new_untyped_value_ref) else {
+                unreachable!(
+                    "Could not cast untyped value ref to 
+                    type {} even though the ref is limited to only that type",
+                    std::any::type_name::<T>()
+                );
+            };
+            *value_ref = new_value_ref;
+            editor_res.response.mark_changed();
+        }
+        editor_res.response
     }
 
     pub fn untyped_editor(

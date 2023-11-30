@@ -82,10 +82,58 @@ pub struct ValueRef<T> {
     pub phantom: PhantomData<T>,
 }
 
+pub trait ToUntypedValueRef<T> {
+    fn to_untyped(&self) -> UntypedValueRef;
+}
+
+impl ToUntypedValueRef<Number> for ValueRef<Number> {
+    fn to_untyped(&self) -> UntypedValueRef {
+        UntypedValueRef {
+            id: self.id,
+            value_type: ValueType::Number,
+        }
+    }
+}
+
+impl ToUntypedValueRef<Text> for ValueRef<Text> {
+    fn to_untyped(&self) -> UntypedValueRef {
+        UntypedValueRef {
+            id: self.id,
+            value_type: ValueType::Text,
+        }
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct UntypedValueRef {
     pub id: Uuid,
     pub value_type: ValueType,
+}
+
+pub trait ToTypedValueRef<T> {
+    fn to_typed(&self) -> Option<ValueRef<T>>;
+}
+impl ToTypedValueRef<Number> for UntypedValueRef {
+    fn to_typed(&self) -> Option<ValueRef<Number>> {
+        match self.value_type {
+            ValueType::Number => Some(ValueRef {
+                id: self.id,
+                phantom: PhantomData,
+            }),
+            _ => None,
+        }
+    }
+}
+impl ToTypedValueRef<Text> for UntypedValueRef {
+    fn to_typed(&self) -> Option<ValueRef<Text>> {
+        match self.value_type {
+            ValueType::Text => Some(ValueRef {
+                id: self.id,
+                phantom: PhantomData,
+            }),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone)]

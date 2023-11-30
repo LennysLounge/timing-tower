@@ -63,7 +63,7 @@ impl Widget for PropertyEditor<'_, Number> {
                     .editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Number))
                 {
                     *self.property = Property::ValueRef(ValueRef {
-                        id: reference.key,
+                        id: reference.id,
                         phantom: std::marker::PhantomData,
                     });
                     res.mark_changed();
@@ -76,7 +76,7 @@ impl Widget for PropertyEditor<'_, Number> {
                     v.asset_type.can_cast_to(&ValueType::Number)
                 });
                 if let Some(new_ref) = new_ref {
-                    value_ref.id = new_ref.key;
+                    value_ref.id = new_ref.id;
                 }
                 let button_res = ui.button("x");
                 if button_res.clicked() {
@@ -100,7 +100,7 @@ impl Property<Text> {
                     asset_repo.editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Text))
                 {
                     *self = Property::ValueRef(ValueRef::<Text> {
-                        id: reference.key,
+                        id: reference.id,
                         phantom: std::marker::PhantomData,
                     });
                     changed |= true;
@@ -111,7 +111,7 @@ impl Property<Text> {
                     v.asset_type.can_cast_to(&ValueType::Text)
                 });
                 if let Some(new_ref) = new_ref {
-                    value_ref.id = new_ref.key;
+                    value_ref.id = new_ref.id;
                     changed |= true;
                 }
                 if ui.button("x").clicked() {
@@ -134,7 +134,7 @@ impl Property<Number> {
                     asset_repo.editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Number))
                 {
                     *self = Property::ValueRef(ValueRef {
-                        id: reference.key,
+                        id: reference.id,
                         phantom: std::marker::PhantomData,
                     });
                     changed = true;
@@ -145,7 +145,7 @@ impl Property<Number> {
                     v.asset_type.can_cast_to(&ValueType::Number)
                 });
                 if let Some(new_ref) = new_ref {
-                    value_ref.id = new_ref.key;
+                    value_ref.id = new_ref.id;
                     changed = true;
                 }
                 if ui.button("x").clicked() {
@@ -171,7 +171,7 @@ impl Property<Tint> {
                     asset_repo.editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Tint))
                 {
                     *self = Property::ValueRef(ValueRef {
-                        id: reference.key,
+                        id: reference.id,
                         phantom: std::marker::PhantomData,
                     });
                     changed |= true;
@@ -182,7 +182,7 @@ impl Property<Tint> {
                     v.asset_type.can_cast_to(&ValueType::Tint)
                 });
                 if let Some(new_ref) = new_ref {
-                    value_ref.id = new_ref.key;
+                    value_ref.id = new_ref.id;
                     changed |= true;
                 }
                 if ui.button("x").clicked() {
@@ -214,7 +214,7 @@ impl Property<Boolean> {
                     asset_repo.editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Boolean))
                 {
                     *self = Property::ValueRef(ValueRef {
-                        id: reference.key,
+                        id: reference.id,
                         phantom: std::marker::PhantomData,
                     });
                     changed |= true;
@@ -225,7 +225,7 @@ impl Property<Boolean> {
                     v.asset_type.can_cast_to(&ValueType::Tint)
                 });
                 if let Some(new_ref) = new_ref {
-                    value_ref.id = new_ref.key;
+                    value_ref.id = new_ref.id;
                     changed |= true;
                 }
                 if ui.button("x").clicked() {
@@ -247,7 +247,7 @@ impl Property<Texture> {
                     asset_repo.editor_none(ui, |v| v.asset_type.can_cast_to(&ValueType::Texture))
                 {
                     *self = Property::ValueRef(ValueRef {
-                        id: reference.key,
+                        id: reference.id,
                         phantom: std::marker::PhantomData,
                     });
                     changed |= true;
@@ -258,7 +258,7 @@ impl Property<Texture> {
                     v.asset_type.can_cast_to(&ValueType::Texture)
                 });
                 if let Some(new_ref) = new_ref {
-                    value_ref.id = new_ref.key;
+                    value_ref.id = new_ref.id;
                     changed |= true;
                 }
                 if ui.button("x").clicked() {

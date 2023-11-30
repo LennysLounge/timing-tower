@@ -8,7 +8,7 @@ use crate::{
         folder::{Folder, FolderOrT},
         variables::VariableBehavior,
     },
-    value_store::{AssetId, AssetReference, IntoValueProducer},
+    value_store::{AssetId, UntypedValueRef, IntoValueProducer},
 };
 
 pub struct ReferenceStore {
@@ -31,7 +31,7 @@ impl ReferenceStore {
         ui: &mut Ui,
         asset_ref_key: &Uuid,
         is_type_allowed: impl Fn(&AssetId) -> bool,
-    ) -> Option<AssetReference> {
+    ) -> Option<UntypedValueRef> {
         let button_name = self
             .get(asset_ref_key)
             .map(|id| id.name.as_str())
@@ -48,7 +48,7 @@ impl ReferenceStore {
         &self,
         ui: &mut Ui,
         is_type_allowed: impl Fn(&AssetId) -> bool,
-    ) -> Option<AssetReference> {
+    ) -> Option<UntypedValueRef> {
         let mut selected_asset = None;
         ui.menu_button("None", |ui| {
             self.show_menu(ui, &mut selected_asset, &is_type_allowed);
@@ -60,7 +60,7 @@ impl ReferenceStore {
         &self,
         ui: &mut Ui,
         is_type_allowed: impl Fn(&AssetId) -> bool,
-    ) -> Option<AssetReference> {
+    ) -> Option<UntypedValueRef> {
         let mut selected_asset = None;
         ui.menu_button("R", |ui| {
             self.show_menu(ui, &mut selected_asset, &is_type_allowed);

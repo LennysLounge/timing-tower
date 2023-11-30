@@ -8,7 +8,7 @@ use crate::{
     style::properties::Property,
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
-        AssetId, AssetReference, ValueType, IntoValueProducer, TypedValueProducer, ValueProducer,
+        AssetId, UntypedValueRef, ValueType, IntoValueProducer, TypedValueProducer, ValueProducer,
         ValueStore,
     },
 };
@@ -19,7 +19,7 @@ use super::variant_checkbox;
 pub struct Map {
     #[serde(flatten)]
     id: AssetId,
-    input: AssetReference,
+    input: UntypedValueRef,
     cases: Vec<Case>,
     default: Output,
 }
@@ -28,7 +28,7 @@ impl Map {
     pub fn from_id(id: AssetId) -> Self {
         Self {
             id,
-            input: AssetReference::default(),
+            input: UntypedValueRef::default(),
             cases: Vec::new(),
             default: Output::Number(Property::Fixed(Number(0.0))),
         }
@@ -38,7 +38,7 @@ impl Map {
 
         ui.horizontal(|ui| {
             ui.label("Map input: ");
-            let new_ref = asset_repo.editor(ui, &self.input.key, |v|
+            let new_ref = asset_repo.editor(ui, &self.input.id, |v|
                 match v.asset_type{
                     ValueType::Number => true,
                     ValueType::Text => true,
@@ -110,7 +110,7 @@ impl Map {
     }
 
     fn update_comparison_type(&mut self) {
-        let new_comparison = match self.input.asset_type {
+        let new_comparison = match self.input.value_type {
             ValueType::Number => {
                 Comparison::Number(Property::Fixed(Number(0.0)), NumberComparator::Equal)
             }
@@ -127,7 +127,7 @@ impl Map {
     }
 
     fn new_comparison(&self) -> Comparison {
-        match self.input.asset_type {
+        match self.input.value_type {
             ValueType::Number => {
                 Comparison::Number(Property::Fixed(Number(0.0)), NumberComparator::Equal)
             }
@@ -166,7 +166,7 @@ impl IntoValueProducer for Map {
     fn get_value_producer(&self) -> TypedValueProducer {
         let mut cases = Vec::new();
         for case in self.cases.iter() {
-            match self.input.asset_type {
+            match self.input.value_type {
                 ValueType::Number => {
                     let case_comp = match &case.comparison {
                         Comparison::Number(property, comp) => {
@@ -464,8 +464,8 @@ impl ValueProducer<Texture> for MapSource {
 }
 
 enum CaseComparison {
-    Number((AssetReference, NumberComparator, Property<Number>)),
-    Text((AssetReference, TextComparator, Property<Text>)),
+    Number((UntypedValueRef, NumberComparator, Property<Number>)),
+    Text((UntypedValueRef, TextComparator, Property<Text>)),
 }
 impl CaseComparison {
     fn test(&self, asset_repo: &ValueStore, entry: Option<&Entry>) -> bool {

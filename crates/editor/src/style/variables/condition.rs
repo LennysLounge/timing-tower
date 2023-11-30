@@ -8,7 +8,7 @@ use crate::{
     style::properties::Property,
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
-        AssetId, AssetReference, ValueType, IntoValueProducer, TypedValueProducer, ValueProducer,
+        AssetId, UntypedValueRef, ValueType, IntoValueProducer, TypedValueProducer, ValueProducer,
         ValueStore,
     },
 };
@@ -17,7 +17,7 @@ use crate::{
 pub struct Condition {
     #[serde(flatten)]
     id: AssetId,
-    left: AssetReference,
+    left: UntypedValueRef,
     right: RightHandSide,
     true_output: Output,
     false_output: Output,
@@ -190,7 +190,7 @@ impl Condition {
         ui.horizontal(|ui| {
             ui.label("If");
             ui.allocate_at_least(Vec2::new(5.0, 0.0), Sense::hover());
-            let new_ref = asset_repo.editor(ui, &mut self.left.key, |v| {
+            let new_ref = asset_repo.editor(ui, &mut self.left.id, |v| {
                 return match v.asset_type {
                     ValueType::Number => true,
                     ValueType::Text => true,
@@ -200,8 +200,8 @@ impl Condition {
             });
             if let Some(reference) = new_ref {
                 // Channge the value type of the right side if necessary
-                if self.left.asset_type != reference.asset_type {
-                    self.right = match reference.asset_type {
+                if self.left.value_type != reference.value_type {
+                    self.right = match reference.value_type {
                         ValueType::Number => RightHandSide::Number(
                             Property::Fixed(Number(0.0)),
                             NumberComparator::Equal,
@@ -438,7 +438,7 @@ enum Comparison {
 }
 
 struct NumberComparison {
-    left: AssetReference,
+    left: UntypedValueRef,
     comparator: NumberComparator,
     right: Property<Number>,
 }
@@ -458,7 +458,7 @@ impl NumberComparison {
 }
 
 struct TextComparison {
-    left: AssetReference,
+    left: UntypedValueRef,
     comparator: TextComparator,
     right: Property<Text>,
 }
@@ -474,7 +474,7 @@ impl TextComparison {
 }
 
 struct BooleanComparison {
-    left: AssetReference,
+    left: UntypedValueRef,
     comparator: BooleanComparator,
     right: Property<Boolean>,
 }

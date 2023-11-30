@@ -83,9 +83,9 @@ pub struct ValueRef<T> {
 }
 
 #[derive(Serialize, Deserialize, Clone, Default)]
-pub struct AssetReference {
-    pub asset_type: ValueType,
-    pub key: Uuid,
+pub struct UntypedValueRef {
+    pub id: Uuid,
+    pub value_type: ValueType,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -105,10 +105,10 @@ impl Default for AssetId {
     }
 }
 impl AssetId {
-    pub fn get_ref(&self) -> AssetReference {
-        AssetReference {
-            asset_type: self.asset_type.clone(),
-            key: self.id.clone(),
+    pub fn get_ref(&self) -> UntypedValueRef {
+        UntypedValueRef {
+            value_type: self.asset_type.clone(),
+            id: self.id.clone(),
         }
     }
 }
@@ -165,21 +165,21 @@ impl ValueStore {
         }
     }
 
-    pub fn get_number(&self, reference: &AssetReference, entry: Option<&Entry>) -> Option<f32> {
+    pub fn get_number(&self, reference: &UntypedValueRef, entry: Option<&Entry>) -> Option<f32> {
         self.assets
-            .get(&reference.key)
+            .get(&reference.id)
             .and_then(|v| v.resolve_number(self, entry))
     }
 
-    pub fn get_text(&self, reference: &AssetReference, entry: Option<&Entry>) -> Option<String> {
+    pub fn get_text(&self, reference: &UntypedValueRef, entry: Option<&Entry>) -> Option<String> {
         self.assets
-            .get(&reference.key)
+            .get(&reference.id)
             .and_then(|v| v.resolve_text(self, entry))
     }
 
-    pub fn get_bool(&self, reference: &AssetReference, entry: Option<&Entry>) -> Option<bool> {
+    pub fn get_bool(&self, reference: &UntypedValueRef, entry: Option<&Entry>) -> Option<bool> {
         self.assets
-            .get(&reference.key)
+            .get(&reference.id)
             .and_then(|v| v.resolve_bool(self, entry))
     }
 }

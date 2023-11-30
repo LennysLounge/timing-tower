@@ -61,12 +61,12 @@ impl ReferenceStore {
         &self,
         ui: &mut Ui,
         is_type_allowed: impl Fn(&AssetId) -> bool,
-    ) -> Option<UntypedValueRef> {
+    ) -> InnerResponse<Option<UntypedValueRef>> {
         let mut selected_asset = None;
-        ui.menu_button("R", |ui| {
+        let res = ui.menu_button("R", |ui| {
             self.show_menu(ui, &mut selected_asset, &is_type_allowed);
         });
-        selected_asset.map(|a| a.get_ref())
+        InnerResponse::new(selected_asset.map(|a| a.get_ref()), res.response)
     }
 
     fn get(&self, id: &Uuid) -> Option<&AssetId> {

@@ -55,41 +55,35 @@ impl Widget for PropertyEditor<'_, Number> {
     fn ui(self, ui: &mut Ui) -> Response {
         match self.property {
             Property::Fixed(c) => {
-                let mut res = ui.add(DragValue::new(&mut c.0));
-
-                //TODO: The editor should also return a response.
-                if let Some(reference) = self
+                let value_res = ui.add(DragValue::new(&mut c.0));
+                let mut editor_res = self
                     .reference_store
-                    .editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Number))
-                {
+                    .editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Number));
+
+                if let Some(reference) = editor_res.inner {
                     *self.property = Property::ValueRef(ValueRef {
                         id: reference.id,
                         phantom: std::marker::PhantomData,
                     });
-                    res.mark_changed();
+                    editor_res.response.mark_changed()
                 }
-                res
+                Response::union(&value_res, editor_res.response)
             }
             Property::ValueRef(value_ref) => {
-                let mut changed = false;
-                let res = self.reference_store.editor(ui, &value_ref.id, |v| {
+                let mut editor_res = self.reference_store.editor(ui, &value_ref.id, |v| {
                     v.asset_type.can_cast_to(&ValueType::Number)
                 });
 
-                if let Some(new_ref) = res.inner {
+                if let Some(new_ref) = editor_res.inner {
                     value_ref.id = new_ref.id;
-                    changed = true;
+                    editor_res.response.mark_changed()
                 }
-                let button_res = ui.button("x");
+                let mut button_res = ui.button("x");
                 if button_res.clicked() {
                     *self.property = Property::Fixed(Number(0.0));
-                    changed = true;
+                    button_res.mark_changed();
                 }
-                let mut final_res = Response::union(&res.response, button_res);
-                if changed {
-                    final_res.mark_changed()
-                }
-                final_res
+                Response::union(&editor_res.response, button_res)
             }
         }
     }
@@ -103,8 +97,9 @@ impl Property<Text> {
                 changed |= ui
                     .add(TextEdit::singleline(&mut text.0).desired_width(100.0))
                     .changed();
-                if let Some(reference) =
-                    asset_repo.editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Text))
+                if let Some(reference) = asset_repo
+                    .editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Text))
+                    .inner
                 {
                     *self = Property::ValueRef(ValueRef::<Text> {
                         id: reference.id,
@@ -137,8 +132,9 @@ impl Property<Number> {
         match self {
             Property::Fixed(c) => {
                 changed |= ui.add(DragValue::new(&mut c.0)).changed();
-                if let Some(reference) =
-                    asset_repo.editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Number))
+                if let Some(reference) = asset_repo
+                    .editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Number))
+                    .inner
                 {
                     *self = Property::ValueRef(ValueRef {
                         id: reference.id,
@@ -174,8 +170,9 @@ impl Property<Tint> {
                 changed |= ui.color_edit_button_rgba_unmultiplied(&mut color).changed();
                 c.0 = color.into();
 
-                if let Some(reference) =
-                    asset_repo.editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Tint))
+                if let Some(reference) = asset_repo
+                    .editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Tint))
+                    .inner
                 {
                     *self = Property::ValueRef(ValueRef {
                         id: reference.id,
@@ -217,8 +214,9 @@ impl Property<Boolean> {
                         changed |= ui.selectable_value(&mut b.0, true, "Yes").changed();
                         changed |= ui.selectable_value(&mut b.0, false, "No").changed();
                     });
-                if let Some(reference) =
-                    asset_repo.editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Boolean))
+                if let Some(reference) = asset_repo
+                    .editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Boolean))
+                    .inner
                 {
                     *self = Property::ValueRef(ValueRef {
                         id: reference.id,

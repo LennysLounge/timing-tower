@@ -5,7 +5,7 @@ use unified_sim_model::model::Entry;
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    style::properties::{text_property_editor, BooleanProperty, ImageProperty},
+    style::properties::{text_property_editor, ImageProperty},
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
         AssetId, AssetReference, AssetType, IntoValueProducer, Property, TypedValueProducer,
@@ -100,7 +100,7 @@ impl Map {
             AssetType::Number => Output::Number(Property::Fixed(Number(0.0))),
             AssetType::Text => Output::Text(Property::Fixed(Text(String::new()))),
             AssetType::Color => Output::Color(Property::Fixed(Tint(Color::WHITE))),
-            AssetType::Boolean => Output::Boolean(BooleanProperty::Fixed(false)),
+            AssetType::Boolean => Output::Boolean(Property::Fixed(Boolean(false))),
             AssetType::Image => Output::Image(ImageProperty::None),
         };
         self.default = new_output.clone();
@@ -145,7 +145,7 @@ impl Map {
             AssetType::Number => Output::Number(Property::Fixed(Number(0.0))),
             AssetType::Text => Output::Text(Property::Fixed(Text(String::new()))),
             AssetType::Color => Output::Color(Property::Fixed(Tint(Color::WHITE))),
-            AssetType::Boolean => Output::Boolean(BooleanProperty::Fixed(false)),
+            AssetType::Boolean => Output::Boolean(Property::Fixed(Boolean(false))),
             AssetType::Image => Output::Image(ImageProperty::None),
         }
     }
@@ -338,7 +338,7 @@ enum Output {
     Number(Property<Number>),
     Text(Property<Text>),
     Color(Property<Tint>),
-    Boolean(BooleanProperty),
+    Boolean(Property<Boolean>),
     Image(ImageProperty),
 }
 
@@ -429,7 +429,7 @@ impl ValueProducer<Boolean> for MapSource {
             .find_map(|(case, output)| {
                 if case.test(value_store, entry) {
                     match output {
-                        Output::Boolean(n) => value_store.get_bool_property(n, entry),
+                        Output::Boolean(n) => value_store.get_property(n, entry),
                         _ => unreachable!(),
                     }
                 } else {
@@ -437,10 +437,9 @@ impl ValueProducer<Boolean> for MapSource {
                 }
             })
             .or_else(|| match &self.default {
-                Output::Boolean(p) => value_store.get_bool_property(p, entry),
+                Output::Boolean(p) => value_store.get_property(p, entry),
                 _ => unreachable!(),
             })
-            .map(|b| Boolean(b))
     }
 }
 impl ValueProducer<Texture> for MapSource {

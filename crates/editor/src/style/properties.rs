@@ -5,17 +5,10 @@ use serde::{Deserialize, Serialize};
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
     value_store::{
-        types::{Number, Text, Tint},
+        types::{Boolean, Number, Text, Tint},
         AssetReference, AssetType, Property, ValueRef,
     },
 };
-
-#[derive(Serialize, Deserialize, Clone)]
-pub enum BooleanProperty {
-    Ref(AssetReference),
-    #[serde(untagged)]
-    Fixed(bool),
-}
 
 #[derive(Serialize, Deserialize, Clone)]
 pub enum ImageProperty {
@@ -146,38 +139,41 @@ impl Property<Tint> {
     }
 }
 
-impl BooleanProperty {
+impl Property<Boolean> {
     pub fn editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
         let mut changed = false;
         match self {
-            BooleanProperty::Fixed(b) => {
+            Property::Fixed(b) => {
                 ComboBox::from_id_source(ui.next_auto_id())
                     .width(50.0)
-                    .selected_text(match b {
+                    .selected_text(match b.0 {
                         true => "Yes",
                         false => "No",
                     })
                     .show_ui(ui, |ui| {
-                        changed |= ui.selectable_value(b, true, "Yes").changed();
-                        changed |= ui.selectable_value(b, false, "No").changed();
+                        changed |= ui.selectable_value(&mut b.0, true, "Yes").changed();
+                        changed |= ui.selectable_value(&mut b.0, false, "No").changed();
                     });
                 if let Some(reference) =
                     asset_repo.editor_small(ui, |v| v.asset_type.can_cast_to(&AssetType::Boolean))
                 {
-                    *self = BooleanProperty::Ref(reference);
+                    *self = Property::ValueRef(ValueRef {
+                        id: reference.key,
+                        phantom: std::marker::PhantomData,
+                    });
                     changed |= true;
                 }
             }
-            BooleanProperty::Ref(asset_ref) => {
-                let new_ref = asset_repo.editor(ui, &asset_ref.key, |v| {
+            Property::ValueRef(value_ref) => {
+                let new_ref = asset_repo.editor(ui, &value_ref.id, |v| {
                     v.asset_type.can_cast_to(&AssetType::Color)
                 });
                 if let Some(new_ref) = new_ref {
-                    *asset_ref = new_ref;
+                    value_ref.id = new_ref.key;
                     changed |= true;
                 }
                 if ui.button("x").clicked() {
-                    *self = BooleanProperty::Fixed(true);
+                    *self = Property::Fixed(Boolean(true));
                     changed |= true;
                 }
             }

@@ -5,14 +5,12 @@ use serde::{Deserialize, Serialize};
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
     value_store::{
-        types::{Number, Text, Tint},
+        types::{Boolean, Number, Text, Tint},
         Property,
     },
 };
 
-use super::properties::{
-    text_property_editor, BooleanProperty, ImageProperty, Vec2Property, Vec3Property,
-};
+use super::properties::{text_property_editor, ImageProperty, Vec2Property, Vec3Property};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Cell {
@@ -25,7 +23,7 @@ pub struct Cell {
     pub pos: Vec3Property,
     pub size: Vec2Property,
     pub skew: Property<Number>,
-    pub visible: BooleanProperty,
+    pub visible: Property<Boolean>,
     pub rounding: Rounding,
     pub text_alginment: TextAlignment,
     pub text_position: Vec2Property,
@@ -72,7 +70,7 @@ impl Default for Cell {
                 y: Property::Fixed(Number(30.0)),
             },
             skew: Property::Fixed(Number(12.0)),
-            visible: BooleanProperty::Fixed(true),
+            visible: Property::Fixed(Boolean(true)),
             rounding: Rounding {
                 top_left: Property::Fixed(Number(0.0)),
                 top_right: Property::Fixed(Number(0.0)),

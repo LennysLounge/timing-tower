@@ -5,7 +5,7 @@ use unified_sim_model::model::Entry;
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    style::properties::{text_property_editor, BooleanProperty, ImageProperty},
+    style::properties::{text_property_editor, ImageProperty},
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
         AssetId, AssetReference, AssetType, IntoValueProducer, Property, TypedValueProducer,
@@ -27,7 +27,7 @@ pub struct Condition {
 enum RightHandSide {
     Number(Property<Number>, NumberComparator),
     Text(Property<Text>, TextComparator),
-    Boolean(BooleanProperty, BooleanComparator),
+    Boolean(Property<Boolean>, BooleanComparator),
 }
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -55,7 +55,7 @@ enum Output {
     Number(Property<Number>),
     Text(Property<Text>),
     Color(Property<Tint>),
-    Boolean(BooleanProperty),
+    Boolean(Property<Boolean>),
     Image(ImageProperty),
 }
 
@@ -116,14 +116,14 @@ impl Condition {
                 AssetType::Number => Output::Number(Property::Fixed(Number(0.0))),
                 AssetType::Text => Output::Text(Property::Fixed(Text(String::new()))),
                 AssetType::Color => Output::Color(Property::Fixed(Tint(Color::WHITE))),
-                AssetType::Boolean => Output::Boolean(BooleanProperty::Fixed(true)),
+                AssetType::Boolean => Output::Boolean(Property::Fixed(Boolean(true))),
                 AssetType::Image => Output::Image(ImageProperty::default()),
             },
             false_output: match &id.asset_type {
                 AssetType::Number => Output::Number(Property::Fixed(Number(0.0))),
                 AssetType::Text => Output::Text(Property::Fixed(Text(String::new()))),
                 AssetType::Color => Output::Color(Property::Fixed(Tint(Color::WHITE))),
-                AssetType::Boolean => Output::Boolean(BooleanProperty::Fixed(false)),
+                AssetType::Boolean => Output::Boolean(Property::Fixed(Boolean(false))),
                 AssetType::Image => Output::Image(ImageProperty::default()),
             },
             id,
@@ -172,8 +172,8 @@ impl Condition {
                     let is_boolean = self.id.asset_type == AssetType::Boolean;
                     if ui.selectable_label(is_boolean, "Yes/No").clicked() && !is_boolean {
                         self.id.asset_type = AssetType::Boolean;
-                        self.true_output = Output::Boolean(BooleanProperty::Fixed(true));
-                        self.false_output = Output::Boolean(BooleanProperty::Fixed(false));
+                        self.true_output = Output::Boolean(Property::Fixed(Boolean(true)));
+                        self.false_output = Output::Boolean(Property::Fixed(Boolean(false)));
                         changed |= true;
                     }
                     let is_image = self.id.asset_type == AssetType::Image;
@@ -211,7 +211,7 @@ impl Condition {
                             TextComparator::Like,
                         ),
                         AssetType::Boolean => RightHandSide::Boolean(
-                            BooleanProperty::Fixed(true),
+                            Property::Fixed(Boolean(true)),
                             BooleanComparator::Is,
                         ),
                         AssetType::Color => unreachable!("Type color not allowed for if condition"),
@@ -403,16 +403,15 @@ impl ValueProducer<Boolean> for ConditionSource {
         let condition = self.evaluate_condition(value_store, entry)?;
         if condition {
             match &self.true_value {
-                Output::Boolean(b) => value_store.get_bool_property(&b, entry),
+                Output::Boolean(b) => value_store.get_property(&b, entry),
                 _ => unreachable!(),
             }
         } else {
             match &self.false_value {
-                Output::Boolean(b) => value_store.get_bool_property(&b, entry),
+                Output::Boolean(b) => value_store.get_property(&b, entry),
                 _ => unreachable!(),
             }
         }
-        .map(|n| Boolean(n))
     }
 }
 impl ValueProducer<Texture> for ConditionSource {
@@ -478,12 +477,12 @@ impl TextComparison {
 struct BooleanComparison {
     left: AssetReference,
     comparator: BooleanComparator,
-    right: BooleanProperty,
+    right: Property<Boolean>,
 }
 impl BooleanComparison {
     fn evaluate(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
         let left = vars.get_bool(&self.left, entry)?;
-        let right = vars.get_bool_property(&self.right, entry)?;
+        let right = vars.get_property(&self.right, entry)?.0;
         Some(match self.comparator {
             BooleanComparator::Is => left == right,
             BooleanComparator::IsNot => left != right,

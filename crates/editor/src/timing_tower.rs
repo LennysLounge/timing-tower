@@ -20,7 +20,7 @@ use unified_sim_model::{
 use crate::{
     style::{cell::Cell, StyleDefinition},
     value_store::{
-        types::{Number, Text, Tint},
+        types::{Boolean, Number, Text, Tint},
         ValueStore,
     },
     SpawnAndInitWorld,
@@ -349,7 +349,10 @@ fn create_cell_style(cell: &Cell, vars: &ValueStore, entry: Option<&Entry>) -> C
             .get_property(&cell.skew, entry)
             .unwrap_or(Number(0.0))
             .0,
-        visible: vars.get_bool_property(&cell.visible, entry).unwrap_or(true),
+        visible: vars
+            .get_property(&cell.visible, entry)
+            .unwrap_or(Boolean(true))
+            .0,
         rounding: [
             vars.get_property(&cell.rounding.top_left, entry)
                 .unwrap_or(Number(0.0))

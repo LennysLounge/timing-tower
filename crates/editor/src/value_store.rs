@@ -5,10 +5,7 @@ use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
-use crate::{
-    game_sources,
-    style::properties::{BooleanProperty, ImageProperty},
-};
+use crate::{game_sources, style::properties::ImageProperty};
 
 use self::types::{Boolean, Number, Text, Texture, Tint};
 
@@ -196,17 +193,6 @@ impl ValueStore {
             .and_then(|v| v.resolve_texture(self, entry))
     }
 
-    pub fn get_bool_property(
-        &self,
-        property: &BooleanProperty,
-        entry: Option<&Entry>,
-    ) -> Option<bool> {
-        match property {
-            BooleanProperty::Fixed(b) => Some(*b),
-            BooleanProperty::Ref(reference) => self.get_bool(reference, entry),
-        }
-    }
-
     pub fn get_image_property(
         &self,
         property: &ImageProperty,
@@ -277,6 +263,14 @@ impl TypedValueResolver<Tint> for ValueStore {
     fn get_typed(&self, producer: &TypedValueProducer, entry: Option<&Entry>) -> Option<Tint> {
         match producer {
             TypedValueProducer::Tint(p) => p.get(self, entry),
+            _ => None,
+        }
+    }
+}
+impl TypedValueResolver<Boolean> for ValueStore {
+    fn get_typed(&self, producer: &TypedValueProducer, entry: Option<&Entry>) -> Option<Boolean> {
+        match producer {
+            TypedValueProducer::Boolean(p) => p.get(self, entry),
             _ => None,
         }
     }

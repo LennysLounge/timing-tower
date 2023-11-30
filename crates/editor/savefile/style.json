@@ -1310,10 +1310,7 @@
                   },
                   "skew": 0.0,
                   "visible": {
-                    "Ref": {
-                      "asset_type": "Boolean",
-                      "key": "c16f71b9-dcc9-4f04-9579-ea5211fa99be"
-                    }
+                    "ValueRef": "c16f71b9-dcc9-4f04-9579-ea5211fa99be"
                   },
                   "rounding": {
                     "top_left": 0.0,

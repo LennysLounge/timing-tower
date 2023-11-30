@@ -276,7 +276,7 @@ impl Comparison {
                             .changed();
                     });
                 ui.horizontal(|ui| {
-                    changed |= np.editor(ui, asset_repo);
+                    changed |= ui.add(PropertyEditor::new(np, asset_repo)).changed()
                 });
             }
             Comparison::Text(tp, c) => {
@@ -347,7 +347,7 @@ impl Output {
         let mut changed = false;
 
         changed |= match self {
-            Output::Number(p) => p.editor(ui, asset_repo),
+            Output::Number(p) => ui.add(PropertyEditor::new(p, asset_repo)).changed(),
             Output::Text(p) => ui.add(PropertyEditor::new(p, asset_repo)).changed(),
             Output::Color(p) => p.editor(ui, asset_repo),
             Output::Boolean(p) => p.editor(ui, asset_repo),

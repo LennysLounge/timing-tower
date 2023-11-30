@@ -304,7 +304,9 @@ impl Condition {
             // show select for right side
             changed |= ui
                 .horizontal(|ui| match &mut self.right {
-                    RightHandSide::Number(n, _) => n.editor(ui, asset_repo),
+                    RightHandSide::Number(n, _) => {
+                        ui.add(PropertyEditor::new(n, asset_repo)).changed()
+                    }
                     RightHandSide::Text(t, _) => {
                         ui.add(PropertyEditor::new(t, asset_repo)).changed()
                     }
@@ -316,7 +318,7 @@ impl Condition {
         ui.horizontal(|ui| {
             ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
             changed |= match &mut self.true_output {
-                Output::Number(n) => n.editor(ui, asset_repo),
+                Output::Number(n) => ui.add(PropertyEditor::new(n, asset_repo)).changed(),
                 Output::Text(t) => ui.add(PropertyEditor::new(t, asset_repo)).changed(),
                 Output::Color(c) => c.editor(ui, asset_repo),
                 Output::Boolean(b) => b.editor(ui, asset_repo),
@@ -327,7 +329,7 @@ impl Condition {
         ui.horizontal(|ui| {
             ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
             changed |= match &mut self.false_output {
-                Output::Number(n) => n.editor(ui, asset_repo),
+                Output::Number(n) => ui.add(PropertyEditor::new(n, asset_repo)).changed(),
                 Output::Text(t) => ui.add(PropertyEditor::new(t, asset_repo)).changed(),
                 Output::Color(c) => c.editor(ui, asset_repo),
                 Output::Boolean(b) => b.editor(ui, asset_repo),

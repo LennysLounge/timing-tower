@@ -131,11 +131,15 @@ impl Cell {
         });
         ui.horizontal(|ui| {
             ui.label("Text pos x:");
-            changed |= self.text_position.x.editor(ui, asset_repo);
+            changed |= ui
+                .add(PropertyEditor::new(&mut self.text_position.x, asset_repo))
+                .changed();
         });
         ui.horizontal(|ui| {
             ui.label("Text pos y:");
-            changed |= self.text_position.y.editor(ui, asset_repo);
+            changed |= ui
+                .add(PropertyEditor::new(&mut self.text_position.y, asset_repo))
+                .changed();
         });
         ui.horizontal(|ui| {
             ui.label("Background color:");
@@ -147,44 +151,70 @@ impl Cell {
         });
         ui.horizontal(|ui| {
             ui.label("Pos x:");
-            changed |= self.pos.x.editor(ui, asset_repo);
+            changed |= ui
+                .add(PropertyEditor::new(&mut self.pos.x, asset_repo))
+                .changed();
         });
         ui.horizontal(|ui| {
             ui.label("Pos y:");
-            changed |= self.pos.y.editor(ui, asset_repo);
+            changed |= ui
+                .add(PropertyEditor::new(&mut self.pos.y, asset_repo))
+                .changed();
         });
         ui.horizontal(|ui| {
             ui.label("Pos z:");
-            changed |= self.pos.z.editor(ui, asset_repo);
+            changed |= ui
+                .add(PropertyEditor::new(&mut self.pos.z, asset_repo))
+                .changed();
         });
         ui.horizontal(|ui| {
             ui.label("Width:");
-            changed |= self.size.x.editor(ui, asset_repo);
+            changed |= ui
+                .add(PropertyEditor::new(&mut self.size.x, asset_repo))
+                .changed();
         });
         ui.horizontal(|ui| {
             ui.label("Height:");
-            changed |= self.size.y.editor(ui, asset_repo);
+            changed |= ui
+                .add(PropertyEditor::new(&mut self.size.y, asset_repo))
+                .changed();
         });
         ui.horizontal(|ui| {
             ui.label("Skew:");
-            changed |= self.skew.editor(ui, asset_repo);
+            changed |= ui
+                .add(PropertyEditor::new(&mut self.skew, asset_repo))
+                .changed();
         });
         ui.label("Rounding:");
         ui.horizontal(|ui| {
             ui.label("top left:");
-            changed |= self.rounding.top_left.editor(ui, asset_repo);
+            changed |= ui
+                .add(PropertyEditor::new(&mut self.rounding.top_left, asset_repo))
+                .changed();
         });
         ui.horizontal(|ui| {
             ui.label("top right:");
-            changed |= self.rounding.top_right.editor(ui, asset_repo);
+            changed |= ui
+                .add(PropertyEditor::new(
+                    &mut self.rounding.top_right,
+                    asset_repo,
+                ))
+                .changed();
         });
         ui.horizontal(|ui| {
             ui.label("bottom right:");
-            changed |= self.rounding.bot_right.editor(ui, asset_repo);
+            changed |= ui
+                .add(PropertyEditor::new(
+                    &mut self.rounding.bot_right,
+                    asset_repo,
+                ))
+                .changed();
         });
         ui.horizontal(|ui| {
             ui.label("bottom left:");
-            changed |= self.rounding.bot_left.editor(ui, asset_repo);
+            changed |= ui
+                .add(PropertyEditor::new(&mut self.rounding.bot_left, asset_repo))
+                .changed();
         });
         changed
     }

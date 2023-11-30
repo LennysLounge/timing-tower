@@ -10,7 +10,7 @@ use crate::reference_store::ReferenceStore;
 use super::{
     cell::Cell,
     folder::{Folder, FolderActions},
-    properties::Vec2Property,
+    properties::{PropertyEditor, Vec2Property},
     StyleTreeNode, StyleTreeUi, TreeViewAction,
 };
 
@@ -78,11 +78,15 @@ impl StyleTreeUi for TimingTowerTable {
         ui.label("Row offset:");
         ui.horizontal(|ui| {
             ui.label("Offset x:");
-            changed |= self.row_offset.x.editor(ui, asset_repo);
+            changed |= ui
+                .add(PropertyEditor::new(&mut self.row_offset.x, asset_repo))
+                .changed();
         });
         ui.horizontal(|ui| {
             ui.label("Offset y:");
-            changed |= self.row_offset.y.editor(ui, asset_repo);
+            changed |= ui
+                .add(PropertyEditor::new(&mut self.row_offset.y, asset_repo))
+                .changed();
         });
         ui.separator();
         changed |= self.cell.property_editor(ui, asset_repo);

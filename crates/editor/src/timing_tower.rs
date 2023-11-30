@@ -18,8 +18,8 @@ use unified_sim_model::{
 };
 
 use crate::{
-    value_store::ValueStore,
     style::{cell::Cell, StyleDefinition},
+    value_store::{types::Text, ValueStore},
     SpawnAndInitWorld,
 };
 
@@ -291,8 +291,9 @@ fn create_cell_style(cell: &Cell, vars: &ValueStore, entry: Option<&Entry>) -> C
 
     CellStyle {
         text: vars
-            .get_text_property(&cell.text, entry)
-            .unwrap_or_else(|| "unavailable".to_string()),
+            .get_property(&cell.text, entry)
+            .unwrap_or_else(|| Text("unavailable".to_string()))
+            .0,
         text_color: vars
             .get_color_property(&cell.text_color, entry)
             .unwrap_or(Color::BLACK),

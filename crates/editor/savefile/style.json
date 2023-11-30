@@ -1068,10 +1068,7 @@
                 "id": "7d96c8c6-c978-4258-83c4-9504bccf7256",
                 "cell": {
                   "text": {
-                    "Ref": {
-                      "asset_type": "Text",
-                      "key": "6330a6bb-51d1-4af7-9bd0-efeb00b1ff52"
-                    }
+                    "ValueRef": "6330a6bb-51d1-4af7-9bd0-efeb00b1ff52"
                   },
                   "text_color": {
                     "Rgba": {
@@ -1120,10 +1117,7 @@
                 "id": "95ab724b-b056-4e76-8153-2f9265aac3cb",
                 "cell": {
                   "text": {
-                    "Ref": {
-                      "asset_type": "Text",
-                      "key": "8abcf9d5-60f7-4886-a716-139d62ad83ac"
-                    }
+                    "ValueRef": "8abcf9d5-60f7-4886-a716-139d62ad83ac"
                   },
                   "text_color": {
                     "Rgba": {
@@ -1273,10 +1267,7 @@
                 "id": "a275bdc4-ed4a-4dcb-a964-d0646598d64e",
                 "cell": {
                   "text": {
-                    "Ref": {
-                      "asset_type": "Text",
-                      "key": "171d7438-3179-4c70-b818-811cf86d514e"
-                    }
+                    "ValueRef": "171d7438-3179-4c70-b818-811cf86d514e"
                   },
                   "text_color": {
                     "Ref": {

@@ -2,16 +2,18 @@ use bevy::prelude::Color;
 use bevy_egui::egui::{ComboBox, Ui};
 use serde::{Deserialize, Serialize};
 
-use crate::asset_reference_repo::AssetReferenceRepo;
+use crate::{
+    asset_reference_repo::AssetReferenceRepo,
+    value_store::{types::Text, Property},
+};
 
 use super::properties::{
-    BooleanProperty, ColorProperty, ImageProperty, NumberProperty, TextProperty, Vec2Property,
-    Vec3Property,
+    BooleanProperty, ColorProperty, ImageProperty, NumberProperty, Vec2Property, Vec3Property,
 };
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Cell {
-    pub text: TextProperty,
+    pub text: Property<Text>,
     pub text_color: ColorProperty,
     pub text_size: NumberProperty,
     pub color: ColorProperty,
@@ -53,7 +55,7 @@ pub enum TextAlignment {
 impl Default for Cell {
     fn default() -> Self {
         Self {
-            text: TextProperty::Fixed("Column".to_string()),
+            text: Property::Fixed(Text("Column".to_string())),
             text_color: ColorProperty::Fixed(Color::BLACK),
             text_size: NumberProperty::Fixed(20.0),
             color: ColorProperty::Fixed(Color::PURPLE),
@@ -95,7 +97,7 @@ impl Cell {
         });
         ui.horizontal(|ui| {
             ui.label("Text:");
-            changed |= self.text.editor(ui, asset_repo);
+            //changed |= self.text.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Text color:");

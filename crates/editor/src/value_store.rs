@@ -21,16 +21,16 @@ pub mod types {
     };
     use serde::{Deserialize, Serialize};
 
-    #[derive(Serialize, Deserialize)]
+    #[derive(Serialize, Deserialize, Clone)]
     pub struct Number(pub f32);
 
-    #[derive(Serialize, Deserialize)]
+    #[derive(Serialize, Deserialize, Clone)]
     pub struct Text(pub String);
 
-    #[derive(Serialize, Deserialize)]
+    #[derive(Serialize, Deserialize, Clone)]
     pub struct Tint(pub Color);
 
-    #[derive(Serialize, Deserialize)]
+    #[derive(Serialize, Deserialize, Clone)]
     pub struct Boolean(pub bool);
 
     pub struct Texture(pub Handle<Image>);
@@ -73,7 +73,7 @@ impl AssetType {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 #[serde(transparent)]
 pub struct ValueRef<T> {
     pub id: Uuid,
@@ -81,10 +81,11 @@ pub struct ValueRef<T> {
     pub phantom: PhantomData<T>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub enum Property<T> {
-    Fixed(T),
     ValueRef(ValueRef<T>),
+    #[serde(untagged)]
+    Fixed(T),
 }
 
 #[derive(Serialize, Deserialize, Clone, Default)]
@@ -298,13 +299,22 @@ impl TypedValueProducer {
     }
 }
 
-trait TypedValueResolver<T> {
+pub trait TypedValueResolver<T> {
     fn get_typed(&self, producer: &TypedValueProducer, entry: Option<&Entry>) -> Option<T>;
 }
 impl TypedValueResolver<Number> for ValueStore {
     fn get_typed(&self, producer: &TypedValueProducer, entry: Option<&Entry>) -> Option<Number> {
         match producer {
             TypedValueProducer::Number(p) => p.get(self, entry),
+            _ => None,
+        }
+    }
+}
+impl TypedValueResolver<Text> for ValueStore {
+    fn get_typed(&self, producer: &TypedValueProducer, entry: Option<&Entry>) -> Option<Text> {
+        match producer {
+            TypedValueProducer::Number(p) => p.get(self, entry).map(|n| Text(format!("{}", n.0))),
+            TypedValueProducer::Text(p) => p.get(self, entry),
             _ => None,
         }
     }

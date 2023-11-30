@@ -16,7 +16,7 @@ pub mod types {
     };
     use serde::{Deserialize, Serialize};
 
-    #[derive(Serialize, Deserialize, Clone)]
+    #[derive(Serialize, Deserialize, Clone, Default)]
     pub struct Number(pub f32);
 
     #[derive(Serialize, Deserialize, Clone)]

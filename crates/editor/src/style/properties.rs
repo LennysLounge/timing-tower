@@ -6,7 +6,7 @@ use crate::{
     reference_store::ReferenceStore,
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
-        ValueRef, ValueType,
+        ToTypedValueRef, ToUntypedValueRef, UntypedValueRef, ValueRef, ValueType, ValueTypeOf,
     },
 };
 
@@ -44,20 +44,33 @@ impl<'a, T> PropertyEditor<'a, T> {
     pub fn new(
         property: &'a mut Property<T>,
         reference_store: &'a ReferenceStore,
-    ) -> PropertyEditor<'a, T> {
+    ) -> PropertyEditor<'a, T>
+    where
+        UntypedValueRef: ToTypedValueRef<T>,
+        ValueType: ValueTypeOf<T>,
+        ValueRef<T>: ToUntypedValueRef<T>,
+        T: Default + ValueTypeEditor,
+    {
         PropertyEditor {
             property,
             reference_store,
         }
     }
 }
-impl Widget for PropertyEditor<'_, Number> {
+
+impl<T> Widget for PropertyEditor<'_, T>
+where
+    UntypedValueRef: ToTypedValueRef<T>,
+    ValueType: ValueTypeOf<T>,
+    ValueRef<T>: ToUntypedValueRef<T>,
+    T: Default + ValueTypeEditor,
+{
     fn ui(self, ui: &mut Ui) -> Response {
         match self.property {
             Property::Fixed(c) => {
-                let value_res = ui.add(DragValue::new(&mut c.0));
+                let value_res = c.editor(ui);
 
-                let editor_res = self.reference_store.editor_small::<Number>(ui);
+                let editor_res = self.reference_store.editor_small::<T>(ui);
                 if let Some(new_value_ref) = editor_res.inner {
                     *self.property = Property::ValueRef(new_value_ref);
                 }
@@ -69,12 +82,21 @@ impl Widget for PropertyEditor<'_, Number> {
 
                 let mut button_res = ui.button("x");
                 if button_res.clicked() {
-                    *self.property = Property::Fixed(Number(0.0));
+                    *self.property = Property::Fixed(T::default());
                     button_res.mark_changed();
                 }
                 Response::union(&editor_res, button_res)
             }
         }
+    }
+}
+
+pub trait ValueTypeEditor {
+    fn editor(&mut self, ui: &mut Ui) -> Response;
+}
+impl ValueTypeEditor for Number {
+    fn editor(&mut self, ui: &mut Ui) -> Response {
+        ui.add(DragValue::new(&mut self.0))
     }
 }
 

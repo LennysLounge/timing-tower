@@ -31,26 +31,6 @@ pub trait ValueProducer<T> {
     fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<T>;
 }
 
-pub trait NumberSource {
-    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<f32>;
-}
-
-pub trait TextSource {
-    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<String>;
-}
-
-pub trait ColorSource {
-    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<Color>;
-}
-
-pub trait BooleanSource {
-    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool>;
-}
-
-pub trait ImageSource {
-    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<Handle<Image>>;
-}
-
 pub trait IntoValueProducer {
     fn get_value_producer(&self) -> TypedValueProducer;
     fn asset_id(&self) -> &AssetId;

@@ -5,8 +5,7 @@ use unified_sim_model::model::Entry;
 
 use crate::value_store::{
     types::{Boolean, Number, Text, Tint},
-    AssetId, AssetType, BooleanSource, ColorSource, IntoValueProducer, NumberSource, TextSource,
-    TypedValueProducer, ValueProducer, ValueStore,
+    AssetId, AssetType, IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore,
 };
 
 #[derive(Serialize, Deserialize, Clone, Default)]
@@ -141,11 +140,6 @@ impl IntoValueProducer for FixedValue {
 }
 
 pub struct StaticNumber(pub f32);
-impl NumberSource for StaticNumber {
-    fn resolve(&self, _vars: &ValueStore, _entry: Option<&Entry>) -> Option<f32> {
-        Some(self.0)
-    }
-}
 impl ValueProducer<Number> for StaticNumber {
     fn get(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Number> {
         Some(Number(self.0))
@@ -153,11 +147,6 @@ impl ValueProducer<Number> for StaticNumber {
 }
 
 pub struct StaticText(pub String);
-impl TextSource for StaticText {
-    fn resolve(&self, _vars: &ValueStore, _entry: Option<&Entry>) -> Option<String> {
-        Some(self.0.clone())
-    }
-}
 impl ValueProducer<Text> for StaticText {
     fn get(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Text> {
         Some(Text(self.0.clone()))
@@ -165,11 +154,6 @@ impl ValueProducer<Text> for StaticText {
 }
 
 pub struct StaticColor(pub Color);
-impl ColorSource for StaticColor {
-    fn resolve(&self, _vars: &ValueStore, _entry: Option<&Entry>) -> Option<Color> {
-        Some(self.0)
-    }
-}
 impl ValueProducer<Tint> for StaticColor {
     fn get(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Tint> {
         Some(Tint(self.0))
@@ -177,11 +161,6 @@ impl ValueProducer<Tint> for StaticColor {
 }
 
 pub struct StaticBoolean(pub bool);
-impl BooleanSource for StaticBoolean {
-    fn resolve(&self, _vars: &ValueStore, _entry: Option<&Entry>) -> Option<bool> {
-        Some(self.0)
-    }
-}
 impl ValueProducer<Boolean> for StaticBoolean {
     fn get(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Boolean> {
         Some(Boolean(self.0))

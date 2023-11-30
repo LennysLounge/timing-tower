@@ -1,4 +1,4 @@
-use bevy::prelude::{Color, Handle, Image};
+use bevy::prelude::Color;
 use bevy_egui::egui::{ComboBox, Sense, Ui, Vec2};
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
@@ -10,8 +10,8 @@ use crate::{
     },
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
-        AssetId, AssetReference, AssetType, BooleanSource, ColorSource, ImageSource,
-        IntoValueProducer, NumberSource, TextSource, TypedValueProducer, ValueProducer, ValueStore,
+        AssetId, AssetReference, AssetType, IntoValueProducer, TypedValueProducer, ValueProducer,
+        ValueStore,
     },
 };
 
@@ -435,89 +435,6 @@ impl ValueProducer<Texture> for ConditionSource {
             }
         }
         .map(|n| Texture(n))
-    }
-}
-
-impl NumberSource for ConditionSource {
-    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<f32> {
-        let condition = self.evaluate_condition(vars, entry)?;
-        if condition {
-            match &self.true_value {
-                Output::Number(n) => vars.get_number_property(&n, entry),
-                _ => unreachable!(),
-            }
-        } else {
-            match &self.false_value {
-                Output::Number(n) => vars.get_number_property(&n, entry),
-                _ => unreachable!(),
-            }
-        }
-    }
-}
-impl TextSource for ConditionSource {
-    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<String> {
-        let condition = self.evaluate_condition(vars, entry)?;
-        if condition {
-            match &self.true_value {
-                Output::Text(n) => vars.get_text_property(&n, entry),
-                _ => unreachable!(),
-            }
-        } else {
-            match &self.false_value {
-                Output::Text(n) => vars.get_text_property(&n, entry),
-                _ => unreachable!(),
-            }
-        }
-    }
-}
-impl ColorSource for ConditionSource {
-    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<Color> {
-        let condition = self.evaluate_condition(vars, entry)?;
-        if condition {
-            match &self.true_value {
-                Output::Color(n) => vars.get_color_property(&n, entry),
-                _ => unreachable!(),
-            }
-        } else {
-            match &self.false_value {
-                Output::Color(n) => vars.get_color_property(&n, entry),
-                _ => unreachable!(),
-            }
-        }
-    }
-}
-
-impl BooleanSource for ConditionSource {
-    fn resolve(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
-        let condition = self.evaluate_condition(vars, entry)?;
-        if condition {
-            match &self.true_value {
-                Output::Boolean(b) => vars.get_bool_property(&b, entry),
-                _ => unreachable!(),
-            }
-        } else {
-            match &self.false_value {
-                Output::Boolean(b) => vars.get_bool_property(&b, entry),
-                _ => unreachable!(),
-            }
-        }
-    }
-}
-
-impl ImageSource for ConditionSource {
-    fn resolve(&self, repo: &ValueStore, entry: Option<&Entry>) -> Option<Handle<Image>> {
-        let condition = self.evaluate_condition(repo, entry)?;
-        if condition {
-            match &self.true_value {
-                Output::Image(i) => repo.get_image_property(&i, entry),
-                _ => unreachable!(),
-            }
-        } else {
-            match &self.false_value {
-                Output::Image(i) => repo.get_image_property(&i, entry),
-                _ => unreachable!(),
-            }
-        }
     }
 }
 

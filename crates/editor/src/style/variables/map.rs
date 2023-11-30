@@ -1,4 +1,4 @@
-use bevy::prelude::{Color, Handle, Image};
+use bevy::prelude::Color;
 use bevy_egui::egui::{vec2, ComboBox, Ui};
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
@@ -10,8 +10,8 @@ use crate::{
     },
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
-        AssetId, AssetReference, AssetType, BooleanSource, ColorSource, ImageSource,
-        IntoValueProducer, NumberSource, TextSource, TypedValueProducer, ValueProducer, ValueStore,
+        AssetId, AssetReference, AssetType, IntoValueProducer, TypedValueProducer, ValueProducer,
+        ValueStore,
     },
 };
 
@@ -467,110 +467,6 @@ impl ValueProducer<Texture> for MapSource {
                 _ => unreachable!(),
             })
             .map(|t| Texture(t))
-    }
-}
-impl NumberSource for MapSource {
-    fn resolve(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<f32> {
-        self.cases
-            .iter()
-            .find_map(|(case, output)| {
-                if case.test(value_store, entry) {
-                    match output {
-                        Output::Number(n) => value_store.get_number_property(n, entry),
-                        _ => unreachable!(),
-                    }
-                } else {
-                    None
-                }
-            })
-            .or_else(|| match &self.default {
-                Output::Number(p) => value_store.get_number_property(p, entry),
-                _ => unreachable!(),
-            })
-    }
-}
-
-impl TextSource for MapSource {
-    fn resolve(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<String> {
-        self.cases
-            .iter()
-            .find_map(|(case, output)| {
-                if case.test(value_store, entry) {
-                    match output {
-                        Output::Text(n) => value_store.get_text_property(n, entry),
-                        _ => unreachable!(),
-                    }
-                } else {
-                    None
-                }
-            })
-            .or_else(|| match &self.default {
-                Output::Text(p) => value_store.get_text_property(p, entry),
-                _ => unreachable!(),
-            })
-    }
-}
-
-impl ColorSource for MapSource {
-    fn resolve(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Color> {
-        self.cases
-            .iter()
-            .find_map(|(case, output)| {
-                if case.test(value_store, entry) {
-                    match output {
-                        Output::Color(n) => value_store.get_color_property(n, entry),
-                        _ => unreachable!(),
-                    }
-                } else {
-                    None
-                }
-            })
-            .or_else(|| match &self.default {
-                Output::Color(p) => value_store.get_color_property(p, entry),
-                _ => unreachable!(),
-            })
-    }
-}
-
-impl BooleanSource for MapSource {
-    fn resolve(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
-        self.cases
-            .iter()
-            .find_map(|(case, output)| {
-                if case.test(value_store, entry) {
-                    match output {
-                        Output::Boolean(n) => value_store.get_bool_property(n, entry),
-                        _ => unreachable!(),
-                    }
-                } else {
-                    None
-                }
-            })
-            .or_else(|| match &self.default {
-                Output::Boolean(p) => value_store.get_bool_property(p, entry),
-                _ => unreachable!(),
-            })
-    }
-}
-
-impl ImageSource for MapSource {
-    fn resolve(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Handle<Image>> {
-        self.cases
-            .iter()
-            .find_map(|(case, output)| {
-                if case.test(value_store, entry) {
-                    match output {
-                        Output::Image(n) => value_store.get_image_property(n, entry),
-                        _ => unreachable!(),
-                    }
-                } else {
-                    None
-                }
-            })
-            .or_else(|| match &self.default {
-                Output::Image(p) => value_store.get_image_property(p, entry),
-                _ => unreachable!(),
-            })
     }
 }
 

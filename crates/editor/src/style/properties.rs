@@ -3,7 +3,7 @@ use bevy_egui::egui::{ComboBox, DragValue, TextEdit, Ui};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    asset_reference_repo::AssetReferenceRepo,
+    reference_store::ReferenceStore,
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
         AssetType, ValueRef,
@@ -37,7 +37,7 @@ pub struct Vec3Property {
 }
 
 impl Property<Text> {
-    pub fn editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+    pub fn editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
         let mut changed = false;
         match self {
             Property::Fixed(text) => {
@@ -73,7 +73,7 @@ impl Property<Text> {
 }
 
 impl Property<Number> {
-    pub fn editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+    pub fn editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
         let mut changed = false;
         match self {
             Property::Fixed(c) => {
@@ -107,7 +107,7 @@ impl Property<Number> {
 }
 
 impl Property<Tint> {
-    pub fn editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+    pub fn editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
         let mut changed = false;
         match self {
             Property::Fixed(c) => {
@@ -144,7 +144,7 @@ impl Property<Tint> {
 }
 
 impl Property<Boolean> {
-    pub fn editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+    pub fn editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
         let mut changed = false;
         match self {
             Property::Fixed(b) => {
@@ -187,7 +187,7 @@ impl Property<Boolean> {
 }
 
 impl Property<Texture> {
-    pub fn editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+    pub fn editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
         let mut changed = false;
         match self {
             Property::Fixed(..) => {

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 
 use crate::{
-    asset_reference_repo::AssetReferenceRepo,
+    reference_store::ReferenceStore,
     style::properties::Property,
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
@@ -134,7 +134,7 @@ impl Condition {
         &mut self.id
     }
 
-    pub fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+    pub fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
         let mut changed = false;
 
         ui.horizontal(|ui| {

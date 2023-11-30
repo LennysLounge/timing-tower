@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 
 use crate::{
-    asset_reference_repo::AssetReferenceRepo,
+    reference_store::ReferenceStore,
     style::properties::Property,
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
@@ -33,7 +33,7 @@ impl Map {
             default: Output::Number(Property::Fixed(Number(0.0))),
         }
     }
-    pub fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+    pub fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
         let mut changed = false;
 
         ui.horizontal(|ui| {
@@ -212,7 +212,7 @@ struct Case {
 }
 
 impl Case {
-    fn show(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+    fn show(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
         let mut changed = false;
 
         ui.horizontal(|ui| {
@@ -243,7 +243,7 @@ enum Comparison {
 }
 
 impl Comparison {
-    fn show(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+    fn show(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
         let mut changed = false;
 
         ui.vertical(|ui| match self {
@@ -343,7 +343,7 @@ enum Output {
 }
 
 impl Output {
-    fn show(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+    fn show(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
         let mut changed = false;
 
         changed |= match self {

@@ -3,7 +3,7 @@ use bevy_egui::egui::{ComboBox, Ui};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    asset_reference_repo::AssetReferenceRepo,
+    reference_store::ReferenceStore,
     value_store::types::{Boolean, Number, Text, Texture, Tint},
 };
 
@@ -85,7 +85,7 @@ impl Default for Cell {
 }
 
 impl Cell {
-    pub fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+    pub fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
         let mut changed = false;
 
         ui.label("Cell:");

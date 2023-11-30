@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use tree_view::{DropPosition, TreeUi, TreeViewBuilder};
 use uuid::Uuid;
 
-use crate::asset_reference_repo::AssetReferenceRepo;
+use crate::reference_store::ReferenceStore;
 
 use super::{StyleTreeNode, StyleTreeUi, TreeViewAction};
 
@@ -46,7 +46,7 @@ impl<T: StyleTreeNode + FolderActions<FolderType = T>> StyleTreeUi for Folder<T>
         });
     }
 
-    fn property_editor(&mut self, ui: &mut Ui, _asset_repo: &AssetReferenceRepo) -> bool {
+    fn property_editor(&mut self, ui: &mut Ui, _asset_repo: &ReferenceStore) -> bool {
         let mut changed = false;
         if self.renameable {
             ui.label("Name:");
@@ -173,7 +173,7 @@ impl<T: StyleTreeNode + FolderActions<FolderType = T>> StyleTreeUi for FolderOrT
         }
     }
 
-    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
         match self {
             FolderOrT::T(o) => o.property_editor(ui, asset_repo),
             FolderOrT::Folder(o) => o.property_editor(ui, asset_repo),

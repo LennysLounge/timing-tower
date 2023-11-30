@@ -9,7 +9,7 @@ use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
 use crate::{
-    asset_reference_repo::AssetReferenceRepo,
+    reference_store::ReferenceStore,
     value_store::{
         types::Texture, AssetId, AssetType, IntoValueProducer, TypedValueProducer, ValueProducer,
         ValueStore,
@@ -84,7 +84,7 @@ impl StyleTreeUi for AssetDefinition {
         }
     }
 
-    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
         match self {
             AssetDefinition::Image(o) => o.property_editor(ui, asset_repo),
         }
@@ -191,7 +191,7 @@ impl StyleTreeUi for ImageAsset {
         });
     }
 
-    fn property_editor(&mut self, ui: &mut Ui, _asset_repo: &AssetReferenceRepo) -> bool {
+    fn property_editor(&mut self, ui: &mut Ui, _asset_repo: &ReferenceStore) -> bool {
         let mut changed = false;
 
         ui.label("Name");

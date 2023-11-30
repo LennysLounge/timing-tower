@@ -6,7 +6,7 @@ use tree_view::{DropPosition, TreeUi, TreeViewBuilder};
 use uuid::Uuid;
 
 use crate::{
-    asset_reference_repo::AssetReferenceRepo,
+    reference_store::ReferenceStore,
     value_store::{AssetId, IntoValueProducer, TypedValueProducer},
 };
 
@@ -50,7 +50,7 @@ impl StyleTreeUi for VariableBehavior {
     fn property_editor(
         &mut self,
         ui: &mut bevy_egui::egui::Ui,
-        asset_repo: &AssetReferenceRepo,
+        asset_repo: &ReferenceStore,
     ) -> bool {
         let mut changed = false;
 

@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use tree_view::{DropAction, DropPosition, TreeUi, TreeViewBuilder};
 use uuid::Uuid;
 
-use crate::asset_reference_repo::AssetReferenceRepo;
+use crate::reference_store::ReferenceStore;
 
 use self::{
     assets::AssetDefinition, folder::Folder, timing_tower::TimingTower, variables::VariableBehavior,
@@ -37,7 +37,7 @@ pub trait StyleTreeUi {
     #[allow(unused)]
     /// Display the property editor for this tree node and return true if any fields where changed
     /// Returns falls if no changes were made to the node.
-    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
         false
     }
     /// Display the tree view node of this node.

@@ -11,13 +11,13 @@ use crate::{
     value_store::{AssetId, AssetReference, IntoValueProducer},
 };
 
-pub struct AssetReferenceRepo {
+pub struct ReferenceStore {
     assets: AssetOrFolder,
     game_sources: AssetOrFolder,
     variables: AssetOrFolder,
 }
 
-impl AssetReferenceRepo {
+impl ReferenceStore {
     pub fn new(vars: &Folder<VariableBehavior>, assets: &Folder<AssetDefinition>) -> Self {
         Self {
             variables: AssetOrFolder::from_vars(vars),

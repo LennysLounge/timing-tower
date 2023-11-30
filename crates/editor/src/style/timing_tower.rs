@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use tree_view::{DropPosition, TreeUi, TreeViewBuilder};
 use uuid::Uuid;
 
-use crate::asset_reference_repo::AssetReferenceRepo;
+use crate::reference_store::ReferenceStore;
 
 use super::{
     cell::Cell,
@@ -22,7 +22,7 @@ pub struct TimingTower {
 }
 
 impl StyleTreeUi for TimingTower {
-    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
         self.cell.property_editor(ui, asset_repo)
     }
 
@@ -72,7 +72,7 @@ pub struct TimingTowerTable {
 }
 
 impl StyleTreeUi for TimingTowerTable {
-    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
         let mut changed = false;
 
         ui.label("Row offset:");
@@ -134,7 +134,7 @@ pub struct TimingTowerRow {
 }
 
 impl StyleTreeUi for TimingTowerRow {
-    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
         self.cell.property_editor(ui, asset_repo)
     }
 
@@ -208,7 +208,7 @@ pub struct TimingTowerColumn {
 }
 
 impl StyleTreeUi for TimingTowerColumn {
-    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
+    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
         let mut changed = false;
         ui.label("Name:");
         changed |= ui.text_edit_singleline(&mut self.name).changed();

@@ -20,7 +20,7 @@ use tree_view::TreeViewBuilder;
 use uuid::Uuid;
 
 use crate::{
-    asset_reference_repo::AssetReferenceRepo,
+    reference_store::ReferenceStore,
     value_store::ValueStore,
     style::{StyleDefinition, StyleTreeNode, TreeViewAction},
     MainCamera,
@@ -323,7 +323,7 @@ fn property_editor(
 ) {
     let mut changed = false;
 
-    let asset_reference_repo = AssetReferenceRepo::new(&style.vars, &style.assets);
+    let asset_reference_repo = ReferenceStore::new(&style.vars, &style.assets);
     ScrollArea::vertical()
         .auto_shrink([false, false])
         .show(ui, |ui| {

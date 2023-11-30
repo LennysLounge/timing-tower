@@ -26,7 +26,7 @@ impl ReferenceStore {
         }
     }
 
-    pub fn editor(
+    pub fn untyped_editor(
         &self,
         ui: &mut Ui,
         asset_ref_key: &Uuid,
@@ -45,7 +45,7 @@ impl ReferenceStore {
         InnerResponse::new(selected_asset.map(|a| a.get_ref()), res.response)
     }
 
-    pub fn editor_none(
+    pub fn untyped_editor_none(
         &self,
         ui: &mut Ui,
         is_type_allowed: impl Fn(&AssetId) -> bool,
@@ -57,7 +57,7 @@ impl ReferenceStore {
         selected_asset.map(|a| a.get_ref())
     }
 
-    pub fn editor_small(
+    pub fn untyped_editor_small(
         &self,
         ui: &mut Ui,
         is_type_allowed: impl Fn(&AssetId) -> bool,

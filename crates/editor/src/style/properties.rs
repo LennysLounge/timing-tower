@@ -58,7 +58,7 @@ impl Widget for PropertyEditor<'_, Number> {
                 let value_res = ui.add(DragValue::new(&mut c.0));
                 let mut editor_res = self
                     .reference_store
-                    .editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Number));
+                    .untyped_editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Number));
 
                 if let Some(reference) = editor_res.inner {
                     *self.property = Property::ValueRef(ValueRef {
@@ -70,7 +70,7 @@ impl Widget for PropertyEditor<'_, Number> {
                 Response::union(&value_res, editor_res.response)
             }
             Property::ValueRef(value_ref) => {
-                let mut editor_res = self.reference_store.editor(ui, &value_ref.id, |v| {
+                let mut editor_res = self.reference_store.untyped_editor(ui, &value_ref.id, |v| {
                     v.asset_type.can_cast_to(&ValueType::Number)
                 });
 
@@ -98,7 +98,7 @@ impl Property<Text> {
                     .add(TextEdit::singleline(&mut text.0).desired_width(100.0))
                     .changed();
                 if let Some(reference) = asset_repo
-                    .editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Text))
+                    .untyped_editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Text))
                     .inner
                 {
                     *self = Property::ValueRef(ValueRef::<Text> {
@@ -109,7 +109,7 @@ impl Property<Text> {
                 }
             }
             Property::ValueRef(value_ref) => {
-                let new_ref = asset_repo.editor(ui, &value_ref.id, |v| {
+                let new_ref = asset_repo.untyped_editor(ui, &value_ref.id, |v| {
                     v.asset_type.can_cast_to(&ValueType::Text)
                 });
                 if let Some(new_ref) = new_ref.inner {
@@ -133,7 +133,7 @@ impl Property<Number> {
             Property::Fixed(c) => {
                 changed |= ui.add(DragValue::new(&mut c.0)).changed();
                 if let Some(reference) = asset_repo
-                    .editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Number))
+                    .untyped_editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Number))
                     .inner
                 {
                     *self = Property::ValueRef(ValueRef {
@@ -144,7 +144,7 @@ impl Property<Number> {
                 }
             }
             Property::ValueRef(value_ref) => {
-                let new_ref = asset_repo.editor(ui, &value_ref.id, |v| {
+                let new_ref = asset_repo.untyped_editor(ui, &value_ref.id, |v| {
                     v.asset_type.can_cast_to(&ValueType::Number)
                 });
                 if let Some(new_ref) = new_ref.inner {
@@ -171,7 +171,7 @@ impl Property<Tint> {
                 c.0 = color.into();
 
                 if let Some(reference) = asset_repo
-                    .editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Tint))
+                    .untyped_editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Tint))
                     .inner
                 {
                     *self = Property::ValueRef(ValueRef {
@@ -182,7 +182,7 @@ impl Property<Tint> {
                 }
             }
             Property::ValueRef(value_ref) => {
-                let new_ref = asset_repo.editor(ui, &value_ref.id, |v| {
+                let new_ref = asset_repo.untyped_editor(ui, &value_ref.id, |v| {
                     v.asset_type.can_cast_to(&ValueType::Tint)
                 });
                 if let Some(new_ref) = new_ref.inner {
@@ -215,7 +215,7 @@ impl Property<Boolean> {
                         changed |= ui.selectable_value(&mut b.0, false, "No").changed();
                     });
                 if let Some(reference) = asset_repo
-                    .editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Boolean))
+                    .untyped_editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Boolean))
                     .inner
                 {
                     *self = Property::ValueRef(ValueRef {
@@ -226,7 +226,7 @@ impl Property<Boolean> {
                 }
             }
             Property::ValueRef(value_ref) => {
-                let new_ref = asset_repo.editor(ui, &value_ref.id, |v| {
+                let new_ref = asset_repo.untyped_editor(ui, &value_ref.id, |v| {
                     v.asset_type.can_cast_to(&ValueType::Tint)
                 });
                 if let Some(new_ref) = new_ref.inner {
@@ -249,7 +249,7 @@ impl Property<Texture> {
         match self {
             Property::Fixed(..) => {
                 if let Some(reference) =
-                    asset_repo.editor_none(ui, |v| v.asset_type.can_cast_to(&ValueType::Texture))
+                    asset_repo.untyped_editor_none(ui, |v| v.asset_type.can_cast_to(&ValueType::Texture))
                 {
                     *self = Property::ValueRef(ValueRef {
                         id: reference.id,
@@ -259,7 +259,7 @@ impl Property<Texture> {
                 }
             }
             Property::ValueRef(value_ref) => {
-                let new_ref = asset_repo.editor(ui, &value_ref.id, |v| {
+                let new_ref = asset_repo.untyped_editor(ui, &value_ref.id, |v| {
                     v.asset_type.can_cast_to(&ValueType::Texture)
                 });
                 if let Some(new_ref) = new_ref.inner {

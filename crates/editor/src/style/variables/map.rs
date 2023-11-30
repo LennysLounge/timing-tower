@@ -38,7 +38,7 @@ impl Map {
 
         ui.horizontal(|ui| {
             ui.label("Map input: ");
-            let new_ref = asset_repo.editor(ui, &self.input.id, |v|
+            let new_ref = asset_repo.untyped_editor(ui, &self.input.id, |v|
                 match v.asset_type{
                     ValueType::Number => true,
                     ValueType::Text => true,

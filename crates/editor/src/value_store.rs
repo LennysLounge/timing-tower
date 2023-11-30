@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 use crate::{
     game_sources,
-    style::properties::{BooleanProperty, ColorProperty, ImageProperty, NumberProperty},
+    style::properties::{BooleanProperty, ColorProperty, ImageProperty},
 };
 
 use self::types::{Boolean, Number, Text, Texture, Tint};
@@ -199,17 +199,6 @@ impl ValueStore {
         self.assets
             .get(&reference.key)
             .and_then(|v| v.resolve_texture(self, entry))
-    }
-
-    pub fn get_number_property(
-        &self,
-        property: &NumberProperty,
-        entry: Option<&Entry>,
-    ) -> Option<f32> {
-        match property {
-            NumberProperty::Fixed(n) => Some(*n),
-            NumberProperty::Ref(reference) => self.get_number(reference, entry),
-        }
     }
 
     pub fn get_color_property(

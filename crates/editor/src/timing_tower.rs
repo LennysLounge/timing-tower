@@ -19,7 +19,10 @@ use unified_sim_model::{
 
 use crate::{
     style::{cell::Cell, StyleDefinition},
-    value_store::{types::Text, ValueStore},
+    value_store::{
+        types::{Number, Text},
+        ValueStore,
+    },
     SpawnAndInitWorld,
 };
 
@@ -221,12 +224,14 @@ fn update_rows(
             offset.y -= row_height;
             offset -= Vec2::new(
                 variables
-                    .get_number_property(&elements.timing_tower.table.row_offset.x, None)
-                    .unwrap_or(0.0)
+                    .get_property(&elements.timing_tower.table.row_offset.x, None)
+                    .unwrap_or(Number(0.0))
+                    .0
                     * -1.0,
                 variables
-                    .get_number_property(&elements.timing_tower.table.row_offset.y, None)
-                    .unwrap_or(0.0),
+                    .get_property(&elements.timing_tower.table.row_offset.y, None)
+                    .unwrap_or(Number(0.0))
+                    .0,
             );
         }
     }
@@ -298,43 +303,64 @@ fn create_cell_style(cell: &Cell, vars: &ValueStore, entry: Option<&Entry>) -> C
             .get_color_property(&cell.text_color, entry)
             .unwrap_or(Color::BLACK),
         text_size: vars
-            .get_number_property(&cell.text_size, entry)
-            .unwrap_or(20.0),
+            .get_property(&cell.text_size, entry)
+            .unwrap_or(Number(20.0))
+            .0,
         text_alignment: match cell.text_alginment {
             crate::style::cell::TextAlignment::Left => common::cell::style::TextAlignment::Left,
             crate::style::cell::TextAlignment::Center => common::cell::style::TextAlignment::Center,
             crate::style::cell::TextAlignment::Right => common::cell::style::TextAlignment::Right,
         },
         text_position: Vec2::new(
-            vars.get_number_property(&cell.text_position.x, entry)
-                .unwrap_or(0.0),
-            vars.get_number_property(&cell.text_position.y, entry)
-                .unwrap_or(0.0),
+            vars.get_property(&cell.text_position.x, entry)
+                .unwrap_or(Number(0.0))
+                .0,
+            vars.get_property(&cell.text_position.y, entry)
+                .unwrap_or(Number(0.0))
+                .0,
         ),
         color: vars
             .get_color_property(&cell.color, entry)
             .unwrap_or(Color::RED),
         texture: vars.get_image_property(&cell.image, entry),
         pos: Vec3::new(
-            vars.get_number_property(&cell.pos.x, entry).unwrap_or(0.0),
-            vars.get_number_property(&cell.pos.y, entry).unwrap_or(0.0) * -1.0,
-            vars.get_number_property(&cell.pos.z, entry).unwrap_or(0.0),
+            vars.get_property(&cell.pos.x, entry)
+                .unwrap_or(Number(0.0))
+                .0,
+            vars.get_property(&cell.pos.y, entry)
+                .unwrap_or(Number(0.0))
+                .0
+                * -1.0,
+            vars.get_property(&cell.pos.z, entry)
+                .unwrap_or(Number(0.0))
+                .0,
         ),
         size: Vec2::new(
-            vars.get_number_property(&cell.size.x, entry).unwrap_or(0.0),
-            vars.get_number_property(&cell.size.y, entry).unwrap_or(0.0),
+            vars.get_property(&cell.size.x, entry)
+                .unwrap_or(Number(0.0))
+                .0,
+            vars.get_property(&cell.size.y, entry)
+                .unwrap_or(Number(0.0))
+                .0,
         ),
-        skew: vars.get_number_property(&cell.skew, entry).unwrap_or(0.0),
+        skew: vars
+            .get_property(&cell.skew, entry)
+            .unwrap_or(Number(0.0))
+            .0,
         visible: vars.get_bool_property(&cell.visible, entry).unwrap_or(true),
         rounding: [
-            vars.get_number_property(&cell.rounding.top_left, entry)
-                .unwrap_or(0.0),
-            vars.get_number_property(&cell.rounding.top_right, entry)
-                .unwrap_or(0.0),
-            vars.get_number_property(&cell.rounding.bot_right, entry)
-                .unwrap_or(0.0),
-            vars.get_number_property(&cell.rounding.bot_left, entry)
-                .unwrap_or(0.0),
+            vars.get_property(&cell.rounding.top_left, entry)
+                .unwrap_or(Number(0.0))
+                .0,
+            vars.get_property(&cell.rounding.top_right, entry)
+                .unwrap_or(Number(0.0))
+                .0,
+            vars.get_property(&cell.rounding.bot_right, entry)
+                .unwrap_or(Number(0.0))
+                .0,
+            vars.get_property(&cell.rounding.bot_left, entry)
+                .unwrap_or(Number(0.0))
+                .0,
         ],
     }
 }

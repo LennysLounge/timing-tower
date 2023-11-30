@@ -4,15 +4,11 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    value_store::{types::Text, AssetReference, AssetType, Property, ValueRef},
+    value_store::{
+        types::{Number, Text},
+        AssetReference, AssetType, Property, ValueRef,
+    },
 };
-
-#[derive(Serialize, Deserialize, Clone)]
-pub enum NumberProperty {
-    Ref(AssetReference),
-    #[serde(untagged)]
-    Fixed(f32),
-}
 
 #[derive(Serialize, Deserialize, Clone)]
 pub enum ColorProperty {
@@ -37,15 +33,15 @@ pub enum ImageProperty {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Vec2Property {
-    pub x: NumberProperty,
-    pub y: NumberProperty,
+    pub x: Property<Number>,
+    pub y: Property<Number>,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Vec3Property {
-    pub x: NumberProperty,
-    pub y: NumberProperty,
-    pub z: NumberProperty,
+    pub x: Property<Number>,
+    pub y: Property<Number>,
+    pub z: Property<Number>,
 }
 
 pub fn text_property_editor(
@@ -86,29 +82,32 @@ pub fn text_property_editor(
     changed
 }
 
-impl NumberProperty {
+impl Property<Number> {
     pub fn editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
         let mut changed = false;
         match self {
-            NumberProperty::Fixed(c) => {
-                changed |= ui.add(DragValue::new(c)).changed();
+            Property::Fixed(c) => {
+                changed |= ui.add(DragValue::new(&mut c.0)).changed();
                 if let Some(reference) =
                     asset_repo.editor_small(ui, |v| v.asset_type.can_cast_to(&AssetType::Number))
                 {
-                    *self = NumberProperty::Ref(reference);
+                    *self = Property::ValueRef(ValueRef {
+                        id: reference.key,
+                        phantom: std::marker::PhantomData,
+                    });
                     changed = true;
                 }
             }
-            NumberProperty::Ref(asset_ref) => {
-                let new_ref = asset_repo.editor(ui, &asset_ref.key, |v| {
+            Property::ValueRef(value_ref) => {
+                let new_ref = asset_repo.editor(ui, &value_ref.id, |v| {
                     v.asset_type.can_cast_to(&AssetType::Number)
                 });
                 if let Some(new_ref) = new_ref {
-                    *asset_ref = new_ref;
+                    value_ref.id = new_ref.key;
                     changed = true;
                 }
                 if ui.button("x").clicked() {
-                    *self = NumberProperty::Fixed(0.0);
+                    *self = Property::Fixed(Number(0.0));
                     changed = true;
                 }
             }

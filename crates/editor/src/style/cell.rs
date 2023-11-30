@@ -4,25 +4,27 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    value_store::{types::Text, Property},
+    value_store::{
+        types::{Number, Text},
+        Property,
+    },
 };
 
 use super::properties::{
-    text_property_editor, BooleanProperty, ColorProperty, ImageProperty, NumberProperty,
-    Vec2Property, Vec3Property,
+    text_property_editor, BooleanProperty, ColorProperty, ImageProperty, Vec2Property, Vec3Property,
 };
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Cell {
     pub text: Property<Text>,
     pub text_color: ColorProperty,
-    pub text_size: NumberProperty,
+    pub text_size: Property<Number>,
     pub color: ColorProperty,
     #[serde(default)]
     pub image: ImageProperty,
     pub pos: Vec3Property,
     pub size: Vec2Property,
-    pub skew: NumberProperty,
+    pub skew: Property<Number>,
     pub visible: BooleanProperty,
     pub rounding: Rounding,
     pub text_alginment: TextAlignment,
@@ -39,10 +41,10 @@ pub enum ValueSource {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Rounding {
-    pub top_left: NumberProperty,
-    pub top_right: NumberProperty,
-    pub bot_left: NumberProperty,
-    pub bot_right: NumberProperty,
+    pub top_left: Property<Number>,
+    pub top_right: Property<Number>,
+    pub bot_left: Property<Number>,
+    pub bot_right: Property<Number>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
@@ -58,29 +60,29 @@ impl Default for Cell {
         Self {
             text: Property::Fixed(Text("Column".to_string())),
             text_color: ColorProperty::Fixed(Color::BLACK),
-            text_size: NumberProperty::Fixed(20.0),
+            text_size: Property::Fixed(Number(20.0)),
             color: ColorProperty::Fixed(Color::PURPLE),
             pos: Vec3Property {
-                x: NumberProperty::Fixed(10.0),
-                y: NumberProperty::Fixed(10.0),
-                z: NumberProperty::Fixed(0.0),
+                x: Property::Fixed(Number(10.0)),
+                y: Property::Fixed(Number(10.0)),
+                z: Property::Fixed(Number(0.0)),
             },
             size: Vec2Property {
-                x: NumberProperty::Fixed(30.0),
-                y: NumberProperty::Fixed(30.0),
+                x: Property::Fixed(Number(30.0)),
+                y: Property::Fixed(Number(30.0)),
             },
-            skew: NumberProperty::Fixed(12.0),
+            skew: Property::Fixed(Number(12.0)),
             visible: BooleanProperty::Fixed(true),
             rounding: Rounding {
-                top_left: NumberProperty::Fixed(0.0),
-                top_right: NumberProperty::Fixed(0.0),
-                bot_left: NumberProperty::Fixed(0.0),
-                bot_right: NumberProperty::Fixed(0.0),
+                top_left: Property::Fixed(Number(0.0)),
+                top_right: Property::Fixed(Number(0.0)),
+                bot_left: Property::Fixed(Number(0.0)),
+                bot_right: Property::Fixed(Number(0.0)),
             },
             text_alginment: TextAlignment::default(),
             text_position: Vec2Property {
-                x: NumberProperty::Fixed(5.0),
-                y: NumberProperty::Fixed(15.0),
+                x: Property::Fixed(Number(5.0)),
+                y: Property::Fixed(Number(15.0)),
             },
             image: ImageProperty::default(),
         }

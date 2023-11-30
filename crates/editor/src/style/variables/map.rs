@@ -5,9 +5,7 @@ use unified_sim_model::model::Entry;
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    style::properties::{
-        text_property_editor, BooleanProperty, ColorProperty, ImageProperty, NumberProperty,
-    },
+    style::properties::{text_property_editor, BooleanProperty, ColorProperty, ImageProperty},
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
         AssetId, AssetReference, AssetType, IntoValueProducer, Property, TypedValueProducer,
@@ -32,7 +30,7 @@ impl Map {
             id,
             input: AssetReference::default(),
             cases: Vec::new(),
-            default: Output::Number(NumberProperty::Fixed(0.0)),
+            default: Output::Number(Property::Fixed(Number(0.0))),
         }
     }
     pub fn property_editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
@@ -99,7 +97,7 @@ impl Map {
 
     fn update_output_type(&mut self) {
         let new_output = match self.id.asset_type {
-            AssetType::Number => Output::Number(NumberProperty::Fixed(0.0)),
+            AssetType::Number => Output::Number(Property::Fixed(Number(0.0))),
             AssetType::Text => Output::Text(Property::Fixed(Text(String::new()))),
             AssetType::Color => Output::Color(ColorProperty::Fixed(Color::WHITE)),
             AssetType::Boolean => Output::Boolean(BooleanProperty::Fixed(false)),
@@ -114,7 +112,7 @@ impl Map {
     fn update_comparison_type(&mut self) {
         let new_comparison = match self.input.asset_type {
             AssetType::Number => {
-                Comparison::Number(NumberProperty::Fixed(0.0), NumberComparator::Equal)
+                Comparison::Number(Property::Fixed(Number(0.0)), NumberComparator::Equal)
             }
             AssetType::Text => {
                 Comparison::Text(Property::Fixed(Text(String::new())), TextComparator::Like)
@@ -131,7 +129,7 @@ impl Map {
     fn new_comparison(&self) -> Comparison {
         match self.input.asset_type {
             AssetType::Number => {
-                Comparison::Number(NumberProperty::Fixed(0.0), NumberComparator::Equal)
+                Comparison::Number(Property::Fixed(Number(0.0)), NumberComparator::Equal)
             }
             AssetType::Text => {
                 Comparison::Text(Property::Fixed(Text(String::new())), TextComparator::Like)
@@ -144,7 +142,7 @@ impl Map {
 
     fn new_output(&self) -> Output {
         match self.id.asset_type {
-            AssetType::Number => Output::Number(NumberProperty::Fixed(0.0)),
+            AssetType::Number => Output::Number(Property::Fixed(Number(0.0))),
             AssetType::Text => Output::Text(Property::Fixed(Text(String::new()))),
             AssetType::Color => Output::Color(ColorProperty::Fixed(Color::WHITE)),
             AssetType::Boolean => Output::Boolean(BooleanProperty::Fixed(false)),
@@ -240,7 +238,7 @@ impl Case {
 
 #[derive(Serialize, Deserialize, Clone)]
 enum Comparison {
-    Number(NumberProperty, NumberComparator),
+    Number(Property<Number>, NumberComparator),
     Text(Property<Text>, TextComparator),
 }
 
@@ -337,7 +335,7 @@ impl TextComparator {
 
 #[derive(Serialize, Deserialize, Clone)]
 enum Output {
-    Number(NumberProperty),
+    Number(Property<Number>),
     Text(Property<Text>),
     Color(ColorProperty),
     Boolean(BooleanProperty),
@@ -371,7 +369,7 @@ impl ValueProducer<Number> for MapSource {
             .find_map(|(case, output)| {
                 if case.test(value_store, entry) {
                     match output {
-                        Output::Number(n) => value_store.get_number_property(n, entry),
+                        Output::Number(n) => value_store.get_property(n, entry),
                         _ => unreachable!(),
                     }
                 } else {
@@ -379,10 +377,9 @@ impl ValueProducer<Number> for MapSource {
                 }
             })
             .or_else(|| match &self.default {
-                Output::Number(p) => value_store.get_number_property(p, entry),
+                Output::Number(p) => value_store.get_property(p, entry),
                 _ => unreachable!(),
             })
-            .map(|n| Number(n))
     }
 }
 impl ValueProducer<Text> for MapSource {
@@ -470,7 +467,7 @@ impl ValueProducer<Texture> for MapSource {
 }
 
 enum CaseComparison {
-    Number((AssetReference, NumberComparator, NumberProperty)),
+    Number((AssetReference, NumberComparator, Property<Number>)),
     Text((AssetReference, TextComparator, Property<Text>)),
 }
 impl CaseComparison {
@@ -478,9 +475,9 @@ impl CaseComparison {
         match self {
             CaseComparison::Number((reference, comp, prop)) => {
                 let value = asset_repo.get_number(reference, entry);
-                let pivot = asset_repo.get_number_property(prop, entry);
+                let pivot = asset_repo.get_property(prop, entry);
                 if let (Some(value), Some(pivot)) = (value, pivot) {
-                    comp.compare(value, pivot)
+                    comp.compare(value, pivot.0)
                 } else {
                     false
                 }

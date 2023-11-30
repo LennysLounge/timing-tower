@@ -20,7 +20,7 @@ use unified_sim_model::{
 use crate::{
     style::{cell::Cell, StyleDefinition},
     value_store::{
-        types::{Number, Text},
+        types::{Number, Text, Tint},
         ValueStore,
     },
     SpawnAndInitWorld,
@@ -300,8 +300,9 @@ fn create_cell_style(cell: &Cell, vars: &ValueStore, entry: Option<&Entry>) -> C
             .unwrap_or_else(|| Text("unavailable".to_string()))
             .0,
         text_color: vars
-            .get_color_property(&cell.text_color, entry)
-            .unwrap_or(Color::BLACK),
+            .get_property(&cell.text_color, entry)
+            .unwrap_or(Tint(Color::BLACK))
+            .0,
         text_size: vars
             .get_property(&cell.text_size, entry)
             .unwrap_or(Number(20.0))
@@ -320,8 +321,9 @@ fn create_cell_style(cell: &Cell, vars: &ValueStore, entry: Option<&Entry>) -> C
                 .0,
         ),
         color: vars
-            .get_color_property(&cell.color, entry)
-            .unwrap_or(Color::RED),
+            .get_property(&cell.color, entry)
+            .unwrap_or(Tint(Color::RED))
+            .0,
         texture: vars.get_image_property(&cell.image, entry),
         pos: Vec3::new(
             vars.get_property(&cell.pos.x, entry)

@@ -1,13 +1,13 @@
 use std::{collections::HashMap, marker::PhantomData};
 
-use bevy::prelude::{Color, Handle, Image, Resource};
+use bevy::prelude::{Handle, Image, Resource};
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
 use crate::{
     game_sources,
-    style::properties::{BooleanProperty, ColorProperty, ImageProperty},
+    style::properties::{BooleanProperty, ImageProperty},
 };
 
 use self::types::{Boolean, Number, Text, Texture, Tint};
@@ -181,11 +181,6 @@ impl ValueStore {
             .and_then(|v| v.resolve_text(self, entry))
     }
 
-    pub fn get_color(&self, reference: &AssetReference, entry: Option<&Entry>) -> Option<Color> {
-        self.assets
-            .get(&reference.key)
-            .and_then(|v| v.resolve_tint(self, entry))
-    }
     pub fn get_bool(&self, reference: &AssetReference, entry: Option<&Entry>) -> Option<bool> {
         self.assets
             .get(&reference.key)
@@ -199,17 +194,6 @@ impl ValueStore {
         self.assets
             .get(&reference.key)
             .and_then(|v| v.resolve_texture(self, entry))
-    }
-
-    pub fn get_color_property(
-        &self,
-        property: &ColorProperty,
-        entry: Option<&Entry>,
-    ) -> Option<Color> {
-        match property {
-            ColorProperty::Fixed(n) => Some(n.clone()),
-            ColorProperty::Ref(reference) => self.get_color(reference, entry),
-        }
     }
 
     pub fn get_bool_property(
@@ -251,12 +235,6 @@ impl TypedValueProducer {
         }
     }
 
-    pub fn resolve_tint(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<Color> {
-        match self {
-            TypedValueProducer::Tint(s) => s.get(vars, entry).map(|n| n.0),
-            _ => None,
-        }
-    }
     pub fn resolve_bool(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
         match self {
             TypedValueProducer::Boolean(s) => s.get(vars, entry).map(|n| n.0),
@@ -291,6 +269,14 @@ impl TypedValueResolver<Text> for ValueStore {
         match producer {
             TypedValueProducer::Number(p) => p.get(self, entry).map(|n| Text(format!("{}", n.0))),
             TypedValueProducer::Text(p) => p.get(self, entry),
+            _ => None,
+        }
+    }
+}
+impl TypedValueResolver<Tint> for ValueStore {
+    fn get_typed(&self, producer: &TypedValueProducer, entry: Option<&Entry>) -> Option<Tint> {
+        match producer {
+            TypedValueProducer::Tint(p) => p.get(self, entry),
             _ => None,
         }
     }

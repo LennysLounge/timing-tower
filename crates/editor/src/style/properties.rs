@@ -5,17 +5,10 @@ use serde::{Deserialize, Serialize};
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
     value_store::{
-        types::{Number, Text},
+        types::{Number, Text, Tint},
         AssetReference, AssetType, Property, ValueRef,
     },
 };
-
-#[derive(Serialize, Deserialize, Clone)]
-pub enum ColorProperty {
-    Ref(AssetReference),
-    #[serde(untagged)]
-    Fixed(Color),
-}
 
 #[derive(Serialize, Deserialize, Clone)]
 pub enum BooleanProperty {
@@ -116,32 +109,35 @@ impl Property<Number> {
     }
 }
 
-impl ColorProperty {
+impl Property<Tint> {
     pub fn editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
         let mut changed = false;
         match self {
-            ColorProperty::Fixed(c) => {
-                let mut color = c.as_rgba_f32();
+            Property::Fixed(c) => {
+                let mut color = c.0.as_rgba_f32();
                 changed |= ui.color_edit_button_rgba_unmultiplied(&mut color).changed();
-                *c = color.into();
+                c.0 = color.into();
 
                 if let Some(reference) =
                     asset_repo.editor_small(ui, |v| v.asset_type.can_cast_to(&AssetType::Color))
                 {
-                    *self = ColorProperty::Ref(reference);
+                    *self = Property::ValueRef(ValueRef {
+                        id: reference.key,
+                        phantom: std::marker::PhantomData,
+                    });
                     changed |= true;
                 }
             }
-            ColorProperty::Ref(asset_ref) => {
-                let new_ref = asset_repo.editor(ui, &asset_ref.key, |v| {
+            Property::ValueRef(value_ref) => {
+                let new_ref = asset_repo.editor(ui, &value_ref.id, |v| {
                     v.asset_type.can_cast_to(&AssetType::Color)
                 });
                 if let Some(new_ref) = new_ref {
-                    *asset_ref = new_ref;
+                    value_ref.id = new_ref.key;
                     changed |= true;
                 }
                 if ui.button("x").clicked() {
-                    *self = ColorProperty::Fixed(Color::PURPLE);
+                    *self = Property::Fixed(Tint(Color::PURPLE));
                     changed |= true;
                 }
             }

@@ -5,7 +5,7 @@ use unified_sim_model::model::Entry;
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    style::properties::{text_property_editor, BooleanProperty, ColorProperty, ImageProperty},
+    style::properties::{text_property_editor, BooleanProperty, ImageProperty},
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
         AssetId, AssetReference, AssetType, IntoValueProducer, Property, TypedValueProducer,
@@ -99,7 +99,7 @@ impl Map {
         let new_output = match self.id.asset_type {
             AssetType::Number => Output::Number(Property::Fixed(Number(0.0))),
             AssetType::Text => Output::Text(Property::Fixed(Text(String::new()))),
-            AssetType::Color => Output::Color(ColorProperty::Fixed(Color::WHITE)),
+            AssetType::Color => Output::Color(Property::Fixed(Tint(Color::WHITE))),
             AssetType::Boolean => Output::Boolean(BooleanProperty::Fixed(false)),
             AssetType::Image => Output::Image(ImageProperty::None),
         };
@@ -144,7 +144,7 @@ impl Map {
         match self.id.asset_type {
             AssetType::Number => Output::Number(Property::Fixed(Number(0.0))),
             AssetType::Text => Output::Text(Property::Fixed(Text(String::new()))),
-            AssetType::Color => Output::Color(ColorProperty::Fixed(Color::WHITE)),
+            AssetType::Color => Output::Color(Property::Fixed(Tint(Color::WHITE))),
             AssetType::Boolean => Output::Boolean(BooleanProperty::Fixed(false)),
             AssetType::Image => Output::Image(ImageProperty::None),
         }
@@ -337,7 +337,7 @@ impl TextComparator {
 enum Output {
     Number(Property<Number>),
     Text(Property<Text>),
-    Color(ColorProperty),
+    Color(Property<Tint>),
     Boolean(BooleanProperty),
     Image(ImageProperty),
 }
@@ -409,7 +409,7 @@ impl ValueProducer<Tint> for MapSource {
             .find_map(|(case, output)| {
                 if case.test(value_store, entry) {
                     match output {
-                        Output::Color(n) => value_store.get_color_property(n, entry),
+                        Output::Color(n) => value_store.get_property(n, entry),
                         _ => unreachable!(),
                     }
                 } else {
@@ -417,10 +417,9 @@ impl ValueProducer<Tint> for MapSource {
                 }
             })
             .or_else(|| match &self.default {
-                Output::Color(p) => value_store.get_color_property(p, entry),
+                Output::Color(p) => value_store.get_property(p, entry),
                 _ => unreachable!(),
             })
-            .map(|t| Tint(t))
     }
 }
 impl ValueProducer<Boolean> for MapSource {

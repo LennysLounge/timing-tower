@@ -5,7 +5,7 @@ use unified_sim_model::model::Entry;
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    style::properties::{text_property_editor, BooleanProperty, ColorProperty, ImageProperty},
+    style::properties::{text_property_editor, BooleanProperty, ImageProperty},
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
         AssetId, AssetReference, AssetType, IntoValueProducer, Property, TypedValueProducer,
@@ -54,7 +54,7 @@ enum BooleanComparator {
 enum Output {
     Number(Property<Number>),
     Text(Property<Text>),
-    Color(ColorProperty),
+    Color(Property<Tint>),
     Boolean(BooleanProperty),
     Image(ImageProperty),
 }
@@ -115,14 +115,14 @@ impl Condition {
             true_output: match &id.asset_type {
                 AssetType::Number => Output::Number(Property::Fixed(Number(0.0))),
                 AssetType::Text => Output::Text(Property::Fixed(Text(String::new()))),
-                AssetType::Color => Output::Color(ColorProperty::Fixed(Color::WHITE)),
+                AssetType::Color => Output::Color(Property::Fixed(Tint(Color::WHITE))),
                 AssetType::Boolean => Output::Boolean(BooleanProperty::Fixed(true)),
                 AssetType::Image => Output::Image(ImageProperty::default()),
             },
             false_output: match &id.asset_type {
                 AssetType::Number => Output::Number(Property::Fixed(Number(0.0))),
                 AssetType::Text => Output::Text(Property::Fixed(Text(String::new()))),
-                AssetType::Color => Output::Color(ColorProperty::Fixed(Color::WHITE)),
+                AssetType::Color => Output::Color(Property::Fixed(Tint(Color::WHITE))),
                 AssetType::Boolean => Output::Boolean(BooleanProperty::Fixed(false)),
                 AssetType::Image => Output::Image(ImageProperty::default()),
             },
@@ -165,8 +165,8 @@ impl Condition {
                     let is_color = self.id.asset_type == AssetType::Color;
                     if ui.selectable_label(is_color, "Color").clicked() && !is_color {
                         self.id.asset_type = AssetType::Color;
-                        self.true_output = Output::Color(ColorProperty::Fixed(Color::WHITE));
-                        self.false_output = Output::Color(ColorProperty::Fixed(Color::WHITE));
+                        self.true_output = Output::Color(Property::Fixed(Tint(Color::WHITE)));
+                        self.false_output = Output::Color(Property::Fixed(Tint(Color::WHITE)));
                         changed |= true;
                     }
                     let is_boolean = self.id.asset_type == AssetType::Boolean;
@@ -387,16 +387,15 @@ impl ValueProducer<Tint> for ConditionSource {
         let condition = self.evaluate_condition(value_store, entry)?;
         if condition {
             match &self.true_value {
-                Output::Color(n) => value_store.get_color_property(&n, entry),
+                Output::Color(n) => value_store.get_property(&n, entry),
                 _ => unreachable!(),
             }
         } else {
             match &self.false_value {
-                Output::Color(n) => value_store.get_color_property(&n, entry),
+                Output::Color(n) => value_store.get_property(&n, entry),
                 _ => unreachable!(),
             }
         }
-        .map(|n| Tint(n))
     }
 }
 impl ValueProducer<Boolean> for ConditionSource {

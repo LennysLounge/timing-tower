@@ -5,21 +5,21 @@ use serde::{Deserialize, Serialize};
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
     value_store::{
-        types::{Number, Text},
+        types::{Number, Text, Tint},
         Property,
     },
 };
 
 use super::properties::{
-    text_property_editor, BooleanProperty, ColorProperty, ImageProperty, Vec2Property, Vec3Property,
+    text_property_editor, BooleanProperty, ImageProperty, Vec2Property, Vec3Property,
 };
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Cell {
     pub text: Property<Text>,
-    pub text_color: ColorProperty,
+    pub text_color: Property<Tint>,
     pub text_size: Property<Number>,
-    pub color: ColorProperty,
+    pub color: Property<Tint>,
     #[serde(default)]
     pub image: ImageProperty,
     pub pos: Vec3Property,
@@ -59,9 +59,9 @@ impl Default for Cell {
     fn default() -> Self {
         Self {
             text: Property::Fixed(Text("Column".to_string())),
-            text_color: ColorProperty::Fixed(Color::BLACK),
+            text_color: Property::Fixed(Tint(Color::BLACK)),
             text_size: Property::Fixed(Number(20.0)),
-            color: ColorProperty::Fixed(Color::PURPLE),
+            color: Property::Fixed(Tint(Color::PURPLE)),
             pos: Vec3Property {
                 x: Property::Fixed(Number(10.0)),
                 y: Property::Fixed(Number(10.0)),

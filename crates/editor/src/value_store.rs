@@ -115,45 +115,14 @@ pub struct ValueRef<T> {
 pub trait ToUntypedValueRef<T> {
     fn to_untyped(&self) -> UntypedValueRef;
 }
-
-impl ToUntypedValueRef<Number> for ValueRef<Number> {
+impl<T> ToUntypedValueRef<T> for ValueRef<T>
+where
+    ValueType: ValueTypeOf<T>,
+{
     fn to_untyped(&self) -> UntypedValueRef {
         UntypedValueRef {
             id: self.id,
-            value_type: ValueType::Number,
-        }
-    }
-}
-
-impl ToUntypedValueRef<Text> for ValueRef<Text> {
-    fn to_untyped(&self) -> UntypedValueRef {
-        UntypedValueRef {
-            id: self.id,
-            value_type: ValueType::Text,
-        }
-    }
-}
-impl ToUntypedValueRef<Tint> for ValueRef<Tint> {
-    fn to_untyped(&self) -> UntypedValueRef {
-        UntypedValueRef {
-            id: self.id,
-            value_type: ValueType::Tint,
-        }
-    }
-}
-impl ToUntypedValueRef<Boolean> for ValueRef<Boolean> {
-    fn to_untyped(&self) -> UntypedValueRef {
-        UntypedValueRef {
-            id: self.id,
-            value_type: ValueType::Boolean,
-        }
-    }
-}
-impl ToUntypedValueRef<Texture> for ValueRef<Texture> {
-    fn to_untyped(&self) -> UntypedValueRef {
-        UntypedValueRef {
-            id: self.id,
-            value_type: ValueType::Texture,
+            value_type: ValueTypeOf::<T>::get(),
         }
     }
 }

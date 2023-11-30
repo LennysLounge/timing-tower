@@ -10,10 +10,8 @@ use uuid::Uuid;
 
 use crate::{
     reference_store::ReferenceStore,
-    value_store::{
-        types::Texture, AssetId, ValueType, IntoValueProducer, TypedValueProducer, ValueProducer,
-        ValueStore,
-    },
+    value_store::{AssetId, IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore},
+    value_types::{Texture, ValueType},
 };
 
 use super::{

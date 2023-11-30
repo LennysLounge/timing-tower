@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     reference_store::ReferenceStore,
-    value_store::types::{Boolean, Number, Text, Texture, Tint},
+    value_types::{Boolean, Number, Text, Texture, Tint},
 };
 
 use super::properties::{Property, PropertyEditor, Vec2Property, Vec3Property};

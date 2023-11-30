@@ -3,10 +3,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     reference_store::ReferenceStore,
-    value_store::{
-        types::{Boolean, Number, Text, Texture, Tint},
-        ToTypedValueRef, ToUntypedValueRef, UntypedValueRef, ValueRef, ValueType, ValueTypeOf,
-    },
+    value_store::{ToTypedValueRef, ToUntypedValueRef, UntypedValueRef, ValueRef},
+    value_types::{Boolean, Number, Text, Texture, Tint, ValueType, ValueTypeOf},
 };
 
 #[derive(Serialize, Deserialize, Clone)]

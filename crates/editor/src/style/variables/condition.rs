@@ -7,10 +7,9 @@ use crate::{
     reference_store::ReferenceStore,
     style::properties::{Property, PropertyEditor},
     value_store::{
-        types::{Boolean, Number, Text, Texture, Tint},
         AssetId, IntoValueProducer, TypedValueProducer, UntypedValueRef, ValueProducer, ValueStore,
-        ValueType,
     },
+    value_types::{Boolean, Number, Text, Texture, Tint, ValueType},
 };
 
 #[derive(Serialize, Deserialize, Clone)]

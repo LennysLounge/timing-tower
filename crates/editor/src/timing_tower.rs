@@ -19,10 +19,8 @@ use unified_sim_model::{
 
 use crate::{
     style::{cell::Cell, StyleDefinition},
-    value_store::{
-        types::{Boolean, Number, Text, Texture, Tint},
-        ValueStore,
-    },
+    value_store::ValueStore,
+    value_types::{Boolean, Number, Text, Texture, Tint},
     SpawnAndInitWorld,
 };
 

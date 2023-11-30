@@ -3,9 +3,9 @@ use bevy_egui::egui::{ComboBox, DragValue, Ui};
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 
-use crate::value_store::{
-    types::{Boolean, Number, Text, Tint},
-    AssetId, ValueType, IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore,
+use crate::{
+    value_store::{AssetId, IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore},
+    value_types::{Boolean, Number, Text, Tint, ValueType},
 };
 
 #[derive(Serialize, Deserialize, Clone, Default)]

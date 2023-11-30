@@ -29,17 +29,18 @@ use editor::{EditorPlugin, EditorState};
 use savefile::SaveFilePlugin;
 use style::StyleDefinition;
 
-use value_store::ValueStore;
 use timing_tower::{init_timing_tower, TimingTowerPlugin};
 use unified_sim_model::Adapter;
+use value_store::ValueStore;
 
-mod reference_store;
-mod value_store;
 mod editor;
 mod game_sources;
+mod reference_store;
 mod savefile;
 mod style;
 mod timing_tower;
+mod value_store;
+mod value_types;
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");

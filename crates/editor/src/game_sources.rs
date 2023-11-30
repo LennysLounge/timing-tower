@@ -3,9 +3,9 @@ use std::sync::OnceLock;
 use unified_sim_model::model::Entry;
 use uuid::{uuid, Uuid};
 
-use crate::value_store::{
-    types::{Boolean, Number, Text},
-    AssetId, ValueType, IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore,
+use crate::{
+    value_store::{AssetId, IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore},
+    value_types::{Boolean, Number, Text, ValueType},
 };
 
 static GAME_SOURCES: OnceLock<Vec<GameSource>> = OnceLock::new();

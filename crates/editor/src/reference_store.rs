@@ -10,8 +10,8 @@ use crate::{
     },
     value_store::{
         AssetId, IntoValueProducer, ToTypedValueRef, ToUntypedValueRef, UntypedValueRef, ValueRef,
-        ValueType, ValueTypeOf,
     },
+    value_types::{ValueType, ValueTypeOf},
 };
 
 pub struct ReferenceStore {

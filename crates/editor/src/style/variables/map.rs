@@ -8,7 +8,7 @@ use crate::{
     style::properties::Property,
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
-        AssetId, AssetReference, AssetType, IntoValueProducer, TypedValueProducer, ValueProducer,
+        AssetId, AssetReference, ValueType, IntoValueProducer, TypedValueProducer, ValueProducer,
         ValueStore,
     },
 };
@@ -40,8 +40,8 @@ impl Map {
             ui.label("Map input: ");
             let new_ref = asset_repo.editor(ui, &self.input.key, |v|
                 match v.asset_type{
-                    AssetType::Number => true,
-                    AssetType::Text => true,
+                    ValueType::Number => true,
+                    ValueType::Text => true,
                     _ => false
                 } &&
                 v.id != self.id.id);
@@ -58,11 +58,11 @@ impl Map {
                 ui,
                 &mut self.id.asset_type,
                 &[
-                    (&AssetType::Number, "Number"),
-                    (&AssetType::Text, "Text"),
-                    (&AssetType::Color, "Color"),
-                    (&AssetType::Boolean, "Yes/No"),
-                    (&AssetType::Image, "Image"),
+                    (&ValueType::Number, "Number"),
+                    (&ValueType::Text, "Text"),
+                    (&ValueType::Tint, "Color"),
+                    (&ValueType::Boolean, "Yes/No"),
+                    (&ValueType::Texture, "Image"),
                 ],
             );
             changed |= res.changed();
@@ -97,11 +97,11 @@ impl Map {
 
     fn update_output_type(&mut self) {
         let new_output = match self.id.asset_type {
-            AssetType::Number => Output::Number(Property::Fixed(Number(0.0))),
-            AssetType::Text => Output::Text(Property::Fixed(Text(String::new()))),
-            AssetType::Color => Output::Color(Property::Fixed(Tint(Color::WHITE))),
-            AssetType::Boolean => Output::Boolean(Property::Fixed(Boolean(false))),
-            AssetType::Image => Output::Image(Property::Fixed(Texture::None)),
+            ValueType::Number => Output::Number(Property::Fixed(Number(0.0))),
+            ValueType::Text => Output::Text(Property::Fixed(Text(String::new()))),
+            ValueType::Tint => Output::Color(Property::Fixed(Tint(Color::WHITE))),
+            ValueType::Boolean => Output::Boolean(Property::Fixed(Boolean(false))),
+            ValueType::Texture => Output::Image(Property::Fixed(Texture::None)),
         };
         self.default = new_output.clone();
         for case in self.cases.iter_mut() {
@@ -111,15 +111,15 @@ impl Map {
 
     fn update_comparison_type(&mut self) {
         let new_comparison = match self.input.asset_type {
-            AssetType::Number => {
+            ValueType::Number => {
                 Comparison::Number(Property::Fixed(Number(0.0)), NumberComparator::Equal)
             }
-            AssetType::Text => {
+            ValueType::Text => {
                 Comparison::Text(Property::Fixed(Text(String::new())), TextComparator::Like)
             }
-            AssetType::Color => unreachable!("Type Color not allowed in comparison"),
-            AssetType::Boolean => unreachable!("Type Boolean not allowed in comparison"),
-            AssetType::Image => unreachable!("Type Image not allowed in comparison"),
+            ValueType::Tint => unreachable!("Type Color not allowed in comparison"),
+            ValueType::Boolean => unreachable!("Type Boolean not allowed in comparison"),
+            ValueType::Texture => unreachable!("Type Image not allowed in comparison"),
         };
         for case in self.cases.iter_mut() {
             case.comparison = new_comparison.clone();
@@ -128,25 +128,25 @@ impl Map {
 
     fn new_comparison(&self) -> Comparison {
         match self.input.asset_type {
-            AssetType::Number => {
+            ValueType::Number => {
                 Comparison::Number(Property::Fixed(Number(0.0)), NumberComparator::Equal)
             }
-            AssetType::Text => {
+            ValueType::Text => {
                 Comparison::Text(Property::Fixed(Text(String::new())), TextComparator::Like)
             }
-            AssetType::Color => unreachable!(),
-            AssetType::Boolean => unreachable!(),
-            AssetType::Image => unreachable!(),
+            ValueType::Tint => unreachable!(),
+            ValueType::Boolean => unreachable!(),
+            ValueType::Texture => unreachable!(),
         }
     }
 
     fn new_output(&self) -> Output {
         match self.id.asset_type {
-            AssetType::Number => Output::Number(Property::Fixed(Number(0.0))),
-            AssetType::Text => Output::Text(Property::Fixed(Text(String::new()))),
-            AssetType::Color => Output::Color(Property::Fixed(Tint(Color::WHITE))),
-            AssetType::Boolean => Output::Boolean(Property::Fixed(Boolean(false))),
-            AssetType::Image => Output::Image(Property::Fixed(Texture::None)),
+            ValueType::Number => Output::Number(Property::Fixed(Number(0.0))),
+            ValueType::Text => Output::Text(Property::Fixed(Text(String::new()))),
+            ValueType::Tint => Output::Color(Property::Fixed(Tint(Color::WHITE))),
+            ValueType::Boolean => Output::Boolean(Property::Fixed(Boolean(false))),
+            ValueType::Texture => Output::Image(Property::Fixed(Texture::None)),
         }
     }
     fn new_case(&self) -> Case {
@@ -167,7 +167,7 @@ impl IntoValueProducer for Map {
         let mut cases = Vec::new();
         for case in self.cases.iter() {
             match self.input.asset_type {
-                AssetType::Number => {
+                ValueType::Number => {
                     let case_comp = match &case.comparison {
                         Comparison::Number(property, comp) => {
                             (self.input.clone(), comp.clone(), property.clone())
@@ -176,7 +176,7 @@ impl IntoValueProducer for Map {
                     };
                     cases.push((CaseComparison::Number(case_comp), case.output.clone()));
                 }
-                AssetType::Text => {
+                ValueType::Text => {
                     let case_comp = match &case.comparison {
                         Comparison::Text(property, comp) => {
                             (self.input.clone(), comp.clone(), property.clone())
@@ -195,11 +195,11 @@ impl IntoValueProducer for Map {
         };
 
         match self.id.asset_type {
-            AssetType::Number => TypedValueProducer::Number(Box::new(source)),
-            AssetType::Text => TypedValueProducer::Text(Box::new(source)),
-            AssetType::Color => TypedValueProducer::Tint(Box::new(source)),
-            AssetType::Boolean => TypedValueProducer::Boolean(Box::new(source)),
-            AssetType::Image => TypedValueProducer::Texture(Box::new(source)),
+            ValueType::Number => TypedValueProducer::Number(Box::new(source)),
+            ValueType::Text => TypedValueProducer::Text(Box::new(source)),
+            ValueType::Tint => TypedValueProducer::Tint(Box::new(source)),
+            ValueType::Boolean => TypedValueProducer::Boolean(Box::new(source)),
+            ValueType::Texture => TypedValueProducer::Texture(Box::new(source)),
         }
     }
 }

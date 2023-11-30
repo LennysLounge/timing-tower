@@ -11,7 +11,7 @@ use uuid::Uuid;
 use crate::{
     reference_store::ReferenceStore,
     value_store::{
-        types::Texture, AssetId, AssetType, IntoValueProducer, TypedValueProducer, ValueProducer,
+        types::Texture, AssetId, ValueType, IntoValueProducer, TypedValueProducer, ValueProducer,
         ValueStore,
     },
 };
@@ -241,7 +241,7 @@ impl ImageAsset {
             id: AssetId {
                 id: Uuid::new_v4(),
                 name: "new image".to_string(),
-                asset_type: AssetType::Image,
+                asset_type: ValueType::Texture,
             },
             path: String::new(),
             handle: None,

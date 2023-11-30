@@ -47,29 +47,29 @@ pub trait IntoValueProducer {
 }
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug, Default, Copy)]
-pub enum AssetType {
+pub enum ValueType {
     #[default]
     Number,
     Text,
-    Color,
+    Tint,
     Boolean,
-    Image,
+    Texture,
 }
-impl AssetType {
-    pub fn can_cast_to(&self, other: &AssetType) -> bool {
+impl ValueType {
+    pub fn can_cast_to(&self, other: &ValueType) -> bool {
         match (self, other) {
             (ref a, ref b) if a == b => true,
-            (AssetType::Number, AssetType::Text) => true,
+            (ValueType::Number, ValueType::Text) => true,
             _ => false,
         }
     }
     pub fn name(&self) -> &str {
         match self {
-            AssetType::Number => "Number",
-            AssetType::Text => "Text",
-            AssetType::Color => "Color",
-            AssetType::Boolean => "Boolean",
-            AssetType::Image => "Image",
+            ValueType::Number => "Number",
+            ValueType::Text => "Text",
+            ValueType::Tint => "Color",
+            ValueType::Boolean => "Boolean",
+            ValueType::Texture => "Image",
         }
     }
 }
@@ -84,7 +84,7 @@ pub struct ValueRef<T> {
 
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct AssetReference {
-    pub asset_type: AssetType,
+    pub asset_type: ValueType,
     pub key: Uuid,
 }
 
@@ -92,7 +92,7 @@ pub struct AssetReference {
 pub struct AssetId {
     pub id: Uuid,
     pub name: String,
-    pub asset_type: AssetType,
+    pub asset_type: ValueType,
 }
 
 impl Default for AssetId {
@@ -100,7 +100,7 @@ impl Default for AssetId {
         Self {
             name: "Variable".to_string(),
             id: Uuid::new_v4(),
-            asset_type: AssetType::default(),
+            asset_type: ValueType::default(),
         }
     }
 }

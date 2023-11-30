@@ -8,7 +8,7 @@ use crate::{
     style::properties::Property,
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
-        AssetId, AssetReference, AssetType, IntoValueProducer, TypedValueProducer, ValueProducer,
+        AssetId, AssetReference, ValueType, IntoValueProducer, TypedValueProducer, ValueProducer,
         ValueStore,
     },
 };
@@ -96,11 +96,11 @@ impl IntoValueProducer for Condition {
         };
 
         match self.id.asset_type {
-            AssetType::Number => TypedValueProducer::Number(Box::new(source)),
-            AssetType::Text => TypedValueProducer::Text(Box::new(source)),
-            AssetType::Color => TypedValueProducer::Tint(Box::new(source)),
-            AssetType::Boolean => TypedValueProducer::Boolean(Box::new(source)),
-            AssetType::Image => TypedValueProducer::Texture(Box::new(source)),
+            ValueType::Number => TypedValueProducer::Number(Box::new(source)),
+            ValueType::Text => TypedValueProducer::Text(Box::new(source)),
+            ValueType::Tint => TypedValueProducer::Tint(Box::new(source)),
+            ValueType::Boolean => TypedValueProducer::Boolean(Box::new(source)),
+            ValueType::Texture => TypedValueProducer::Texture(Box::new(source)),
         }
     }
 
@@ -113,18 +113,18 @@ impl Condition {
     pub fn from_id(id: AssetId) -> Self {
         Self {
             true_output: match &id.asset_type {
-                AssetType::Number => Output::Number(Property::Fixed(Number(0.0))),
-                AssetType::Text => Output::Text(Property::Fixed(Text(String::new()))),
-                AssetType::Color => Output::Color(Property::Fixed(Tint(Color::WHITE))),
-                AssetType::Boolean => Output::Boolean(Property::Fixed(Boolean(true))),
-                AssetType::Image => Output::Image(Property::Fixed(Texture::None)),
+                ValueType::Number => Output::Number(Property::Fixed(Number(0.0))),
+                ValueType::Text => Output::Text(Property::Fixed(Text(String::new()))),
+                ValueType::Tint => Output::Color(Property::Fixed(Tint(Color::WHITE))),
+                ValueType::Boolean => Output::Boolean(Property::Fixed(Boolean(true))),
+                ValueType::Texture => Output::Image(Property::Fixed(Texture::None)),
             },
             false_output: match &id.asset_type {
-                AssetType::Number => Output::Number(Property::Fixed(Number(0.0))),
-                AssetType::Text => Output::Text(Property::Fixed(Text(String::new()))),
-                AssetType::Color => Output::Color(Property::Fixed(Tint(Color::WHITE))),
-                AssetType::Boolean => Output::Boolean(Property::Fixed(Boolean(false))),
-                AssetType::Image => Output::Image(Property::Fixed(Texture::None)),
+                ValueType::Number => Output::Number(Property::Fixed(Number(0.0))),
+                ValueType::Text => Output::Text(Property::Fixed(Text(String::new()))),
+                ValueType::Tint => Output::Color(Property::Fixed(Tint(Color::WHITE))),
+                ValueType::Boolean => Output::Boolean(Property::Fixed(Boolean(false))),
+                ValueType::Texture => Output::Image(Property::Fixed(Texture::None)),
             },
             id,
             ..Default::default()
@@ -141,44 +141,44 @@ impl Condition {
             ui.label("Output type:");
             ComboBox::new(ui.next_auto_id(), "")
                 .selected_text(match self.id.asset_type {
-                    AssetType::Number => "Number",
-                    AssetType::Text => "Text",
-                    AssetType::Color => "Color",
-                    AssetType::Boolean => "Yes/No",
-                    AssetType::Image => "Image",
+                    ValueType::Number => "Number",
+                    ValueType::Text => "Text",
+                    ValueType::Tint => "Color",
+                    ValueType::Boolean => "Yes/No",
+                    ValueType::Texture => "Image",
                 })
                 .show_ui(ui, |ui| {
-                    let is_number = self.id.asset_type == AssetType::Number;
+                    let is_number = self.id.asset_type == ValueType::Number;
                     if ui.selectable_label(is_number, "Number").clicked() && !is_number {
-                        self.id.asset_type = AssetType::Number;
+                        self.id.asset_type = ValueType::Number;
                         self.true_output = Output::Number(Property::Fixed(Number(0.0)));
                         self.false_output = Output::Number(Property::Fixed(Number(0.0)));
                         changed |= true;
                     }
-                    let is_text = self.id.asset_type == AssetType::Text;
+                    let is_text = self.id.asset_type == ValueType::Text;
                     if ui.selectable_label(is_text, "Text").clicked() && !is_text {
-                        self.id.asset_type = AssetType::Text;
+                        self.id.asset_type = ValueType::Text;
                         self.true_output = Output::Text(Property::Fixed(Text(String::new())));
                         self.false_output = Output::Text(Property::Fixed(Text(String::new())));
                         changed |= true;
                     }
-                    let is_color = self.id.asset_type == AssetType::Color;
+                    let is_color = self.id.asset_type == ValueType::Tint;
                     if ui.selectable_label(is_color, "Color").clicked() && !is_color {
-                        self.id.asset_type = AssetType::Color;
+                        self.id.asset_type = ValueType::Tint;
                         self.true_output = Output::Color(Property::Fixed(Tint(Color::WHITE)));
                         self.false_output = Output::Color(Property::Fixed(Tint(Color::WHITE)));
                         changed |= true;
                     }
-                    let is_boolean = self.id.asset_type == AssetType::Boolean;
+                    let is_boolean = self.id.asset_type == ValueType::Boolean;
                     if ui.selectable_label(is_boolean, "Yes/No").clicked() && !is_boolean {
-                        self.id.asset_type = AssetType::Boolean;
+                        self.id.asset_type = ValueType::Boolean;
                         self.true_output = Output::Boolean(Property::Fixed(Boolean(true)));
                         self.false_output = Output::Boolean(Property::Fixed(Boolean(false)));
                         changed |= true;
                     }
-                    let is_image = self.id.asset_type == AssetType::Image;
+                    let is_image = self.id.asset_type == ValueType::Texture;
                     if ui.selectable_label(is_image, "Image").clicked() && !is_image {
-                        self.id.asset_type = AssetType::Image;
+                        self.id.asset_type = ValueType::Texture;
                         self.true_output = Output::Image(Property::Fixed(Texture::None));
                         self.false_output = Output::Image(Property::Fixed(Texture::None));
                         changed |= true;
@@ -192,9 +192,9 @@ impl Condition {
             ui.allocate_at_least(Vec2::new(5.0, 0.0), Sense::hover());
             let new_ref = asset_repo.editor(ui, &mut self.left.key, |v| {
                 return match v.asset_type {
-                    AssetType::Number => true,
-                    AssetType::Text => true,
-                    AssetType::Boolean => true,
+                    ValueType::Number => true,
+                    ValueType::Text => true,
+                    ValueType::Boolean => true,
                     _ => false,
                 } && v.id != self.id.id;
             });
@@ -202,20 +202,20 @@ impl Condition {
                 // Channge the value type of the right side if necessary
                 if self.left.asset_type != reference.asset_type {
                     self.right = match reference.asset_type {
-                        AssetType::Number => RightHandSide::Number(
+                        ValueType::Number => RightHandSide::Number(
                             Property::Fixed(Number(0.0)),
                             NumberComparator::Equal,
                         ),
-                        AssetType::Text => RightHandSide::Text(
+                        ValueType::Text => RightHandSide::Text(
                             Property::Fixed(Text(String::new())),
                             TextComparator::Like,
                         ),
-                        AssetType::Boolean => RightHandSide::Boolean(
+                        ValueType::Boolean => RightHandSide::Boolean(
                             Property::Fixed(Boolean(true)),
                             BooleanComparator::Is,
                         ),
-                        AssetType::Color => unreachable!("Type color not allowed for if condition"),
-                        AssetType::Image => unreachable!("Type image not allowed for if condition"),
+                        ValueType::Tint => unreachable!("Type color not allowed for if condition"),
+                        ValueType::Texture => unreachable!("Type image not allowed for if condition"),
                     }
                 }
                 self.left = reference;

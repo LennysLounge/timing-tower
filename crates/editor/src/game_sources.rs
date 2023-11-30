@@ -5,7 +5,7 @@ use uuid::{uuid, Uuid};
 
 use crate::value_store::{
     types::{Boolean, Number, Text},
-    AssetId, AssetType, IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore,
+    AssetId, ValueType, IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore,
 };
 
 static GAME_SOURCES: OnceLock<Vec<GameSource>> = OnceLock::new();
@@ -144,7 +144,7 @@ impl GameSource {
             asset_id: AssetId {
                 id,
                 name: name.to_string(),
-                asset_type: AssetType::Number,
+                asset_type: ValueType::Number,
             },
             extractor: Extractor::Number(extractor),
         }
@@ -158,7 +158,7 @@ impl GameSource {
             asset_id: AssetId {
                 id,
                 name: name.to_string(),
-                asset_type: AssetType::Text,
+                asset_type: ValueType::Text,
             },
             extractor: Extractor::Text(extractor),
         }
@@ -172,7 +172,7 @@ impl GameSource {
             asset_id: AssetId {
                 id,
                 name: name.to_string(),
-                asset_type: AssetType::Boolean,
+                asset_type: ValueType::Boolean,
             },
             extractor: Extractor::Boolean(extractor),
         }

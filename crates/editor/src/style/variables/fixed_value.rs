@@ -5,7 +5,7 @@ use unified_sim_model::model::Entry;
 
 use crate::value_store::{
     types::{Boolean, Number, Text, Tint},
-    AssetId, AssetType, IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore,
+    AssetId, ValueType, IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore,
 };
 
 #[derive(Serialize, Deserialize, Clone, Default)]
@@ -58,25 +58,25 @@ impl FixedValue {
                     let is_number = matches!(self.value, FixedValueType::Number(_));
                     if ui.selectable_label(is_number, "Number").clicked() && !is_number {
                         self.value = FixedValueType::Number(0.0);
-                        self.id.asset_type = AssetType::Number;
+                        self.id.asset_type = ValueType::Number;
                         changed |= true;
                     }
                     let is_text = matches!(self.value, FixedValueType::Text(_));
                     if ui.selectable_label(is_text, "Text").clicked() && !is_text {
                         self.value = FixedValueType::Text(String::new());
-                        self.id.asset_type = AssetType::Text;
+                        self.id.asset_type = ValueType::Text;
                         changed |= true;
                     }
                     let is_color = matches!(self.value, FixedValueType::Color(_));
                     if ui.selectable_label(is_color, "Color").clicked() && !is_color {
                         self.value = FixedValueType::Color(Color::WHITE);
-                        self.id.asset_type = AssetType::Color;
+                        self.id.asset_type = ValueType::Tint;
                         changed |= true;
                     }
                     let is_boolean = matches!(self.value, FixedValueType::Boolean(_));
                     if ui.selectable_label(is_boolean, "Yes/No").clicked() && !is_boolean {
                         self.value = FixedValueType::Boolean(true);
-                        self.id.asset_type = AssetType::Boolean;
+                        self.id.asset_type = ValueType::Boolean;
                         changed |= true;
                     }
                 });

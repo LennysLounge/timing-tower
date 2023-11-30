@@ -11,7 +11,8 @@ use uuid::Uuid;
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
     value_store::{
-        types::Texture, AssetId, AssetType, IntoValueProducer, ValueProducer, ValueStore,
+        types::Texture, AssetId, AssetType, IntoValueProducer, TypedValueProducer, ValueProducer,
+        ValueStore,
     },
 };
 
@@ -63,7 +64,7 @@ impl FolderActions for AssetDefinition {
 }
 
 impl IntoValueProducer for AssetDefinition {
-    fn get_value_producer(&self) -> Box<dyn ValueProducer + Send + Sync> {
+    fn get_value_producer(&self) -> TypedValueProducer {
         match self {
             AssetDefinition::Image(i) => i.get_value_producer(),
         }
@@ -148,8 +149,8 @@ pub struct ImageAsset {
 }
 
 impl IntoValueProducer for ImageAsset {
-    fn get_value_producer(&self) -> Box<dyn ValueProducer + Send + Sync> {
-        Box::new(StaticImage(self.handle.clone()))
+    fn get_value_producer(&self) -> TypedValueProducer {
+        TypedValueProducer::Texture(Box::new(StaticImage(self.handle.clone())))
     }
 
     fn asset_id(&self) -> &AssetId {
@@ -265,8 +266,8 @@ fn default_load_state() -> LoadState {
 }
 
 pub struct StaticImage(pub Option<Handle<Image>>);
-impl ValueProducer for StaticImage {
-    fn get_texture(&self, _vars: &ValueStore, _entry: Option<&Entry>) -> Option<Texture> {
+impl ValueProducer<Texture> for StaticImage {
+    fn get(&self, _vars: &ValueStore, _entry: Option<&Entry>) -> Option<Texture> {
         self.0.clone().map(|h| Texture(h))
     }
 }

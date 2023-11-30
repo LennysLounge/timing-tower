@@ -5,7 +5,7 @@ use uuid::{uuid, Uuid};
 
 use crate::value_store::{
     types::{Boolean, Number, Text},
-    AssetId, AssetType, IntoValueProducer, ValueProducer, ValueStore,
+    AssetId, AssetType, IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore,
 };
 
 static GAME_SOURCES: OnceLock<Vec<GameSource>> = OnceLock::new();
@@ -88,24 +88,26 @@ enum Extractor {
     Boolean(fn(&ValueStore, Option<&Entry>) -> Option<bool>),
 }
 
-impl ValueProducer for Extractor {
-    fn get_number(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
+impl ValueProducer<Number> for Extractor {
+    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
         if let Extractor::Number(f) = self {
             (f)(value_store, entry).map(|n| Number(n))
         } else {
             None
         }
     }
-
-    fn get_text(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
+}
+impl ValueProducer<Text> for Extractor {
+    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
         if let Extractor::Text(f) = self {
             (f)(value_store, entry).map(|t| Text(t))
         } else {
             None
         }
     }
-
-    fn get_boolean(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
+}
+impl ValueProducer<Boolean> for Extractor {
+    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
         if let Extractor::Boolean(f) = self {
             (f)(value_store, entry).map(|b| Boolean(b))
         } else {
@@ -123,8 +125,12 @@ impl IntoValueProducer for GameSource {
         &self.asset_id
     }
 
-    fn get_value_producer(&self) -> Box<dyn ValueProducer + Send + Sync> {
-        Box::new(self.extractor.clone())
+    fn get_value_producer(&self) -> TypedValueProducer {
+        match self.extractor {
+            Extractor::Number(_) => TypedValueProducer::Number(Box::new(self.extractor.clone())),
+            Extractor::Text(_) => TypedValueProducer::Text(Box::new(self.extractor.clone())),
+            Extractor::Boolean(_) => TypedValueProducer::Boolean(Box::new(self.extractor.clone())),
+        }
     }
 }
 

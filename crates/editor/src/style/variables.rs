@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    value_store::{AssetId, IntoValueProducer, ValueProducer},
+    value_store::{AssetId, IntoValueProducer, TypedValueProducer},
 };
 
 use self::{condition::Condition, fixed_value::FixedValue, map::Map};
@@ -37,7 +37,7 @@ impl IntoValueProducer for VariableBehavior {
         }
     }
 
-    fn get_value_producer(&self) -> Box<dyn ValueProducer + Send + Sync> {
+    fn get_value_producer(&self) -> TypedValueProducer {
         match self {
             VariableBehavior::FixedValue(o) => o.get_value_producer(),
             VariableBehavior::Condition(o) => o.get_value_producer(),

@@ -27,27 +27,8 @@ pub mod types {
     pub struct Texture(pub Handle<Image>);
 }
 
-pub trait ValueProducer {
-    #[allow(unused)]
-    fn get_number(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
-        None
-    }
-    #[allow(unused)]
-    fn get_text(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
-        None
-    }
-    #[allow(unused)]
-    fn get_tint(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Tint> {
-        None
-    }
-    #[allow(unused)]
-    fn get_boolean(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
-        None
-    }
-    #[allow(unused)]
-    fn get_texture(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Texture> {
-        None
-    }
+pub trait ValueProducer<T> {
+    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<T>;
 }
 
 pub trait NumberSource {
@@ -71,7 +52,7 @@ pub trait ImageSource {
 }
 
 pub trait IntoValueProducer {
-    fn get_value_producer(&self) -> Box<dyn ValueProducer + Send + Sync>;
+    fn get_value_producer(&self) -> TypedValueProducer;
     fn asset_id(&self) -> &AssetId;
 }
 
@@ -83,6 +64,24 @@ pub enum AssetType {
     Color,
     Boolean,
     Image,
+}
+impl AssetType {
+    pub fn can_cast_to(&self, other: &AssetType) -> bool {
+        match (self, other) {
+            (ref a, ref b) if a == b => true,
+            (AssetType::Number, AssetType::Text) => true,
+            _ => false,
+        }
+    }
+    pub fn name(&self) -> &str {
+        match self {
+            AssetType::Number => "Number",
+            AssetType::Text => "Text",
+            AssetType::Color => "Color",
+            AssetType::Boolean => "Boolean",
+            AssetType::Image => "Image",
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Default)]
@@ -118,7 +117,15 @@ impl AssetId {
 
 pub struct Asset {
     pub id: AssetId,
-    pub source: Box<dyn ValueProducer + Send + Sync>,
+    pub producer: TypedValueProducer,
+}
+
+pub enum TypedValueProducer {
+    Number(Box<dyn ValueProducer<Number> + Send + Sync>),
+    Text(Box<dyn ValueProducer<Text> + Send + Sync>),
+    Tint(Box<dyn ValueProducer<Tint> + Send + Sync>),
+    Boolean(Box<dyn ValueProducer<Boolean> + Send + Sync>),
+    Texture(Box<dyn ValueProducer<Texture> + Send + Sync>),
 }
 
 #[derive(Resource)]
@@ -144,7 +151,7 @@ impl ValueStore {
                 var_def.asset_id().id.clone(),
                 Asset {
                     id: var_def.asset_id().clone(),
-                    source: var_def.get_value_producer(),
+                    producer: var_def.get_value_producer(),
                 },
             );
         }
@@ -153,28 +160,24 @@ impl ValueStore {
     pub fn get_number(&self, reference: &AssetReference, entry: Option<&Entry>) -> Option<f32> {
         self.assets
             .get(&reference.key)
-            .and_then(|v| v.source.get_number(self, entry))
-            .map(|n| n.0)
+            .and_then(|v| v.producer.resolve_number(self, entry))
     }
 
     pub fn get_text(&self, reference: &AssetReference, entry: Option<&Entry>) -> Option<String> {
         self.assets
             .get(&reference.key)
-            .and_then(|v| v.source.get_text(self, entry))
-            .map(|t| t.0)
+            .and_then(|v| v.producer.resolve_text(self, entry))
     }
 
     pub fn get_color(&self, reference: &AssetReference, entry: Option<&Entry>) -> Option<Color> {
         self.assets
             .get(&reference.key)
-            .and_then(|v| v.source.get_tint(self, entry))
-            .map(|t| t.0)
+            .and_then(|v| v.producer.resolve_tint(self, entry))
     }
     pub fn get_bool(&self, reference: &AssetReference, entry: Option<&Entry>) -> Option<bool> {
         self.assets
             .get(&reference.key)
-            .and_then(|v| v.source.get_boolean(self, entry))
-            .map(|t| t.0)
+            .and_then(|v| v.producer.resolve_bool(self, entry))
     }
     pub fn get_image(
         &self,
@@ -183,8 +186,7 @@ impl ValueStore {
     ) -> Option<Handle<Image>> {
         self.assets
             .get(&reference.key)
-            .and_then(|v| v.source.get_texture(self, entry))
-            .map(|t| t.0)
+            .and_then(|v| v.producer.resolve_texture(self, entry))
     }
 
     pub fn get_number_property(
@@ -243,21 +245,42 @@ impl ValueStore {
     }
 }
 
-impl AssetType {
-    pub fn can_cast_to(&self, other: &AssetType) -> bool {
-        match (self, other) {
-            (ref a, ref b) if a == b => true,
-            (AssetType::Number, AssetType::Text) => true,
-            _ => false,
+impl TypedValueProducer {
+    pub fn resolve_number(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<f32> {
+        match self {
+            TypedValueProducer::Number(s) => s.get(vars, entry).map(|n| n.0),
+            _ => None,
         }
     }
-    pub fn name(&self) -> &str {
+
+    pub fn resolve_text(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<String> {
         match self {
-            AssetType::Number => "Number",
-            AssetType::Text => "Text",
-            AssetType::Color => "Color",
-            AssetType::Boolean => "Boolean",
-            AssetType::Image => "Image",
+            TypedValueProducer::Text(s) => s.get(vars, entry).map(|n| n.0),
+            TypedValueProducer::Number(s) => s.get(vars, entry).map(|n| format!("{}", n.0)),
+            _ => None,
+        }
+    }
+
+    pub fn resolve_tint(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<Color> {
+        match self {
+            TypedValueProducer::Tint(s) => s.get(vars, entry).map(|n| n.0),
+            _ => None,
+        }
+    }
+    pub fn resolve_bool(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
+        match self {
+            TypedValueProducer::Boolean(s) => s.get(vars, entry).map(|n| n.0),
+            _ => None,
+        }
+    }
+    pub fn resolve_texture(
+        &self,
+        vars: &ValueStore,
+        entry: Option<&Entry>,
+    ) -> Option<Handle<Image>> {
+        match self {
+            TypedValueProducer::Texture(s) => s.get(vars, entry).map(|n| n.0),
+            _ => None,
         }
     }
 }

@@ -11,7 +11,7 @@ use crate::{
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
         AssetId, AssetReference, AssetType, BooleanSource, ColorSource, ImageSource,
-        IntoValueProducer, NumberSource, TextSource, ValueProducer, ValueStore,
+        IntoValueProducer, NumberSource, TextSource, TypedValueProducer, ValueProducer, ValueStore,
     },
 };
 
@@ -165,7 +165,7 @@ impl IntoValueProducer for Map {
         &self.id
     }
 
-    fn get_value_producer(&self) -> Box<dyn ValueProducer + Send + Sync> {
+    fn get_value_producer(&self) -> TypedValueProducer {
         let mut cases = Vec::new();
         for case in self.cases.iter() {
             match self.input.asset_type {
@@ -196,7 +196,13 @@ impl IntoValueProducer for Map {
             default: self.default.clone(),
         };
 
-        Box::new(source)
+        match self.id.asset_type {
+            AssetType::Number => TypedValueProducer::Number(Box::new(source)),
+            AssetType::Text => TypedValueProducer::Text(Box::new(source)),
+            AssetType::Color => TypedValueProducer::Tint(Box::new(source)),
+            AssetType::Boolean => TypedValueProducer::Boolean(Box::new(source)),
+            AssetType::Image => TypedValueProducer::Texture(Box::new(source)),
+        }
     }
 }
 
@@ -358,8 +364,8 @@ struct MapSource {
     cases: Vec<(CaseComparison, Output)>,
     default: Output,
 }
-impl ValueProducer for MapSource {
-    fn get_number(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
+impl ValueProducer<Number> for MapSource {
+    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
         self.cases
             .iter()
             .find_map(|(case, output)| {
@@ -378,8 +384,9 @@ impl ValueProducer for MapSource {
             })
             .map(|n| Number(n))
     }
-
-    fn get_text(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
+}
+impl ValueProducer<Text> for MapSource {
+    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
         self.cases
             .iter()
             .find_map(|(case, output)| {
@@ -398,8 +405,9 @@ impl ValueProducer for MapSource {
             })
             .map(|t| Text(t))
     }
-
-    fn get_tint(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Tint> {
+}
+impl ValueProducer<Tint> for MapSource {
+    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Tint> {
         self.cases
             .iter()
             .find_map(|(case, output)| {
@@ -418,8 +426,9 @@ impl ValueProducer for MapSource {
             })
             .map(|t| Tint(t))
     }
-
-    fn get_boolean(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
+}
+impl ValueProducer<Boolean> for MapSource {
+    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
         self.cases
             .iter()
             .find_map(|(case, output)| {
@@ -438,8 +447,9 @@ impl ValueProducer for MapSource {
             })
             .map(|b| Boolean(b))
     }
-
-    fn get_texture(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Texture> {
+}
+impl ValueProducer<Texture> for MapSource {
+    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Texture> {
         self.cases
             .iter()
             .find_map(|(case, output)| {

@@ -6,7 +6,7 @@ use unified_sim_model::model::Entry;
 use crate::value_store::{
     types::{Boolean, Number, Text, Tint},
     AssetId, AssetType, BooleanSource, ColorSource, IntoValueProducer, NumberSource, TextSource,
-    ValueProducer, ValueStore,
+    TypedValueProducer, ValueProducer, ValueStore,
 };
 
 #[derive(Serialize, Deserialize, Clone, Default)]
@@ -130,12 +130,12 @@ impl IntoValueProducer for FixedValue {
     fn asset_id(&self) -> &AssetId {
         &self.id
     }
-    fn get_value_producer(&self) -> Box<dyn ValueProducer + Send + Sync> {
+    fn get_value_producer(&self) -> TypedValueProducer {
         match &self.value {
-            FixedValueType::Number(n) => Box::new(StaticNumber(*n)),
-            FixedValueType::Text(t) => Box::new(StaticText(t.clone())),
-            FixedValueType::Color(c) => Box::new(StaticColor(*c)),
-            FixedValueType::Boolean(b) => Box::new(StaticBoolean(*b)),
+            FixedValueType::Number(n) => TypedValueProducer::Number(Box::new(StaticNumber(*n))),
+            FixedValueType::Text(t) => TypedValueProducer::Text(Box::new(StaticText(t.clone()))),
+            FixedValueType::Color(c) => TypedValueProducer::Tint(Box::new(StaticColor(*c))),
+            FixedValueType::Boolean(b) => TypedValueProducer::Boolean(Box::new(StaticBoolean(*b))),
         }
     }
 }
@@ -146,8 +146,8 @@ impl NumberSource for StaticNumber {
         Some(self.0)
     }
 }
-impl ValueProducer for StaticNumber {
-    fn get_number(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Number> {
+impl ValueProducer<Number> for StaticNumber {
+    fn get(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Number> {
         Some(Number(self.0))
     }
 }
@@ -158,8 +158,8 @@ impl TextSource for StaticText {
         Some(self.0.clone())
     }
 }
-impl ValueProducer for StaticText {
-    fn get_text(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Text> {
+impl ValueProducer<Text> for StaticText {
+    fn get(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Text> {
         Some(Text(self.0.clone()))
     }
 }
@@ -170,8 +170,8 @@ impl ColorSource for StaticColor {
         Some(self.0)
     }
 }
-impl ValueProducer for StaticColor {
-    fn get_tint(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Tint> {
+impl ValueProducer<Tint> for StaticColor {
+    fn get(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Tint> {
         Some(Tint(self.0))
     }
 }
@@ -182,8 +182,8 @@ impl BooleanSource for StaticBoolean {
         Some(self.0)
     }
 }
-impl ValueProducer for StaticBoolean {
-    fn get_boolean(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Boolean> {
+impl ValueProducer<Boolean> for StaticBoolean {
+    fn get(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Boolean> {
         Some(Boolean(self.0))
     }
 }

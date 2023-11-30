@@ -11,7 +11,7 @@ use crate::{
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
         AssetId, AssetReference, AssetType, BooleanSource, ColorSource, ImageSource,
-        IntoValueProducer, NumberSource, TextSource, ValueProducer, ValueStore,
+        IntoValueProducer, NumberSource, TextSource, TypedValueProducer, ValueProducer, ValueStore,
     },
 };
 
@@ -74,7 +74,7 @@ impl Default for Condition {
 }
 
 impl IntoValueProducer for Condition {
-    fn get_value_producer(&self) -> Box<dyn ValueProducer + Send + Sync> {
+    fn get_value_producer(&self) -> TypedValueProducer {
         let source = ConditionSource {
             comparison: match &self.right {
                 RightHandSide::Number(np, c) => Comparison::Number(NumberComparison {
@@ -97,7 +97,13 @@ impl IntoValueProducer for Condition {
             false_value: self.false_output.clone(),
         };
 
-        Box::new(source)
+        match self.id.asset_type {
+            AssetType::Number => TypedValueProducer::Number(Box::new(source)),
+            AssetType::Text => TypedValueProducer::Text(Box::new(source)),
+            AssetType::Color => TypedValueProducer::Tint(Box::new(source)),
+            AssetType::Boolean => TypedValueProducer::Boolean(Box::new(source)),
+            AssetType::Image => TypedValueProducer::Texture(Box::new(source)),
+        }
     }
 
     fn asset_id(&self) -> &AssetId {
@@ -346,8 +352,8 @@ impl ConditionSource {
     }
 }
 
-impl ValueProducer for ConditionSource {
-    fn get_number(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
+impl ValueProducer<Number> for ConditionSource {
+    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
         let condition = self.evaluate_condition(value_store, entry)?;
         if condition {
             match &self.true_value {
@@ -362,8 +368,9 @@ impl ValueProducer for ConditionSource {
         }
         .map(|n| Number(n))
     }
-
-    fn get_text(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
+}
+impl ValueProducer<Text> for ConditionSource {
+    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
         let condition = self.evaluate_condition(value_store, entry)?;
         if condition {
             match &self.true_value {
@@ -378,8 +385,9 @@ impl ValueProducer for ConditionSource {
         }
         .map(|n| Text(n))
     }
-
-    fn get_tint(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Tint> {
+}
+impl ValueProducer<Tint> for ConditionSource {
+    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Tint> {
         let condition = self.evaluate_condition(value_store, entry)?;
         if condition {
             match &self.true_value {
@@ -394,8 +402,9 @@ impl ValueProducer for ConditionSource {
         }
         .map(|n| Tint(n))
     }
-
-    fn get_boolean(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
+}
+impl ValueProducer<Boolean> for ConditionSource {
+    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
         let condition = self.evaluate_condition(value_store, entry)?;
         if condition {
             match &self.true_value {
@@ -410,8 +419,9 @@ impl ValueProducer for ConditionSource {
         }
         .map(|n| Boolean(n))
     }
-
-    fn get_texture(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Texture> {
+}
+impl ValueProducer<Texture> for ConditionSource {
+    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Texture> {
         let condition = self.evaluate_condition(value_store, entry)?;
         if condition {
             match &self.true_value {

@@ -56,10 +56,13 @@ pub enum ValueType {
     Texture,
 }
 impl ValueType {
-    pub fn can_cast_to(&self, other: &ValueType) -> bool {
-        match (self, other) {
+    pub fn can_cast_to(&self, target: &ValueType) -> bool {
+        use ValueType::*;
+
+        match (self, target) {
             (ref a, ref b) if a == b => true,
-            (ValueType::Number, ValueType::Text) => true,
+            (Number, Text) => true,
+            (Boolean, Text) => true,
             _ => false,
         }
     }
@@ -136,62 +139,19 @@ pub struct UntypedValueRef {
 pub trait ToTypedValueRef<T> {
     fn to_typed(&self) -> Option<ValueRef<T>>;
 }
-impl ToTypedValueRef<Number> for UntypedValueRef {
-    fn to_typed(&self) -> Option<ValueRef<Number>> {
-        match self.value_type {
-            ValueType::Number => Some(ValueRef {
+
+impl<T> ToTypedValueRef<T> for UntypedValueRef
+where
+    ValueType: ValueTypeOf<T>,
+{
+    fn to_typed(&self) -> Option<ValueRef<T>> {
+        if self.value_type.can_cast_to(&ValueTypeOf::<T>::get()) {
+            Some(ValueRef {
                 id: self.id,
                 phantom: PhantomData,
-            }),
-            _ => None,
-        }
-    }
-}
-impl ToTypedValueRef<Text> for UntypedValueRef {
-    fn to_typed(&self) -> Option<ValueRef<Text>> {
-        match self.value_type {
-            ValueType::Text => Some(ValueRef {
-                id: self.id,
-                phantom: PhantomData,
-            }),
-            ValueType::Number => Some(ValueRef {
-                id: self.id,
-                phantom: PhantomData,
-            }),
-            _ => None,
-        }
-    }
-}
-impl ToTypedValueRef<Tint> for UntypedValueRef {
-    fn to_typed(&self) -> Option<ValueRef<Tint>> {
-        match self.value_type {
-            ValueType::Tint => Some(ValueRef {
-                id: self.id,
-                phantom: PhantomData,
-            }),
-            _ => None,
-        }
-    }
-}
-impl ToTypedValueRef<Boolean> for UntypedValueRef {
-    fn to_typed(&self) -> Option<ValueRef<Boolean>> {
-        match self.value_type {
-            ValueType::Boolean => Some(ValueRef {
-                id: self.id,
-                phantom: PhantomData,
-            }),
-            _ => None,
-        }
-    }
-}
-impl ToTypedValueRef<Texture> for UntypedValueRef {
-    fn to_typed(&self) -> Option<ValueRef<Texture>> {
-        match self.value_type {
-            ValueType::Texture => Some(ValueRef {
-                id: self.id,
-                phantom: PhantomData,
-            }),
-            _ => None,
+            })
+        } else {
+            None
         }
     }
 }
@@ -331,6 +291,13 @@ impl TypedValueResolver<Text> for ValueStore {
     fn get_typed(&self, producer: &TypedValueProducer, entry: Option<&Entry>) -> Option<Text> {
         match producer {
             TypedValueProducer::Number(p) => p.get(self, entry).map(|n| Text(format!("{}", n.0))),
+            TypedValueProducer::Boolean(p) => p.get(self, entry).map(|b| {
+                if b.0 {
+                    Text(String::from("Yes"))
+                } else {
+                    Text(String::from("No"))
+                }
+            }),
             TypedValueProducer::Text(p) => p.get(self, entry),
             _ => None,
         }

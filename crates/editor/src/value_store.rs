@@ -95,11 +95,6 @@ impl AssetId {
     }
 }
 
-pub struct Asset {
-    pub id: AssetId,
-    pub producer: TypedValueProducer,
-}
-
 pub enum TypedValueProducer {
     Number(Box<dyn ValueProducer<Number> + Send + Sync>),
     Text(Box<dyn ValueProducer<Text> + Send + Sync>),
@@ -110,7 +105,7 @@ pub enum TypedValueProducer {
 
 #[derive(Resource)]
 pub struct ValueStore {
-    pub assets: HashMap<Uuid, Asset>,
+    pub assets: HashMap<Uuid, TypedValueProducer>,
 }
 
 impl ValueStore {
@@ -127,37 +122,32 @@ impl ValueStore {
 
     fn convert(&mut self, asset_defs: Vec<&impl IntoValueProducer>) {
         for var_def in asset_defs {
-            self.assets.insert(
-                var_def.asset_id().id.clone(),
-                Asset {
-                    id: var_def.asset_id().clone(),
-                    producer: var_def.get_value_producer(),
-                },
-            );
+            self.assets
+                .insert(var_def.asset_id().id.clone(), var_def.get_value_producer());
         }
     }
 
     pub fn get_number(&self, reference: &AssetReference, entry: Option<&Entry>) -> Option<f32> {
         self.assets
             .get(&reference.key)
-            .and_then(|v| v.producer.resolve_number(self, entry))
+            .and_then(|v| v.resolve_number(self, entry))
     }
 
     pub fn get_text(&self, reference: &AssetReference, entry: Option<&Entry>) -> Option<String> {
         self.assets
             .get(&reference.key)
-            .and_then(|v| v.producer.resolve_text(self, entry))
+            .and_then(|v| v.resolve_text(self, entry))
     }
 
     pub fn get_color(&self, reference: &AssetReference, entry: Option<&Entry>) -> Option<Color> {
         self.assets
             .get(&reference.key)
-            .and_then(|v| v.producer.resolve_tint(self, entry))
+            .and_then(|v| v.resolve_tint(self, entry))
     }
     pub fn get_bool(&self, reference: &AssetReference, entry: Option<&Entry>) -> Option<bool> {
         self.assets
             .get(&reference.key)
-            .and_then(|v| v.producer.resolve_bool(self, entry))
+            .and_then(|v| v.resolve_bool(self, entry))
     }
     pub fn get_image(
         &self,
@@ -166,7 +156,7 @@ impl ValueStore {
     ) -> Option<Handle<Image>> {
         self.assets
             .get(&reference.key)
-            .and_then(|v| v.producer.resolve_texture(self, entry))
+            .and_then(|v| v.resolve_texture(self, entry))
     }
 
     pub fn get_number_property(

@@ -8,7 +8,7 @@ use uuid::Uuid;
 use crate::{
     game_sources,
     style::properties::Property,
-    value_types::{Boolean, Number, Text, Texture, Tint, ValueType, ValueTypeOf},
+    value_types::{Boolean, Number, Text, Texture, Tint, ValueType},
 };
 
 pub trait ValueProducer<T> {
@@ -28,45 +28,10 @@ pub struct ValueRef<T> {
     pub phantom: PhantomData<T>,
 }
 
-pub trait ToUntypedValueRef<T> {
-    fn to_untyped(&self) -> UntypedValueRef;
-}
-impl<T> ToUntypedValueRef<T> for ValueRef<T>
-where
-    ValueType: ValueTypeOf<T>,
-{
-    fn to_untyped(&self) -> UntypedValueRef {
-        UntypedValueRef {
-            id: self.id,
-            value_type: ValueTypeOf::<T>::get(),
-        }
-    }
-}
-
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct UntypedValueRef {
     pub id: Uuid,
     pub value_type: ValueType,
-}
-
-pub trait ToTypedValueRef<T> {
-    fn to_typed(&self) -> Option<ValueRef<T>>;
-}
-
-impl<T> ToTypedValueRef<T> for UntypedValueRef
-where
-    ValueType: ValueTypeOf<T>,
-{
-    fn to_typed(&self) -> Option<ValueRef<T>> {
-        if self.value_type.can_cast_to(&ValueTypeOf::<T>::get()) {
-            Some(ValueRef {
-                id: self.id,
-                phantom: PhantomData,
-            })
-        } else {
-            None
-        }
-    }
 }
 
 #[derive(Serialize, Deserialize, Clone)]

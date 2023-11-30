@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     reference_store::ReferenceStore,
-    value_store::{ToTypedValueRef, ToUntypedValueRef, UntypedValueRef, ValueRef},
+    value_store::ValueRef,
     value_types::{Boolean, Number, Text, Texture, Tint, ValueType, ValueTypeOf},
 };
 
@@ -43,9 +43,7 @@ impl<'a, T> PropertyEditor<'a, T> {
         reference_store: &'a ReferenceStore,
     ) -> PropertyEditor<'a, T>
     where
-        UntypedValueRef: ToTypedValueRef<T>,
         ValueType: ValueTypeOf<T>,
-        ValueRef<T>: ToUntypedValueRef<T>,
         T: Default + ValueTypeEditor,
     {
         PropertyEditor {
@@ -57,9 +55,7 @@ impl<'a, T> PropertyEditor<'a, T> {
 
 impl<T> Widget for PropertyEditor<'_, T>
 where
-    UntypedValueRef: ToTypedValueRef<T>,
     ValueType: ValueTypeOf<T>,
-    ValueRef<T>: ToUntypedValueRef<T>,
     T: Default + ValueTypeEditor,
 {
     fn ui(self, ui: &mut Ui) -> Response {

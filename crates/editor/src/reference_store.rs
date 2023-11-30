@@ -8,9 +8,7 @@ use crate::{
         folder::{Folder, FolderOrT},
         variables::VariableBehavior,
     },
-    value_store::{
-        AssetId, IntoValueProducer, ToTypedValueRef, ToUntypedValueRef, UntypedValueRef, ValueRef,
-    },
+    value_store::{AssetId, IntoValueProducer, UntypedValueRef, ValueRef},
     value_types::{ValueType, ValueTypeOf},
 };
 
@@ -31,23 +29,25 @@ impl ReferenceStore {
 
     pub fn editor<T>(&self, ui: &mut Ui, value_ref: &mut ValueRef<T>) -> Response
     where
-        ValueRef<T>: ToUntypedValueRef<T>,
-        UntypedValueRef: ToTypedValueRef<T>,
+        ValueType: ValueTypeOf<T>,
     {
-        let untyped_value_ref = value_ref.to_untyped();
+        let target_type: ValueType = ValueTypeOf::<T>::get();
 
-        let mut editor_res = self.untyped_editor(ui, &untyped_value_ref.id, |v| {
-            v.asset_type.can_cast_to(&untyped_value_ref.value_type)
+        let mut editor_res = self.untyped_editor(ui, &value_ref.id, |v| {
+            v.asset_type.can_cast_to(&target_type)
         });
-        if let Some(new_untyped_value_ref) = editor_res.inner {
-            let Some(new_value_ref) = ToTypedValueRef::<T>::to_typed(&new_untyped_value_ref) else {
+        if let Some(UntypedValueRef { id, value_type }) = editor_res.inner {
+            if !value_type.can_cast_to(&target_type) {
                 unreachable!(
                     "Could not cast untyped value ref to 
                     type {} even though the ref is limited to only that type",
                     std::any::type_name::<T>()
                 );
+            }
+            *value_ref = ValueRef {
+                id: id,
+                phantom: std::marker::PhantomData,
             };
-            *value_ref = new_value_ref;
             editor_res.response.mark_changed();
         }
         editor_res.response
@@ -55,24 +55,26 @@ impl ReferenceStore {
 
     pub fn editor_small<T>(&self, ui: &mut Ui) -> InnerResponse<Option<ValueRef<T>>>
     where
-        UntypedValueRef: ToTypedValueRef<T>,
         ValueType: ValueTypeOf<T>,
     {
-        let value_type: ValueType = ValueTypeOf::<T>::get();
+        let target_type: ValueType = ValueTypeOf::<T>::get();
 
         let mut editor_res =
-            self.untyped_editor_small(ui, |v| v.asset_type.can_cast_to(&value_type));
+            self.untyped_editor_small(ui, |v| v.asset_type.can_cast_to(&target_type));
 
         let inner = editor_res.inner.map(|new_untyped_value_ref| {
-            let Some(new_value_ref) = ToTypedValueRef::<T>::to_typed(&new_untyped_value_ref) else {
+            if !new_untyped_value_ref.value_type.can_cast_to(&target_type) {
                 unreachable!(
                     "Could not cast untyped value ref to 
                     type {} even though the ref is limited to only that type",
                     std::any::type_name::<T>()
                 );
-            };
+            }
             editor_res.response.mark_changed();
-            new_value_ref
+            ValueRef {
+                id: new_untyped_value_ref.id,
+                phantom: std::marker::PhantomData,
+            }
         });
         InnerResponse::new(inner, editor_res.response)
     }

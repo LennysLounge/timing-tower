@@ -6,12 +6,12 @@ use unified_sim_model::model::Entry;
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
     style::properties::{
-        BooleanProperty, ColorProperty, ImageProperty, NumberProperty, TextProperty,
+        text_property_editor, BooleanProperty, ColorProperty, ImageProperty, NumberProperty,
     },
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
-        AssetId, AssetReference, AssetType, IntoValueProducer, TypedValueProducer, ValueProducer,
-        ValueStore,
+        AssetId, AssetReference, AssetType, IntoValueProducer, Property, TypedValueProducer,
+        ValueProducer, ValueStore,
     },
 };
 
@@ -28,7 +28,7 @@ pub struct Condition {
 #[derive(Serialize, Deserialize, Clone)]
 enum RightHandSide {
     Number(NumberProperty, NumberComparator),
-    Text(TextProperty, TextComparator),
+    Text(Property<Text>, TextComparator),
     Boolean(BooleanProperty, BooleanComparator),
 }
 
@@ -55,7 +55,7 @@ enum BooleanComparator {
 #[derive(Serialize, Deserialize, Clone)]
 enum Output {
     Number(NumberProperty),
-    Text(TextProperty),
+    Text(Property<Text>),
     Color(ColorProperty),
     Boolean(BooleanProperty),
     Image(ImageProperty),
@@ -116,14 +116,14 @@ impl Condition {
         Self {
             true_output: match &id.asset_type {
                 AssetType::Number => Output::Number(NumberProperty::Fixed(0.0)),
-                AssetType::Text => Output::Text(TextProperty::Fixed(String::new())),
+                AssetType::Text => Output::Text(Property::Fixed(Text(String::new()))),
                 AssetType::Color => Output::Color(ColorProperty::Fixed(Color::WHITE)),
                 AssetType::Boolean => Output::Boolean(BooleanProperty::Fixed(true)),
                 AssetType::Image => Output::Image(ImageProperty::default()),
             },
             false_output: match &id.asset_type {
                 AssetType::Number => Output::Number(NumberProperty::Fixed(0.0)),
-                AssetType::Text => Output::Text(TextProperty::Fixed(String::new())),
+                AssetType::Text => Output::Text(Property::Fixed(Text(String::new()))),
                 AssetType::Color => Output::Color(ColorProperty::Fixed(Color::WHITE)),
                 AssetType::Boolean => Output::Boolean(BooleanProperty::Fixed(false)),
                 AssetType::Image => Output::Image(ImageProperty::default()),
@@ -160,8 +160,8 @@ impl Condition {
                     let is_text = self.id.asset_type == AssetType::Text;
                     if ui.selectable_label(is_text, "Text").clicked() && !is_text {
                         self.id.asset_type = AssetType::Text;
-                        self.true_output = Output::Text(TextProperty::Fixed(String::new()));
-                        self.false_output = Output::Text(TextProperty::Fixed(String::new()));
+                        self.true_output = Output::Text(Property::Fixed(Text(String::new())));
+                        self.false_output = Output::Text(Property::Fixed(Text(String::new())));
                         changed |= true;
                     }
                     let is_color = self.id.asset_type == AssetType::Color;
@@ -209,7 +209,7 @@ impl Condition {
                             NumberComparator::Equal,
                         ),
                         AssetType::Text => RightHandSide::Text(
-                            TextProperty::Fixed(String::new()),
+                            Property::Fixed(Text(String::new())),
                             TextComparator::Like,
                         ),
                         AssetType::Boolean => RightHandSide::Boolean(
@@ -305,7 +305,7 @@ impl Condition {
             changed |= ui
                 .horizontal(|ui| match &mut self.right {
                     RightHandSide::Number(n, _) => n.editor(ui, asset_repo),
-                    RightHandSide::Text(t, _) => t.editor(ui, asset_repo),
+                    RightHandSide::Text(t, _) => text_property_editor(ui, t, asset_repo),
                     RightHandSide::Boolean(b, _) => b.editor(ui, asset_repo),
                 })
                 .inner;
@@ -315,7 +315,7 @@ impl Condition {
             ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
             changed |= match &mut self.true_output {
                 Output::Number(n) => n.editor(ui, asset_repo),
-                Output::Text(t) => t.editor(ui, asset_repo),
+                Output::Text(t) => text_property_editor(ui, t, asset_repo),
                 Output::Color(c) => c.editor(ui, asset_repo),
                 Output::Boolean(b) => b.editor(ui, asset_repo),
                 Output::Image(i) => i.editor(ui, asset_repo),
@@ -326,7 +326,7 @@ impl Condition {
             ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
             changed |= match &mut self.false_output {
                 Output::Number(n) => n.editor(ui, asset_repo),
-                Output::Text(t) => t.editor(ui, asset_repo),
+                Output::Text(t) => text_property_editor(ui, t, asset_repo),
                 Output::Color(c) => c.editor(ui, asset_repo),
                 Output::Boolean(b) => b.editor(ui, asset_repo),
                 Output::Image(i) => i.editor(ui, asset_repo),
@@ -374,16 +374,15 @@ impl ValueProducer<Text> for ConditionSource {
         let condition = self.evaluate_condition(value_store, entry)?;
         if condition {
             match &self.true_value {
-                Output::Text(n) => value_store.get_text_property(&n, entry),
+                Output::Text(n) => value_store.get_property(&n, entry),
                 _ => unreachable!(),
             }
         } else {
             match &self.false_value {
-                Output::Text(n) => value_store.get_text_property(&n, entry),
+                Output::Text(n) => value_store.get_property(&n, entry),
                 _ => unreachable!(),
             }
         }
-        .map(|n| Text(n))
     }
 }
 impl ValueProducer<Tint> for ConditionSource {
@@ -467,15 +466,15 @@ impl NumberComparison {
 struct TextComparison {
     left: AssetReference,
     comparator: TextComparator,
-    right: TextProperty,
+    right: Property<Text>,
 }
 
 impl TextComparison {
     fn evaluate(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
         let left = vars.get_text(&self.left, entry)?;
-        let right = vars.get_text_property(&self.right, entry)?;
+        let right = vars.get_property(&self.right, entry)?;
         Some(match self.comparator {
-            TextComparator::Like => left == right,
+            TextComparator::Like => left == right.0,
         })
     }
 }

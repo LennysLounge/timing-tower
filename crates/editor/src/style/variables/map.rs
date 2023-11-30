@@ -6,12 +6,12 @@ use unified_sim_model::model::Entry;
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
     style::properties::{
-        BooleanProperty, ColorProperty, ImageProperty, NumberProperty, TextProperty,
+        text_property_editor, BooleanProperty, ColorProperty, ImageProperty, NumberProperty,
     },
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
-        AssetId, AssetReference, AssetType, IntoValueProducer, TypedValueProducer, ValueProducer,
-        ValueStore,
+        AssetId, AssetReference, AssetType, IntoValueProducer, Property, TypedValueProducer,
+        ValueProducer, ValueStore,
     },
 };
 
@@ -100,7 +100,7 @@ impl Map {
     fn update_output_type(&mut self) {
         let new_output = match self.id.asset_type {
             AssetType::Number => Output::Number(NumberProperty::Fixed(0.0)),
-            AssetType::Text => Output::Text(TextProperty::Fixed(String::new())),
+            AssetType::Text => Output::Text(Property::Fixed(Text(String::new()))),
             AssetType::Color => Output::Color(ColorProperty::Fixed(Color::WHITE)),
             AssetType::Boolean => Output::Boolean(BooleanProperty::Fixed(false)),
             AssetType::Image => Output::Image(ImageProperty::None),
@@ -117,7 +117,7 @@ impl Map {
                 Comparison::Number(NumberProperty::Fixed(0.0), NumberComparator::Equal)
             }
             AssetType::Text => {
-                Comparison::Text(TextProperty::Fixed(String::new()), TextComparator::Like)
+                Comparison::Text(Property::Fixed(Text(String::new())), TextComparator::Like)
             }
             AssetType::Color => unreachable!("Type Color not allowed in comparison"),
             AssetType::Boolean => unreachable!("Type Boolean not allowed in comparison"),
@@ -134,7 +134,7 @@ impl Map {
                 Comparison::Number(NumberProperty::Fixed(0.0), NumberComparator::Equal)
             }
             AssetType::Text => {
-                Comparison::Text(TextProperty::Fixed(String::new()), TextComparator::Like)
+                Comparison::Text(Property::Fixed(Text(String::new())), TextComparator::Like)
             }
             AssetType::Color => unreachable!(),
             AssetType::Boolean => unreachable!(),
@@ -145,7 +145,7 @@ impl Map {
     fn new_output(&self) -> Output {
         match self.id.asset_type {
             AssetType::Number => Output::Number(NumberProperty::Fixed(0.0)),
-            AssetType::Text => Output::Text(TextProperty::Fixed(String::new())),
+            AssetType::Text => Output::Text(Property::Fixed(Text(String::new()))),
             AssetType::Color => Output::Color(ColorProperty::Fixed(Color::WHITE)),
             AssetType::Boolean => Output::Boolean(BooleanProperty::Fixed(false)),
             AssetType::Image => Output::Image(ImageProperty::None),
@@ -241,7 +241,7 @@ impl Case {
 #[derive(Serialize, Deserialize, Clone)]
 enum Comparison {
     Number(NumberProperty, NumberComparator),
-    Text(TextProperty, TextComparator),
+    Text(Property<Text>, TextComparator),
 }
 
 impl Comparison {
@@ -294,7 +294,7 @@ impl Comparison {
                             .changed()
                     });
                 ui.horizontal(|ui| {
-                    changed |= tp.editor(ui, asset_repo);
+                    changed |= text_property_editor(ui, tp, asset_repo);
                 });
             }
         });
@@ -338,7 +338,7 @@ impl TextComparator {
 #[derive(Serialize, Deserialize, Clone)]
 enum Output {
     Number(NumberProperty),
-    Text(TextProperty),
+    Text(Property<Text>),
     Color(ColorProperty),
     Boolean(BooleanProperty),
     Image(ImageProperty),
@@ -350,7 +350,7 @@ impl Output {
 
         changed |= match self {
             Output::Number(p) => p.editor(ui, asset_repo),
-            Output::Text(p) => p.editor(ui, asset_repo),
+            Output::Text(p) => text_property_editor(ui, p, asset_repo),
             Output::Color(p) => p.editor(ui, asset_repo),
             Output::Boolean(p) => p.editor(ui, asset_repo),
             Output::Image(p) => p.editor(ui, asset_repo),
@@ -392,7 +392,7 @@ impl ValueProducer<Text> for MapSource {
             .find_map(|(case, output)| {
                 if case.test(value_store, entry) {
                     match output {
-                        Output::Text(n) => value_store.get_text_property(n, entry),
+                        Output::Text(n) => value_store.get_property(n, entry),
                         _ => unreachable!(),
                     }
                 } else {
@@ -400,10 +400,9 @@ impl ValueProducer<Text> for MapSource {
                 }
             })
             .or_else(|| match &self.default {
-                Output::Text(p) => value_store.get_text_property(p, entry),
+                Output::Text(p) => value_store.get_property(p, entry),
                 _ => unreachable!(),
             })
-            .map(|t| Text(t))
     }
 }
 impl ValueProducer<Tint> for MapSource {
@@ -472,7 +471,7 @@ impl ValueProducer<Texture> for MapSource {
 
 enum CaseComparison {
     Number((AssetReference, NumberComparator, NumberProperty)),
-    Text((AssetReference, TextComparator, TextProperty)),
+    Text((AssetReference, TextComparator, Property<Text>)),
 }
 impl CaseComparison {
     fn test(&self, asset_repo: &ValueStore, entry: Option<&Entry>) -> bool {
@@ -488,9 +487,9 @@ impl CaseComparison {
             }
             CaseComparison::Text((reference, comp, prop)) => {
                 let value = asset_repo.get_text(reference, entry);
-                let pivot = asset_repo.get_text_property(prop, entry);
+                let pivot = asset_repo.get_property(prop, entry);
                 if let (Some(value), Some(pivot)) = (value, pivot) {
-                    comp.compare(&value, &pivot)
+                    comp.compare(&value, &pivot.0)
                 } else {
                     false
                 }

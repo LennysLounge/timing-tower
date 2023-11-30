@@ -15,13 +15,6 @@ pub enum NumberProperty {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
-pub enum TextProperty {
-    Ref(AssetReference),
-    #[serde(untagged)]
-    Fixed(String),
-}
-
-#[derive(Serialize, Deserialize, Clone)]
 pub enum ColorProperty {
     Ref(AssetReference),
     #[serde(untagged)]
@@ -53,39 +46,6 @@ pub struct Vec3Property {
     pub x: NumberProperty,
     pub y: NumberProperty,
     pub z: NumberProperty,
-}
-
-impl TextProperty {
-    pub fn editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
-        let mut changed = false;
-        match self {
-            TextProperty::Fixed(t) => {
-                changed |= ui
-                    .add(TextEdit::singleline(t).desired_width(100.0))
-                    .changed();
-                if let Some(reference) =
-                    asset_repo.editor_small(ui, |v| v.asset_type.can_cast_to(&AssetType::Text))
-                {
-                    *self = TextProperty::Ref(reference);
-                    changed |= true;
-                }
-            }
-            TextProperty::Ref(asset_ref) => {
-                let new_ref = asset_repo.editor(ui, &asset_ref.key, |v| {
-                    v.asset_type.can_cast_to(&AssetType::Text)
-                });
-                if let Some(new_ref) = new_ref {
-                    *asset_ref = new_ref;
-                    changed |= true;
-                }
-                if ui.button("x").clicked() {
-                    *self = TextProperty::Fixed("".to_string());
-                    changed |= true;
-                }
-            }
-        }
-        changed
-    }
 }
 
 pub fn text_property_editor(

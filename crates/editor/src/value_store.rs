@@ -7,9 +7,7 @@ use uuid::Uuid;
 
 use crate::{
     game_sources,
-    style::properties::{
-        BooleanProperty, ColorProperty, ImageProperty, NumberProperty, TextProperty,
-    },
+    style::properties::{BooleanProperty, ColorProperty, ImageProperty, NumberProperty},
 };
 
 use self::types::{Boolean, Number, Text, Texture, Tint};
@@ -211,17 +209,6 @@ impl ValueStore {
         match property {
             NumberProperty::Fixed(n) => Some(*n),
             NumberProperty::Ref(reference) => self.get_number(reference, entry),
-        }
-    }
-
-    pub fn get_text_property(
-        &self,
-        property: &TextProperty,
-        entry: Option<&Entry>,
-    ) -> Option<String> {
-        match property {
-            TextProperty::Fixed(n) => Some(n.clone()),
-            TextProperty::Ref(reference) => self.get_text(reference, entry),
         }
     }
 

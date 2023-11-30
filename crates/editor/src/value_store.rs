@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, marker::PhantomData};
 
 use bevy::prelude::{Color, Handle, Image, Resource};
 use serde::{Deserialize, Serialize};
@@ -64,6 +64,16 @@ impl AssetType {
     }
 }
 
+pub struct ValueRef<T> {
+    id: Uuid,
+    phantom: PhantomData<T>,
+}
+
+pub enum Property<T> {
+    Fixed(T),
+    ValueRef(ValueRef<T>),
+}
+
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct AssetReference {
     pub asset_type: AssetType,
@@ -124,6 +134,26 @@ impl ValueStore {
         for var_def in asset_defs {
             self.assets
                 .insert(var_def.asset_id().id.clone(), var_def.get_value_producer());
+        }
+    }
+
+    pub fn get<T>(&self, value_ref: &ValueRef<T>, entry: Option<&Entry>) -> Option<T>
+    where
+        Self: TypedValueResolver<T>,
+    {
+        self.assets
+            .get(&value_ref.id)
+            .and_then(|p| self.get_typed(p, entry))
+    }
+
+    pub fn get_property<T>(&self, property: &Property<T>, entry: Option<&Entry>) -> Option<T>
+    where
+        Self: TypedValueResolver<T>,
+        T: Clone,
+    {
+        match property {
+            Property::Fixed(v) => Some(v.clone()),
+            Property::ValueRef(value_ref) => self.get(value_ref, entry),
         }
     }
 
@@ -250,6 +280,18 @@ impl TypedValueProducer {
     ) -> Option<Handle<Image>> {
         match self {
             TypedValueProducer::Texture(s) => s.get(vars, entry).map(|n| n.0),
+            _ => None,
+        }
+    }
+}
+
+trait TypedValueResolver<T> {
+    fn get_typed(&self, producer: &TypedValueProducer, entry: Option<&Entry>) -> Option<T>;
+}
+impl TypedValueResolver<Number> for ValueStore {
+    fn get_typed(&self, producer: &TypedValueProducer, entry: Option<&Entry>) -> Option<Number> {
+        match producer {
+            TypedValueProducer::Number(p) => p.get(self, entry),
             _ => None,
         }
     }

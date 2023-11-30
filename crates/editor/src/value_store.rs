@@ -19,11 +19,20 @@ pub mod types {
         asset::Handle,
         render::{color::Color, texture::Image},
     };
+    use serde::{Deserialize, Serialize};
 
+    #[derive(Serialize, Deserialize)]
     pub struct Number(pub f32);
+
+    #[derive(Serialize, Deserialize)]
     pub struct Text(pub String);
+
+    #[derive(Serialize, Deserialize)]
     pub struct Tint(pub Color);
+
+    #[derive(Serialize, Deserialize)]
     pub struct Boolean(pub bool);
+
     pub struct Texture(pub Handle<Image>);
 }
 
@@ -64,11 +73,15 @@ impl AssetType {
     }
 }
 
+#[derive(Serialize, Deserialize)]
+#[serde(transparent)]
 pub struct ValueRef<T> {
-    id: Uuid,
-    phantom: PhantomData<T>,
+    pub id: Uuid,
+    #[serde(skip)]
+    pub phantom: PhantomData<T>,
 }
 
+#[derive(Serialize, Deserialize)]
 pub enum Property<T> {
     Fixed(T),
     ValueRef(ValueRef<T>),

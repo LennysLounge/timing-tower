@@ -91,7 +91,9 @@ impl Cell {
         ui.label("Cell:");
         ui.horizontal(|ui| {
             ui.label("Visible:");
-            changed |= self.visible.editor(ui, asset_repo);
+            changed |= ui
+                .add(PropertyEditor::new(&mut self.visible, asset_repo))
+                .changed();
         });
         ui.horizontal(|ui| {
             ui.label("Text:");

@@ -111,48 +111,23 @@ impl ValueTypeEditor for Tint {
         res
     }
 }
-
-impl Property<Boolean> {
-    pub fn editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
+impl ValueTypeEditor for Boolean {
+    fn editor(&mut self, ui: &mut Ui) -> Response {
         let mut changed = false;
-        match self {
-            Property::Fixed(b) => {
-                ComboBox::from_id_source(ui.next_auto_id())
-                    .width(50.0)
-                    .selected_text(match b.0 {
-                        true => "Yes",
-                        false => "No",
-                    })
-                    .show_ui(ui, |ui| {
-                        changed |= ui.selectable_value(&mut b.0, true, "Yes").changed();
-                        changed |= ui.selectable_value(&mut b.0, false, "No").changed();
-                    });
-                if let Some(reference) = asset_repo
-                    .untyped_editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Boolean))
-                    .inner
-                {
-                    *self = Property::ValueRef(ValueRef {
-                        id: reference.id,
-                        phantom: std::marker::PhantomData,
-                    });
-                    changed |= true;
-                }
-            }
-            Property::ValueRef(value_ref) => {
-                let new_ref = asset_repo.untyped_editor(ui, &value_ref.id, |v| {
-                    v.asset_type.can_cast_to(&ValueType::Tint)
-                });
-                if let Some(new_ref) = new_ref.inner {
-                    value_ref.id = new_ref.id;
-                    changed |= true;
-                }
-                if ui.button("x").clicked() {
-                    *self = Property::Fixed(Boolean(true));
-                    changed |= true;
-                }
-            }
+        let mut res = ComboBox::from_id_source(ui.next_auto_id())
+            .width(50.0)
+            .selected_text(match self.0 {
+                true => "Yes",
+                false => "No",
+            })
+            .show_ui(ui, |ui| {
+                changed |= ui.selectable_value(&mut self.0, true, "Yes").changed();
+                changed |= ui.selectable_value(&mut self.0, false, "No").changed();
+            });
+        if changed {
+            res.response.mark_changed();
         }
-        changed
+        res.response
     }
 }
 

@@ -310,7 +310,9 @@ impl Condition {
                     RightHandSide::Text(t, _) => {
                         ui.add(PropertyEditor::new(t, asset_repo)).changed()
                     }
-                    RightHandSide::Boolean(b, _) => b.editor(ui, asset_repo),
+                    RightHandSide::Boolean(b, _) => {
+                        ui.add(PropertyEditor::new(b, asset_repo)).changed()
+                    }
                 })
                 .inner;
         });
@@ -321,7 +323,7 @@ impl Condition {
                 Output::Number(n) => ui.add(PropertyEditor::new(n, asset_repo)).changed(),
                 Output::Text(t) => ui.add(PropertyEditor::new(t, asset_repo)).changed(),
                 Output::Color(c) => ui.add(PropertyEditor::new(c, asset_repo)).changed(),
-                Output::Boolean(b) => b.editor(ui, asset_repo),
+                Output::Boolean(b) => ui.add(PropertyEditor::new(b, asset_repo)).changed(),
                 Output::Image(i) => i.editor(ui, asset_repo),
             };
         });
@@ -332,7 +334,7 @@ impl Condition {
                 Output::Number(n) => ui.add(PropertyEditor::new(n, asset_repo)).changed(),
                 Output::Text(t) => ui.add(PropertyEditor::new(t, asset_repo)).changed(),
                 Output::Color(c) => ui.add(PropertyEditor::new(c, asset_repo)).changed(),
-                Output::Boolean(b) => b.editor(ui, asset_repo),
+                Output::Boolean(b) => ui.add(PropertyEditor::new(b, asset_repo)).changed(),
                 Output::Image(i) => i.editor(ui, asset_repo),
             };
         });

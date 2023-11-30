@@ -93,6 +93,11 @@ impl ValueTypeOf<Tint> for ValueType {
         ValueType::Tint
     }
 }
+impl ValueTypeOf<Boolean> for ValueType {
+    fn get() -> Self {
+        ValueType::Boolean
+    }
+}
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(transparent)]
@@ -128,6 +133,14 @@ impl ToUntypedValueRef<Tint> for ValueRef<Tint> {
         UntypedValueRef {
             id: self.id,
             value_type: ValueType::Tint,
+        }
+    }
+}
+impl ToUntypedValueRef<Boolean> for ValueRef<Boolean> {
+    fn to_untyped(&self) -> UntypedValueRef {
+        UntypedValueRef {
+            id: self.id,
+            value_type: ValueType::Boolean,
         }
     }
 }
@@ -171,6 +184,17 @@ impl ToTypedValueRef<Tint> for UntypedValueRef {
     fn to_typed(&self) -> Option<ValueRef<Tint>> {
         match self.value_type {
             ValueType::Tint => Some(ValueRef {
+                id: self.id,
+                phantom: PhantomData,
+            }),
+            _ => None,
+        }
+    }
+}
+impl ToTypedValueRef<Boolean> for UntypedValueRef {
+    fn to_typed(&self) -> Option<ValueRef<Boolean>> {
+        match self.value_type {
+            ValueType::Boolean => Some(ValueRef {
                 id: self.id,
                 phantom: PhantomData,
             }),

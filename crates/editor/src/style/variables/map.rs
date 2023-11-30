@@ -350,7 +350,7 @@ impl Output {
             Output::Number(p) => ui.add(PropertyEditor::new(p, asset_repo)).changed(),
             Output::Text(p) => ui.add(PropertyEditor::new(p, asset_repo)).changed(),
             Output::Color(p) => ui.add(PropertyEditor::new(p, asset_repo)).changed(),
-            Output::Boolean(p) => p.editor(ui, asset_repo),
+            Output::Boolean(p) => ui.add(PropertyEditor::new(p, asset_repo)).changed(),
             Output::Image(p) => p.editor(ui, asset_repo),
         };
 

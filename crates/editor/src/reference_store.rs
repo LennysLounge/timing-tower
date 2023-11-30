@@ -10,6 +10,7 @@ use crate::{
     },
     value_store::{
         AssetId, IntoValueProducer, ToTypedValueRef, ToUntypedValueRef, UntypedValueRef, ValueRef,
+        ValueType, ValueTypeOf,
     },
 };
 
@@ -50,6 +51,30 @@ impl ReferenceStore {
             editor_res.response.mark_changed();
         }
         editor_res.response
+    }
+
+    pub fn editor_small<T>(&self, ui: &mut Ui) -> InnerResponse<Option<ValueRef<T>>>
+    where
+        UntypedValueRef: ToTypedValueRef<T>,
+        ValueType: ValueTypeOf<T>,
+    {
+        let value_type: ValueType = ValueTypeOf::<T>::get();
+
+        let mut editor_res =
+            self.untyped_editor_small(ui, |v| v.asset_type.can_cast_to(&value_type));
+
+        let inner = editor_res.inner.map(|new_untyped_value_ref| {
+            let Some(new_value_ref) = ToTypedValueRef::<T>::to_typed(&new_untyped_value_ref) else {
+                unreachable!(
+                    "Could not cast untyped value ref to 
+                    type {} even though the ref is limited to only that type",
+                    std::any::type_name::<T>()
+                );
+            };
+            editor_res.response.mark_changed();
+            new_value_ref
+        });
+        InnerResponse::new(inner, editor_res.response)
     }
 
     pub fn untyped_editor(

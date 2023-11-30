@@ -56,17 +56,12 @@ impl Widget for PropertyEditor<'_, Number> {
         match self.property {
             Property::Fixed(c) => {
                 let value_res = ui.add(DragValue::new(&mut c.0));
-                let mut editor_res = self
-                    .reference_store
-                    .untyped_editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Number));
 
-                if let Some(reference) = editor_res.inner {
-                    *self.property = Property::ValueRef(ValueRef {
-                        id: reference.id,
-                        phantom: std::marker::PhantomData,
-                    });
-                    editor_res.response.mark_changed()
+                let editor_res = self.reference_store.editor_small::<Number>(ui);
+                if let Some(new_value_ref) = editor_res.inner {
+                    *self.property = Property::ValueRef(new_value_ref);
                 }
+
                 Response::union(&value_res, editor_res.response)
             }
             Property::ValueRef(value_ref) => {

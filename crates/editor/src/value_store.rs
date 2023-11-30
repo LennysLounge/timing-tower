@@ -74,6 +74,21 @@ impl ValueType {
     }
 }
 
+pub trait ValueTypeOf<T> {
+    fn get() -> Self;
+}
+
+impl ValueTypeOf<Number> for ValueType {
+    fn get() -> Self {
+        ValueType::Number
+    }
+}
+impl ValueTypeOf<Text> for ValueType {
+    fn get() -> Self {
+        ValueType::Text
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(transparent)]
 pub struct ValueRef<T> {

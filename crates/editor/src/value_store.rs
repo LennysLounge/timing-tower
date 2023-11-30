@@ -1,11 +1,11 @@
 use std::{collections::HashMap, marker::PhantomData};
 
-use bevy::prelude::{Handle, Image, Resource};
+use bevy::prelude::Resource;
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
-use crate::{game_sources, style::properties::ImageProperty};
+use crate::game_sources;
 
 use self::types::{Boolean, Number, Text, Texture, Tint};
 
@@ -28,7 +28,13 @@ pub mod types {
     #[derive(Serialize, Deserialize, Clone)]
     pub struct Boolean(pub bool);
 
-    pub struct Texture(pub Handle<Image>);
+    #[derive(Serialize, Deserialize, Clone, Default)]
+    pub enum Texture {
+        #[default]
+        None,
+        #[serde(skip)]
+        Handle(Handle<Image>),
+    }
 }
 
 pub trait ValueProducer<T> {
@@ -81,6 +87,12 @@ pub enum Property<T> {
     ValueRef(ValueRef<T>),
     #[serde(untagged)]
     Fixed(T),
+}
+
+impl<T: Default> Default for Property<T> {
+    fn default() -> Self {
+        Property::Fixed(T::default())
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Default)]
@@ -183,26 +195,6 @@ impl ValueStore {
             .get(&reference.key)
             .and_then(|v| v.resolve_bool(self, entry))
     }
-    pub fn get_image(
-        &self,
-        reference: &AssetReference,
-        entry: Option<&Entry>,
-    ) -> Option<Handle<Image>> {
-        self.assets
-            .get(&reference.key)
-            .and_then(|v| v.resolve_texture(self, entry))
-    }
-
-    pub fn get_image_property(
-        &self,
-        property: &ImageProperty,
-        entry: Option<&Entry>,
-    ) -> Option<Handle<Image>> {
-        match property {
-            ImageProperty::None => None,
-            ImageProperty::Ref(reference) => self.get_image(reference, entry),
-        }
-    }
 }
 
 impl TypedValueProducer {
@@ -224,16 +216,6 @@ impl TypedValueProducer {
     pub fn resolve_bool(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
         match self {
             TypedValueProducer::Boolean(s) => s.get(vars, entry).map(|n| n.0),
-            _ => None,
-        }
-    }
-    pub fn resolve_texture(
-        &self,
-        vars: &ValueStore,
-        entry: Option<&Entry>,
-    ) -> Option<Handle<Image>> {
-        match self {
-            TypedValueProducer::Texture(s) => s.get(vars, entry).map(|n| n.0),
             _ => None,
         }
     }
@@ -271,6 +253,14 @@ impl TypedValueResolver<Boolean> for ValueStore {
     fn get_typed(&self, producer: &TypedValueProducer, entry: Option<&Entry>) -> Option<Boolean> {
         match producer {
             TypedValueProducer::Boolean(p) => p.get(self, entry),
+            _ => None,
+        }
+    }
+}
+impl TypedValueResolver<Texture> for ValueStore {
+    fn get_typed(&self, producer: &TypedValueProducer, entry: Option<&Entry>) -> Option<Texture> {
+        match producer {
+            TypedValueProducer::Texture(p) => p.get(self, entry),
             _ => None,
         }
     }

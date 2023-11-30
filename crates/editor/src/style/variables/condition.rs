@@ -5,7 +5,7 @@ use unified_sim_model::model::Entry;
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    style::properties::{text_property_editor, ImageProperty},
+    style::properties::text_property_editor,
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
         AssetId, AssetReference, AssetType, IntoValueProducer, Property, TypedValueProducer,
@@ -56,7 +56,7 @@ enum Output {
     Text(Property<Text>),
     Color(Property<Tint>),
     Boolean(Property<Boolean>),
-    Image(ImageProperty),
+    Image(Property<Texture>),
 }
 
 impl Default for Condition {
@@ -117,14 +117,14 @@ impl Condition {
                 AssetType::Text => Output::Text(Property::Fixed(Text(String::new()))),
                 AssetType::Color => Output::Color(Property::Fixed(Tint(Color::WHITE))),
                 AssetType::Boolean => Output::Boolean(Property::Fixed(Boolean(true))),
-                AssetType::Image => Output::Image(ImageProperty::default()),
+                AssetType::Image => Output::Image(Property::Fixed(Texture::None)),
             },
             false_output: match &id.asset_type {
                 AssetType::Number => Output::Number(Property::Fixed(Number(0.0))),
                 AssetType::Text => Output::Text(Property::Fixed(Text(String::new()))),
                 AssetType::Color => Output::Color(Property::Fixed(Tint(Color::WHITE))),
                 AssetType::Boolean => Output::Boolean(Property::Fixed(Boolean(false))),
-                AssetType::Image => Output::Image(ImageProperty::default()),
+                AssetType::Image => Output::Image(Property::Fixed(Texture::None)),
             },
             id,
             ..Default::default()
@@ -179,8 +179,8 @@ impl Condition {
                     let is_image = self.id.asset_type == AssetType::Image;
                     if ui.selectable_label(is_image, "Image").clicked() && !is_image {
                         self.id.asset_type = AssetType::Image;
-                        self.true_output = Output::Image(ImageProperty::default());
-                        self.false_output = Output::Image(ImageProperty::default());
+                        self.true_output = Output::Image(Property::Fixed(Texture::None));
+                        self.false_output = Output::Image(Property::Fixed(Texture::None));
                         changed |= true;
                     }
                 });
@@ -419,16 +419,15 @@ impl ValueProducer<Texture> for ConditionSource {
         let condition = self.evaluate_condition(value_store, entry)?;
         if condition {
             match &self.true_value {
-                Output::Image(i) => value_store.get_image_property(&i, entry),
+                Output::Image(i) => value_store.get_property(&i, entry),
                 _ => unreachable!(),
             }
         } else {
             match &self.false_value {
-                Output::Image(i) => value_store.get_image_property(&i, entry),
+                Output::Image(i) => value_store.get_property(&i, entry),
                 _ => unreachable!(),
             }
         }
-        .map(|n| Texture(n))
     }
 }
 

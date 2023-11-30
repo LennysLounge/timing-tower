@@ -268,6 +268,6 @@ fn default_load_state() -> LoadState {
 pub struct StaticImage(pub Option<Handle<Image>>);
 impl ValueProducer<Texture> for StaticImage {
     fn get(&self, _vars: &ValueStore, _entry: Option<&Entry>) -> Option<Texture> {
-        self.0.clone().map(|h| Texture(h))
+        self.0.clone().map(|h| Texture::Handle(h))
     }
 }

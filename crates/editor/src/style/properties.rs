@@ -5,17 +5,10 @@ use serde::{Deserialize, Serialize};
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
     value_store::{
-        types::{Boolean, Number, Text, Tint},
-        AssetReference, AssetType, Property, ValueRef,
+        types::{Boolean, Number, Text, Texture, Tint},
+        AssetType, Property, ValueRef,
     },
 };
-
-#[derive(Serialize, Deserialize, Clone)]
-pub enum ImageProperty {
-    Ref(AssetReference),
-    #[serde(untagged)]
-    None,
-}
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Vec2Property {
@@ -182,34 +175,31 @@ impl Property<Boolean> {
     }
 }
 
-impl Default for ImageProperty {
-    fn default() -> Self {
-        Self::None
-    }
-}
-
-impl ImageProperty {
+impl Property<Texture> {
     pub fn editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
         let mut changed = false;
         match self {
-            ImageProperty::None => {
+            Property::Fixed(..) => {
                 if let Some(reference) =
                     asset_repo.editor_none(ui, |v| v.asset_type.can_cast_to(&AssetType::Image))
                 {
-                    *self = ImageProperty::Ref(reference);
+                    *self = Property::ValueRef(ValueRef {
+                        id: reference.key,
+                        phantom: std::marker::PhantomData,
+                    });
                     changed |= true;
                 }
             }
-            ImageProperty::Ref(asset_ref) => {
-                let new_ref = asset_repo.editor(ui, &asset_ref.key, |v| {
+            Property::ValueRef(value_ref) => {
+                let new_ref = asset_repo.editor(ui, &value_ref.id, |v| {
                     v.asset_type.can_cast_to(&AssetType::Image)
                 });
                 if let Some(new_ref) = new_ref {
-                    *asset_ref = new_ref;
+                    value_ref.id = new_ref.key;
                     changed |= true;
                 }
                 if ui.button("x").clicked() {
-                    *self = ImageProperty::None;
+                    *self = Property::Fixed(Texture::None);
                     changed |= true;
                 }
             }

@@ -5,7 +5,7 @@ use unified_sim_model::model::Entry;
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    style::properties::{text_property_editor, ImageProperty},
+    style::properties::text_property_editor,
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
         AssetId, AssetReference, AssetType, IntoValueProducer, Property, TypedValueProducer,
@@ -101,7 +101,7 @@ impl Map {
             AssetType::Text => Output::Text(Property::Fixed(Text(String::new()))),
             AssetType::Color => Output::Color(Property::Fixed(Tint(Color::WHITE))),
             AssetType::Boolean => Output::Boolean(Property::Fixed(Boolean(false))),
-            AssetType::Image => Output::Image(ImageProperty::None),
+            AssetType::Image => Output::Image(Property::Fixed(Texture::None)),
         };
         self.default = new_output.clone();
         for case in self.cases.iter_mut() {
@@ -146,7 +146,7 @@ impl Map {
             AssetType::Text => Output::Text(Property::Fixed(Text(String::new()))),
             AssetType::Color => Output::Color(Property::Fixed(Tint(Color::WHITE))),
             AssetType::Boolean => Output::Boolean(Property::Fixed(Boolean(false))),
-            AssetType::Image => Output::Image(ImageProperty::None),
+            AssetType::Image => Output::Image(Property::Fixed(Texture::None)),
         }
     }
     fn new_case(&self) -> Case {
@@ -339,7 +339,7 @@ enum Output {
     Text(Property<Text>),
     Color(Property<Tint>),
     Boolean(Property<Boolean>),
-    Image(ImageProperty),
+    Image(Property<Texture>),
 }
 
 impl Output {
@@ -449,7 +449,7 @@ impl ValueProducer<Texture> for MapSource {
             .find_map(|(case, output)| {
                 if case.test(value_store, entry) {
                     match output {
-                        Output::Image(n) => value_store.get_image_property(n, entry),
+                        Output::Image(n) => value_store.get_property(n, entry),
                         _ => unreachable!(),
                     }
                 } else {
@@ -457,10 +457,9 @@ impl ValueProducer<Texture> for MapSource {
                 }
             })
             .or_else(|| match &self.default {
-                Output::Image(p) => value_store.get_image_property(p, entry),
+                Output::Image(p) => value_store.get_property(p, entry),
                 _ => unreachable!(),
             })
-            .map(|t| Texture(t))
     }
 }
 

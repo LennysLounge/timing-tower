@@ -429,10 +429,7 @@
                 },
                 "output": {
                   "Image": {
-                    "Ref": {
-                      "asset_type": "Image",
-                      "key": "b7ba5250-cf78-4146-a7c8-f2b85adc4c5f"
-                    }
+                    "ValueRef": "b7ba5250-cf78-4146-a7c8-f2b85adc4c5f"
                   }
                 },
                 "remove": false
@@ -446,10 +443,7 @@
                 },
                 "output": {
                   "Image": {
-                    "Ref": {
-                      "asset_type": "Image",
-                      "key": "3eee3a38-140e-453e-8830-4f256ee83e07"
-                    }
+                    "ValueRef": "3eee3a38-140e-453e-8830-4f256ee83e07"
                   }
                 },
                 "remove": false
@@ -463,10 +457,7 @@
                 },
                 "output": {
                   "Image": {
-                    "Ref": {
-                      "asset_type": "Image",
-                      "key": "1e8814f4-16dd-4ad9-be24-2ea075bcff6a"
-                    }
+                    "ValueRef": "1e8814f4-16dd-4ad9-be24-2ea075bcff6a"
                   }
                 },
                 "remove": false
@@ -480,10 +471,7 @@
                 },
                 "output": {
                   "Image": {
-                    "Ref": {
-                      "asset_type": "Image",
-                      "key": "ecfb2bad-459a-4b64-b8ed-5d5147053ea2"
-                    }
+                    "ValueRef": "ecfb2bad-459a-4b64-b8ed-5d5147053ea2"
                   }
                 },
                 "remove": false
@@ -497,10 +485,7 @@
                 },
                 "output": {
                   "Image": {
-                    "Ref": {
-                      "asset_type": "Image",
-                      "key": "ecd425a6-2490-484b-9979-a19933de1193"
-                    }
+                    "ValueRef": "ecd425a6-2490-484b-9979-a19933de1193"
                   }
                 },
                 "remove": false
@@ -514,10 +499,7 @@
                 },
                 "output": {
                   "Image": {
-                    "Ref": {
-                      "asset_type": "Image",
-                      "key": "48368915-4dcb-443b-8f6e-d6ace044ced9"
-                    }
+                    "ValueRef": "48368915-4dcb-443b-8f6e-d6ace044ced9"
                   }
                 },
                 "remove": false
@@ -531,10 +513,7 @@
                 },
                 "output": {
                   "Image": {
-                    "Ref": {
-                      "asset_type": "Image",
-                      "key": "afcae1d6-f887-4417-bdfb-c09e91116adb"
-                    }
+                    "ValueRef": "afcae1d6-f887-4417-bdfb-c09e91116adb"
                   }
                 },
                 "remove": false
@@ -548,10 +527,7 @@
                 },
                 "output": {
                   "Image": {
-                    "Ref": {
-                      "asset_type": "Image",
-                      "key": "77133dec-724a-491a-b2ce-fd2888a78ab1"
-                    }
+                    "ValueRef": "77133dec-724a-491a-b2ce-fd2888a78ab1"
                   }
                 },
                 "remove": false
@@ -565,10 +541,7 @@
                 },
                 "output": {
                   "Image": {
-                    "Ref": {
-                      "asset_type": "Image",
-                      "key": "c0432571-650f-4fdc-a708-aa9a01117590"
-                    }
+                    "ValueRef": "c0432571-650f-4fdc-a708-aa9a01117590"
                   }
                 },
                 "remove": false
@@ -582,10 +555,7 @@
                 },
                 "output": {
                   "Image": {
-                    "Ref": {
-                      "asset_type": "Image",
-                      "key": "95dc96a9-97ce-436b-bf78-8465e0929ce9"
-                    }
+                    "ValueRef": "95dc96a9-97ce-436b-bf78-8465e0929ce9"
                   }
                 },
                 "remove": false
@@ -599,10 +569,7 @@
                 },
                 "output": {
                   "Image": {
-                    "Ref": {
-                      "asset_type": "Image",
-                      "key": "922570d9-792b-4555-aa52-65f1d890996b"
-                    }
+                    "ValueRef": "922570d9-792b-4555-aa52-65f1d890996b"
                   }
                 },
                 "remove": false
@@ -616,10 +583,7 @@
                 },
                 "output": {
                   "Image": {
-                    "Ref": {
-                      "asset_type": "Image",
-                      "key": "fc0aba26-4d09-41a8-982a-d2534c9fdb8c"
-                    }
+                    "ValueRef": "fc0aba26-4d09-41a8-982a-d2534c9fdb8c"
                   }
                 },
                 "remove": false
@@ -633,10 +597,7 @@
                 },
                 "output": {
                   "Image": {
-                    "Ref": {
-                      "asset_type": "Image",
-                      "key": "66146a86-cb01-437f-814d-5c86efd5a777"
-                    }
+                    "ValueRef": "66146a86-cb01-437f-814d-5c86efd5a777"
                   }
                 },
                 "remove": false
@@ -650,10 +611,7 @@
                 },
                 "output": {
                   "Image": {
-                    "Ref": {
-                      "asset_type": "Image",
-                      "key": "230297a5-ff60-494e-acba-5af35c4f7e99"
-                    }
+                    "ValueRef": "230297a5-ff60-494e-acba-5af35c4f7e99"
                   }
                 },
                 "remove": false
@@ -667,10 +625,7 @@
                 },
                 "output": {
                   "Image": {
-                    "Ref": {
-                      "asset_type": "Image",
-                      "key": "2295c661-0609-483d-b3df-248efa705f9d"
-                    }
+                    "ValueRef": "2295c661-0609-483d-b3df-248efa705f9d"
                   }
                 },
                 "remove": false
@@ -684,10 +639,7 @@
                 },
                 "output": {
                   "Image": {
-                    "Ref": {
-                      "asset_type": "Image",
-                      "key": "d0edeef4-f187-44df-9c65-d81d405d8062"
-                    }
+                    "ValueRef": "d0edeef4-f187-44df-9c65-d81d405d8062"
                   }
                 },
                 "remove": false
@@ -701,10 +653,7 @@
                 },
                 "output": {
                   "Image": {
-                    "Ref": {
-                      "asset_type": "Image",
-                      "key": "1f2524af-9c72-495e-89e2-fda763f2ee18"
-                    }
+                    "ValueRef": "1f2524af-9c72-495e-89e2-fda763f2ee18"
                   }
                 },
                 "remove": false
@@ -718,10 +667,7 @@
                 },
                 "output": {
                   "Image": {
-                    "Ref": {
-                      "asset_type": "Image",
-                      "key": "4971fafb-479d-470f-8afd-b85e6820a396"
-                    }
+                    "ValueRef": "4971fafb-479d-470f-8afd-b85e6820a396"
                   }
                 },
                 "remove": false
@@ -735,10 +681,7 @@
                 },
                 "output": {
                   "Image": {
-                    "Ref": {
-                      "asset_type": "Image",
-                      "key": "109ecca7-9500-4c6a-b496-95a8da13d299"
-                    }
+                    "ValueRef": "109ecca7-9500-4c6a-b496-95a8da13d299"
                   }
                 },
                 "remove": false
@@ -746,10 +689,7 @@
             ],
             "default": {
               "Image": {
-                "Ref": {
-                  "asset_type": "Image",
-                  "key": "62823f7e-db28-4087-a148-79d943b6ecfc"
-                }
+                "ValueRef": "62823f7e-db28-4087-a148-79d943b6ecfc"
               }
             }
           }
@@ -923,7 +863,7 @@
           "alpha": 0.0
         }
       },
-      "image": null,
+      "image": "None",
       "pos": {
         "x": 350.0,
         "y": 55.0,
@@ -968,7 +908,7 @@
             "alpha": 0.0
           }
         },
-        "image": null,
+        "image": "None",
         "pos": {
           "x": 0.0,
           "y": 0.0,
@@ -1017,7 +957,7 @@
               "alpha": 0.0
             }
           },
-          "image": null,
+          "image": "None",
           "pos": {
             "x": 0.0,
             "y": 0.0,
@@ -1064,7 +1004,7 @@
                   "color": {
                     "ValueRef": "e86a2ae3-6486-4941-bee9-b063f3ff0152"
                   },
-                  "image": null,
+                  "image": "None",
                   "pos": {
                     "x": 0.0,
                     "y": 0.0,
@@ -1115,7 +1055,7 @@
                       "alpha": 0.6904762
                     }
                   },
-                  "image": null,
+                  "image": "None",
                   "pos": {
                     "x": 32.0,
                     "y": 0.0,
@@ -1159,7 +1099,7 @@
                   "color": {
                     "ValueRef": "e41f142f-2026-4126-9dc4-bed03fecd31e"
                   },
-                  "image": null,
+                  "image": "None",
                   "pos": {
                     "x": 189.0,
                     "y": 0.0,
@@ -1204,10 +1144,7 @@
                     "ValueRef": "e41f142f-2026-4126-9dc4-bed03fecd31e"
                   },
                   "image": {
-                    "Ref": {
-                      "asset_type": "Image",
-                      "key": "90eb20ce-9b39-41ab-b6c8-626ba182ea6e"
-                    }
+                    "ValueRef": "90eb20ce-9b39-41ab-b6c8-626ba182ea6e"
                   },
                   "pos": {
                     "x": 191.0,
@@ -1249,7 +1186,7 @@
                   "color": {
                     "ValueRef": "8536ebf5-82e1-41e3-bc37-b713534a7780"
                   },
-                  "image": null,
+                  "image": "None",
                   "pos": {
                     "x": 225.0,
                     "y": 0.0,
@@ -1298,7 +1235,7 @@
                       "alpha": 1.0
                     }
                   },
-                  "image": null,
+                  "image": "None",
                   "pos": {
                     "x": 271.0,
                     "y": 0.0,

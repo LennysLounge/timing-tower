@@ -20,7 +20,7 @@ use unified_sim_model::{
 use crate::{
     style::{cell::Cell, StyleDefinition},
     value_store::{
-        types::{Boolean, Number, Text, Tint},
+        types::{Boolean, Number, Text, Texture, Tint},
         ValueStore,
     },
     SpawnAndInitWorld,
@@ -324,7 +324,10 @@ fn create_cell_style(cell: &Cell, vars: &ValueStore, entry: Option<&Entry>) -> C
             .get_property(&cell.color, entry)
             .unwrap_or(Tint(Color::RED))
             .0,
-        texture: vars.get_image_property(&cell.image, entry),
+        texture: vars.get_property(&cell.image, entry).and_then(|t| match t {
+            Texture::None => None,
+            Texture::Handle(handle) => Some(handle),
+        }),
         pos: Vec3::new(
             vars.get_property(&cell.pos.x, entry)
                 .unwrap_or(Number(0.0))

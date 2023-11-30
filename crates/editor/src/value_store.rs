@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
-use crate::game_sources;
+use crate::{game_sources, style::properties::Property};
 
 use self::types::{Boolean, Number, Text, Texture, Tint};
 
@@ -80,19 +80,6 @@ pub struct ValueRef<T> {
     pub id: Uuid,
     #[serde(skip)]
     pub phantom: PhantomData<T>,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub enum Property<T> {
-    ValueRef(ValueRef<T>),
-    #[serde(untagged)]
-    Fixed(T),
-}
-
-impl<T: Default> Default for Property<T> {
-    fn default() -> Self {
-        Property::Fixed(T::default())
-    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Default)]

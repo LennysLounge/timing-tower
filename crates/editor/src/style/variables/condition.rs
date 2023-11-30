@@ -5,11 +5,11 @@ use unified_sim_model::model::Entry;
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    style::properties::text_property_editor,
+    style::properties::{text_property_editor, Property},
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
-        AssetId, AssetReference, AssetType, IntoValueProducer, Property, TypedValueProducer,
-        ValueProducer, ValueStore,
+        AssetId, AssetReference, AssetType, IntoValueProducer, TypedValueProducer, ValueProducer,
+        ValueStore,
     },
 };
 

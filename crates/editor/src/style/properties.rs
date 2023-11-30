@@ -6,9 +6,22 @@ use crate::{
     asset_reference_repo::AssetReferenceRepo,
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
-        AssetType, Property, ValueRef,
+        AssetType, ValueRef,
     },
 };
+
+#[derive(Serialize, Deserialize, Clone)]
+pub enum Property<T> {
+    ValueRef(ValueRef<T>),
+    #[serde(untagged)]
+    Fixed(T),
+}
+
+impl<T: Default> Default for Property<T> {
+    fn default() -> Self {
+        Property::Fixed(T::default())
+    }
+}
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Vec2Property {

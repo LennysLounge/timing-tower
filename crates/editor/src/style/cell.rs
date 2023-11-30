@@ -4,13 +4,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    value_store::{
-        types::{Boolean, Number, Text, Texture, Tint},
-        Property,
-    },
+    value_store::types::{Boolean, Number, Text, Texture, Tint},
 };
 
-use super::properties::{text_property_editor, Vec2Property, Vec3Property};
+use super::properties::{text_property_editor, Property, Vec2Property, Vec3Property};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Cell {

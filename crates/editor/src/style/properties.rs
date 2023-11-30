@@ -1,5 +1,5 @@
 use bevy::prelude::Color;
-use bevy_egui::egui::{ComboBox, DragValue, TextEdit, Ui};
+use bevy_egui::egui::{ComboBox, DragValue, Response, TextEdit, Ui, Widget};
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -34,6 +34,58 @@ pub struct Vec3Property {
     pub x: Property<Number>,
     pub y: Property<Number>,
     pub z: Property<Number>,
+}
+
+pub struct PropertyEditor<'a, T> {
+    property: &'a mut Property<T>,
+    reference_store: &'a ReferenceStore,
+}
+impl<'a, T> PropertyEditor<'a, T> {
+    pub fn new(
+        property: &'a mut Property<T>,
+        reference_store: &'a ReferenceStore,
+    ) -> PropertyEditor<'a, T> {
+        PropertyEditor {
+            property,
+            reference_store,
+        }
+    }
+}
+impl Widget for PropertyEditor<'_, Number> {
+    fn ui(self, ui: &mut Ui) -> Response {
+        match self.property {
+            Property::Fixed(c) => {
+                let mut res = ui.add(DragValue::new(&mut c.0));
+
+                //TODO: The editor should also return a response.
+                if let Some(reference) = self
+                    .reference_store
+                    .editor_small(ui, |v| v.asset_type.can_cast_to(&AssetType::Number))
+                {
+                    *self.property = Property::ValueRef(ValueRef {
+                        id: reference.key,
+                        phantom: std::marker::PhantomData,
+                    });
+                    res.mark_changed();
+                }
+                res
+            }
+            Property::ValueRef(value_ref) => {
+                // TODO: editor should return a response
+                let new_ref = self.reference_store.editor(ui, &value_ref.id, |v| {
+                    v.asset_type.can_cast_to(&AssetType::Number)
+                });
+                if let Some(new_ref) = new_ref {
+                    value_ref.id = new_ref.key;
+                }
+                let button_res = ui.button("x");
+                if button_res.clicked() {
+                    *self.property = Property::Fixed(Number(0.0));
+                }
+                button_res
+            }
+        }
+    }
 }
 
 impl Property<Text> {

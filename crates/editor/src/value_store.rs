@@ -19,13 +19,13 @@ pub mod types {
     #[derive(Serialize, Deserialize, Clone, Default)]
     pub struct Number(pub f32);
 
-    #[derive(Serialize, Deserialize, Clone)]
+    #[derive(Serialize, Deserialize, Clone, Default)]
     pub struct Text(pub String);
 
-    #[derive(Serialize, Deserialize, Clone)]
+    #[derive(Serialize, Deserialize, Clone, Default)]
     pub struct Tint(pub Color);
 
-    #[derive(Serialize, Deserialize, Clone)]
+    #[derive(Serialize, Deserialize, Clone, Default)]
     pub struct Boolean(pub bool);
 
     #[derive(Serialize, Deserialize, Clone, Default)]
@@ -143,6 +143,10 @@ impl ToTypedValueRef<Text> for UntypedValueRef {
     fn to_typed(&self) -> Option<ValueRef<Text>> {
         match self.value_type {
             ValueType::Text => Some(ValueRef {
+                id: self.id,
+                phantom: PhantomData,
+            }),
+            ValueType::Number => Some(ValueRef {
                 id: self.id,
                 phantom: PhantomData,
             }),

@@ -5,7 +5,7 @@ use unified_sim_model::model::Entry;
 
 use crate::{
     reference_store::ReferenceStore,
-    style::properties::Property,
+    style::properties::{Property, PropertyEditor},
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
         AssetId, IntoValueProducer, TypedValueProducer, UntypedValueRef, ValueProducer, ValueStore,
@@ -305,7 +305,9 @@ impl Condition {
             changed |= ui
                 .horizontal(|ui| match &mut self.right {
                     RightHandSide::Number(n, _) => n.editor(ui, asset_repo),
-                    RightHandSide::Text(t, _) => t.editor(ui, asset_repo),
+                    RightHandSide::Text(t, _) => {
+                        ui.add(PropertyEditor::new(t, asset_repo)).changed()
+                    }
                     RightHandSide::Boolean(b, _) => b.editor(ui, asset_repo),
                 })
                 .inner;
@@ -315,7 +317,7 @@ impl Condition {
             ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
             changed |= match &mut self.true_output {
                 Output::Number(n) => n.editor(ui, asset_repo),
-                Output::Text(t) => t.editor(ui, asset_repo),
+                Output::Text(t) => ui.add(PropertyEditor::new(t, asset_repo)).changed(),
                 Output::Color(c) => c.editor(ui, asset_repo),
                 Output::Boolean(b) => b.editor(ui, asset_repo),
                 Output::Image(i) => i.editor(ui, asset_repo),
@@ -326,7 +328,7 @@ impl Condition {
             ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
             changed |= match &mut self.false_output {
                 Output::Number(n) => n.editor(ui, asset_repo),
-                Output::Text(t) => t.editor(ui, asset_repo),
+                Output::Text(t) => ui.add(PropertyEditor::new(t, asset_repo)).changed(),
                 Output::Color(c) => c.editor(ui, asset_repo),
                 Output::Boolean(b) => b.editor(ui, asset_repo),
                 Output::Image(i) => i.editor(ui, asset_repo),

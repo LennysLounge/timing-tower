@@ -95,7 +95,9 @@ impl Cell {
         });
         ui.horizontal(|ui| {
             ui.label("Text:");
-            changed |= self.text.editor(ui, asset_repo);
+            changed |= ui
+                .add(PropertyEditor::new(&mut self.text, asset_repo))
+                .changed();
         });
         ui.horizontal(|ui| {
             ui.label("Text color:");
@@ -106,7 +108,6 @@ impl Cell {
             changed |= ui
                 .add(PropertyEditor::new(&mut self.text_size, asset_repo))
                 .changed();
-            //changed |= self.text_size.editor(ui, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Text alginment:");

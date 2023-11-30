@@ -99,43 +99,48 @@ impl ValueTypeEditor for Number {
         ui.add(DragValue::new(&mut self.0))
     }
 }
-
-impl Property<Text> {
-    pub fn editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
-        let mut changed = false;
-        match self {
-            Property::Fixed(text) => {
-                changed |= ui
-                    .add(TextEdit::singleline(&mut text.0).desired_width(100.0))
-                    .changed();
-                if let Some(reference) = asset_repo
-                    .untyped_editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Text))
-                    .inner
-                {
-                    *self = Property::ValueRef(ValueRef::<Text> {
-                        id: reference.id,
-                        phantom: std::marker::PhantomData,
-                    });
-                    changed |= true;
-                }
-            }
-            Property::ValueRef(value_ref) => {
-                let new_ref = asset_repo.untyped_editor(ui, &value_ref.id, |v| {
-                    v.asset_type.can_cast_to(&ValueType::Text)
-                });
-                if let Some(new_ref) = new_ref.inner {
-                    value_ref.id = new_ref.id;
-                    changed |= true;
-                }
-                if ui.button("x").clicked() {
-                    *self = Property::Fixed(Text("".to_string()));
-                    changed |= true;
-                }
-            }
-        }
-        changed
+impl ValueTypeEditor for Text {
+    fn editor(&mut self, ui: &mut Ui) -> Response {
+        ui.add(TextEdit::singleline(&mut self.0).desired_width(100.0))
     }
 }
+
+// impl Property<Text> {
+//     pub fn editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
+//         let mut changed = false;
+//         match self {
+//             Property::Fixed(text) => {
+//                 changed |= ui
+//                     .add(TextEdit::singleline(&mut text.0).desired_width(100.0))
+//                     .changed();
+//                 if let Some(reference) = asset_repo
+//                     .untyped_editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Text))
+//                     .inner
+//                 {
+//                     *self = Property::ValueRef(ValueRef::<Text> {
+//                         id: reference.id,
+//                         phantom: std::marker::PhantomData,
+//                     });
+//                     changed |= true;
+//                 }
+//             }
+//             Property::ValueRef(value_ref) => {
+//                 let new_ref = asset_repo.untyped_editor(ui, &value_ref.id, |v| {
+//                     v.asset_type.can_cast_to(&ValueType::Text)
+//                 });
+//                 if let Some(new_ref) = new_ref.inner {
+//                     value_ref.id = new_ref.id;
+//                     changed |= true;
+//                 }
+//                 if ui.button("x").clicked() {
+//                     *self = Property::Fixed(Text("".to_string()));
+//                     changed |= true;
+//                 }
+//             }
+//         }
+//         changed
+//     }
+// }
 
 impl Property<Number> {
     pub fn editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {

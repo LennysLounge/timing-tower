@@ -8,8 +8,8 @@ use crate::{
     style::properties::Property,
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
-        AssetId, UntypedValueRef, ValueType, IntoValueProducer, TypedValueProducer, ValueProducer,
-        ValueStore,
+        AssetId, IntoValueProducer, TypedValueProducer, UntypedValueRef, ValueProducer, ValueStore,
+        ValueType,
     },
 };
 
@@ -198,7 +198,7 @@ impl Condition {
                     _ => false,
                 } && v.id != self.id.id;
             });
-            if let Some(reference) = new_ref {
+            if let Some(reference) = new_ref.inner {
                 // Channge the value type of the right side if necessary
                 if self.left.value_type != reference.value_type {
                     self.right = match reference.value_type {
@@ -215,7 +215,9 @@ impl Condition {
                             BooleanComparator::Is,
                         ),
                         ValueType::Tint => unreachable!("Type color not allowed for if condition"),
-                        ValueType::Texture => unreachable!("Type image not allowed for if condition"),
+                        ValueType::Texture => {
+                            unreachable!("Type image not allowed for if condition")
+                        }
                     }
                 }
                 self.left = reference;

@@ -8,8 +8,8 @@ use crate::{
     style::properties::Property,
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
-        AssetId, UntypedValueRef, ValueType, IntoValueProducer, TypedValueProducer, ValueProducer,
-        ValueStore,
+        AssetId, IntoValueProducer, TypedValueProducer, UntypedValueRef, ValueProducer, ValueStore,
+        ValueType,
     },
 };
 
@@ -45,7 +45,7 @@ impl Map {
                     _ => false
                 } &&
                 v.id != self.id.id);
-            if let Some(new_ref) = new_ref {
+            if let Some(new_ref) = new_ref.inner {
                 self.input = new_ref;
                 changed |= true;
                 self.update_comparison_type();

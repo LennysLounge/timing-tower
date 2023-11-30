@@ -6,7 +6,7 @@ use crate::{
     reference_store::ReferenceStore,
     value_store::{
         types::{Boolean, Number, Text, Texture, Tint},
-        ValueType, ValueRef,
+        ValueRef, ValueType,
     },
 };
 
@@ -71,18 +71,25 @@ impl Widget for PropertyEditor<'_, Number> {
                 res
             }
             Property::ValueRef(value_ref) => {
-                // TODO: editor should return a response
-                let new_ref = self.reference_store.editor(ui, &value_ref.id, |v| {
+                let mut changed = false;
+                let res = self.reference_store.editor(ui, &value_ref.id, |v| {
                     v.asset_type.can_cast_to(&ValueType::Number)
                 });
-                if let Some(new_ref) = new_ref {
+
+                if let Some(new_ref) = res.inner {
                     value_ref.id = new_ref.id;
+                    changed = true;
                 }
                 let button_res = ui.button("x");
                 if button_res.clicked() {
                     *self.property = Property::Fixed(Number(0.0));
+                    changed = true;
                 }
-                button_res
+                let mut final_res = Response::union(&res.response, button_res);
+                if changed {
+                    final_res.mark_changed()
+                }
+                final_res
             }
         }
     }
@@ -110,7 +117,7 @@ impl Property<Text> {
                 let new_ref = asset_repo.editor(ui, &value_ref.id, |v| {
                     v.asset_type.can_cast_to(&ValueType::Text)
                 });
-                if let Some(new_ref) = new_ref {
+                if let Some(new_ref) = new_ref.inner {
                     value_ref.id = new_ref.id;
                     changed |= true;
                 }
@@ -144,7 +151,7 @@ impl Property<Number> {
                 let new_ref = asset_repo.editor(ui, &value_ref.id, |v| {
                     v.asset_type.can_cast_to(&ValueType::Number)
                 });
-                if let Some(new_ref) = new_ref {
+                if let Some(new_ref) = new_ref.inner {
                     value_ref.id = new_ref.id;
                     changed = true;
                 }
@@ -181,7 +188,7 @@ impl Property<Tint> {
                 let new_ref = asset_repo.editor(ui, &value_ref.id, |v| {
                     v.asset_type.can_cast_to(&ValueType::Tint)
                 });
-                if let Some(new_ref) = new_ref {
+                if let Some(new_ref) = new_ref.inner {
                     value_ref.id = new_ref.id;
                     changed |= true;
                 }
@@ -224,7 +231,7 @@ impl Property<Boolean> {
                 let new_ref = asset_repo.editor(ui, &value_ref.id, |v| {
                     v.asset_type.can_cast_to(&ValueType::Tint)
                 });
-                if let Some(new_ref) = new_ref {
+                if let Some(new_ref) = new_ref.inner {
                     value_ref.id = new_ref.id;
                     changed |= true;
                 }
@@ -257,7 +264,7 @@ impl Property<Texture> {
                 let new_ref = asset_repo.editor(ui, &value_ref.id, |v| {
                     v.asset_type.can_cast_to(&ValueType::Texture)
                 });
-                if let Some(new_ref) = new_ref {
+                if let Some(new_ref) = new_ref.inner {
                     value_ref.id = new_ref.id;
                     changed |= true;
                 }

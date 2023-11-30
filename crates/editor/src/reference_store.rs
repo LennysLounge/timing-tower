@@ -1,4 +1,4 @@
-use bevy_egui::egui::Ui;
+use bevy_egui::egui::{InnerResponse, Ui};
 use uuid::Uuid;
 
 use crate::{
@@ -8,7 +8,7 @@ use crate::{
         folder::{Folder, FolderOrT},
         variables::VariableBehavior,
     },
-    value_store::{AssetId, UntypedValueRef, IntoValueProducer},
+    value_store::{AssetId, IntoValueProducer, UntypedValueRef},
 };
 
 pub struct ReferenceStore {
@@ -31,17 +31,18 @@ impl ReferenceStore {
         ui: &mut Ui,
         asset_ref_key: &Uuid,
         is_type_allowed: impl Fn(&AssetId) -> bool,
-    ) -> Option<UntypedValueRef> {
+    ) -> InnerResponse<Option<UntypedValueRef>> {
         let button_name = self
             .get(asset_ref_key)
             .map(|id| id.name.as_str())
             .unwrap_or("- Invalud Ref -");
 
         let mut selected_asset = None;
-        ui.menu_button(button_name, |ui| {
+        let res = ui.menu_button(button_name, |ui| {
             self.show_menu(ui, &mut selected_asset, &is_type_allowed);
         });
-        selected_asset.map(|a| a.get_ref())
+
+        InnerResponse::new(selected_asset.map(|a| a.get_ref()), res.response)
     }
 
     pub fn editor_none(

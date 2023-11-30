@@ -1,4 +1,3 @@
-use bevy::prelude::Color;
 use bevy_egui::egui::{ComboBox, DragValue, Response, TextEdit, Ui, Widget};
 use serde::{Deserialize, Serialize};
 
@@ -104,41 +103,12 @@ impl ValueTypeEditor for Text {
         ui.add(TextEdit::singleline(&mut self.0).desired_width(100.0))
     }
 }
-impl Property<Tint> {
-    pub fn editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
-        let mut changed = false;
-        match self {
-            Property::Fixed(c) => {
-                let mut color = c.0.as_rgba_f32();
-                changed |= ui.color_edit_button_rgba_unmultiplied(&mut color).changed();
-                c.0 = color.into();
-
-                if let Some(reference) = asset_repo
-                    .untyped_editor_small(ui, |v| v.asset_type.can_cast_to(&ValueType::Tint))
-                    .inner
-                {
-                    *self = Property::ValueRef(ValueRef {
-                        id: reference.id,
-                        phantom: std::marker::PhantomData,
-                    });
-                    changed |= true;
-                }
-            }
-            Property::ValueRef(value_ref) => {
-                let new_ref = asset_repo.untyped_editor(ui, &value_ref.id, |v| {
-                    v.asset_type.can_cast_to(&ValueType::Tint)
-                });
-                if let Some(new_ref) = new_ref.inner {
-                    value_ref.id = new_ref.id;
-                    changed |= true;
-                }
-                if ui.button("x").clicked() {
-                    *self = Property::Fixed(Tint(Color::PURPLE));
-                    changed |= true;
-                }
-            }
-        }
-        changed
+impl ValueTypeEditor for Tint {
+    fn editor(&mut self, ui: &mut Ui) -> Response {
+        let mut color = self.0.as_rgba_f32();
+        let res = ui.color_edit_button_rgba_unmultiplied(&mut color);
+        self.0 = color.into();
+        res
     }
 }
 

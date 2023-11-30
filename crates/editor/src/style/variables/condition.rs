@@ -320,7 +320,7 @@ impl Condition {
             changed |= match &mut self.true_output {
                 Output::Number(n) => ui.add(PropertyEditor::new(n, asset_repo)).changed(),
                 Output::Text(t) => ui.add(PropertyEditor::new(t, asset_repo)).changed(),
-                Output::Color(c) => c.editor(ui, asset_repo),
+                Output::Color(c) => ui.add(PropertyEditor::new(c, asset_repo)).changed(),
                 Output::Boolean(b) => b.editor(ui, asset_repo),
                 Output::Image(i) => i.editor(ui, asset_repo),
             };
@@ -331,7 +331,7 @@ impl Condition {
             changed |= match &mut self.false_output {
                 Output::Number(n) => ui.add(PropertyEditor::new(n, asset_repo)).changed(),
                 Output::Text(t) => ui.add(PropertyEditor::new(t, asset_repo)).changed(),
-                Output::Color(c) => c.editor(ui, asset_repo),
+                Output::Color(c) => ui.add(PropertyEditor::new(c, asset_repo)).changed(),
                 Output::Boolean(b) => b.editor(ui, asset_repo),
                 Output::Image(i) => i.editor(ui, asset_repo),
             };

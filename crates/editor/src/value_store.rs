@@ -88,6 +88,11 @@ impl ValueTypeOf<Text> for ValueType {
         ValueType::Text
     }
 }
+impl ValueTypeOf<Tint> for ValueType {
+    fn get() -> Self {
+        ValueType::Tint
+    }
+}
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(transparent)]
@@ -115,6 +120,14 @@ impl ToUntypedValueRef<Text> for ValueRef<Text> {
         UntypedValueRef {
             id: self.id,
             value_type: ValueType::Text,
+        }
+    }
+}
+impl ToUntypedValueRef<Tint> for ValueRef<Tint> {
+    fn to_untyped(&self) -> UntypedValueRef {
+        UntypedValueRef {
+            id: self.id,
+            value_type: ValueType::Tint,
         }
     }
 }
@@ -147,6 +160,17 @@ impl ToTypedValueRef<Text> for UntypedValueRef {
                 phantom: PhantomData,
             }),
             ValueType::Number => Some(ValueRef {
+                id: self.id,
+                phantom: PhantomData,
+            }),
+            _ => None,
+        }
+    }
+}
+impl ToTypedValueRef<Tint> for UntypedValueRef {
+    fn to_typed(&self) -> Option<ValueRef<Tint>> {
+        match self.value_type {
+            ValueType::Tint => Some(ValueRef {
                 id: self.id,
                 phantom: PhantomData,
             }),

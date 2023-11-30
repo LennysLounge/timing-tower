@@ -192,7 +192,7 @@ impl Condition {
         ui.horizontal(|ui| {
             ui.label("If");
             ui.allocate_at_least(Vec2::new(5.0, 0.0), Sense::hover());
-            let new_ref = asset_repo.editor(ui, &mut self.left, |v| {
+            let new_ref = asset_repo.editor(ui, &mut self.left.key, |v| {
                 return match v.asset_type {
                     AssetType::Number => true,
                     AssetType::Text => true,

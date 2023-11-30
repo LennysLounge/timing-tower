@@ -2,13 +2,13 @@ use bevy_egui::egui::Ui;
 use uuid::Uuid;
 
 use crate::{
-    value_store::{AssetId, AssetReference, IntoValueProducer},
     game_sources::{self, GameSource},
     style::{
         assets::AssetDefinition,
         folder::{Folder, FolderOrT},
         variables::VariableBehavior,
     },
+    value_store::{AssetId, AssetReference, IntoValueProducer},
 };
 
 pub struct AssetReferenceRepo {
@@ -29,11 +29,11 @@ impl AssetReferenceRepo {
     pub fn editor(
         &self,
         ui: &mut Ui,
-        asset_ref: &AssetReference,
+        asset_ref_key: &Uuid,
         is_type_allowed: impl Fn(&AssetId) -> bool,
     ) -> Option<AssetReference> {
         let button_name = self
-            .get(&asset_ref.key)
+            .get(asset_ref_key)
             .map(|id| id.name.as_str())
             .unwrap_or("- Invalud Ref -");
 

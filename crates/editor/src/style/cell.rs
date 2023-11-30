@@ -8,7 +8,8 @@ use crate::{
 };
 
 use super::properties::{
-    BooleanProperty, ColorProperty, ImageProperty, NumberProperty, Vec2Property, Vec3Property,
+    text_property_editor, BooleanProperty, ColorProperty, ImageProperty, NumberProperty,
+    Vec2Property, Vec3Property,
 };
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -97,7 +98,7 @@ impl Cell {
         });
         ui.horizontal(|ui| {
             ui.label("Text:");
-            //changed |= self.text.editor(ui, asset_repo);
+            changed |= text_property_editor(ui, &mut self.text, asset_repo);
         });
         ui.horizontal(|ui| {
             ui.label("Text color:");

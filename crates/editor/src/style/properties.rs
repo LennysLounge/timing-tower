@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     asset_reference_repo::AssetReferenceRepo,
-    value_store::{AssetReference, AssetType},
+    value_store::{types::Text, AssetReference, AssetType, Property, ValueRef},
 };
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -71,7 +71,7 @@ impl TextProperty {
                 }
             }
             TextProperty::Ref(asset_ref) => {
-                let new_ref = asset_repo.editor(ui, asset_ref, |v| {
+                let new_ref = asset_repo.editor(ui, &asset_ref.key, |v| {
                     v.asset_type.can_cast_to(&AssetType::Text)
                 });
                 if let Some(new_ref) = new_ref {
@@ -88,6 +88,44 @@ impl TextProperty {
     }
 }
 
+pub fn text_property_editor(
+    ui: &mut Ui,
+    property: &mut Property<Text>,
+    asset_repo: &AssetReferenceRepo,
+) -> bool {
+    let mut changed = false;
+    match property {
+        Property::Fixed(text) => {
+            changed |= ui
+                .add(TextEdit::singleline(&mut text.0).desired_width(100.0))
+                .changed();
+            if let Some(reference) =
+                asset_repo.editor_small(ui, |v| v.asset_type.can_cast_to(&AssetType::Text))
+            {
+                *property = Property::ValueRef(ValueRef::<Text> {
+                    id: reference.key,
+                    phantom: std::marker::PhantomData,
+                });
+                changed |= true;
+            }
+        }
+        Property::ValueRef(value_ref) => {
+            let new_ref = asset_repo.editor(ui, &value_ref.id, |v| {
+                v.asset_type.can_cast_to(&AssetType::Text)
+            });
+            if let Some(new_ref) = new_ref {
+                value_ref.id = new_ref.key;
+                changed |= true;
+            }
+            if ui.button("x").clicked() {
+                *property = Property::Fixed(Text("".to_string()));
+                changed |= true;
+            }
+        }
+    }
+    changed
+}
+
 impl NumberProperty {
     pub fn editor(&mut self, ui: &mut Ui, asset_repo: &AssetReferenceRepo) -> bool {
         let mut changed = false;
@@ -102,7 +140,7 @@ impl NumberProperty {
                 }
             }
             NumberProperty::Ref(asset_ref) => {
-                let new_ref = asset_repo.editor(ui, asset_ref, |v| {
+                let new_ref = asset_repo.editor(ui, &asset_ref.key, |v| {
                     v.asset_type.can_cast_to(&AssetType::Number)
                 });
                 if let Some(new_ref) = new_ref {
@@ -136,7 +174,7 @@ impl ColorProperty {
                 }
             }
             ColorProperty::Ref(asset_ref) => {
-                let new_ref = asset_repo.editor(ui, asset_ref, |v| {
+                let new_ref = asset_repo.editor(ui, &asset_ref.key, |v| {
                     v.asset_type.can_cast_to(&AssetType::Color)
                 });
                 if let Some(new_ref) = new_ref {
@@ -176,7 +214,7 @@ impl BooleanProperty {
                 }
             }
             BooleanProperty::Ref(asset_ref) => {
-                let new_ref = asset_repo.editor(ui, asset_ref, |v| {
+                let new_ref = asset_repo.editor(ui, &asset_ref.key, |v| {
                     v.asset_type.can_cast_to(&AssetType::Color)
                 });
                 if let Some(new_ref) = new_ref {
@@ -212,7 +250,7 @@ impl ImageProperty {
                 }
             }
             ImageProperty::Ref(asset_ref) => {
-                let new_ref = asset_repo.editor(ui, asset_ref, |v| {
+                let new_ref = asset_repo.editor(ui, &asset_ref.key, |v| {
                     v.asset_type.can_cast_to(&AssetType::Image)
                 });
                 if let Some(new_ref) = new_ref {

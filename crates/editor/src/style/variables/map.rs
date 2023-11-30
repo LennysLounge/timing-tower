@@ -40,7 +40,7 @@ impl Map {
 
         ui.horizontal(|ui| {
             ui.label("Map input: ");
-            let new_ref = asset_repo.editor(ui, &self.input, |v|
+            let new_ref = asset_repo.editor(ui, &self.input.key, |v|
                 match v.asset_type{
                     AssetType::Number => true,
                     AssetType::Text => true,

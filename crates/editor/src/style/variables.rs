@@ -1,6 +1,6 @@
 use std::mem::discriminant;
 
-use bevy_egui::egui::{ComboBox, Response, Ui};
+use bevy_egui::egui::{ComboBox, InnerResponse, Response, Ui};
 use serde::{Deserialize, Serialize};
 use tree_view::{DropPosition, TreeUi, TreeViewBuilder};
 use uuid::Uuid;
@@ -239,4 +239,36 @@ fn variant_checkbox<T: Clone>(ui: &mut Ui, thing: &mut T, other_things: &[(&T, &
         res.mark_changed();
     }
     res
+}
+
+fn variants_editor<T: Clone>(
+    ui: &mut Ui,
+    current: &T,
+    other: Vec<(T, &str)>,
+) -> InnerResponse<Option<T>> {
+    let mut changed = false;
+    let mut selected = None;
+    let mut res = ComboBox::new(ui.next_auto_id(), "")
+        .selected_text({
+            other
+                .iter()
+                .find_map(|(other, name)| {
+                    (discriminant(current) == discriminant(other)).then_some(*name)
+                })
+                .unwrap_or("Not Found")
+        })
+        .show_ui(ui, |ui| {
+            for (other, name) in other {
+                let is_same = discriminant(current) == discriminant(&other);
+                if ui.selectable_label(is_same, name).clicked() && !is_same {
+                    selected = Some(other);
+                    changed = true;
+                }
+            }
+        })
+        .response;
+    if changed {
+        res.mark_changed()
+    };
+    InnerResponse::new(selected, res)
 }

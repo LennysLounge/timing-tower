@@ -10,6 +10,8 @@ use crate::{
     value_types::{Boolean, Number, Text, Texture, Tint, ValueType},
 };
 
+use super::variants_editor;
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Condition {
     #[serde(flatten)]
@@ -36,6 +38,26 @@ impl Condition {
 
         ui.horizontal(|ui| {
             ui.label("Output type:");
+
+            let InnerResponse {
+                inner: new_selected_output,
+                response: _,
+            } = variants_editor(
+                ui,
+                &self.output,
+                vec![
+                    (UntypedOutput::Number(Output::default()), "Number"),
+                    (UntypedOutput::Text(Output::default()), "Text"),
+                    (UntypedOutput::Color(Output::default()), "Tint"),
+                    (UntypedOutput::Boolean(Output::default()), "Boolean"),
+                    (UntypedOutput::Image(Output::default()), "Texture"),
+                ],
+            );
+            if let Some(new_selected_output) = new_selected_output {
+                self.output = new_selected_output;
+                changed |= true;
+            }
+
             ComboBox::new(ui.next_auto_id(), "")
                 .selected_text(match self.output_type() {
                     ValueType::Number => "Number",
@@ -133,29 +155,29 @@ impl Condition {
                             NumberComparator::LessEqual => "less or equal",
                         })
                         .show_ui(ui, |ui| {
-                            changed |= true;
-                            ui.selectable_value(comparator, NumberComparator::Equal, "equal")
+                            changed |= ui
+                                .selectable_value(comparator, NumberComparator::Equal, "equal")
                                 .changed();
-                            changed |= true;
-                            ui.selectable_value(comparator, NumberComparator::Greater, "greater")
+                            changed |= ui
+                                .selectable_value(comparator, NumberComparator::Greater, "greater")
                                 .changed();
-                            changed |= true;
-                            ui.selectable_value(
-                                comparator,
-                                NumberComparator::GreaterEqual,
-                                "greater or equal",
-                            )
-                            .changed();
-                            changed |= true;
-                            ui.selectable_value(comparator, NumberComparator::Less, "less")
+                            changed |= ui
+                                .selectable_value(
+                                    comparator,
+                                    NumberComparator::GreaterEqual,
+                                    "greater or equal",
+                                )
                                 .changed();
-                            changed |= true;
-                            ui.selectable_value(
-                                comparator,
-                                NumberComparator::LessEqual,
-                                "less or equal",
-                            )
-                            .changed();
+                            changed |= ui
+                                .selectable_value(comparator, NumberComparator::Less, "less")
+                                .changed();
+                            changed |= ui
+                                .selectable_value(
+                                    comparator,
+                                    NumberComparator::LessEqual,
+                                    "less or equal",
+                                )
+                                .changed();
                         });
                     match comparator {
                         NumberComparator::Equal => ui.label("to"),
@@ -172,8 +194,8 @@ impl Condition {
                             TextComparator::Like => "like",
                         })
                         .show_ui(ui, |ui| {
-                            changed |= true;
-                            ui.selectable_value(c, TextComparator::Like, "like")
+                            changed |= ui
+                                .selectable_value(c, TextComparator::Like, "like")
                                 .changed()
                         });
                 }
@@ -185,11 +207,11 @@ impl Condition {
                             BooleanComparator::IsNot => "is not",
                         })
                         .show_ui(ui, |ui| {
-                            changed |= true;
-                            ui.selectable_value(c, BooleanComparator::Is, "is")
+                            changed |= ui
+                                .selectable_value(c, BooleanComparator::Is, "is")
                                 .changed();
-                            changed |= true;
-                            ui.selectable_value(c, BooleanComparator::IsNot, "is not")
+                            changed |= ui
+                                .selectable_value(c, BooleanComparator::IsNot, "is not")
                                 .changed();
                         });
                 }

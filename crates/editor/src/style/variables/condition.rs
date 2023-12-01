@@ -2,14 +2,11 @@ use bevy::prelude::Color;
 use bevy_egui::egui::{ComboBox, Sense, Ui, Vec2};
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
-use uuid::Uuid;
 
 use crate::{
     reference_store::{ProducerData, ReferenceStore},
     style::properties::{Property, PropertyEditor},
-    value_store::{
-        IntoValueProducer, TypedValueProducer, UntypedValueRef, ValueProducer, ValueRef, ValueStore,
-    },
+    value_store::{TypedValueProducer, UntypedValueRef, ValueProducer, ValueRef, ValueStore},
     value_types::{Boolean, Number, Text, Texture, Tint, ValueType},
 };
 
@@ -71,8 +68,8 @@ impl Default for Condition {
     }
 }
 
-impl IntoValueProducer for Condition {
-    fn get_value_producer(&self) -> (Uuid, TypedValueProducer) {
+impl Condition {
+    pub fn as_typed_producer(&self) -> TypedValueProducer {
         let source = ConditionSource {
             comparison: match &self.right {
                 RightHandSide::Number(np, c) => Comparison::Number(NumberComparison {
@@ -104,14 +101,13 @@ impl IntoValueProducer for Condition {
             false_value: self.false_output.clone(),
         };
 
-        let producer = match self.id.asset_type {
+        match self.id.asset_type {
             ValueType::Number => TypedValueProducer::Number(Box::new(source)),
             ValueType::Text => TypedValueProducer::Text(Box::new(source)),
             ValueType::Tint => TypedValueProducer::Tint(Box::new(source)),
             ValueType::Boolean => TypedValueProducer::Boolean(Box::new(source)),
             ValueType::Texture => TypedValueProducer::Texture(Box::new(source)),
-        };
-        (self.id.id, producer)
+        }
     }
 }
 impl Condition {

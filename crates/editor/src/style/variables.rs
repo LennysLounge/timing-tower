@@ -50,11 +50,12 @@ impl IntoProducerData for VariableDefinition {
 }
 impl IntoValueProducer for VariableDefinition {
     fn get_value_producer(&self) -> (Uuid, TypedValueProducer) {
-        match &self.behavior {
-            VariableBehavior::FixedValue(o) => o.get_value_producer(),
-            VariableBehavior::Condition(o) => o.get_value_producer(),
-            VariableBehavior::Map(o) => o.get_value_producer(),
-        }
+        let producer = match &self.behavior {
+            VariableBehavior::FixedValue(o) => o.as_typed_producer(),
+            VariableBehavior::Condition(o) => o.as_typed_producer(),
+            VariableBehavior::Map(o) => o.as_typed_producer(),
+        };
+        (self.id, producer)
     }
 }
 

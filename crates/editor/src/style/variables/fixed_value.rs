@@ -2,11 +2,10 @@ use bevy::prelude::Color;
 use bevy_egui::egui::{ComboBox, DragValue, Ui};
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
-use uuid::Uuid;
 
 use crate::{
     reference_store::ProducerData,
-    value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore},
+    value_store::{TypedValueProducer, ValueProducer, ValueStore},
     value_types::{Boolean, Number, Text, Tint, ValueType},
 };
 
@@ -127,16 +126,14 @@ impl FixedValue {
     pub fn output_type(&self) -> ValueType {
         self.id.asset_type
     }
-}
-impl IntoValueProducer for FixedValue {
-    fn get_value_producer(&self) -> (Uuid, TypedValueProducer) {
-        let producer = match &self.value {
+
+    pub fn as_typed_producer(&self) -> TypedValueProducer {
+        match &self.value {
             FixedValueType::Number(n) => TypedValueProducer::Number(Box::new(StaticNumber(*n))),
             FixedValueType::Text(t) => TypedValueProducer::Text(Box::new(StaticText(t.clone()))),
             FixedValueType::Color(c) => TypedValueProducer::Tint(Box::new(StaticColor(*c))),
             FixedValueType::Boolean(b) => TypedValueProducer::Boolean(Box::new(StaticBoolean(*b))),
-        };
-        (self.id.id, producer)
+        }
     }
 }
 

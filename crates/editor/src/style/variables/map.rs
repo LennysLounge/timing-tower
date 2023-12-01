@@ -4,14 +4,11 @@ use bevy::prelude::Color;
 use bevy_egui::egui::{vec2, ComboBox, Ui};
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
-use uuid::Uuid;
 
 use crate::{
     reference_store::{ProducerData, ReferenceStore},
     style::properties::{Property, PropertyEditor},
-    value_store::{
-        IntoValueProducer, TypedValueProducer, UntypedValueRef, ValueProducer, ValueRef, ValueStore,
-    },
+    value_store::{TypedValueProducer, UntypedValueRef, ValueProducer, ValueRef, ValueStore},
     value_types::{Boolean, Number, Text, Texture, Tint, ValueType},
 };
 
@@ -160,9 +157,8 @@ impl Map {
     pub fn output_type(&self) -> ValueType {
         self.id.asset_type
     }
-}
-impl IntoValueProducer for Map {
-    fn get_value_producer(&self) -> (Uuid, TypedValueProducer) {
+
+    pub fn as_typed_producer(&self) -> TypedValueProducer {
         let mut cases = Vec::new();
         for case in self.cases.iter() {
             match self.input.value_type {
@@ -203,14 +199,13 @@ impl IntoValueProducer for Map {
             default: self.default.clone(),
         };
 
-        let producer = match self.id.asset_type {
+        match self.id.asset_type {
             ValueType::Number => TypedValueProducer::Number(Box::new(source)),
             ValueType::Text => TypedValueProducer::Text(Box::new(source)),
             ValueType::Tint => TypedValueProducer::Tint(Box::new(source)),
             ValueType::Boolean => TypedValueProducer::Boolean(Box::new(source)),
             ValueType::Texture => TypedValueProducer::Texture(Box::new(source)),
-        };
-        (self.id.id, producer)
+        }
     }
 }
 

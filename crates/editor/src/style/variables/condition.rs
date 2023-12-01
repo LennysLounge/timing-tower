@@ -6,7 +6,7 @@ use uuid::Uuid;
 use crate::{
     reference_store::ReferenceStore,
     style::properties::{Property, PropertyEditor},
-    value_store::{TypedValueProducer, ValueProducer, ValueRef, ValueStore},
+    value_store::{TypedValueProducer, TypedValueResolver, ValueProducer, ValueRef, ValueStore},
     value_types::{Boolean, Number, Text, Texture, Tint, ValueType},
 };
 
@@ -331,17 +331,42 @@ impl Condition {
 
 impl Condition {
     pub fn as_typed_producer(&self) -> TypedValueProducer {
-        let source = ConditionSource {
-            comparison: self.comparison.clone(),
-            output: self.output.clone(),
-        };
-
-        match self.output_type() {
-            ValueType::Number => TypedValueProducer::Number(Box::new(source)),
-            ValueType::Text => TypedValueProducer::Text(Box::new(source)),
-            ValueType::Tint => TypedValueProducer::Tint(Box::new(source)),
-            ValueType::Boolean => TypedValueProducer::Boolean(Box::new(source)),
-            ValueType::Texture => TypedValueProducer::Texture(Box::new(source)),
+        match &self.output {
+            Output::Number { truee, falsee } => TypedValueProducer::Number(Box::new({
+                ConditionProducer {
+                    comparison: self.comparison.clone(),
+                    true_output: truee.clone(),
+                    false_output: falsee.clone(),
+                }
+            })),
+            Output::Text { truee, falsee } => TypedValueProducer::Text(Box::new({
+                ConditionProducer {
+                    comparison: self.comparison.clone(),
+                    true_output: truee.clone(),
+                    false_output: falsee.clone(),
+                }
+            })),
+            Output::Color { truee, falsee } => TypedValueProducer::Tint(Box::new({
+                ConditionProducer {
+                    comparison: self.comparison.clone(),
+                    true_output: truee.clone(),
+                    false_output: falsee.clone(),
+                }
+            })),
+            Output::Boolean { truee, falsee } => TypedValueProducer::Boolean(Box::new({
+                ConditionProducer {
+                    comparison: self.comparison.clone(),
+                    true_output: truee.clone(),
+                    false_output: falsee.clone(),
+                }
+            })),
+            Output::Image { truee, falsee } => TypedValueProducer::Texture(Box::new({
+                ConditionProducer {
+                    comparison: self.comparison.clone(),
+                    true_output: truee.clone(),
+                    false_output: falsee.clone(),
+                }
+            })),
         }
     }
 }
@@ -357,12 +382,13 @@ impl Condition {
     }
 }
 
-struct ConditionSource {
+struct ConditionProducer<T> {
     comparison: Comparison,
-    output: Output,
+    true_output: Property<T>,
+    false_output: Property<T>,
 }
 
-impl ConditionSource {
+impl<T> ConditionProducer<T> {
     fn evaluate_condition(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
         match &self.comparison {
             Comparison::Number(n) => n.evaluate(vars, entry),
@@ -372,84 +398,18 @@ impl ConditionSource {
     }
 }
 
-impl ValueProducer<Number> for ConditionSource {
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
+impl<T> ValueProducer<T> for ConditionProducer<T>
+where
+    ValueStore: TypedValueResolver<T>,
+    T: Clone,
+{
+    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<T> {
         let condition = self.evaluate_condition(value_store, entry)?;
 
         if condition {
-            match &self.output {
-                Output::Number { truee, .. } => value_store.get_property(truee, entry),
-                _ => unreachable!(),
-            }
+            value_store.get_property(&self.true_output, entry)
         } else {
-            match &self.output {
-                Output::Number { falsee, .. } => value_store.get_property(falsee, entry),
-                _ => unreachable!(),
-            }
-        }
-    }
-}
-impl ValueProducer<Text> for ConditionSource {
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
-        let condition = self.evaluate_condition(value_store, entry)?;
-        if condition {
-            match &self.output {
-                Output::Text { truee, .. } => value_store.get_property(truee, entry),
-                _ => unreachable!(),
-            }
-        } else {
-            match &self.output {
-                Output::Text { falsee, .. } => value_store.get_property(falsee, entry),
-                _ => unreachable!(),
-            }
-        }
-    }
-}
-impl ValueProducer<Tint> for ConditionSource {
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Tint> {
-        let condition = self.evaluate_condition(value_store, entry)?;
-        if condition {
-            match &self.output {
-                Output::Color { truee, .. } => value_store.get_property(truee, entry),
-                _ => unreachable!(),
-            }
-        } else {
-            match &self.output {
-                Output::Color { falsee, .. } => value_store.get_property(falsee, entry),
-                _ => unreachable!(),
-            }
-        }
-    }
-}
-impl ValueProducer<Boolean> for ConditionSource {
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
-        let condition = self.evaluate_condition(value_store, entry)?;
-        if condition {
-            match &self.output {
-                Output::Boolean { truee, .. } => value_store.get_property(truee, entry),
-                _ => unreachable!(),
-            }
-        } else {
-            match &self.output {
-                Output::Boolean { falsee, .. } => value_store.get_property(falsee, entry),
-                _ => unreachable!(),
-            }
-        }
-    }
-}
-impl ValueProducer<Texture> for ConditionSource {
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Texture> {
-        let condition = self.evaluate_condition(value_store, entry)?;
-        if condition {
-            match &self.output {
-                Output::Image { truee, .. } => value_store.get_property(truee, entry),
-                _ => unreachable!(),
-            }
-        } else {
-            match &self.output {
-                Output::Image { falsee, .. } => value_store.get_property(falsee, entry),
-                _ => unreachable!(),
-            }
+            value_store.get_property(&self.false_output, entry)
         }
     }
 }

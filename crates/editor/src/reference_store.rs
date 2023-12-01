@@ -1,4 +1,5 @@
 use bevy_egui::egui::{InnerResponse, Response, Ui};
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
@@ -8,9 +9,34 @@ use crate::{
         folder::{Folder, FolderOrT},
         variables::VariableBehavior,
     },
-    value_store::{AssetId, IntoValueProducer, UntypedValueRef, ValueRef},
+    value_store::{IntoValueProducer, UntypedValueRef, ValueRef},
     value_types::{ValueType, ValueTypeOf},
 };
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct AssetId {
+    pub id: Uuid,
+    pub name: String,
+    pub asset_type: ValueType,
+}
+
+impl Default for AssetId {
+    fn default() -> Self {
+        Self {
+            name: "Variable".to_string(),
+            id: Uuid::new_v4(),
+            asset_type: ValueType::default(),
+        }
+    }
+}
+impl AssetId {
+    pub fn get_ref(&self) -> UntypedValueRef {
+        UntypedValueRef {
+            value_type: self.asset_type.clone(),
+            id: self.id.clone(),
+        }
+    }
+}
 
 pub struct ReferenceStore {
     assets: AssetOrFolder,

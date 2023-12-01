@@ -9,8 +9,8 @@ use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
 use crate::{
-    reference_store::ReferenceStore,
-    value_store::{AssetId, IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore},
+    reference_store::{AssetId, ReferenceStore},
+    value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore},
     value_types::{Texture, ValueType},
 };
 

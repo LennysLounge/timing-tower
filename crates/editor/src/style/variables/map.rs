@@ -7,11 +7,10 @@ use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
 use crate::{
-    reference_store::ReferenceStore,
+    reference_store::{AssetId, ReferenceStore},
     style::properties::{Property, PropertyEditor},
     value_store::{
-        AssetId, IntoValueProducer, TypedValueProducer, UntypedValueRef, ValueProducer, ValueRef,
-        ValueStore,
+        IntoValueProducer, TypedValueProducer, UntypedValueRef, ValueProducer, ValueRef, ValueStore,
     },
     value_types::{Boolean, Number, Text, Texture, Tint, ValueType},
 };

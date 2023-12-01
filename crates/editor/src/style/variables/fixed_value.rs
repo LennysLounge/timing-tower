@@ -5,7 +5,8 @@ use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
 use crate::{
-    value_store::{AssetId, IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore},
+    reference_store::AssetId,
+    value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore},
     value_types::{Boolean, Number, Text, Tint, ValueType},
 };
 

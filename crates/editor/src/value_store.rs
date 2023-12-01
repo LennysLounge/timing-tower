@@ -7,6 +7,7 @@ use uuid::Uuid;
 
 use crate::{
     game_sources,
+    reference_store::AssetId,
     style::properties::Property,
     value_types::{Boolean, Number, Text, Texture, Tint, ValueType},
 };
@@ -32,31 +33,6 @@ pub struct ValueRef<T> {
 pub struct UntypedValueRef {
     pub id: Uuid,
     pub value_type: ValueType,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct AssetId {
-    pub id: Uuid,
-    pub name: String,
-    pub asset_type: ValueType,
-}
-
-impl Default for AssetId {
-    fn default() -> Self {
-        Self {
-            name: "Variable".to_string(),
-            id: Uuid::new_v4(),
-            asset_type: ValueType::default(),
-        }
-    }
-}
-impl AssetId {
-    pub fn get_ref(&self) -> UntypedValueRef {
-        UntypedValueRef {
-            value_type: self.asset_type.clone(),
-            id: self.id.clone(),
-        }
-    }
 }
 
 pub enum TypedValueProducer {

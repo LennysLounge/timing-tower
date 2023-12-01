@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 
 use crate::{
-    reference_store::{ProducerData, ReferenceStore},
+    reference_store::ReferenceStore,
     style::properties::{Property, PropertyEditor},
     value_store::{TypedValueProducer, UntypedValueRef, ValueProducer, ValueRef, ValueStore},
     value_types::{Boolean, Number, Text, Texture, Tint, ValueType},
@@ -12,7 +12,6 @@ use crate::{
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Condition {
     #[serde(flatten)]
-    id: ProducerData,
     left: UntypedValueRef,
     right: RightHandSide,
     output: Output,
@@ -72,7 +71,6 @@ enum Output {
 impl Default for Condition {
     fn default() -> Self {
         Self {
-            id: Default::default(),
             left: Default::default(),
             right: RightHandSide::Number(Property::Fixed(Number(0.0)), NumberComparator::Equal),
             output: Output::Number {
@@ -115,7 +113,7 @@ impl Condition {
             output: self.output.clone(),
         };
 
-        match self.id.asset_type {
+        match self.output_type() {
             ValueType::Number => TypedValueProducer::Number(Box::new(source)),
             ValueType::Text => TypedValueProducer::Text(Box::new(source)),
             ValueType::Tint => TypedValueProducer::Tint(Box::new(source)),
@@ -126,7 +124,13 @@ impl Condition {
 }
 impl Condition {
     pub fn output_type(&self) -> ValueType {
-        self.id.asset_type
+        match self.output {
+            Output::Number { .. } => ValueType::Number,
+            Output::Text { .. } => ValueType::Text,
+            Output::Color { .. } => ValueType::Tint,
+            Output::Boolean { .. } => ValueType::Boolean,
+            Output::Image { .. } => ValueType::Texture,
+        }
     }
 }
 
@@ -137,7 +141,7 @@ impl Condition {
         ui.horizontal(|ui| {
             ui.label("Output type:");
             ComboBox::new(ui.next_auto_id(), "")
-                .selected_text(match self.id.asset_type {
+                .selected_text(match self.output_type() {
                     ValueType::Number => "Number",
                     ValueType::Text => "Text",
                     ValueType::Tint => "Color",
@@ -145,45 +149,40 @@ impl Condition {
                     ValueType::Texture => "Image",
                 })
                 .show_ui(ui, |ui| {
-                    let is_number = self.id.asset_type == ValueType::Number;
+                    let is_number = self.output_type() == ValueType::Number;
                     if ui.selectable_label(is_number, "Number").clicked() && !is_number {
-                        self.id.asset_type = ValueType::Number;
                         self.output = Output::Number {
                             truee: Property::default(),
                             falsee: Property::default(),
                         };
                         changed |= true;
                     }
-                    let is_text = self.id.asset_type == ValueType::Text;
+                    let is_text = self.output_type() == ValueType::Text;
                     if ui.selectable_label(is_text, "Text").clicked() && !is_text {
-                        self.id.asset_type = ValueType::Text;
                         self.output = Output::Text {
                             truee: Property::default(),
                             falsee: Property::default(),
                         };
                         changed |= true;
                     }
-                    let is_color = self.id.asset_type == ValueType::Tint;
+                    let is_color = self.output_type() == ValueType::Tint;
                     if ui.selectable_label(is_color, "Color").clicked() && !is_color {
-                        self.id.asset_type = ValueType::Tint;
                         self.output = Output::Color {
                             truee: Property::default(),
                             falsee: Property::default(),
                         };
                         changed |= true;
                     }
-                    let is_boolean = self.id.asset_type == ValueType::Boolean;
+                    let is_boolean = self.output_type() == ValueType::Boolean;
                     if ui.selectable_label(is_boolean, "Yes/No").clicked() && !is_boolean {
-                        self.id.asset_type = ValueType::Boolean;
                         self.output = Output::Boolean {
                             truee: Property::default(),
                             falsee: Property::default(),
                         };
                         changed |= true;
                     }
-                    let is_image = self.id.asset_type == ValueType::Texture;
+                    let is_image = self.output_type() == ValueType::Texture;
                     if ui.selectable_label(is_image, "Image").clicked() && !is_image {
-                        self.id.asset_type = ValueType::Texture;
                         self.output = Output::Image {
                             truee: Property::default(),
                             falsee: Property::default(),
@@ -203,7 +202,7 @@ impl Condition {
                     ValueType::Text => true,
                     ValueType::Boolean => true,
                     _ => false,
-                } && v.id != self.id.id;
+                };
             });
             if let Some(reference) = new_ref.inner {
                 // Channge the value type of the right side if necessary

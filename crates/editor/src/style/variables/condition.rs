@@ -18,67 +18,6 @@ pub struct Condition {
     output: UntypedOutput,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
-#[serde(tag = "comparison_type")]
-enum Comparison {
-    Number(NumberComparison),
-    Text(TextComparison),
-    Boolean(BooleanComparison),
-}
-
-impl Comparison {
-    fn left_side_id(&self) -> &Uuid {
-        match self {
-            Comparison::Number(n) => &n.left.id,
-            Comparison::Text(n) => &n.left.id,
-            Comparison::Boolean(n) => &n.left.id,
-        }
-    }
-    fn left_side_type(&self) -> ValueType {
-        match self {
-            Comparison::Number(_) => ValueType::Number,
-            Comparison::Text(_) => ValueType::Text,
-            Comparison::Boolean(_) => ValueType::Boolean,
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
-enum NumberComparator {
-    Equal,
-    Greater,
-    GreaterEqual,
-    Less,
-    LessEqual,
-}
-
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
-enum TextComparator {
-    Like,
-}
-
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
-enum BooleanComparator {
-    Is,
-    IsNot,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-#[serde(tag = "output_type")]
-enum UntypedOutput {
-    Number(Output<Number>),
-    Text(Output<Text>),
-    Color(Output<Tint>),
-    Boolean(Output<Boolean>),
-    Image(Output<Texture>),
-}
-
-#[derive(Serialize, Deserialize, Clone, Default)]
-struct Output<T> {
-    truee: Property<T>,
-    falsee: Property<T>,
-}
-
 impl Default for Condition {
     fn default() -> Self {
         Self {
@@ -320,9 +259,7 @@ impl Condition {
         });
         changed
     }
-}
 
-impl Condition {
     pub fn as_typed_producer(&self) -> TypedValueProducer {
         match self.output.clone() {
             UntypedOutput::Number(output) => TypedValueProducer::Number(Box::new({
@@ -357,8 +294,7 @@ impl Condition {
             })),
         }
     }
-}
-impl Condition {
+
     pub fn output_type(&self) -> ValueType {
         match self.output {
             UntypedOutput::Number { .. } => ValueType::Number,
@@ -368,6 +304,122 @@ impl Condition {
             UntypedOutput::Image { .. } => ValueType::Texture,
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(tag = "comparison_type")]
+enum Comparison {
+    Number(NumberComparison),
+    Text(TextComparison),
+    Boolean(BooleanComparison),
+}
+
+impl Comparison {
+    fn left_side_id(&self) -> &Uuid {
+        match self {
+            Comparison::Number(n) => &n.left.id,
+            Comparison::Text(n) => &n.left.id,
+            Comparison::Boolean(n) => &n.left.id,
+        }
+    }
+    fn left_side_type(&self) -> ValueType {
+        match self {
+            Comparison::Number(_) => ValueType::Number,
+            Comparison::Text(_) => ValueType::Text,
+            Comparison::Boolean(_) => ValueType::Boolean,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+struct NumberComparison {
+    left: ValueRef<Number>,
+    comparator: NumberComparator,
+    right: Property<Number>,
+}
+
+impl NumberComparison {
+    fn evaluate(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
+        let left = vars.get(&self.left, entry)?.0;
+        let right = vars.get_property(&self.right, entry)?.0;
+        Some(match self.comparator {
+            NumberComparator::Equal => left == right,
+            NumberComparator::Greater => left > right,
+            NumberComparator::GreaterEqual => left >= right,
+            NumberComparator::Less => left < right,
+            NumberComparator::LessEqual => left <= right,
+        })
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
+enum NumberComparator {
+    Equal,
+    Greater,
+    GreaterEqual,
+    Less,
+    LessEqual,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+struct TextComparison {
+    left: ValueRef<Text>,
+    comparator: TextComparator,
+    right: Property<Text>,
+}
+
+impl TextComparison {
+    fn evaluate(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
+        let left = vars.get(&self.left, entry)?.0;
+        let right = vars.get_property(&self.right, entry)?.0;
+        Some(match self.comparator {
+            TextComparator::Like => left == right,
+        })
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
+enum TextComparator {
+    Like,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+struct BooleanComparison {
+    left: ValueRef<Boolean>,
+    comparator: BooleanComparator,
+    right: Property<Boolean>,
+}
+impl BooleanComparison {
+    fn evaluate(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
+        let left = vars.get(&self.left, entry)?.0;
+        let right = vars.get_property(&self.right, entry)?.0;
+        Some(match self.comparator {
+            BooleanComparator::Is => left == right,
+            BooleanComparator::IsNot => left != right,
+        })
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
+enum BooleanComparator {
+    Is,
+    IsNot,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(tag = "output_type")]
+enum UntypedOutput {
+    Number(Output<Number>),
+    Text(Output<Text>),
+    Color(Output<Tint>),
+    Boolean(Output<Boolean>),
+    Image(Output<Texture>),
+}
+
+#[derive(Serialize, Deserialize, Clone, Default)]
+struct Output<T> {
+    truee: Property<T>,
+    falsee: Property<T>,
 }
 
 struct ConditionProducer<T> {
@@ -398,60 +450,5 @@ where
         } else {
             value_store.get_property(&self.output.falsee, entry)
         }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-struct NumberComparison {
-    left: ValueRef<Number>,
-    comparator: NumberComparator,
-    right: Property<Number>,
-}
-
-impl NumberComparison {
-    fn evaluate(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
-        let left = vars.get(&self.left, entry)?.0;
-        let right = vars.get_property(&self.right, entry)?.0;
-        Some(match self.comparator {
-            NumberComparator::Equal => left == right,
-            NumberComparator::Greater => left > right,
-            NumberComparator::GreaterEqual => left >= right,
-            NumberComparator::Less => left < right,
-            NumberComparator::LessEqual => left <= right,
-        })
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-struct TextComparison {
-    left: ValueRef<Text>,
-    comparator: TextComparator,
-    right: Property<Text>,
-}
-
-impl TextComparison {
-    fn evaluate(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
-        let left = vars.get(&self.left, entry)?.0;
-        let right = vars.get_property(&self.right, entry)?.0;
-        Some(match self.comparator {
-            TextComparator::Like => left == right,
-        })
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-struct BooleanComparison {
-    left: ValueRef<Boolean>,
-    comparator: BooleanComparator,
-    right: Property<Boolean>,
-}
-impl BooleanComparison {
-    fn evaluate(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
-        let left = vars.get(&self.left, entry)?.0;
-        let right = vars.get_property(&self.right, entry)?.0;
-        Some(match self.comparator {
-            BooleanComparator::Is => left == right,
-            BooleanComparator::IsNot => left != right,
-        })
     }
 }

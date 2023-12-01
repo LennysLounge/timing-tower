@@ -7,7 +7,7 @@ use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
 use crate::{
-    reference_store::{IntoProducerData, ProducerData, ReferenceStore},
+    reference_store::{ProducerData, ReferenceStore},
     style::properties::{Property, PropertyEditor},
     value_store::{
         IntoValueProducer, TypedValueProducer, UntypedValueRef, ValueProducer, ValueRef, ValueStore,
@@ -156,9 +156,9 @@ impl Map {
     }
 }
 
-impl IntoProducerData for Map {
-    fn producer_data(&self) -> ProducerData {
-        self.id.clone()
+impl Map {
+    pub fn output_type(&self) -> ValueType {
+        self.id.asset_type
     }
 }
 impl IntoValueProducer for Map {

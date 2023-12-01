@@ -41,9 +41,9 @@ impl IntoProducerData for VariableDefinition {
             id: self.id,
             name: self.name.clone(),
             asset_type: match &self.behavior {
-                VariableBehavior::FixedValue(o) => o.producer_data().asset_type,
-                VariableBehavior::Condition(o) => o.producer_data().asset_type,
-                VariableBehavior::Map(o) => o.producer_data().asset_type,
+                VariableBehavior::FixedValue(o) => o.output_type(),
+                VariableBehavior::Condition(o) => o.output_type(),
+                VariableBehavior::Map(o) => o.output_type(),
             },
         }
     }

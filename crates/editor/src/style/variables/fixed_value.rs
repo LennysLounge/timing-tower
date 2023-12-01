@@ -5,7 +5,7 @@ use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
 use crate::{
-    reference_store::{IntoProducerData, ProducerData},
+    reference_store::ProducerData,
     value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore},
     value_types::{Boolean, Number, Text, Tint, ValueType},
 };
@@ -123,9 +123,9 @@ impl FixedValue {
     }
 }
 
-impl IntoProducerData for FixedValue {
-    fn producer_data(&self) -> ProducerData {
-        self.id.clone()
+impl FixedValue {
+    pub fn output_type(&self) -> ValueType {
+        self.id.asset_type
     }
 }
 impl IntoValueProducer for FixedValue {

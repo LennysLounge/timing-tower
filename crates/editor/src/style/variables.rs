@@ -37,7 +37,7 @@ impl IntoValueProducer for VariableBehavior {
         }
     }
 
-    fn get_value_producer(&self) -> TypedValueProducer {
+    fn get_value_producer(&self) -> (Uuid, TypedValueProducer) {
         match self {
             VariableBehavior::FixedValue(o) => o.get_value_producer(),
             VariableBehavior::Condition(o) => o.get_value_producer(),

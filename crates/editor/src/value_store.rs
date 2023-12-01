@@ -16,7 +16,7 @@ pub trait ValueProducer<T> {
 }
 
 pub trait IntoValueProducer {
-    fn get_value_producer(&self) -> TypedValueProducer;
+    fn get_value_producer(&self) -> (Uuid, TypedValueProducer);
     fn asset_id(&self) -> &AssetId;
 }
 
@@ -86,8 +86,8 @@ impl ValueStore {
 
     fn convert(&mut self, asset_defs: Vec<&impl IntoValueProducer>) {
         for var_def in asset_defs {
-            self.assets
-                .insert(var_def.asset_id().id.clone(), var_def.get_value_producer());
+            let (id, value_producer) = var_def.get_value_producer();
+            self.assets.insert(id, value_producer);
         }
     }
 

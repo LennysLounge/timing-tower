@@ -2,6 +2,7 @@ use bevy::prelude::Color;
 use bevy_egui::egui::{ComboBox, Sense, Ui, Vec2};
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
+use uuid::Uuid;
 
 use crate::{
     reference_store::ReferenceStore,
@@ -72,7 +73,7 @@ impl Default for Condition {
 }
 
 impl IntoValueProducer for Condition {
-    fn get_value_producer(&self) -> TypedValueProducer {
+    fn get_value_producer(&self) -> (Uuid, TypedValueProducer) {
         let source = ConditionSource {
             comparison: match &self.right {
                 RightHandSide::Number(np, c) => Comparison::Number(NumberComparison {
@@ -104,13 +105,14 @@ impl IntoValueProducer for Condition {
             false_value: self.false_output.clone(),
         };
 
-        match self.id.asset_type {
+        let producer = match self.id.asset_type {
             ValueType::Number => TypedValueProducer::Number(Box::new(source)),
             ValueType::Text => TypedValueProducer::Text(Box::new(source)),
             ValueType::Tint => TypedValueProducer::Tint(Box::new(source)),
             ValueType::Boolean => TypedValueProducer::Boolean(Box::new(source)),
             ValueType::Texture => TypedValueProducer::Texture(Box::new(source)),
-        }
+        };
+        (self.id.id, producer)
     }
 
     fn asset_id(&self) -> &AssetId {

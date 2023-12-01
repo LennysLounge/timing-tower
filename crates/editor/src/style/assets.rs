@@ -62,7 +62,7 @@ impl FolderActions for AssetDefinition {
 }
 
 impl IntoValueProducer for AssetDefinition {
-    fn get_value_producer(&self) -> TypedValueProducer {
+    fn get_value_producer(&self) -> (Uuid, TypedValueProducer) {
         match self {
             AssetDefinition::Image(i) => i.get_value_producer(),
         }
@@ -147,8 +147,11 @@ pub struct ImageAsset {
 }
 
 impl IntoValueProducer for ImageAsset {
-    fn get_value_producer(&self) -> TypedValueProducer {
-        TypedValueProducer::Texture(Box::new(StaticImage(self.handle.clone())))
+    fn get_value_producer(&self) -> (Uuid, TypedValueProducer) {
+        (
+            self.id.id,
+            TypedValueProducer::Texture(Box::new(StaticImage(self.handle.clone()))),
+        )
     }
 
     fn asset_id(&self) -> &AssetId {

@@ -125,12 +125,13 @@ impl IntoValueProducer for GameSource {
         &self.asset_id
     }
 
-    fn get_value_producer(&self) -> TypedValueProducer {
-        match self.extractor {
+    fn get_value_producer(&self) -> (Uuid, TypedValueProducer) {
+        let producer = match self.extractor {
             Extractor::Number(_) => TypedValueProducer::Number(Box::new(self.extractor.clone())),
             Extractor::Text(_) => TypedValueProducer::Text(Box::new(self.extractor.clone())),
             Extractor::Boolean(_) => TypedValueProducer::Boolean(Box::new(self.extractor.clone())),
-        }
+        };
+        (self.asset_id.id, producer)
     }
 }
 

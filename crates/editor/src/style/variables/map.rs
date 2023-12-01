@@ -4,6 +4,7 @@ use bevy::prelude::Color;
 use bevy_egui::egui::{vec2, ComboBox, Ui};
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
+use uuid::Uuid;
 
 use crate::{
     reference_store::ReferenceStore,
@@ -165,7 +166,7 @@ impl IntoValueProducer for Map {
         &self.id
     }
 
-    fn get_value_producer(&self) -> TypedValueProducer {
+    fn get_value_producer(&self) -> (Uuid, TypedValueProducer) {
         let mut cases = Vec::new();
         for case in self.cases.iter() {
             match self.input.value_type {
@@ -206,13 +207,14 @@ impl IntoValueProducer for Map {
             default: self.default.clone(),
         };
 
-        match self.id.asset_type {
+        let producer = match self.id.asset_type {
             ValueType::Number => TypedValueProducer::Number(Box::new(source)),
             ValueType::Text => TypedValueProducer::Text(Box::new(source)),
             ValueType::Tint => TypedValueProducer::Tint(Box::new(source)),
             ValueType::Boolean => TypedValueProducer::Boolean(Box::new(source)),
             ValueType::Texture => TypedValueProducer::Texture(Box::new(source)),
-        }
+        };
+        (self.id.id, producer)
     }
 }
 

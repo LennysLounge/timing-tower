@@ -83,9 +83,7 @@ impl StyleTreeUi for VariableDefinition {
                     if ui.selectable_label(is_fixed_value, "Fixed value").clicked()
                         && !is_fixed_value
                     {
-                        self.behavior = VariableBehavior::FixedValue(FixedValue::from_id(
-                            self.producer_data().clone(),
-                        ));
+                        self.behavior = VariableBehavior::FixedValue(FixedValue::default());
                         changed |= true;
                     }
 

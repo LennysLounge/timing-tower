@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use bevy::prelude::Color;
 use bevy_egui::egui::{vec2, ComboBox, Ui};
 use serde::{Deserialize, Serialize};
@@ -7,7 +9,8 @@ use crate::{
     reference_store::ReferenceStore,
     style::properties::{Property, PropertyEditor},
     value_store::{
-        AssetId, IntoValueProducer, TypedValueProducer, UntypedValueRef, ValueProducer, ValueStore,
+        AssetId, IntoValueProducer, TypedValueProducer, UntypedValueRef, ValueProducer, ValueRef,
+        ValueStore,
     },
     value_types::{Boolean, Number, Text, Texture, Tint, ValueType},
 };
@@ -168,18 +171,28 @@ impl IntoValueProducer for Map {
             match self.input.value_type {
                 ValueType::Number => {
                     let case_comp = match &case.comparison {
-                        Comparison::Number(property, comp) => {
-                            (self.input.clone(), comp.clone(), property.clone())
-                        }
+                        Comparison::Number(property, comp) => (
+                            ValueRef {
+                                id: self.input.id,
+                                phantom: PhantomData,
+                            },
+                            comp.clone(),
+                            property.clone(),
+                        ),
                         _ => unreachable!(),
                     };
                     cases.push((CaseComparison::Number(case_comp), case.output.clone()));
                 }
                 ValueType::Text => {
                     let case_comp = match &case.comparison {
-                        Comparison::Text(property, comp) => {
-                            (self.input.clone(), comp.clone(), property.clone())
-                        }
+                        Comparison::Text(property, comp) => (
+                            ValueRef {
+                                id: self.input.id,
+                                phantom: PhantomData,
+                            },
+                            comp.clone(),
+                            property.clone(),
+                        ),
                         _ => unreachable!(),
                     };
                     cases.push((CaseComparison::Text(case_comp), case.output.clone()));
@@ -464,26 +477,26 @@ impl ValueProducer<Texture> for MapSource {
 }
 
 enum CaseComparison {
-    Number((UntypedValueRef, NumberComparator, Property<Number>)),
-    Text((UntypedValueRef, TextComparator, Property<Text>)),
+    Number((ValueRef<Number>, NumberComparator, Property<Number>)),
+    Text((ValueRef<Text>, TextComparator, Property<Text>)),
 }
 impl CaseComparison {
     fn test(&self, asset_repo: &ValueStore, entry: Option<&Entry>) -> bool {
         match self {
             CaseComparison::Number((reference, comp, prop)) => {
-                let value = asset_repo.get_number(reference, entry);
+                let value = asset_repo.get(reference, entry);
                 let pivot = asset_repo.get_property(prop, entry);
                 if let (Some(value), Some(pivot)) = (value, pivot) {
-                    comp.compare(value, pivot.0)
+                    comp.compare(value.0, pivot.0)
                 } else {
                     false
                 }
             }
             CaseComparison::Text((reference, comp, prop)) => {
-                let value = asset_repo.get_text(reference, entry);
+                let value = asset_repo.get(reference, entry);
                 let pivot = asset_repo.get_property(prop, entry);
                 if let (Some(value), Some(pivot)) = (value, pivot) {
-                    comp.compare(&value, &pivot.0)
+                    comp.compare(&value.0, &pivot.0)
                 } else {
                     false
                 }

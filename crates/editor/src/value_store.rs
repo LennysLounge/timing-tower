@@ -110,48 +110,6 @@ impl ValueStore {
             Property::ValueRef(value_ref) => self.get(value_ref, entry),
         }
     }
-
-    pub fn get_number(&self, reference: &UntypedValueRef, entry: Option<&Entry>) -> Option<f32> {
-        self.assets
-            .get(&reference.id)
-            .and_then(|v| v.resolve_number(self, entry))
-    }
-
-    pub fn get_text(&self, reference: &UntypedValueRef, entry: Option<&Entry>) -> Option<String> {
-        self.assets
-            .get(&reference.id)
-            .and_then(|v| v.resolve_text(self, entry))
-    }
-
-    pub fn get_bool(&self, reference: &UntypedValueRef, entry: Option<&Entry>) -> Option<bool> {
-        self.assets
-            .get(&reference.id)
-            .and_then(|v| v.resolve_bool(self, entry))
-    }
-}
-
-impl TypedValueProducer {
-    pub fn resolve_number(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<f32> {
-        match self {
-            TypedValueProducer::Number(s) => s.get(vars, entry).map(|n| n.0),
-            _ => None,
-        }
-    }
-
-    pub fn resolve_text(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<String> {
-        match self {
-            TypedValueProducer::Text(s) => s.get(vars, entry).map(|n| n.0),
-            TypedValueProducer::Number(s) => s.get(vars, entry).map(|n| format!("{}", n.0)),
-            _ => None,
-        }
-    }
-
-    pub fn resolve_bool(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
-        match self {
-            TypedValueProducer::Boolean(s) => s.get(vars, entry).map(|n| n.0),
-            _ => None,
-        }
-    }
 }
 
 pub trait TypedValueResolver<T> {

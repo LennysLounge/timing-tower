@@ -7,7 +7,8 @@ use crate::{
     reference_store::ReferenceStore,
     style::properties::{Property, PropertyEditor},
     value_store::{
-        AssetId, IntoValueProducer, TypedValueProducer, UntypedValueRef, ValueProducer, ValueStore,
+        AssetId, IntoValueProducer, TypedValueProducer, UntypedValueRef, ValueProducer, ValueRef,
+        ValueStore,
     },
     value_types::{Boolean, Number, Text, Texture, Tint, ValueType},
 };
@@ -75,17 +76,26 @@ impl IntoValueProducer for Condition {
         let source = ConditionSource {
             comparison: match &self.right {
                 RightHandSide::Number(np, c) => Comparison::Number(NumberComparison {
-                    left: self.left.clone(),
+                    left: ValueRef {
+                        id: self.left.id,
+                        phantom: std::marker::PhantomData,
+                    },
                     comparator: c.clone(),
                     right: np.clone(),
                 }),
                 RightHandSide::Text(tp, c) => Comparison::Text(TextComparison {
-                    left: self.left.clone(),
+                    left: ValueRef {
+                        id: self.left.id,
+                        phantom: std::marker::PhantomData,
+                    },
                     comparator: c.clone(),
                     right: tp.clone(),
                 }),
                 RightHandSide::Boolean(bp, c) => Comparison::Boolean(BooleanComparison {
-                    left: self.left.clone(),
+                    left: ValueRef {
+                        id: self.left.id,
+                        phantom: std::marker::PhantomData,
+                    },
                     comparator: c.clone(),
                     right: bp.clone(),
                 }),
@@ -447,14 +457,14 @@ enum Comparison {
 }
 
 struct NumberComparison {
-    left: UntypedValueRef,
+    left: ValueRef<Number>,
     comparator: NumberComparator,
     right: Property<Number>,
 }
 
 impl NumberComparison {
     fn evaluate(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
-        let left = vars.get_number(&self.left, entry)?;
+        let left = vars.get(&self.left, entry)?.0;
         let right = vars.get_property(&self.right, entry)?.0;
         Some(match self.comparator {
             NumberComparator::Equal => left == right,
@@ -467,29 +477,29 @@ impl NumberComparison {
 }
 
 struct TextComparison {
-    left: UntypedValueRef,
+    left: ValueRef<Text>,
     comparator: TextComparator,
     right: Property<Text>,
 }
 
 impl TextComparison {
     fn evaluate(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
-        let left = vars.get_text(&self.left, entry)?;
-        let right = vars.get_property(&self.right, entry)?;
+        let left = vars.get(&self.left, entry)?.0;
+        let right = vars.get_property(&self.right, entry)?.0;
         Some(match self.comparator {
-            TextComparator::Like => left == right.0,
+            TextComparator::Like => left == right,
         })
     }
 }
 
 struct BooleanComparison {
-    left: UntypedValueRef,
+    left: ValueRef<Boolean>,
     comparator: BooleanComparator,
     right: Property<Boolean>,
 }
 impl BooleanComparison {
     fn evaluate(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
-        let left = vars.get_bool(&self.left, entry)?;
+        let left = vars.get(&self.left, entry)?.0;
         let right = vars.get_property(&self.right, entry)?.0;
         Some(match self.comparator {
             BooleanComparator::Is => left == right,

@@ -276,10 +276,7 @@
                       "name": "Gold/Plat",
                       "behavior": {
                         "FixedValue": {
-                          "id": "5a657363-96fc-4329-a580-8ed41b85405e",
-                          "name": "Gold/Plat",
-                          "asset_type": "Tint",
-                          "value": {
+                          "Tint": {
                             "Rgba": {
                               "red": 1.0,
                               "green": 1.0,
@@ -297,10 +294,7 @@
                       "name": "Silver",
                       "behavior": {
                         "FixedValue": {
-                          "id": "ecdfcaf2-d808-4fca-b118-88aee5d1b495",
-                          "name": "Silver",
-                          "asset_type": "Tint",
-                          "value": {
+                          "Tint": {
                             "Rgba": {
                               "red": 0.40197778,
                               "green": 0.40197778,
@@ -318,10 +312,7 @@
                       "name": "Bronze",
                       "behavior": {
                         "FixedValue": {
-                          "id": "7a126bfa-2fb7-464f-9ed1-1f92665d9460",
-                          "name": "Bronze",
-                          "asset_type": "Tint",
-                          "value": {
+                          "Tint": {
                             "Rgba": {
                               "red": 0.8950744,
                               "green": 0.0,
@@ -343,10 +334,7 @@
                 "name": "Manufacturer",
                 "behavior": {
                   "FixedValue": {
-                    "id": "e41f142f-2026-4126-9dc4-bed03fecd31e",
-                    "name": "Manufacturer",
-                    "asset_type": "Tint",
-                    "value": {
+                    "Tint": {
                       "Rgba": {
                         "red": 0.8549927,
                         "green": 0.8549927,
@@ -364,10 +352,7 @@
                 "name": "Position",
                 "behavior": {
                   "FixedValue": {
-                    "id": "e63c62b8-900a-476d-973b-2b0f12fb7b26",
-                    "name": "Position",
-                    "asset_type": "Tint",
-                    "value": {
+                    "Tint": {
                       "Rgba": {
                         "red": 0.0,
                         "green": 0.0,
@@ -385,10 +370,7 @@
                 "name": "Position selected",
                 "behavior": {
                   "FixedValue": {
-                    "id": "3b9c1864-f07f-46ca-aa86-01cba7629860",
-                    "name": "Position selected",
-                    "asset_type": "Tint",
-                    "value": {
+                    "Tint": {
                       "Rgba": {
                         "red": 0.8649127,
                         "green": 0.0,

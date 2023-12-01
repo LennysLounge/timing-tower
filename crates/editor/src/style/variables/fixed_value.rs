@@ -8,6 +8,7 @@ use crate::{
 };
 
 #[derive(Serialize, Deserialize, Clone)]
+#[serde(tag = "output_type")]
 pub enum FixedValue {
     Number(Number),
     Text(Text),

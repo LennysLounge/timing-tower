@@ -276,13 +276,12 @@
                       "name": "Gold/Plat",
                       "behavior": {
                         "FixedValue": {
-                          "Tint": {
-                            "Rgba": {
-                              "red": 1.0,
-                              "green": 1.0,
-                              "blue": 1.0,
-                              "alpha": 1.0
-                            }
+                          "output_type": "Tint",
+                          "Rgba": {
+                            "red": 1.0,
+                            "green": 1.0,
+                            "blue": 1.0,
+                            "alpha": 1.0
                           }
                         }
                       }
@@ -294,13 +293,12 @@
                       "name": "Silver",
                       "behavior": {
                         "FixedValue": {
-                          "Tint": {
-                            "Rgba": {
-                              "red": 0.40197778,
-                              "green": 0.40197778,
-                              "blue": 0.40197778,
-                              "alpha": 1.0
-                            }
+                          "output_type": "Tint",
+                          "Rgba": {
+                            "red": 0.40197778,
+                            "green": 0.40197778,
+                            "blue": 0.40197778,
+                            "alpha": 1.0
                           }
                         }
                       }
@@ -312,13 +310,12 @@
                       "name": "Bronze",
                       "behavior": {
                         "FixedValue": {
-                          "Tint": {
-                            "Rgba": {
-                              "red": 0.8950744,
-                              "green": 0.0,
-                              "blue": 0.0,
-                              "alpha": 1.0
-                            }
+                          "output_type": "Tint",
+                          "Rgba": {
+                            "red": 0.8950744,
+                            "green": 0.0,
+                            "blue": 0.0,
+                            "alpha": 1.0
                           }
                         }
                       }
@@ -334,13 +331,12 @@
                 "name": "Manufacturer",
                 "behavior": {
                   "FixedValue": {
-                    "Tint": {
-                      "Rgba": {
-                        "red": 0.8549927,
-                        "green": 0.8549927,
-                        "blue": 0.8549927,
-                        "alpha": 1.0
-                      }
+                    "output_type": "Tint",
+                    "Rgba": {
+                      "red": 0.8549927,
+                      "green": 0.8549927,
+                      "blue": 0.8549927,
+                      "alpha": 1.0
                     }
                   }
                 }
@@ -352,13 +348,12 @@
                 "name": "Position",
                 "behavior": {
                   "FixedValue": {
-                    "Tint": {
-                      "Rgba": {
-                        "red": 0.0,
-                        "green": 0.0,
-                        "blue": 0.0,
-                        "alpha": 1.0
-                      }
+                    "output_type": "Tint",
+                    "Rgba": {
+                      "red": 0.0,
+                      "green": 0.0,
+                      "blue": 0.0,
+                      "alpha": 1.0
                     }
                   }
                 }
@@ -370,13 +365,12 @@
                 "name": "Position selected",
                 "behavior": {
                   "FixedValue": {
-                    "Tint": {
-                      "Rgba": {
-                        "red": 0.8649127,
-                        "green": 0.0,
-                        "blue": 0.0,
-                        "alpha": 1.0
-                      }
+                    "output_type": "Tint",
+                    "Rgba": {
+                      "red": 0.8649127,
+                      "green": 0.0,
+                      "blue": 0.0,
+                      "alpha": 1.0
                     }
                   }
                 }

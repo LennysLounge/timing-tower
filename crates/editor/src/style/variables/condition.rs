@@ -15,7 +15,7 @@ pub struct Condition {
     #[serde(flatten)]
     comparison: Comparison,
     #[serde(flatten)]
-    output: Output,
+    output: UntypedOutput,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -65,27 +65,18 @@ enum BooleanComparator {
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(tag = "output_type")]
-enum Output {
-    Number {
-        truee: Property<Number>,
-        falsee: Property<Number>,
-    },
-    Text {
-        truee: Property<Text>,
-        falsee: Property<Text>,
-    },
-    Color {
-        truee: Property<Tint>,
-        falsee: Property<Tint>,
-    },
-    Boolean {
-        truee: Property<Boolean>,
-        falsee: Property<Boolean>,
-    },
-    Image {
-        truee: Property<Texture>,
-        falsee: Property<Texture>,
-    },
+enum UntypedOutput {
+    Number(Output<Number>),
+    Text(Output<Text>),
+    Color(Output<Tint>),
+    Boolean(Output<Boolean>),
+    Image(Output<Texture>),
+}
+
+#[derive(Serialize, Deserialize, Clone, Default)]
+struct Output<T> {
+    truee: Property<T>,
+    falsee: Property<T>,
 }
 
 impl Default for Condition {
@@ -96,10 +87,7 @@ impl Default for Condition {
                 comparator: NumberComparator::Equal,
                 right: Property::default(),
             }),
-            output: Output::Number {
-                truee: Property::Fixed(Number::default()),
-                falsee: Property::Fixed(Number::default()),
-            },
+            output: UntypedOutput::Number(Output::default()),
         }
     }
 }
@@ -120,42 +108,27 @@ impl Condition {
                 .show_ui(ui, |ui| {
                     let is_number = self.output_type() == ValueType::Number;
                     if ui.selectable_label(is_number, "Number").clicked() && !is_number {
-                        self.output = Output::Number {
-                            truee: Property::default(),
-                            falsee: Property::default(),
-                        };
+                        self.output = UntypedOutput::Number(Output::default());
                         changed |= true;
                     }
                     let is_text = self.output_type() == ValueType::Text;
                     if ui.selectable_label(is_text, "Text").clicked() && !is_text {
-                        self.output = Output::Text {
-                            truee: Property::default(),
-                            falsee: Property::default(),
-                        };
+                        self.output = UntypedOutput::Text(Output::default());
                         changed |= true;
                     }
                     let is_color = self.output_type() == ValueType::Tint;
                     if ui.selectable_label(is_color, "Color").clicked() && !is_color {
-                        self.output = Output::Color {
-                            truee: Property::default(),
-                            falsee: Property::default(),
-                        };
+                        self.output = UntypedOutput::Color(Output::default());
                         changed |= true;
                     }
                     let is_boolean = self.output_type() == ValueType::Boolean;
                     if ui.selectable_label(is_boolean, "Yes/No").clicked() && !is_boolean {
-                        self.output = Output::Boolean {
-                            truee: Property::default(),
-                            falsee: Property::default(),
-                        };
+                        self.output = UntypedOutput::Boolean(Output::default());
                         changed |= true;
                     }
                     let is_image = self.output_type() == ValueType::Texture;
                     if ui.selectable_label(is_image, "Image").clicked() && !is_image {
-                        self.output = Output::Image {
-                            truee: Property::default(),
-                            falsee: Property::default(),
-                        };
+                        self.output = UntypedOutput::Image(Output::default());
                         changed |= true;
                     }
                 });
@@ -305,11 +278,21 @@ impl Condition {
         ui.horizontal(|ui| {
             ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
             changed |= match &mut self.output {
-                Output::Number { truee, .. } => ui.add(PropertyEditor::new(truee, asset_repo)),
-                Output::Text { truee, .. } => ui.add(PropertyEditor::new(truee, asset_repo)),
-                Output::Color { truee, .. } => ui.add(PropertyEditor::new(truee, asset_repo)),
-                Output::Boolean { truee, .. } => ui.add(PropertyEditor::new(truee, asset_repo)),
-                Output::Image { truee, .. } => ui.add(PropertyEditor::new(truee, asset_repo)),
+                UntypedOutput::Number(Output { truee, .. }) => {
+                    ui.add(PropertyEditor::new(truee, asset_repo))
+                }
+                UntypedOutput::Text(Output { truee, .. }) => {
+                    ui.add(PropertyEditor::new(truee, asset_repo))
+                }
+                UntypedOutput::Color(Output { truee, .. }) => {
+                    ui.add(PropertyEditor::new(truee, asset_repo))
+                }
+                UntypedOutput::Boolean(Output { truee, .. }) => {
+                    ui.add(PropertyEditor::new(truee, asset_repo))
+                }
+                UntypedOutput::Image(Output { truee, .. }) => {
+                    ui.add(PropertyEditor::new(truee, asset_repo))
+                }
             }
             .changed();
         });
@@ -317,11 +300,21 @@ impl Condition {
         ui.horizontal(|ui| {
             ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
             changed |= match &mut self.output {
-                Output::Number { falsee, .. } => ui.add(PropertyEditor::new(falsee, asset_repo)),
-                Output::Text { falsee, .. } => ui.add(PropertyEditor::new(falsee, asset_repo)),
-                Output::Color { falsee, .. } => ui.add(PropertyEditor::new(falsee, asset_repo)),
-                Output::Boolean { falsee, .. } => ui.add(PropertyEditor::new(falsee, asset_repo)),
-                Output::Image { falsee, .. } => ui.add(PropertyEditor::new(falsee, asset_repo)),
+                UntypedOutput::Number(output) => {
+                    ui.add(PropertyEditor::new(&mut output.falsee, asset_repo))
+                }
+                UntypedOutput::Text(Output { falsee, .. }) => {
+                    ui.add(PropertyEditor::new(falsee, asset_repo))
+                }
+                UntypedOutput::Color(Output { falsee, .. }) => {
+                    ui.add(PropertyEditor::new(falsee, asset_repo))
+                }
+                UntypedOutput::Boolean(Output { falsee, .. }) => {
+                    ui.add(PropertyEditor::new(falsee, asset_repo))
+                }
+                UntypedOutput::Image(Output { falsee, .. }) => {
+                    ui.add(PropertyEditor::new(falsee, asset_repo))
+                }
             }
             .changed();
         });
@@ -331,40 +324,35 @@ impl Condition {
 
 impl Condition {
     pub fn as_typed_producer(&self) -> TypedValueProducer {
-        match &self.output {
-            Output::Number { truee, falsee } => TypedValueProducer::Number(Box::new({
+        match self.output.clone() {
+            UntypedOutput::Number(output) => TypedValueProducer::Number(Box::new({
                 ConditionProducer {
                     comparison: self.comparison.clone(),
-                    true_output: truee.clone(),
-                    false_output: falsee.clone(),
+                    output,
                 }
             })),
-            Output::Text { truee, falsee } => TypedValueProducer::Text(Box::new({
+            UntypedOutput::Text(output) => TypedValueProducer::Text(Box::new({
                 ConditionProducer {
                     comparison: self.comparison.clone(),
-                    true_output: truee.clone(),
-                    false_output: falsee.clone(),
+                    output,
                 }
             })),
-            Output::Color { truee, falsee } => TypedValueProducer::Tint(Box::new({
+            UntypedOutput::Color(output) => TypedValueProducer::Tint(Box::new({
                 ConditionProducer {
                     comparison: self.comparison.clone(),
-                    true_output: truee.clone(),
-                    false_output: falsee.clone(),
+                    output,
                 }
             })),
-            Output::Boolean { truee, falsee } => TypedValueProducer::Boolean(Box::new({
+            UntypedOutput::Boolean(output) => TypedValueProducer::Boolean(Box::new({
                 ConditionProducer {
                     comparison: self.comparison.clone(),
-                    true_output: truee.clone(),
-                    false_output: falsee.clone(),
+                    output,
                 }
             })),
-            Output::Image { truee, falsee } => TypedValueProducer::Texture(Box::new({
+            UntypedOutput::Image(output) => TypedValueProducer::Texture(Box::new({
                 ConditionProducer {
                     comparison: self.comparison.clone(),
-                    true_output: truee.clone(),
-                    false_output: falsee.clone(),
+                    output,
                 }
             })),
         }
@@ -373,19 +361,18 @@ impl Condition {
 impl Condition {
     pub fn output_type(&self) -> ValueType {
         match self.output {
-            Output::Number { .. } => ValueType::Number,
-            Output::Text { .. } => ValueType::Text,
-            Output::Color { .. } => ValueType::Tint,
-            Output::Boolean { .. } => ValueType::Boolean,
-            Output::Image { .. } => ValueType::Texture,
+            UntypedOutput::Number { .. } => ValueType::Number,
+            UntypedOutput::Text { .. } => ValueType::Text,
+            UntypedOutput::Color { .. } => ValueType::Tint,
+            UntypedOutput::Boolean { .. } => ValueType::Boolean,
+            UntypedOutput::Image { .. } => ValueType::Texture,
         }
     }
 }
 
 struct ConditionProducer<T> {
     comparison: Comparison,
-    true_output: Property<T>,
-    false_output: Property<T>,
+    output: Output<T>,
 }
 
 impl<T> ConditionProducer<T> {
@@ -407,9 +394,9 @@ where
         let condition = self.evaluate_condition(value_store, entry)?;
 
         if condition {
-            value_store.get_property(&self.true_output, entry)
+            value_store.get_property(&self.output.truee, entry)
         } else {
-            value_store.get_property(&self.false_output, entry)
+            value_store.get_property(&self.output.falsee, entry)
         }
     }
 }

@@ -5,7 +5,7 @@ use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
 use crate::{
-    reference_store::ProducerData,
+    reference_store::{IntoProducerData, ProducerData},
     value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore},
     value_types::{Boolean, Number, Text, Tint, ValueType},
 };
@@ -127,10 +127,12 @@ impl FixedValue {
     }
 }
 
-impl IntoValueProducer for FixedValue {
+impl IntoProducerData for FixedValue {
     fn producer_data(&self) -> &ProducerData {
         &self.id
     }
+}
+impl IntoValueProducer for FixedValue {
     fn get_value_producer(&self) -> (Uuid, TypedValueProducer) {
         let producer = match &self.value {
             FixedValueType::Number(n) => TypedValueProducer::Number(Box::new(StaticNumber(*n))),

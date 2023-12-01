@@ -6,7 +6,7 @@ use tree_view::{DropPosition, TreeUi, TreeViewBuilder};
 use uuid::Uuid;
 
 use crate::{
-    reference_store::{ProducerData, ReferenceStore},
+    reference_store::{IntoProducerData, ProducerData, ReferenceStore},
     value_store::{IntoValueProducer, TypedValueProducer},
 };
 
@@ -28,7 +28,7 @@ pub enum VariableBehavior {
     Map(Map),
 }
 
-impl IntoValueProducer for VariableBehavior {
+impl IntoProducerData for VariableBehavior {
     fn producer_data(&self) -> &ProducerData {
         match self {
             VariableBehavior::FixedValue(o) => o.producer_data(),
@@ -36,7 +36,8 @@ impl IntoValueProducer for VariableBehavior {
             VariableBehavior::Map(o) => o.producer_data(),
         }
     }
-
+}
+impl IntoValueProducer for VariableBehavior {
     fn get_value_producer(&self) -> (Uuid, TypedValueProducer) {
         match self {
             VariableBehavior::FixedValue(o) => o.get_value_producer(),

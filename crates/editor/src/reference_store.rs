@@ -9,9 +9,13 @@ use crate::{
         folder::{Folder, FolderOrT},
         variables::VariableBehavior,
     },
-    value_store::{IntoValueProducer, UntypedValueRef, ValueRef},
+    value_store::{UntypedValueRef, ValueRef},
     value_types::{ValueType, ValueTypeOf},
 };
+
+pub trait IntoProducerData {
+    fn producer_data(&self) -> &ProducerData;
+}
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct ProducerData {

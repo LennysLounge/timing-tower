@@ -7,7 +7,7 @@ use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
 use crate::{
-    reference_store::{ProducerData, ReferenceStore},
+    reference_store::{IntoProducerData, ProducerData, ReferenceStore},
     style::properties::{Property, PropertyEditor},
     value_store::{
         IntoValueProducer, TypedValueProducer, UntypedValueRef, ValueProducer, ValueRef, ValueStore,
@@ -160,11 +160,12 @@ impl Map {
     }
 }
 
-impl IntoValueProducer for Map {
+impl IntoProducerData for Map {
     fn producer_data(&self) -> &ProducerData {
         &self.id
     }
-
+}
+impl IntoValueProducer for Map {
     fn get_value_producer(&self) -> (Uuid, TypedValueProducer) {
         let mut cases = Vec::new();
         for case in self.cases.iter() {

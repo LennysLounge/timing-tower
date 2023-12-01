@@ -9,7 +9,7 @@ use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
 use crate::{
-    reference_store::{ProducerData, ReferenceStore},
+    reference_store::{IntoProducerData, ProducerData, ReferenceStore},
     value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore},
     value_types::{Texture, ValueType},
 };
@@ -67,7 +67,8 @@ impl IntoValueProducer for AssetDefinition {
             AssetDefinition::Image(i) => i.get_value_producer(),
         }
     }
-
+}
+impl IntoProducerData for AssetDefinition {
     fn producer_data(&self) -> &ProducerData {
         match self {
             AssetDefinition::Image(i) => i.producer_data(),
@@ -153,7 +154,8 @@ impl IntoValueProducer for ImageAsset {
             TypedValueProducer::Texture(Box::new(StaticImage(self.handle.clone()))),
         )
     }
-
+}
+impl IntoProducerData for ImageAsset {
     fn producer_data(&self) -> &ProducerData {
         &self.id
     }

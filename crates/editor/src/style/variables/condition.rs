@@ -10,7 +10,7 @@ use crate::{
     value_types::{Boolean, Number, Text, Texture, Tint, ValueType},
 };
 
-use super::variants_editor;
+use super::EguiComboBoxExtension;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Condition {
@@ -38,62 +38,21 @@ impl Condition {
 
         ui.horizontal(|ui| {
             ui.label("Output type:");
-
-            let InnerResponse {
-                inner: new_selected_output,
-                response: _,
-            } = variants_editor(
-                ui,
-                &self.output,
-                vec![
-                    (UntypedOutput::Number(Output::default()), "Number"),
-                    (UntypedOutput::Text(Output::default()), "Text"),
-                    (UntypedOutput::Color(Output::default()), "Tint"),
-                    (UntypedOutput::Boolean(Output::default()), "Boolean"),
-                    (UntypedOutput::Image(Output::default()), "Texture"),
-                ],
-            );
-            if let Some(new_selected_output) = new_selected_output {
-                self.output = new_selected_output;
-                changed |= true;
-            }
-
-            ComboBox::new(ui.next_auto_id(), "")
-                .selected_text(match self.output_type() {
-                    ValueType::Number => "Number",
-                    ValueType::Text => "Text",
-                    ValueType::Tint => "Color",
-                    ValueType::Boolean => "Yes/No",
-                    ValueType::Texture => "Image",
-                })
-                .show_ui(ui, |ui| {
-                    let is_number = self.output_type() == ValueType::Number;
-                    if ui.selectable_label(is_number, "Number").clicked() && !is_number {
-                        self.output = UntypedOutput::Number(Output::default());
-                        changed |= true;
-                    }
-                    let is_text = self.output_type() == ValueType::Text;
-                    if ui.selectable_label(is_text, "Text").clicked() && !is_text {
-                        self.output = UntypedOutput::Text(Output::default());
-                        changed |= true;
-                    }
-                    let is_color = self.output_type() == ValueType::Tint;
-                    if ui.selectable_label(is_color, "Color").clicked() && !is_color {
-                        self.output = UntypedOutput::Color(Output::default());
-                        changed |= true;
-                    }
-                    let is_boolean = self.output_type() == ValueType::Boolean;
-                    if ui.selectable_label(is_boolean, "Yes/No").clicked() && !is_boolean {
-                        self.output = UntypedOutput::Boolean(Output::default());
-                        changed |= true;
-                    }
-                    let is_image = self.output_type() == ValueType::Texture;
-                    if ui.selectable_label(is_image, "Image").clicked() && !is_image {
-                        self.output = UntypedOutput::Image(Output::default());
-                        changed |= true;
-                    }
-                });
+            changed |= ComboBox::from_id_source(ui.next_auto_id())
+                .choose(
+                    ui,
+                    &mut self.output,
+                    vec![
+                        (UntypedOutput::Number(Output::default()), "Number"),
+                        (UntypedOutput::Text(Output::default()), "Text"),
+                        (UntypedOutput::Color(Output::default()), "Tint"),
+                        (UntypedOutput::Boolean(Output::default()), "Boolean"),
+                        (UntypedOutput::Image(Output::default()), "Texture"),
+                    ],
+                )
+                .changed();
         });
+
         ui.allocate_at_least(Vec2::new(0.0, 5.0), Sense::hover());
 
         ui.horizontal(|ui| {
@@ -145,40 +104,20 @@ impl Condition {
             ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
             match &mut self.comparison {
                 Comparison::Number(NumberComparison { comparator, .. }) => {
-                    ComboBox::from_id_source(ui.next_auto_id())
+                    changed |= ComboBox::from_id_source(ui.next_auto_id())
                         .width(50.0)
-                        .selected_text(match comparator {
-                            NumberComparator::Equal => "equal",
-                            NumberComparator::Greater => "greater",
-                            NumberComparator::GreaterEqual => "greater or equal",
-                            NumberComparator::Less => "less",
-                            NumberComparator::LessEqual => "less or equal",
-                        })
-                        .show_ui(ui, |ui| {
-                            changed |= ui
-                                .selectable_value(comparator, NumberComparator::Equal, "equal")
-                                .changed();
-                            changed |= ui
-                                .selectable_value(comparator, NumberComparator::Greater, "greater")
-                                .changed();
-                            changed |= ui
-                                .selectable_value(
-                                    comparator,
-                                    NumberComparator::GreaterEqual,
-                                    "greater or equal",
-                                )
-                                .changed();
-                            changed |= ui
-                                .selectable_value(comparator, NumberComparator::Less, "less")
-                                .changed();
-                            changed |= ui
-                                .selectable_value(
-                                    comparator,
-                                    NumberComparator::LessEqual,
-                                    "less or equal",
-                                )
-                                .changed();
-                        });
+                        .choose(
+                            ui,
+                            comparator,
+                            vec![
+                                (NumberComparator::Equal, "equal"),
+                                (NumberComparator::Greater, "greater"),
+                                (NumberComparator::GreaterEqual, "greater or equal"),
+                                (NumberComparator::Less, "less"),
+                                (NumberComparator::LessEqual, "less or equal"),
+                            ],
+                        )
+                        .changed();
                     match comparator {
                         NumberComparator::Equal => ui.label("to"),
                         NumberComparator::Greater => ui.label("than"),
@@ -188,32 +127,23 @@ impl Condition {
                     };
                 }
                 Comparison::Text(TextComparison { comparator: c, .. }) => {
-                    ComboBox::from_id_source(ui.next_auto_id())
+                    changed |= ComboBox::from_id_source(ui.next_auto_id())
                         .width(50.0)
-                        .selected_text(match c {
-                            TextComparator::Like => "like",
-                        })
-                        .show_ui(ui, |ui| {
-                            changed |= ui
-                                .selectable_value(c, TextComparator::Like, "like")
-                                .changed()
-                        });
+                        .choose(ui, c, vec![(TextComparator::Like, "like")])
+                        .changed();
                 }
                 Comparison::Boolean(BooleanComparison { comparator: c, .. }) => {
-                    ComboBox::from_id_source(ui.next_auto_id())
+                    changed |= ComboBox::from_id_source(ui.next_auto_id())
                         .width(50.0)
-                        .selected_text(match c {
-                            BooleanComparator::Is => "is",
-                            BooleanComparator::IsNot => "is not",
-                        })
-                        .show_ui(ui, |ui| {
-                            changed |= ui
-                                .selectable_value(c, BooleanComparator::Is, "is")
-                                .changed();
-                            changed |= ui
-                                .selectable_value(c, BooleanComparator::IsNot, "is not")
-                                .changed();
-                        });
+                        .choose(
+                            ui,
+                            c,
+                            vec![
+                                (BooleanComparator::Is, "is"),
+                                (BooleanComparator::IsNot, "is not"),
+                            ],
+                        )
+                        .changed();
                 }
             }
         });

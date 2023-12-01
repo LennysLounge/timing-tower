@@ -103,35 +103,6 @@ impl Default for Condition {
         }
     }
 }
-
-impl Condition {
-    pub fn as_typed_producer(&self) -> TypedValueProducer {
-        let source = ConditionSource {
-            comparison: self.comparison.clone(),
-            output: self.output.clone(),
-        };
-
-        match self.output_type() {
-            ValueType::Number => TypedValueProducer::Number(Box::new(source)),
-            ValueType::Text => TypedValueProducer::Text(Box::new(source)),
-            ValueType::Tint => TypedValueProducer::Tint(Box::new(source)),
-            ValueType::Boolean => TypedValueProducer::Boolean(Box::new(source)),
-            ValueType::Texture => TypedValueProducer::Texture(Box::new(source)),
-        }
-    }
-}
-impl Condition {
-    pub fn output_type(&self) -> ValueType {
-        match self.output {
-            Output::Number { .. } => ValueType::Number,
-            Output::Text { .. } => ValueType::Text,
-            Output::Color { .. } => ValueType::Tint,
-            Output::Boolean { .. } => ValueType::Boolean,
-            Output::Image { .. } => ValueType::Texture,
-        }
-    }
-}
-
 impl Condition {
     pub fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
         let mut changed = false;
@@ -355,6 +326,34 @@ impl Condition {
             .changed();
         });
         changed
+    }
+}
+
+impl Condition {
+    pub fn as_typed_producer(&self) -> TypedValueProducer {
+        let source = ConditionSource {
+            comparison: self.comparison.clone(),
+            output: self.output.clone(),
+        };
+
+        match self.output_type() {
+            ValueType::Number => TypedValueProducer::Number(Box::new(source)),
+            ValueType::Text => TypedValueProducer::Text(Box::new(source)),
+            ValueType::Tint => TypedValueProducer::Tint(Box::new(source)),
+            ValueType::Boolean => TypedValueProducer::Boolean(Box::new(source)),
+            ValueType::Texture => TypedValueProducer::Texture(Box::new(source)),
+        }
+    }
+}
+impl Condition {
+    pub fn output_type(&self) -> ValueType {
+        match self.output {
+            Output::Number { .. } => ValueType::Number,
+            Output::Text { .. } => ValueType::Text,
+            Output::Color { .. } => ValueType::Tint,
+            Output::Boolean { .. } => ValueType::Boolean,
+            Output::Image { .. } => ValueType::Texture,
+        }
     }
 }
 

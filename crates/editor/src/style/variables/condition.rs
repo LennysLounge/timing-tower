@@ -5,7 +5,7 @@ use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
 use crate::{
-    reference_store::{AssetId, ReferenceStore},
+    reference_store::{ProducerData, ReferenceStore},
     style::properties::{Property, PropertyEditor},
     value_store::{
         IntoValueProducer, TypedValueProducer, UntypedValueRef, ValueProducer, ValueRef, ValueStore,
@@ -16,7 +16,7 @@ use crate::{
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Condition {
     #[serde(flatten)]
-    id: AssetId,
+    id: ProducerData,
     left: UntypedValueRef,
     right: RightHandSide,
     true_output: Output,
@@ -114,13 +114,13 @@ impl IntoValueProducer for Condition {
         (self.id.id, producer)
     }
 
-    fn asset_id(&self) -> &AssetId {
+    fn producer_data(&self) -> &ProducerData {
         &self.id
     }
 }
 
 impl Condition {
-    pub fn from_id(id: AssetId) -> Self {
+    pub fn from_id(id: ProducerData) -> Self {
         Self {
             true_output: match &id.asset_type {
                 ValueType::Number => Output::Number(Property::Fixed(Number(0.0))),
@@ -140,7 +140,7 @@ impl Condition {
             ..Default::default()
         }
     }
-    pub fn get_id_mut(&mut self) -> &mut AssetId {
+    pub fn get_id_mut(&mut self) -> &mut ProducerData {
         &mut self.id
     }
 

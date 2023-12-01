@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 use crate::{
     game_sources,
-    reference_store::AssetId,
+    reference_store::ProducerData,
     style::properties::Property,
     value_types::{Boolean, Number, Text, Texture, Tint, ValueType},
 };
@@ -18,7 +18,7 @@ pub trait ValueProducer<T> {
 
 pub trait IntoValueProducer {
     fn get_value_producer(&self) -> (Uuid, TypedValueProducer);
-    fn asset_id(&self) -> &AssetId;
+    fn producer_data(&self) -> &ProducerData;
 }
 
 #[derive(Serialize, Deserialize, Clone)]

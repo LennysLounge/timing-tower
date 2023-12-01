@@ -9,7 +9,7 @@ use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
 use crate::{
-    reference_store::{AssetId, ReferenceStore},
+    reference_store::{ProducerData, ReferenceStore},
     value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore},
     value_types::{Texture, ValueType},
 };
@@ -68,9 +68,9 @@ impl IntoValueProducer for AssetDefinition {
         }
     }
 
-    fn asset_id(&self) -> &AssetId {
+    fn producer_data(&self) -> &ProducerData {
         match self {
-            AssetDefinition::Image(i) => i.asset_id(),
+            AssetDefinition::Image(i) => i.producer_data(),
         }
     }
 }
@@ -137,7 +137,7 @@ impl AssetDefinition {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct ImageAsset {
-    pub id: AssetId,
+    pub id: ProducerData,
     pub path: String,
     #[serde(skip)]
     handle: Option<Handle<Image>>,
@@ -154,7 +154,7 @@ impl IntoValueProducer for ImageAsset {
         )
     }
 
-    fn asset_id(&self) -> &AssetId {
+    fn producer_data(&self) -> &ProducerData {
         &self.id
     }
 }
@@ -239,7 +239,7 @@ impl StyleTreeNode for ImageAsset {
 impl ImageAsset {
     fn new() -> Self {
         Self {
-            id: AssetId {
+            id: ProducerData {
                 id: Uuid::new_v4(),
                 name: "new image".to_string(),
                 asset_type: ValueType::Texture,

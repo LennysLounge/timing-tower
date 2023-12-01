@@ -5,7 +5,7 @@ use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
 use crate::{
-    reference_store::AssetId,
+    reference_store::ProducerData,
     value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore},
     value_types::{Boolean, Number, Text, Tint, ValueType},
 };
@@ -13,7 +13,7 @@ use crate::{
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct FixedValue {
     #[serde(flatten)]
-    id: AssetId,
+    id: ProducerData,
     value: FixedValueType,
 }
 
@@ -33,14 +33,14 @@ impl Default for FixedValueType {
 }
 
 impl FixedValue {
-    pub fn from_id(id: AssetId) -> Self {
+    pub fn from_id(id: ProducerData) -> Self {
         Self {
             id,
             ..Default::default()
         }
     }
 
-    pub fn get_id_mut(&mut self) -> &mut AssetId {
+    pub fn get_id_mut(&mut self) -> &mut ProducerData {
         &mut self.id
     }
 
@@ -128,7 +128,7 @@ impl FixedValue {
 }
 
 impl IntoValueProducer for FixedValue {
-    fn asset_id(&self) -> &AssetId {
+    fn producer_data(&self) -> &ProducerData {
         &self.id
     }
     fn get_value_producer(&self) -> (Uuid, TypedValueProducer) {

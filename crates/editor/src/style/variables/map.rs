@@ -7,7 +7,7 @@ use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
 use crate::{
-    reference_store::{AssetId, ReferenceStore},
+    reference_store::{ProducerData, ReferenceStore},
     style::properties::{Property, PropertyEditor},
     value_store::{
         IntoValueProducer, TypedValueProducer, UntypedValueRef, ValueProducer, ValueRef, ValueStore,
@@ -20,14 +20,14 @@ use super::variant_checkbox;
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Map {
     #[serde(flatten)]
-    id: AssetId,
+    id: ProducerData,
     input: UntypedValueRef,
     cases: Vec<Case>,
     default: Output,
 }
 
 impl Map {
-    pub fn from_id(id: AssetId) -> Self {
+    pub fn from_id(id: ProducerData) -> Self {
         Self {
             id,
             input: UntypedValueRef::default(),
@@ -93,7 +93,7 @@ impl Map {
         changed
     }
 
-    pub fn get_id_mut(&mut self) -> &mut AssetId {
+    pub fn get_id_mut(&mut self) -> &mut ProducerData {
         &mut self.id
     }
 
@@ -161,7 +161,7 @@ impl Map {
 }
 
 impl IntoValueProducer for Map {
-    fn asset_id(&self) -> &AssetId {
+    fn producer_data(&self) -> &ProducerData {
         &self.id
     }
 

@@ -14,13 +14,13 @@ use crate::{
 };
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct AssetId {
+pub struct ProducerData {
     pub id: Uuid,
     pub name: String,
     pub asset_type: ValueType,
 }
 
-impl Default for AssetId {
+impl Default for ProducerData {
     fn default() -> Self {
         Self {
             name: "Variable".to_string(),
@@ -29,7 +29,7 @@ impl Default for AssetId {
         }
     }
 }
-impl AssetId {
+impl ProducerData {
     pub fn get_ref(&self) -> UntypedValueRef {
         UntypedValueRef {
             value_type: self.asset_type.clone(),
@@ -109,7 +109,7 @@ impl ReferenceStore {
         &self,
         ui: &mut Ui,
         asset_ref_key: &Uuid,
-        is_type_allowed: impl Fn(&AssetId) -> bool,
+        is_type_allowed: impl Fn(&ProducerData) -> bool,
     ) -> InnerResponse<Option<UntypedValueRef>> {
         let button_name = self
             .get(asset_ref_key)
@@ -127,7 +127,7 @@ impl ReferenceStore {
     pub fn untyped_editor_small(
         &self,
         ui: &mut Ui,
-        is_type_allowed: impl Fn(&AssetId) -> bool,
+        is_type_allowed: impl Fn(&ProducerData) -> bool,
     ) -> InnerResponse<Option<UntypedValueRef>> {
         let mut selected_asset = None;
         let res = ui.menu_button("R", |ui| {
@@ -136,7 +136,7 @@ impl ReferenceStore {
         InnerResponse::new(selected_asset.map(|a| a.get_ref()), res.response)
     }
 
-    fn get(&self, id: &Uuid) -> Option<&AssetId> {
+    fn get(&self, id: &Uuid) -> Option<&ProducerData> {
         self.variables
             .get(id)
             .or_else(|| self.game_sources.get(id))
@@ -146,8 +146,8 @@ impl ReferenceStore {
     fn show_menu(
         &self,
         ui: &mut Ui,
-        selected_asset: &mut Option<AssetId>,
-        is_type_allowed: &impl Fn(&AssetId) -> bool,
+        selected_asset: &mut Option<ProducerData>,
+        is_type_allowed: &impl Fn(&ProducerData) -> bool,
     ) {
         self.assets.show_menu(ui, selected_asset, is_type_allowed);
         self.game_sources
@@ -158,7 +158,7 @@ impl ReferenceStore {
 }
 
 enum AssetOrFolder {
-    Asset(AssetId),
+    Asset(ProducerData),
     Folder {
         name: String,
         assets: Vec<AssetOrFolder>,
@@ -172,7 +172,7 @@ impl AssetOrFolder {
                 .content
                 .iter()
                 .map(|c| match c {
-                    FolderOrT::T(t) => Self::Asset(t.asset_id().clone()),
+                    FolderOrT::T(t) => Self::Asset(t.producer_data().clone()),
                     FolderOrT::Folder(f) => Self::from_vars(f),
                 })
                 .collect(),
@@ -183,7 +183,7 @@ impl AssetOrFolder {
             name: "Game".to_string(),
             assets: game_sources
                 .into_iter()
-                .map(|s| Self::Asset(s.asset_id().clone()))
+                .map(|s| Self::Asset(s.producer_data().clone()))
                 .collect(),
         }
     }
@@ -194,20 +194,20 @@ impl AssetOrFolder {
                 .content
                 .iter()
                 .map(|a| match a {
-                    FolderOrT::T(def) => Self::Asset(def.asset_id().clone()),
+                    FolderOrT::T(def) => Self::Asset(def.producer_data().clone()),
                     FolderOrT::Folder(f) => Self::from_asset_defs(f),
                 })
                 .collect(),
         }
     }
-    fn get(&self, id: &Uuid) -> Option<&AssetId> {
+    fn get(&self, id: &Uuid) -> Option<&ProducerData> {
         match self {
             AssetOrFolder::Asset(asset_id) => (&asset_id.id == id).then_some(asset_id),
             AssetOrFolder::Folder { name: _, assets } => assets.iter().find_map(|a| a.get(id)),
         }
     }
 
-    fn get_all_contained_ids(&self) -> Vec<&AssetId> {
+    fn get_all_contained_ids(&self) -> Vec<&ProducerData> {
         match self {
             AssetOrFolder::Asset(id) => vec![id],
             AssetOrFolder::Folder { name: _, assets } => assets
@@ -220,8 +220,8 @@ impl AssetOrFolder {
     fn show_menu(
         &self,
         ui: &mut Ui,
-        selected_asset: &mut Option<AssetId>,
-        is_type_allowed: &impl Fn(&AssetId) -> bool,
+        selected_asset: &mut Option<ProducerData>,
+        is_type_allowed: &impl Fn(&ProducerData) -> bool,
     ) {
         match self {
             AssetOrFolder::Asset(asset_id) => {

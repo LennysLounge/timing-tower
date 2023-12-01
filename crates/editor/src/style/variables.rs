@@ -6,7 +6,7 @@ use tree_view::{DropPosition, TreeUi, TreeViewBuilder};
 use uuid::Uuid;
 
 use crate::{
-    reference_store::{AssetId, ReferenceStore},
+    reference_store::{ProducerData, ReferenceStore},
     value_store::{IntoValueProducer, TypedValueProducer},
 };
 
@@ -29,11 +29,11 @@ pub enum VariableBehavior {
 }
 
 impl IntoValueProducer for VariableBehavior {
-    fn asset_id(&self) -> &AssetId {
+    fn producer_data(&self) -> &ProducerData {
         match self {
-            VariableBehavior::FixedValue(o) => o.asset_id(),
-            VariableBehavior::Condition(o) => o.asset_id(),
-            VariableBehavior::Map(o) => o.asset_id(),
+            VariableBehavior::FixedValue(o) => o.producer_data(),
+            VariableBehavior::Condition(o) => o.producer_data(),
+            VariableBehavior::Map(o) => o.producer_data(),
         }
     }
 
@@ -73,7 +73,7 @@ impl StyleTreeUi for VariableBehavior {
                         && !is_fixed_value
                     {
                         *self = VariableBehavior::FixedValue(FixedValue::from_id(
-                            self.asset_id().clone(),
+                            self.producer_data().clone(),
                         ));
                         changed |= true;
                     }
@@ -81,13 +81,13 @@ impl StyleTreeUi for VariableBehavior {
                     let is_condition = matches!(self, VariableBehavior::Condition(_));
                     if ui.selectable_label(is_condition, "Condition").clicked() && !is_condition {
                         *self = VariableBehavior::Condition(Condition::from_id(
-                            self.asset_id().clone(),
+                            self.producer_data().clone(),
                         ));
                         changed = true;
                     }
                     let is_map = matches!(self, VariableBehavior::Map(_));
                     if ui.selectable_label(is_map, "Map").clicked() && !is_map {
-                        *self = VariableBehavior::Map(Map::from_id(self.asset_id().clone()));
+                        *self = VariableBehavior::Map(Map::from_id(self.producer_data().clone()));
                         changed = true;
                     }
                 });
@@ -103,8 +103,8 @@ impl StyleTreeUi for VariableBehavior {
     }
 
     fn tree_view(&mut self, tree_ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
-        let res = TreeViewBuilder::leaf(self.asset_id().id).show(tree_ui, |ui| {
-            ui.label(&self.asset_id().name);
+        let res = TreeViewBuilder::leaf(self.producer_data().id).show(tree_ui, |ui| {
+            ui.label(&self.producer_data().name);
         });
         res.response.context_menu(|ui| {
             if ui.button("add variable").clicked() {
@@ -137,7 +137,7 @@ impl StyleTreeUi for VariableBehavior {
 
 impl StyleTreeNode for VariableBehavior {
     fn id(&self) -> &Uuid {
-        &self.asset_id().id
+        &self.producer_data().id
     }
 
     fn chidren(&self) -> Vec<&dyn StyleTreeNode> {
@@ -200,7 +200,7 @@ impl VariableBehavior {
     fn new() -> Self {
         VariableBehavior::FixedValue(FixedValue::default())
     }
-    fn get_id_mut(&mut self) -> &mut AssetId {
+    fn get_id_mut(&mut self) -> &mut ProducerData {
         match self {
             VariableBehavior::FixedValue(o) => o.get_id_mut(),
             VariableBehavior::Condition(o) => o.get_id_mut(),

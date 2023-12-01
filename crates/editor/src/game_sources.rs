@@ -4,7 +4,7 @@ use unified_sim_model::model::Entry;
 use uuid::{uuid, Uuid};
 
 use crate::{
-    reference_store::AssetId,
+    reference_store::ProducerData,
     value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore},
     value_types::{Boolean, Number, Text, ValueType},
 };
@@ -118,11 +118,11 @@ impl ValueProducer<Boolean> for Extractor {
 }
 
 pub struct GameSource {
-    asset_id: AssetId,
+    asset_id: ProducerData,
     extractor: Extractor,
 }
 impl IntoValueProducer for GameSource {
-    fn asset_id(&self) -> &AssetId {
+    fn producer_data(&self) -> &ProducerData {
         &self.asset_id
     }
 
@@ -143,7 +143,7 @@ impl GameSource {
         extractor: fn(&ValueStore, Option<&Entry>) -> Option<f32>,
     ) -> Self {
         Self {
-            asset_id: AssetId {
+            asset_id: ProducerData {
                 id,
                 name: name.to_string(),
                 asset_type: ValueType::Number,
@@ -157,7 +157,7 @@ impl GameSource {
         extractor: fn(&ValueStore, Option<&Entry>) -> Option<String>,
     ) -> Self {
         Self {
-            asset_id: AssetId {
+            asset_id: ProducerData {
                 id,
                 name: name.to_string(),
                 asset_type: ValueType::Text,
@@ -171,7 +171,7 @@ impl GameSource {
         extractor: fn(&ValueStore, Option<&Entry>) -> Option<bool>,
     ) -> Self {
         Self {
-            asset_id: AssetId {
+            asset_id: ProducerData {
                 id,
                 name: name.to_string(),
                 asset_type: ValueType::Boolean,

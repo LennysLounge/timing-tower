@@ -1,4 +1,3 @@
-use bevy::prelude::Color;
 use bevy_egui::egui::{ComboBox, DragValue, Ui};
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
@@ -16,15 +15,14 @@ pub struct FixedValue {
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(untagged)]
 pub enum FixedValueType {
-    Number(f32),
-    Text(String),
-    Color(Color),
-    Boolean(bool),
+    Number(Number),
+    Text(Text),
+    Color(Tint),
+    Boolean(Boolean),
 }
-
 impl Default for FixedValueType {
     fn default() -> Self {
-        Self::Number(0.0)
+        Self::Number(Number::default())
     }
 }
 
@@ -44,62 +42,62 @@ impl FixedValue {
                 .show_ui(ui, |ui| {
                     let is_number = matches!(self.value, FixedValueType::Number(_));
                     if ui.selectable_label(is_number, "Number").clicked() && !is_number {
-                        self.value = FixedValueType::Number(0.0);
+                        self.value = FixedValueType::Number(Number::default());
                         changed |= true;
                     }
                     let is_text = matches!(self.value, FixedValueType::Text(_));
                     if ui.selectable_label(is_text, "Text").clicked() && !is_text {
-                        self.value = FixedValueType::Text(String::new());
+                        self.value = FixedValueType::Text(Text::default());
                         changed |= true;
                     }
                     let is_color = matches!(self.value, FixedValueType::Color(_));
                     if ui.selectable_label(is_color, "Color").clicked() && !is_color {
-                        self.value = FixedValueType::Color(Color::WHITE);
+                        self.value = FixedValueType::Color(Tint::default());
                         changed |= true;
                     }
                     let is_boolean = matches!(self.value, FixedValueType::Boolean(_));
                     if ui.selectable_label(is_boolean, "Yes/No").clicked() && !is_boolean {
-                        self.value = FixedValueType::Boolean(true);
+                        self.value = FixedValueType::Boolean(Boolean::default());
                         changed |= true;
                     }
                 });
         });
 
         match &mut self.value {
-            FixedValueType::Number(number) => {
+            FixedValueType::Number(Number(number)) => {
                 ui.horizontal(|ui| {
                     ui.label("Value");
                     changed |= ui.add(DragValue::new(number)).changed();
                 });
             }
-            FixedValueType::Text(text) => {
+            FixedValueType::Text(Text(text)) => {
                 ui.horizontal(|ui| {
                     ui.label("Text");
                     changed |= ui.text_edit_singleline(text).changed();
                 });
             }
-            FixedValueType::Color(color) => {
+            FixedValueType::Color(Tint(tint)) => {
                 ui.horizontal(|ui| {
                     ui.label("Color:");
-                    let mut color_local = color.as_rgba_f32();
+                    let mut color_local = tint.as_rgba_f32();
                     changed |= ui
                         .color_edit_button_rgba_unmultiplied(&mut color_local)
                         .changed();
-                    *color = color_local.into();
+                    *tint = color_local.into();
                 });
             }
-            FixedValueType::Boolean(b) => {
+            FixedValueType::Boolean(Boolean(boolean)) => {
                 ui.horizontal(|ui| {
                     ui.label("Value:");
                     ComboBox::from_id_source(ui.next_auto_id())
                         .width(50.0)
-                        .selected_text(match b {
+                        .selected_text(match boolean {
                             true => "Yes",
                             false => "No",
                         })
                         .show_ui(ui, |ui| {
-                            changed |= ui.selectable_value(b, true, "Yes").changed();
-                            changed |= ui.selectable_value(b, false, "No").changed();
+                            changed |= ui.selectable_value(boolean, true, "Yes").changed();
+                            changed |= ui.selectable_value(boolean, false, "No").changed();
                         });
                 });
             }
@@ -119,39 +117,25 @@ impl FixedValue {
     }
 
     pub fn as_typed_producer(&self) -> TypedValueProducer {
-        match &self.value {
-            FixedValueType::Number(n) => TypedValueProducer::Number(Box::new(StaticNumber(*n))),
-            FixedValueType::Text(t) => TypedValueProducer::Text(Box::new(StaticText(t.clone()))),
-            FixedValueType::Color(c) => TypedValueProducer::Tint(Box::new(StaticColor(*c))),
-            FixedValueType::Boolean(b) => TypedValueProducer::Boolean(Box::new(StaticBoolean(*b))),
+        match self.value.clone() {
+            FixedValueType::Number(n) => {
+                TypedValueProducer::Number(Box::new(StaticValueProducer(n)))
+            }
+            FixedValueType::Text(t) => TypedValueProducer::Text(Box::new(StaticValueProducer(t))),
+            FixedValueType::Color(c) => TypedValueProducer::Tint(Box::new(StaticValueProducer(c))),
+            FixedValueType::Boolean(b) => {
+                TypedValueProducer::Boolean(Box::new(StaticValueProducer(b)))
+            }
         }
     }
 }
 
-pub struct StaticNumber(pub f32);
-impl ValueProducer<Number> for StaticNumber {
-    fn get(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Number> {
-        Some(Number(self.0))
-    }
-}
-
-pub struct StaticText(pub String);
-impl ValueProducer<Text> for StaticText {
-    fn get(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Text> {
-        Some(Text(self.0.clone()))
-    }
-}
-
-pub struct StaticColor(pub Color);
-impl ValueProducer<Tint> for StaticColor {
-    fn get(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Tint> {
-        Some(Tint(self.0))
-    }
-}
-
-pub struct StaticBoolean(pub bool);
-impl ValueProducer<Boolean> for StaticBoolean {
-    fn get(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Boolean> {
-        Some(Boolean(self.0))
+struct StaticValueProducer<T>(T);
+impl<T> ValueProducer<T> for StaticValueProducer<T>
+where
+    T: Clone,
+{
+    fn get(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<T> {
+        Some(self.0.clone())
     }
 }

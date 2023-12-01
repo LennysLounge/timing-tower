@@ -19,7 +19,7 @@ pub trait IntoValueProducer {
     fn get_value_producer(&self) -> (Uuid, TypedValueProducer);
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Default)]
 #[serde(transparent)]
 pub struct ValueRef<T> {
     pub id: Uuid,
@@ -31,6 +31,15 @@ pub struct ValueRef<T> {
 pub struct UntypedValueRef {
     pub id: Uuid,
     pub value_type: ValueType,
+}
+
+impl UntypedValueRef {
+    pub fn typed<T>(self) -> ValueRef<T> {
+        ValueRef {
+            id: self.id,
+            phantom: PhantomData,
+        }
+    }
 }
 
 pub enum TypedValueProducer {

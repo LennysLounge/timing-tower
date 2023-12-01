@@ -1,27 +1,46 @@
-use bevy_egui::egui::{ComboBox, Sense, Ui, Vec2};
+use bevy_egui::egui::{ComboBox, InnerResponse, Sense, Ui, Vec2};
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
+use uuid::Uuid;
 
 use crate::{
     reference_store::ReferenceStore,
     style::properties::{Property, PropertyEditor},
-    value_store::{TypedValueProducer, UntypedValueRef, ValueProducer, ValueRef, ValueStore},
+    value_store::{TypedValueProducer, ValueProducer, ValueRef, ValueStore},
     value_types::{Boolean, Number, Text, Texture, Tint, ValueType},
 };
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Condition {
     #[serde(flatten)]
-    left: UntypedValueRef,
-    right: RightHandSide,
+    comparison: Comparison,
+    #[serde(flatten)]
     output: Output,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
-enum RightHandSide {
-    Number(Property<Number>, NumberComparator),
-    Text(Property<Text>, TextComparator),
-    Boolean(Property<Boolean>, BooleanComparator),
+#[serde(tag = "comparison_type")]
+enum Comparison {
+    Number(NumberComparison),
+    Text(TextComparison),
+    Boolean(BooleanComparison),
+}
+
+impl Comparison {
+    fn left_side_id(&self) -> &Uuid {
+        match self {
+            Comparison::Number(n) => &n.left.id,
+            Comparison::Text(n) => &n.left.id,
+            Comparison::Boolean(n) => &n.left.id,
+        }
+    }
+    fn left_side_type(&self) -> ValueType {
+        match self {
+            Comparison::Number(_) => ValueType::Number,
+            Comparison::Text(_) => ValueType::Text,
+            Comparison::Boolean(_) => ValueType::Boolean,
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -45,6 +64,7 @@ enum BooleanComparator {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
+#[serde(tag = "output_type")]
 enum Output {
     Number {
         truee: Property<Number>,
@@ -71,8 +91,11 @@ enum Output {
 impl Default for Condition {
     fn default() -> Self {
         Self {
-            left: Default::default(),
-            right: RightHandSide::Number(Property::Fixed(Number(0.0)), NumberComparator::Equal),
+            comparison: Comparison::Number(NumberComparison {
+                left: ValueRef::default(),
+                comparator: NumberComparator::Equal,
+                right: Property::default(),
+            }),
             output: Output::Number {
                 truee: Property::Fixed(Number::default()),
                 falsee: Property::Fixed(Number::default()),
@@ -84,32 +107,7 @@ impl Default for Condition {
 impl Condition {
     pub fn as_typed_producer(&self) -> TypedValueProducer {
         let source = ConditionSource {
-            comparison: match &self.right {
-                RightHandSide::Number(np, c) => Comparison::Number(NumberComparison {
-                    left: ValueRef {
-                        id: self.left.id,
-                        phantom: std::marker::PhantomData,
-                    },
-                    comparator: c.clone(),
-                    right: np.clone(),
-                }),
-                RightHandSide::Text(tp, c) => Comparison::Text(TextComparison {
-                    left: ValueRef {
-                        id: self.left.id,
-                        phantom: std::marker::PhantomData,
-                    },
-                    comparator: c.clone(),
-                    right: tp.clone(),
-                }),
-                RightHandSide::Boolean(bp, c) => Comparison::Boolean(BooleanComparison {
-                    left: ValueRef {
-                        id: self.left.id,
-                        phantom: std::marker::PhantomData,
-                    },
-                    comparator: c.clone(),
-                    right: bp.clone(),
-                }),
-            },
+            comparison: self.comparison.clone(),
             output: self.output.clone(),
         };
 
@@ -196,7 +194,11 @@ impl Condition {
         ui.horizontal(|ui| {
             ui.label("If");
             ui.allocate_at_least(Vec2::new(5.0, 0.0), Sense::hover());
-            let new_ref = asset_repo.untyped_editor(ui, &mut self.left.id, |v| {
+
+            let InnerResponse {
+                inner: new_untyped_ref,
+                response: _,
+            } = asset_repo.untyped_editor(ui, self.comparison.left_side_id(), |v| {
                 return match v.asset_type {
                     ValueType::Number => true,
                     ValueType::Text => true,
@@ -204,29 +206,31 @@ impl Condition {
                     _ => false,
                 };
             });
-            if let Some(reference) = new_ref.inner {
-                // Channge the value type of the right side if necessary
-                if self.left.value_type != reference.value_type {
-                    self.right = match reference.value_type {
-                        ValueType::Number => RightHandSide::Number(
-                            Property::Fixed(Number(0.0)),
-                            NumberComparator::Equal,
-                        ),
-                        ValueType::Text => RightHandSide::Text(
-                            Property::Fixed(Text(String::new())),
-                            TextComparator::Like,
-                        ),
-                        ValueType::Boolean => RightHandSide::Boolean(
-                            Property::Fixed(Boolean(true)),
-                            BooleanComparator::Is,
-                        ),
+
+            if let Some(reference) = new_untyped_ref {
+                if self.comparison.left_side_type() != reference.value_type {
+                    self.comparison = match reference.value_type {
+                        ValueType::Number => Comparison::Number(NumberComparison {
+                            left: reference.typed(),
+                            comparator: NumberComparator::Equal,
+                            right: Property::default(),
+                        }),
+                        ValueType::Text => Comparison::Text(TextComparison {
+                            left: reference.typed(),
+                            comparator: TextComparator::Like,
+                            right: Property::default(),
+                        }),
+                        ValueType::Boolean => Comparison::Boolean(BooleanComparison {
+                            left: reference.typed(),
+                            comparator: BooleanComparator::Is,
+                            right: Property::default(),
+                        }),
                         ValueType::Tint => unreachable!("Type color not allowed for if condition"),
                         ValueType::Texture => {
                             unreachable!("Type image not allowed for if condition")
                         }
                     }
                 }
-                self.left = reference;
                 changed |= true;
             }
             ui.label("is");
@@ -234,11 +238,11 @@ impl Condition {
 
         ui.horizontal(|ui| {
             ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
-            match &mut self.right {
-                RightHandSide::Number(_, c) => {
+            match &mut self.comparison {
+                Comparison::Number(NumberComparison { comparator, .. }) => {
                     ComboBox::from_id_source(ui.next_auto_id())
                         .width(50.0)
-                        .selected_text(match c {
+                        .selected_text(match comparator {
                             NumberComparator::Equal => "equal",
                             NumberComparator::Greater => "greater",
                             NumberComparator::GreaterEqual => "greater or equal",
@@ -247,26 +251,30 @@ impl Condition {
                         })
                         .show_ui(ui, |ui| {
                             changed |= true;
-                            ui.selectable_value(c, NumberComparator::Equal, "equal")
+                            ui.selectable_value(comparator, NumberComparator::Equal, "equal")
                                 .changed();
                             changed |= true;
-                            ui.selectable_value(c, NumberComparator::Greater, "greater")
+                            ui.selectable_value(comparator, NumberComparator::Greater, "greater")
                                 .changed();
                             changed |= true;
                             ui.selectable_value(
-                                c,
+                                comparator,
                                 NumberComparator::GreaterEqual,
                                 "greater or equal",
                             )
                             .changed();
                             changed |= true;
-                            ui.selectable_value(c, NumberComparator::Less, "less")
+                            ui.selectable_value(comparator, NumberComparator::Less, "less")
                                 .changed();
                             changed |= true;
-                            ui.selectable_value(c, NumberComparator::LessEqual, "less or equal")
-                                .changed();
+                            ui.selectable_value(
+                                comparator,
+                                NumberComparator::LessEqual,
+                                "less or equal",
+                            )
+                            .changed();
                         });
-                    match c {
+                    match comparator {
                         NumberComparator::Equal => ui.label("to"),
                         NumberComparator::Greater => ui.label("than"),
                         NumberComparator::GreaterEqual => ui.label("to"),
@@ -274,7 +282,7 @@ impl Condition {
                         NumberComparator::LessEqual => ui.label("to"),
                     };
                 }
-                RightHandSide::Text(_, c) => {
+                Comparison::Text(TextComparison { comparator: c, .. }) => {
                     ComboBox::from_id_source(ui.next_auto_id())
                         .width(50.0)
                         .selected_text(match c {
@@ -286,7 +294,7 @@ impl Condition {
                                 .changed()
                         });
                 }
-                RightHandSide::Boolean(_, c) => {
+                Comparison::Boolean(BooleanComparison { comparator: c, .. }) => {
                     ComboBox::from_id_source(ui.next_auto_id())
                         .width(50.0)
                         .selected_text(match c {
@@ -309,15 +317,15 @@ impl Condition {
             ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
             // show select for right side
             changed |= ui
-                .horizontal(|ui| match &mut self.right {
-                    RightHandSide::Number(n, _) => {
-                        ui.add(PropertyEditor::new(n, asset_repo)).changed()
+                .horizontal(|ui| match &mut self.comparison {
+                    Comparison::Number(NumberComparison { right, .. }) => {
+                        ui.add(PropertyEditor::new(right, asset_repo)).changed()
                     }
-                    RightHandSide::Text(t, _) => {
-                        ui.add(PropertyEditor::new(t, asset_repo)).changed()
+                    Comparison::Text(TextComparison { right, .. }) => {
+                        ui.add(PropertyEditor::new(right, asset_repo)).changed()
                     }
-                    RightHandSide::Boolean(b, _) => {
-                        ui.add(PropertyEditor::new(b, asset_repo)).changed()
+                    Comparison::Boolean(BooleanComparison { right, .. }) => {
+                        ui.add(PropertyEditor::new(right, asset_repo)).changed()
                     }
                 })
                 .inner;
@@ -447,12 +455,7 @@ impl ValueProducer<Texture> for ConditionSource {
     }
 }
 
-enum Comparison {
-    Number(NumberComparison),
-    Text(TextComparison),
-    Boolean(BooleanComparison),
-}
-
+#[derive(Serialize, Deserialize, Clone)]
 struct NumberComparison {
     left: ValueRef<Number>,
     comparator: NumberComparator,
@@ -473,6 +476,7 @@ impl NumberComparison {
     }
 }
 
+#[derive(Serialize, Deserialize, Clone)]
 struct TextComparison {
     left: ValueRef<Text>,
     comparator: TextComparator,
@@ -489,6 +493,7 @@ impl TextComparison {
     }
 }
 
+#[derive(Serialize, Deserialize, Clone)]
 struct BooleanComparison {
     left: ValueRef<Boolean>,
     comparator: BooleanComparator,

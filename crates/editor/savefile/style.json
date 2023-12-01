@@ -386,28 +386,16 @@
           "name": "position color",
           "behavior": {
             "Condition": {
-              "id": "e86a2ae3-6486-4941-bee9-b063f3ff0152",
-              "name": "position color",
-              "asset_type": "Tint",
-              "left": {
-                "value_type": "Boolean",
-                "id": "de909160-f54b-40cf-a987-6a8453df0914"
+              "comparison_type": "Boolean",
+              "left": "de909160-f54b-40cf-a987-6a8453df0914",
+              "comparator": "Is",
+              "right": true,
+              "output_type": "Color",
+              "truee": {
+                "ValueRef": "3b9c1864-f07f-46ca-aa86-01cba7629860"
               },
-              "right": {
-                "Boolean": [
-                  true,
-                  "Is"
-                ]
-              },
-              "true_output": {
-                "Color": {
-                  "ValueRef": "3b9c1864-f07f-46ca-aa86-01cba7629860"
-                }
-              },
-              "false_output": {
-                "Color": {
-                  "ValueRef": "e63c62b8-900a-476d-973b-2b0f12fb7b26"
-                }
+              "falsee": {
+                "ValueRef": "e63c62b8-900a-476d-973b-2b0f12fb7b26"
               }
             }
           }

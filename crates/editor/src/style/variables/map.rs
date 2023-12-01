@@ -93,10 +93,6 @@ impl Map {
         changed
     }
 
-    pub fn get_id_mut(&mut self) -> &mut ProducerData {
-        &mut self.id
-    }
-
     fn update_output_type(&mut self) {
         let new_output = match self.id.asset_type {
             ValueType::Number => Output::Number(Property::Fixed(Number(0.0))),

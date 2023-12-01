@@ -7,7 +7,7 @@ use crate::{
     style::{
         assets::AssetDefinition,
         folder::{Folder, FolderOrT},
-        variables::VariableBehavior,
+        variables::VariableDefinition,
     },
     value_store::{UntypedValueRef, ValueRef},
     value_types::{ValueType, ValueTypeOf},
@@ -49,7 +49,7 @@ pub struct ReferenceStore {
 }
 
 impl ReferenceStore {
-    pub fn new(vars: &Folder<VariableBehavior>, assets: &Folder<AssetDefinition>) -> Self {
+    pub fn new(vars: &Folder<VariableDefinition>, assets: &Folder<AssetDefinition>) -> Self {
         Self {
             variables: AssetOrFolder::from_vars(vars),
             game_sources: AssetOrFolder::from_game(game_sources::get_game_sources()),
@@ -169,7 +169,7 @@ enum AssetOrFolder {
     },
 }
 impl AssetOrFolder {
-    fn from_vars(vars: &Folder<VariableBehavior>) -> Self {
+    fn from_vars(vars: &Folder<VariableDefinition>) -> Self {
         Self::Folder {
             name: vars.name.clone(),
             assets: vars

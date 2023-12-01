@@ -40,10 +40,6 @@ impl FixedValue {
         }
     }
 
-    pub fn get_id_mut(&mut self) -> &mut ProducerData {
-        &mut self.id
-    }
-
     pub fn property_editor(&mut self, ui: &mut Ui) -> bool {
         let mut changed = false;
 

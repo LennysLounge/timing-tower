@@ -9,7 +9,8 @@ use uuid::Uuid;
 use crate::reference_store::ReferenceStore;
 
 use self::{
-    assets::AssetDefinition, folder::Folder, timing_tower::TimingTower, variables::VariableBehavior,
+    assets::AssetDefinition, folder::Folder, timing_tower::TimingTower,
+    variables::VariableDefinition,
 };
 
 pub mod assets;
@@ -96,7 +97,7 @@ pub trait StyleTreeNode: StyleTreeNodeConversions + StyleTreeUi {
 pub struct StyleDefinition {
     pub id: Uuid,
     pub assets: Folder<AssetDefinition>,
-    pub vars: Folder<VariableBehavior>,
+    pub vars: Folder<VariableDefinition>,
     pub timing_tower: TimingTower,
 }
 

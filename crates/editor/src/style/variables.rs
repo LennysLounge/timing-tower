@@ -22,24 +22,35 @@ pub mod fixed_value;
 pub mod map;
 
 #[derive(Serialize, Deserialize, Clone)]
-pub enum VariableBehavior {
+pub struct VariableDefinition {
+    id: Uuid,
+    name: String,
+    behavior: VariableBehavior,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+enum VariableBehavior {
     FixedValue(FixedValue),
     Condition(Condition),
     Map(Map),
 }
 
-impl IntoProducerData for VariableBehavior {
+impl IntoProducerData for VariableDefinition {
     fn producer_data(&self) -> ProducerData {
-        match self {
-            VariableBehavior::FixedValue(o) => o.producer_data(),
-            VariableBehavior::Condition(o) => o.producer_data(),
-            VariableBehavior::Map(o) => o.producer_data(),
+        ProducerData {
+            id: self.id,
+            name: self.name.clone(),
+            asset_type: match &self.behavior {
+                VariableBehavior::FixedValue(o) => o.producer_data().asset_type,
+                VariableBehavior::Condition(o) => o.producer_data().asset_type,
+                VariableBehavior::Map(o) => o.producer_data().asset_type,
+            },
         }
     }
 }
-impl IntoValueProducer for VariableBehavior {
+impl IntoValueProducer for VariableDefinition {
     fn get_value_producer(&self) -> (Uuid, TypedValueProducer) {
-        match self {
+        match &self.behavior {
             VariableBehavior::FixedValue(o) => o.get_value_producer(),
             VariableBehavior::Condition(o) => o.get_value_producer(),
             VariableBehavior::Map(o) => o.get_value_producer(),
@@ -47,7 +58,7 @@ impl IntoValueProducer for VariableBehavior {
     }
 }
 
-impl StyleTreeUi for VariableBehavior {
+impl StyleTreeUi for VariableDefinition {
     fn property_editor(
         &mut self,
         ui: &mut bevy_egui::egui::Ui,
@@ -56,46 +67,45 @@ impl StyleTreeUi for VariableBehavior {
         let mut changed = false;
 
         ui.label("Name:");
-        changed |= ui
-            .text_edit_singleline(&mut self.get_id_mut().name)
-            .changed();
+        changed |= ui.text_edit_singleline(&mut self.name).changed();
 
         ui.horizontal(|ui| {
             ui.label("Behavior:");
             ComboBox::new(ui.next_auto_id(), "")
-                .selected_text(match self {
+                .selected_text(match self.behavior {
                     VariableBehavior::FixedValue(_) => "Fixed value",
                     VariableBehavior::Condition(_) => "Condition",
                     VariableBehavior::Map(_) => "Map",
                 })
                 .show_ui(ui, |ui| {
-                    let is_fixed_value = matches!(self, VariableBehavior::FixedValue(_));
+                    let is_fixed_value = matches!(self.behavior, VariableBehavior::FixedValue(_));
                     if ui.selectable_label(is_fixed_value, "Fixed value").clicked()
                         && !is_fixed_value
                     {
-                        *self = VariableBehavior::FixedValue(FixedValue::from_id(
+                        self.behavior = VariableBehavior::FixedValue(FixedValue::from_id(
                             self.producer_data().clone(),
                         ));
                         changed |= true;
                     }
 
-                    let is_condition = matches!(self, VariableBehavior::Condition(_));
+                    let is_condition = matches!(self.behavior, VariableBehavior::Condition(_));
                     if ui.selectable_label(is_condition, "Condition").clicked() && !is_condition {
-                        *self = VariableBehavior::Condition(Condition::from_id(
+                        self.behavior = VariableBehavior::Condition(Condition::from_id(
                             self.producer_data().clone(),
                         ));
                         changed = true;
                     }
-                    let is_map = matches!(self, VariableBehavior::Map(_));
+                    let is_map = matches!(self.behavior, VariableBehavior::Map(_));
                     if ui.selectable_label(is_map, "Map").clicked() && !is_map {
-                        *self = VariableBehavior::Map(Map::from_id(self.producer_data().clone()));
+                        self.behavior =
+                            VariableBehavior::Map(Map::from_id(self.producer_data().clone()));
                         changed = true;
                     }
                 });
         });
 
         ui.separator();
-        changed |= match self {
+        changed |= match &mut self.behavior {
             VariableBehavior::FixedValue(o) => o.property_editor(ui),
             VariableBehavior::Condition(o) => o.property_editor(ui, asset_repo),
             VariableBehavior::Map(o) => o.property_editor(ui, asset_repo),
@@ -109,7 +119,7 @@ impl StyleTreeUi for VariableBehavior {
         });
         res.response.context_menu(|ui| {
             if ui.button("add variable").clicked() {
-                let var = VariableBehavior::new();
+                let var = VariableDefinition::new();
                 actions.push(TreeViewAction::Select { node: *var.id() });
                 actions.push(TreeViewAction::Insert {
                     target: tree_ui.parent_id.unwrap(),
@@ -119,7 +129,7 @@ impl StyleTreeUi for VariableBehavior {
                 ui.close_menu();
             }
             if ui.button("add group").clicked() {
-                let folder = Folder::<VariableBehavior>::new();
+                let folder = Folder::<VariableDefinition>::new();
                 actions.push(TreeViewAction::Select { node: folder.id });
                 actions.push(TreeViewAction::Insert {
                     target: tree_ui.parent_id.unwrap(),
@@ -136,9 +146,9 @@ impl StyleTreeUi for VariableBehavior {
     }
 }
 
-impl StyleTreeNode for VariableBehavior {
+impl StyleTreeNode for VariableDefinition {
     fn id(&self) -> &Uuid {
-        &self.producer_data().id
+        &self.id
     }
 
     fn chidren(&self) -> Vec<&dyn StyleTreeNode> {
@@ -160,7 +170,7 @@ impl StyleTreeNode for VariableBehavior {
     fn insert(&mut self, _node: Box<dyn std::any::Any>, _position: &tree_view::DropPosition) {}
 }
 
-impl FolderActions for VariableBehavior {
+impl FolderActions for VariableDefinition {
     type FolderType = Self;
 
     fn context_menu(
@@ -169,7 +179,7 @@ impl FolderActions for VariableBehavior {
         actions: &mut Vec<TreeViewAction>,
     ) {
         if ui.button("add variable").clicked() {
-            let var = VariableBehavior::new();
+            let var = VariableDefinition::new();
             actions.push(TreeViewAction::Select { node: *var.id() });
             actions.push(TreeViewAction::Insert {
                 target: *folder.id(),
@@ -179,7 +189,7 @@ impl FolderActions for VariableBehavior {
             ui.close_menu();
         }
         if ui.button("add group").clicked() {
-            let new_folder = Folder::<VariableBehavior>::new();
+            let new_folder = Folder::<VariableDefinition>::new();
             actions.push(TreeViewAction::Select {
                 node: new_folder.id,
             });
@@ -197,15 +207,12 @@ impl FolderActions for VariableBehavior {
     }
 }
 
-impl VariableBehavior {
+impl VariableDefinition {
     fn new() -> Self {
-        VariableBehavior::FixedValue(FixedValue::default())
-    }
-    fn get_id_mut(&mut self) -> &mut ProducerData {
-        match self {
-            VariableBehavior::FixedValue(o) => o.get_id_mut(),
-            VariableBehavior::Condition(o) => o.get_id_mut(),
-            VariableBehavior::Map(o) => o.get_id_mut(),
+        Self {
+            id: Uuid::new_v4(),
+            name: "Variables".to_string(),
+            behavior: VariableBehavior::FixedValue(FixedValue::default()),
         }
     }
 }

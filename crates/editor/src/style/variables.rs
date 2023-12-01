@@ -89,9 +89,7 @@ impl StyleTreeUi for VariableDefinition {
 
                     let is_condition = matches!(self.behavior, VariableBehavior::Condition(_));
                     if ui.selectable_label(is_condition, "Condition").clicked() && !is_condition {
-                        self.behavior = VariableBehavior::Condition(Condition::from_id(
-                            self.producer_data().clone(),
-                        ));
+                        self.behavior = VariableBehavior::Condition(Condition::default());
                         changed = true;
                     }
                     let is_map = matches!(self.behavior, VariableBehavior::Map(_));

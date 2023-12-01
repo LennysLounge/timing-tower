@@ -1,4 +1,3 @@
-use bevy::prelude::Color;
 use bevy_egui::egui::{ComboBox, Sense, Ui, Vec2};
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
@@ -16,8 +15,7 @@ pub struct Condition {
     id: ProducerData,
     left: UntypedValueRef,
     right: RightHandSide,
-    true_output: Output,
-    false_output: Output,
+    output: Output,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -49,11 +47,26 @@ enum BooleanComparator {
 
 #[derive(Serialize, Deserialize, Clone)]
 enum Output {
-    Number(Property<Number>),
-    Text(Property<Text>),
-    Color(Property<Tint>),
-    Boolean(Property<Boolean>),
-    Image(Property<Texture>),
+    Number {
+        truee: Property<Number>,
+        falsee: Property<Number>,
+    },
+    Text {
+        truee: Property<Text>,
+        falsee: Property<Text>,
+    },
+    Color {
+        truee: Property<Tint>,
+        falsee: Property<Tint>,
+    },
+    Boolean {
+        truee: Property<Boolean>,
+        falsee: Property<Boolean>,
+    },
+    Image {
+        truee: Property<Texture>,
+        falsee: Property<Texture>,
+    },
 }
 
 impl Default for Condition {
@@ -62,8 +75,10 @@ impl Default for Condition {
             id: Default::default(),
             left: Default::default(),
             right: RightHandSide::Number(Property::Fixed(Number(0.0)), NumberComparator::Equal),
-            true_output: Output::Number(Property::Fixed(Number(0.0))),
-            false_output: Output::Number(Property::Fixed(Number(0.0))),
+            output: Output::Number {
+                truee: Property::Fixed(Number::default()),
+                falsee: Property::Fixed(Number::default()),
+            },
         }
     }
 }
@@ -97,8 +112,7 @@ impl Condition {
                     right: bp.clone(),
                 }),
             },
-            true_value: self.true_output.clone(),
-            false_value: self.false_output.clone(),
+            output: self.output.clone(),
         };
 
         match self.id.asset_type {
@@ -117,27 +131,6 @@ impl Condition {
 }
 
 impl Condition {
-    pub fn from_id(id: ProducerData) -> Self {
-        Self {
-            true_output: match &id.asset_type {
-                ValueType::Number => Output::Number(Property::Fixed(Number(0.0))),
-                ValueType::Text => Output::Text(Property::Fixed(Text(String::new()))),
-                ValueType::Tint => Output::Color(Property::Fixed(Tint(Color::WHITE))),
-                ValueType::Boolean => Output::Boolean(Property::Fixed(Boolean(true))),
-                ValueType::Texture => Output::Image(Property::Fixed(Texture::None)),
-            },
-            false_output: match &id.asset_type {
-                ValueType::Number => Output::Number(Property::Fixed(Number(0.0))),
-                ValueType::Text => Output::Text(Property::Fixed(Text(String::new()))),
-                ValueType::Tint => Output::Color(Property::Fixed(Tint(Color::WHITE))),
-                ValueType::Boolean => Output::Boolean(Property::Fixed(Boolean(false))),
-                ValueType::Texture => Output::Image(Property::Fixed(Texture::None)),
-            },
-            id,
-            ..Default::default()
-        }
-    }
-
     pub fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
         let mut changed = false;
 
@@ -155,36 +148,46 @@ impl Condition {
                     let is_number = self.id.asset_type == ValueType::Number;
                     if ui.selectable_label(is_number, "Number").clicked() && !is_number {
                         self.id.asset_type = ValueType::Number;
-                        self.true_output = Output::Number(Property::Fixed(Number(0.0)));
-                        self.false_output = Output::Number(Property::Fixed(Number(0.0)));
+                        self.output = Output::Number {
+                            truee: Property::default(),
+                            falsee: Property::default(),
+                        };
                         changed |= true;
                     }
                     let is_text = self.id.asset_type == ValueType::Text;
                     if ui.selectable_label(is_text, "Text").clicked() && !is_text {
                         self.id.asset_type = ValueType::Text;
-                        self.true_output = Output::Text(Property::Fixed(Text(String::new())));
-                        self.false_output = Output::Text(Property::Fixed(Text(String::new())));
+                        self.output = Output::Text {
+                            truee: Property::default(),
+                            falsee: Property::default(),
+                        };
                         changed |= true;
                     }
                     let is_color = self.id.asset_type == ValueType::Tint;
                     if ui.selectable_label(is_color, "Color").clicked() && !is_color {
                         self.id.asset_type = ValueType::Tint;
-                        self.true_output = Output::Color(Property::Fixed(Tint(Color::WHITE)));
-                        self.false_output = Output::Color(Property::Fixed(Tint(Color::WHITE)));
+                        self.output = Output::Color {
+                            truee: Property::default(),
+                            falsee: Property::default(),
+                        };
                         changed |= true;
                     }
                     let is_boolean = self.id.asset_type == ValueType::Boolean;
                     if ui.selectable_label(is_boolean, "Yes/No").clicked() && !is_boolean {
                         self.id.asset_type = ValueType::Boolean;
-                        self.true_output = Output::Boolean(Property::Fixed(Boolean(true)));
-                        self.false_output = Output::Boolean(Property::Fixed(Boolean(false)));
+                        self.output = Output::Boolean {
+                            truee: Property::default(),
+                            falsee: Property::default(),
+                        };
                         changed |= true;
                     }
                     let is_image = self.id.asset_type == ValueType::Texture;
                     if ui.selectable_label(is_image, "Image").clicked() && !is_image {
                         self.id.asset_type = ValueType::Texture;
-                        self.true_output = Output::Image(Property::Fixed(Texture::None));
-                        self.false_output = Output::Image(Property::Fixed(Texture::None));
+                        self.output = Output::Image {
+                            truee: Property::default(),
+                            falsee: Property::default(),
+                        };
                         changed |= true;
                     }
                 });
@@ -323,24 +326,24 @@ impl Condition {
         ui.label("then:");
         ui.horizontal(|ui| {
             ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
-            changed |= match &mut self.true_output {
-                Output::Number(n) => ui.add(PropertyEditor::new(n, asset_repo)),
-                Output::Text(t) => ui.add(PropertyEditor::new(t, asset_repo)),
-                Output::Color(c) => ui.add(PropertyEditor::new(c, asset_repo)),
-                Output::Boolean(b) => ui.add(PropertyEditor::new(b, asset_repo)),
-                Output::Image(i) => ui.add(PropertyEditor::new(i, asset_repo)),
+            changed |= match &mut self.output {
+                Output::Number { truee, .. } => ui.add(PropertyEditor::new(truee, asset_repo)),
+                Output::Text { truee, .. } => ui.add(PropertyEditor::new(truee, asset_repo)),
+                Output::Color { truee, .. } => ui.add(PropertyEditor::new(truee, asset_repo)),
+                Output::Boolean { truee, .. } => ui.add(PropertyEditor::new(truee, asset_repo)),
+                Output::Image { truee, .. } => ui.add(PropertyEditor::new(truee, asset_repo)),
             }
             .changed();
         });
         ui.label("else:");
         ui.horizontal(|ui| {
             ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
-            changed |= match &mut self.false_output {
-                Output::Number(n) => ui.add(PropertyEditor::new(n, asset_repo)),
-                Output::Text(t) => ui.add(PropertyEditor::new(t, asset_repo)),
-                Output::Color(c) => ui.add(PropertyEditor::new(c, asset_repo)),
-                Output::Boolean(b) => ui.add(PropertyEditor::new(b, asset_repo)),
-                Output::Image(i) => ui.add(PropertyEditor::new(i, asset_repo)),
+            changed |= match &mut self.output {
+                Output::Number { falsee, .. } => ui.add(PropertyEditor::new(falsee, asset_repo)),
+                Output::Text { falsee, .. } => ui.add(PropertyEditor::new(falsee, asset_repo)),
+                Output::Color { falsee, .. } => ui.add(PropertyEditor::new(falsee, asset_repo)),
+                Output::Boolean { falsee, .. } => ui.add(PropertyEditor::new(falsee, asset_repo)),
+                Output::Image { falsee, .. } => ui.add(PropertyEditor::new(falsee, asset_repo)),
             }
             .changed();
         });
@@ -350,8 +353,7 @@ impl Condition {
 
 struct ConditionSource {
     comparison: Comparison,
-    true_value: Output,
-    false_value: Output,
+    output: Output,
 }
 
 impl ConditionSource {
@@ -367,14 +369,15 @@ impl ConditionSource {
 impl ValueProducer<Number> for ConditionSource {
     fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
         let condition = self.evaluate_condition(value_store, entry)?;
+
         if condition {
-            match &self.true_value {
-                Output::Number(n) => value_store.get_property(&n, entry),
+            match &self.output {
+                Output::Number { truee, .. } => value_store.get_property(truee, entry),
                 _ => unreachable!(),
             }
         } else {
-            match &self.false_value {
-                Output::Number(n) => value_store.get_property(&n, entry),
+            match &self.output {
+                Output::Number { falsee, .. } => value_store.get_property(falsee, entry),
                 _ => unreachable!(),
             }
         }
@@ -384,13 +387,13 @@ impl ValueProducer<Text> for ConditionSource {
     fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
         let condition = self.evaluate_condition(value_store, entry)?;
         if condition {
-            match &self.true_value {
-                Output::Text(n) => value_store.get_property(&n, entry),
+            match &self.output {
+                Output::Text { truee, .. } => value_store.get_property(truee, entry),
                 _ => unreachable!(),
             }
         } else {
-            match &self.false_value {
-                Output::Text(n) => value_store.get_property(&n, entry),
+            match &self.output {
+                Output::Text { falsee, .. } => value_store.get_property(falsee, entry),
                 _ => unreachable!(),
             }
         }
@@ -400,13 +403,13 @@ impl ValueProducer<Tint> for ConditionSource {
     fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Tint> {
         let condition = self.evaluate_condition(value_store, entry)?;
         if condition {
-            match &self.true_value {
-                Output::Color(n) => value_store.get_property(&n, entry),
+            match &self.output {
+                Output::Color { truee, .. } => value_store.get_property(truee, entry),
                 _ => unreachable!(),
             }
         } else {
-            match &self.false_value {
-                Output::Color(n) => value_store.get_property(&n, entry),
+            match &self.output {
+                Output::Color { falsee, .. } => value_store.get_property(falsee, entry),
                 _ => unreachable!(),
             }
         }
@@ -416,13 +419,13 @@ impl ValueProducer<Boolean> for ConditionSource {
     fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
         let condition = self.evaluate_condition(value_store, entry)?;
         if condition {
-            match &self.true_value {
-                Output::Boolean(b) => value_store.get_property(&b, entry),
+            match &self.output {
+                Output::Boolean { truee, .. } => value_store.get_property(truee, entry),
                 _ => unreachable!(),
             }
         } else {
-            match &self.false_value {
-                Output::Boolean(b) => value_store.get_property(&b, entry),
+            match &self.output {
+                Output::Boolean { falsee, .. } => value_store.get_property(falsee, entry),
                 _ => unreachable!(),
             }
         }
@@ -432,13 +435,13 @@ impl ValueProducer<Texture> for ConditionSource {
     fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Texture> {
         let condition = self.evaluate_condition(value_store, entry)?;
         if condition {
-            match &self.true_value {
-                Output::Image(i) => value_store.get_property(&i, entry),
+            match &self.output {
+                Output::Image { truee, .. } => value_store.get_property(truee, entry),
                 _ => unreachable!(),
             }
         } else {
-            match &self.false_value {
-                Output::Image(i) => value_store.get_property(&i, entry),
+            match &self.output {
+                Output::Image { falsee, .. } => value_store.get_property(falsee, entry),
                 _ => unreachable!(),
             }
         }

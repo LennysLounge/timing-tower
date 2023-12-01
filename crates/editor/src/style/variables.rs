@@ -29,7 +29,7 @@ pub enum VariableBehavior {
 }
 
 impl IntoProducerData for VariableBehavior {
-    fn producer_data(&self) -> &ProducerData {
+    fn producer_data(&self) -> ProducerData {
         match self {
             VariableBehavior::FixedValue(o) => o.producer_data(),
             VariableBehavior::Condition(o) => o.producer_data(),

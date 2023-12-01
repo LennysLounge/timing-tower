@@ -161,8 +161,8 @@ impl Map {
 }
 
 impl IntoProducerData for Map {
-    fn producer_data(&self) -> &ProducerData {
-        &self.id
+    fn producer_data(&self) -> ProducerData {
+        self.id.clone()
     }
 }
 impl IntoValueProducer for Map {

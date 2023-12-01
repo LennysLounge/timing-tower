@@ -69,7 +69,7 @@ impl IntoValueProducer for AssetDefinition {
     }
 }
 impl IntoProducerData for AssetDefinition {
-    fn producer_data(&self) -> &ProducerData {
+    fn producer_data(&self) -> ProducerData {
         match self {
             AssetDefinition::Image(i) => i.producer_data(),
         }
@@ -156,8 +156,8 @@ impl IntoValueProducer for ImageAsset {
     }
 }
 impl IntoProducerData for ImageAsset {
-    fn producer_data(&self) -> &ProducerData {
-        &self.id
+    fn producer_data(&self) -> ProducerData {
+        self.id.clone()
     }
 }
 

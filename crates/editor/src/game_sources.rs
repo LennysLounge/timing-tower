@@ -122,8 +122,8 @@ pub struct GameSource {
     extractor: Extractor,
 }
 impl IntoProducerData for GameSource {
-    fn producer_data(&self) -> &ProducerData {
-        &self.asset_id
+    fn producer_data(&self) -> ProducerData {
+        self.asset_id.clone()
     }
 }
 impl IntoValueProducer for GameSource {

@@ -14,7 +14,7 @@ use crate::{
 };
 
 pub trait IntoProducerData {
-    fn producer_data(&self) -> &ProducerData;
+    fn producer_data(&self) -> ProducerData;
 }
 
 #[derive(Serialize, Deserialize, Clone)]

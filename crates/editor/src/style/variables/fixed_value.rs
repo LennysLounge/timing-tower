@@ -128,8 +128,8 @@ impl FixedValue {
 }
 
 impl IntoProducerData for FixedValue {
-    fn producer_data(&self) -> &ProducerData {
-        &self.id
+    fn producer_data(&self) -> ProducerData {
+        self.id.clone()
     }
 }
 impl IntoValueProducer for FixedValue {

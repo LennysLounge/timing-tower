@@ -126,7 +126,7 @@ impl StyleTreeUi for AssetDefinition {
         });
     }
 
-    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
+    fn property_editor(&mut self, ui: &mut Ui, _asset_repo: &ReferenceStore) -> bool {
         let mut changed = false;
 
         ui.label("Name");
@@ -172,7 +172,7 @@ impl StyleTreeNode for AssetDefinition {
 }
 
 impl AssetDefinition {
-    pub fn load_asset(&mut self, asset_server: &AssetServer) {
+    pub fn load_asset(&mut self, _asset_server: &AssetServer) {
         // Feature: Show load state of assets
         // match self {
         //     AssetDefinition::Image(o) => o.load_asset(asset_server),

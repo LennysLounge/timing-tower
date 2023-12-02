@@ -1,14 +1,15 @@
 use std::collections::HashMap;
 
 use bevy::{
-    asset::{Asset, AssetServer, Handle},
+    asset::{AssetServer, Handle},
     render::texture::Image,
 };
+use common::asset_store::{AssetResolver, SpecializedAssetStore};
 use uuid::Uuid;
 
 use crate::{
     style::{assets::AssetDefinition, folder::Folder},
-    value_types::{Texture, ValueType},
+    value_types::ValueType,
 };
 
 /// The asset store holds a bevy handle to all assets that are
@@ -18,7 +19,7 @@ pub struct AssetStoreImpl {
 }
 
 impl AssetStoreImpl {
-    fn new(assets: &Folder<AssetDefinition>, asset_server: &AssetServer) -> Self {
+    pub fn new(assets: &Folder<AssetDefinition>, asset_server: &AssetServer) -> Self {
         Self {
             assets: assets
                 .all_t()
@@ -30,26 +31,17 @@ impl AssetStoreImpl {
                 .collect(),
         }
     }
+}
 
-    fn get<T, U>(&self, value: &T) -> Option<Handle<U>>
-    where
-        Self: AssetResolver<T, U>,
-        U: Asset,
-    {
-        self.get_asset(value)
+impl SpecializedAssetStore for AssetStoreImpl {}
+
+impl AssetResolver<()> for AssetStoreImpl {
+    fn get(&self, _id: &Uuid) -> Option<Handle<()>> {
+        None
     }
 }
-
-pub trait AssetResolver<T, U>
-where
-    U: Asset,
-{
-    fn get_asset(&self, value: &T) -> Option<Handle<U>>;
-}
-
-impl AssetResolver<Texture, Image> for AssetStoreImpl {
-    fn get_asset(&self, value: &Texture) -> Option<Handle<Image>> {
-        None
-        //self.assets.get(value.0)
+impl AssetResolver<Image> for AssetStoreImpl {
+    fn get(&self, id: &Uuid) -> Option<Handle<Image>> {
+        self.assets.get(id).map(|h| h.clone())
     }
 }

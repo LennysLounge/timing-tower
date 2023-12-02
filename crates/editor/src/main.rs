@@ -4,6 +4,7 @@ use std::{
     fs::{self},
 };
 
+use asset_store_impl::AssetStoreImpl;
 use bevy::{
     diagnostic::FrameTimeDiagnosticsPlugin,
     ecs::system::EntityCommand,
@@ -148,7 +149,10 @@ fn setup(
         },
     });
 
-    commands.insert_resource(AssetStore);
+    commands.insert_resource(AssetStore::new(Box::new(AssetStoreImpl::new(
+        &style.assets,
+        &asset_server,
+    ))));
 
     commands.insert_resource(style.clone());
     let mut repo = ValueStore {

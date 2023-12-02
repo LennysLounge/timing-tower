@@ -6,7 +6,10 @@ use uuid::Uuid;
 use crate::{
     reference_store::ReferenceStore,
     style::properties::{Property, PropertyEditor},
-    value_store::{TypedValueProducer, TypedValueResolver, ValueProducer, ValueRef, ValueStore},
+    value_store::{
+        TypedValueProducer, TypedValueResolver, UntypedValueRef, ValueProducer, ValueRef,
+        ValueStore,
+    },
     value_types::{Boolean, Number, Text, Texture, Tint, ValueType},
 };
 
@@ -72,29 +75,7 @@ impl Condition {
             });
 
             if let Some(reference) = new_untyped_ref {
-                if self.comparison.left_side_type() != reference.value_type {
-                    self.comparison = match reference.value_type {
-                        ValueType::Number => Comparison::Number(NumberComparison {
-                            left: reference.typed(),
-                            comparator: NumberComparator::Equal,
-                            right: Property::default(),
-                        }),
-                        ValueType::Text => Comparison::Text(TextComparison {
-                            left: reference.typed(),
-                            comparator: TextComparator::Like,
-                            right: Property::default(),
-                        }),
-                        ValueType::Boolean => Comparison::Boolean(BooleanComparison {
-                            left: reference.typed(),
-                            comparator: BooleanComparator::Is,
-                            right: Property::default(),
-                        }),
-                        ValueType::Tint => unreachable!("Type color not allowed for if condition"),
-                        ValueType::Texture => {
-                            unreachable!("Type image not allowed for if condition")
-                        }
-                    }
-                }
+                self.comparison.set_left_side(reference);
                 changed |= true;
             }
             ui.label("is");
@@ -274,11 +255,49 @@ impl Comparison {
             Comparison::Boolean(n) => &n.left.id,
         }
     }
-    fn left_side_type(&self) -> ValueType {
+    fn value_type(&self) -> ValueType {
         match self {
             Comparison::Number(_) => ValueType::Number,
             Comparison::Text(_) => ValueType::Text,
             Comparison::Boolean(_) => ValueType::Boolean,
+        }
+    }
+
+    fn set_left_side(&mut self, new_untyped_ref: UntypedValueRef) {
+        if self.value_type() == new_untyped_ref.value_type {
+            // Update the left side if the types are the same.
+            match self {
+                Comparison::Number(number_comparison) => {
+                    number_comparison.left = new_untyped_ref.typed()
+                }
+                Comparison::Boolean(boolean_comparison) => {
+                    boolean_comparison.left = new_untyped_ref.typed()
+                }
+                Comparison::Text(text_comparison) => text_comparison.left = new_untyped_ref.typed(),
+            }
+        } else {
+            // Otherwise change the type of the entire comparison.
+            *self = match new_untyped_ref.value_type {
+                ValueType::Number => Comparison::Number(NumberComparison {
+                    left: new_untyped_ref.typed(),
+                    comparator: NumberComparator::Equal,
+                    right: Property::default(),
+                }),
+                ValueType::Text => Comparison::Text(TextComparison {
+                    left: new_untyped_ref.typed(),
+                    comparator: TextComparator::Like,
+                    right: Property::default(),
+                }),
+                ValueType::Boolean => Comparison::Boolean(BooleanComparison {
+                    left: new_untyped_ref.typed(),
+                    comparator: BooleanComparator::Is,
+                    right: Property::default(),
+                }),
+                ValueType::Tint => unreachable!("Type color not allowed for if condition"),
+                ValueType::Texture => {
+                    unreachable!("Type image not allowed for if condition")
+                }
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 mod framerate;
+mod web_asset_store;
 mod websocket;
 
 use bevy::{
@@ -18,6 +19,7 @@ use bevy::{
     DefaultPlugins,
 };
 use common::{
+    asset_store::AssetStore,
     cell::{
         init_cell,
         style::{CellStyle, SetStyle},
@@ -27,11 +29,13 @@ use common::{
     gradient_material::CustomMaterialPlugin,
 };
 use framerate::{FrameCounter, FrameratePlugin};
+use web_asset_store::WebAssetStore;
 use websocket::{ReceivedMessages, SendMessage, WebsocketPlugin};
 
 fn main() {
     App::new()
         .insert_resource(ClearColor(Color::rgb(0.5, 0.5, 0.9)))
+        .insert_resource(AssetStore::new(Box::new(WebAssetStore)))
         .add_plugins(DefaultPlugins)
         .add_plugins((CellPlugin, CustomMaterialPlugin))
         .add_plugins((WebsocketPlugin, FrameratePlugin))

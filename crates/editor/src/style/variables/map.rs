@@ -50,7 +50,20 @@ impl Map {
             if let Some(new_ref) = new_ref.inner {
                 self.input = new_ref;
                 changed |= true;
-                self.update_comparison_type();
+                let new_comparison = match self.input.value_type {
+                    ValueType::Number => {
+                        Comparison::Number(Property::Fixed(Number(0.0)), NumberComparator::Equal)
+                    }
+                    ValueType::Text => {
+                        Comparison::Text(Property::Fixed(Text(String::new())), TextComparator::Like)
+                    }
+                    ValueType::Tint => unreachable!("Type Color not allowed in comparison"),
+                    ValueType::Boolean => unreachable!("Type Boolean not allowed in comparison"),
+                    ValueType::Texture => unreachable!("Type Image not allowed in comparison"),
+                };
+                for case in self.cases.iter_mut() {
+                    case.comparison = new_comparison.clone();
+                }
             };
         });
         ui.horizontal(|ui| {
@@ -70,7 +83,17 @@ impl Map {
             changed |= res.changed();
             if res.changed() && output_type_before != self.id.asset_type {
                 println!("Update output types");
-                self.update_output_type();
+                let new_output = match self.id.asset_type {
+                    ValueType::Number => Output::Number(Property::Fixed(Number(0.0))),
+                    ValueType::Text => Output::Text(Property::Fixed(Text(String::new()))),
+                    ValueType::Tint => Output::Color(Property::Fixed(Tint(Color::WHITE))),
+                    ValueType::Boolean => Output::Boolean(Property::Fixed(Boolean(false))),
+                    ValueType::Texture => Output::Image(Property::Fixed(Texture::None)),
+                };
+                self.default = new_output.clone();
+                for case in self.cases.iter_mut() {
+                    case.output = new_output.clone();
+                }
             }
         });
         ui.separator();
@@ -93,34 +116,11 @@ impl Map {
         changed
     }
 
-    fn update_output_type(&mut self) {
-        let new_output = match self.id.asset_type {
-            ValueType::Number => Output::Number(Property::Fixed(Number(0.0))),
-            ValueType::Text => Output::Text(Property::Fixed(Text(String::new()))),
-            ValueType::Tint => Output::Color(Property::Fixed(Tint(Color::WHITE))),
-            ValueType::Boolean => Output::Boolean(Property::Fixed(Boolean(false))),
-            ValueType::Texture => Output::Image(Property::Fixed(Texture::None)),
-        };
-        self.default = new_output.clone();
-        for case in self.cases.iter_mut() {
-            case.output = new_output.clone();
-        }
-    }
-
-    fn update_comparison_type(&mut self) {
-        let new_comparison = match self.input.value_type {
-            ValueType::Number => {
-                Comparison::Number(Property::Fixed(Number(0.0)), NumberComparator::Equal)
-            }
-            ValueType::Text => {
-                Comparison::Text(Property::Fixed(Text(String::new())), TextComparator::Like)
-            }
-            ValueType::Tint => unreachable!("Type Color not allowed in comparison"),
-            ValueType::Boolean => unreachable!("Type Boolean not allowed in comparison"),
-            ValueType::Texture => unreachable!("Type Image not allowed in comparison"),
-        };
-        for case in self.cases.iter_mut() {
-            case.comparison = new_comparison.clone();
+    fn new_case(&self) -> Case {
+        Case {
+            comparison: self.new_comparison(),
+            output: self.new_output(),
+            remove: false,
         }
     }
 
@@ -145,13 +145,6 @@ impl Map {
             ValueType::Tint => Output::Color(Property::Fixed(Tint(Color::WHITE))),
             ValueType::Boolean => Output::Boolean(Property::Fixed(Boolean(false))),
             ValueType::Texture => Output::Image(Property::Fixed(Texture::None)),
-        }
-    }
-    fn new_case(&self) -> Case {
-        Case {
-            comparison: self.new_comparison(),
-            output: self.new_output(),
-            remove: false,
         }
     }
 }

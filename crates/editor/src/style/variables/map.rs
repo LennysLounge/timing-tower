@@ -23,15 +23,18 @@ pub struct Map {
     default: Output,
 }
 
-impl Map {
-    pub fn from_id(id: ProducerData) -> Self {
+impl Default for Map {
+    fn default() -> Self {
         Self {
-            id,
+            id: ProducerData::default(),
             input: UntypedValueRef::default(),
             cases: Vec::new(),
             default: Output::Number(Property::Fixed(Number(0.0))),
         }
     }
+}
+
+impl Map {
     pub fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
         let mut changed = false;
 

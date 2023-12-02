@@ -94,8 +94,7 @@ impl StyleTreeUi for VariableDefinition {
                     }
                     let is_map = matches!(self.behavior, VariableBehavior::Map(_));
                     if ui.selectable_label(is_map, "Map").clicked() && !is_map {
-                        self.behavior =
-                            VariableBehavior::Map(Map::from_id(self.producer_data().clone()));
+                        self.behavior = VariableBehavior::Map(Map::default());
                         changed = true;
                     }
                 });

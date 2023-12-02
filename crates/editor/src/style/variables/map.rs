@@ -104,11 +104,8 @@ impl Map {
                 ui.allocate_space(vec2(10.0, 0.0));
                 ui.label("then");
                 ui.allocate_space(vec2(10.0, 0.0));
-                ui.vertical(|ui| {
-                    ui.label("output");
-                    ui.horizontal(|ui| {
-                        changed |= self.output.edit_case(ui, asset_repo, index).changed();
-                    });
+                ui.horizontal(|ui| {
+                    changed |= self.output.edit_case(ui, asset_repo, index).changed();
                 });
             });
             if ui.small_button("remove").clicked() {
@@ -122,15 +119,16 @@ impl Map {
             self.output.remove(index);
         }
 
+        ui.horizontal(|ui| {
+            ui.label("Default:");
+            changed |= self.output.edit_default(ui, asset_repo).changed();
+        });
+        ui.separator();
+
         if ui.button("add case").clicked() {
             self.input.push();
             self.output.push();
         }
-
-        ui.label("Default:");
-        ui.horizontal(|ui| {
-            changed |= self.output.edit_default(ui, asset_repo).changed();
-        });
 
         if self.input.case_count() != self.output.case_count() {
             panic!(
@@ -200,18 +198,18 @@ impl Map {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
-#[serde(tag="input_type")]
+#[serde(tag = "input_type")]
 enum Input {
     Number {
-        #[serde(rename="input_ref")]
+        #[serde(rename = "input_ref")]
         input: ValueRef<Number>,
-        #[serde(rename="input_cases")]
+        #[serde(rename = "input_cases")]
         cases: Vec<NumberCase>,
     },
     Text {
-        #[serde(rename="input_ref")]
+        #[serde(rename = "input_ref")]
         input: ValueRef<Text>,
-        #[serde(rename="input_cases")]
+        #[serde(rename = "input_cases")]
         cases: Vec<TextCase>,
     },
 }
@@ -346,7 +344,7 @@ impl TextComparator {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
-#[serde(tag="output_type")]
+#[serde(tag = "output_type")]
 enum UntypedOutput {
     Number(Output<Number>),
     Text(Output<Text>),
@@ -430,7 +428,7 @@ impl UntypedOutput {
 
 #[derive(Serialize, Deserialize, Clone, Default)]
 struct Output<T> {
-    #[serde(rename="output_cases")]
+    #[serde(rename = "output_cases")]
     cases: Vec<Property<T>>,
     default: Property<T>,
 }

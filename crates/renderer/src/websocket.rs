@@ -2,11 +2,9 @@ use bevy::{
     app::{First, Last, Plugin, Startup},
     ecs::{
         event::{Event, EventReader, EventWriter},
-        schedule::IntoSystemConfigs,
         system::NonSendMut,
         world::World,
     },
-    time::TimeSystem,
 };
 use common::communication::{ToControllerMessage, ToRendererMessage};
 use ewebsock::{WsMessage, WsReceiver, WsSender};
@@ -18,7 +16,7 @@ impl Plugin for WebsocketPlugin {
         app.add_event::<SendMessage>()
             .add_event::<ReceivedMessages>()
             .add_systems(Startup, open_websocket)
-            .add_systems(First, read_websocket.after(TimeSystem))
+            .add_systems(First, read_websocket)
             .add_systems(Last, send_messages);
     }
 }
@@ -66,11 +64,15 @@ fn read_websocket(
                 });
                 websocket.connected = true;
             }
-            ewebsock::WsEvent::Message(message) => {
-                if let Some(message) = read_message(&message) {
-                    messages.push(message);
+            ewebsock::WsEvent::Message(message) => match message {
+                WsMessage::Binary(b) => messages.push(
+                    postcard::from_bytes::<ToRendererMessage>(b.as_slice())
+                        .expect("Cannot deserialize"),
+                ),
+                _ => {
+                    info!("Unexpected message on websocket: {message:?}");
                 }
-            }
+            },
             ewebsock::WsEvent::Error(e) => info!("socket error: {e}"),
             ewebsock::WsEvent::Closed => {
                 info!("socket closed");
@@ -101,19 +103,6 @@ fn read_websocket(
 
     if !messages.is_empty() {
         received_messages.send(ReceivedMessages { messages });
-    }
-}
-
-fn read_message(message: &WsMessage) -> Option<ToRendererMessage> {
-    match message {
-        WsMessage::Binary(b) => {
-            Some(postcard::from_bytes::<ToRendererMessage>(b).expect("Cannot deserialize"))
-        }
-        WsMessage::Text(text) => {
-            info!("Received message: {text}");
-            None
-        }
-        _ => None,
     }
 }
 

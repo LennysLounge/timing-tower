@@ -25,19 +25,19 @@ pub struct Map {
 
 #[derive(Serialize, Deserialize, Clone)]
 enum UntypedOutput {
-    Number(Output2<Number>),
-    Text(Output2<Text>),
-    Tint(Output2<Tint>),
-    Boolean(Output2<Boolean>),
-    Texture(Output2<Texture>),
+    Number(Output<Number>),
+    Text(Output<Text>),
+    Tint(Output<Tint>),
+    Boolean(Output<Boolean>),
+    Texture(Output<Texture>),
 }
 
 #[derive(Serialize, Deserialize, Clone, Default)]
-struct Output2<T> {
+struct Output<T> {
     cases: Vec<Property<T>>,
     default: Property<T>,
 }
-impl<T> Output2<T>
+impl<T> Output<T>
 where
     Property<T>: Default,
 {
@@ -60,7 +60,7 @@ impl Default for Map {
         Self {
             input: UntypedValueRef::default(),
             cases: Vec::new(),
-            output_cases: UntypedOutput::Number(Output2::default()),
+            output_cases: UntypedOutput::Number(Output::default()),
         }
     }
 }
@@ -115,11 +115,11 @@ impl Map {
                     ui,
                     &mut self.output_cases,
                     vec![
-                        (UntypedOutput::Number(Output2::with_count(count)), "Number"),
-                        (UntypedOutput::Text(Output2::with_count(count)), "Text"),
-                        (UntypedOutput::Tint(Output2::with_count(count)), "Color"),
-                        (UntypedOutput::Boolean(Output2::with_count(count)), "Yes/No"),
-                        (UntypedOutput::Texture(Output2::with_count(count)), "Image"),
+                        (UntypedOutput::Number(Output::with_count(count)), "Number"),
+                        (UntypedOutput::Text(Output::with_count(count)), "Text"),
+                        (UntypedOutput::Tint(Output::with_count(count)), "Color"),
+                        (UntypedOutput::Boolean(Output::with_count(count)), "Yes/No"),
+                        (UntypedOutput::Texture(Output::with_count(count)), "Image"),
                     ],
                 )
                 .changed();
@@ -155,19 +155,19 @@ impl Map {
         ui.label("Default:");
         ui.horizontal(|ui| {
             changed |= match &mut self.output_cases {
-                UntypedOutput::Number(Output2 { default, .. }) => {
+                UntypedOutput::Number(Output { default, .. }) => {
                     ui.add(PropertyEditor::new(default, asset_repo))
                 }
-                UntypedOutput::Text(Output2 { default, .. }) => {
+                UntypedOutput::Text(Output { default, .. }) => {
                     ui.add(PropertyEditor::new(default, asset_repo))
                 }
-                UntypedOutput::Tint(Output2 { default, .. }) => {
+                UntypedOutput::Tint(Output { default, .. }) => {
                     ui.add(PropertyEditor::new(default, asset_repo))
                 }
-                UntypedOutput::Boolean(Output2 { default, .. }) => {
+                UntypedOutput::Boolean(Output { default, .. }) => {
                     ui.add(PropertyEditor::new(default, asset_repo))
                 }
-                UntypedOutput::Texture(Output2 { default, .. }) => {
+                UntypedOutput::Texture(Output { default, .. }) => {
                     ui.add(PropertyEditor::new(default, asset_repo))
                 }
             }
@@ -378,35 +378,9 @@ impl TextComparator {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone)]
-enum Output {
-    Number(Property<Number>),
-    Text(Property<Text>),
-    Color(Property<Tint>),
-    Boolean(Property<Boolean>),
-    Image(Property<Texture>),
-}
-
-impl Output {
-    fn show(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
-        let mut changed = false;
-
-        changed |= match self {
-            Output::Number(p) => ui.add(PropertyEditor::new(p, asset_repo)),
-            Output::Text(p) => ui.add(PropertyEditor::new(p, asset_repo)),
-            Output::Color(p) => ui.add(PropertyEditor::new(p, asset_repo)),
-            Output::Boolean(p) => ui.add(PropertyEditor::new(p, asset_repo)),
-            Output::Image(p) => ui.add(PropertyEditor::new(p, asset_repo)),
-        }
-        .changed();
-
-        changed
-    }
-}
-
 struct MapProducer<T> {
     cases: Vec<CaseComparison>,
-    output: Output2<T>,
+    output: Output<T>,
 }
 
 impl<T> ValueProducer<T> for MapProducer<T>

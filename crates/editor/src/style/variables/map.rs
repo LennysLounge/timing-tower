@@ -1,6 +1,5 @@
 use std::marker::PhantomData;
 
-use bevy::prelude::Color;
 use bevy_egui::egui::{vec2, ComboBox, InnerResponse, Ui};
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
@@ -112,40 +111,20 @@ impl Map {
         ui.horizontal(|ui| {
             ui.label("to type: ");
 
-            let res = ComboBox::from_id_source(ui.next_auto_id()).choose(
-                ui,
-                &mut self.output_type,
-                vec![
-                    (ValueType::Number, "Number"),
-                    (ValueType::Text, "Text"),
-                    (ValueType::Tint, "Color"),
-                    (ValueType::Boolean, "Yes/No"),
-                    (ValueType::Texture, "Image"),
-                ],
-            );
-
-            changed |= res.changed();
-            if res.changed() {
-                println!("Update output types");
-                let new_output = match self.output_type {
-                    ValueType::Number => Output::Number(Property::Fixed(Number(0.0))),
-                    ValueType::Text => Output::Text(Property::Fixed(Text(String::new()))),
-                    ValueType::Tint => Output::Color(Property::Fixed(Tint(Color::WHITE))),
-                    ValueType::Boolean => Output::Boolean(Property::Fixed(Boolean(false))),
-                    ValueType::Texture => Output::Image(Property::Fixed(Texture::None)),
-                };
-                for case in self.cases.iter_mut() {
-                    case.output = new_output.clone();
-                }
-                let case_count = self.cases.len();
-                self.output_cases = match self.output_type {
-                    ValueType::Number => UntypedOutput::Number(Output2::with_count(case_count)),
-                    ValueType::Text => UntypedOutput::Text(Output2::with_count(case_count)),
-                    ValueType::Tint => UntypedOutput::Tint(Output2::with_count(case_count)),
-                    ValueType::Boolean => UntypedOutput::Boolean(Output2::with_count(case_count)),
-                    ValueType::Texture => UntypedOutput::Texture(Output2::with_count(case_count)),
-                };
-            }
+            let count = self.cases.len();
+            changed |= ComboBox::from_id_source(ui.next_auto_id())
+                .choose(
+                    ui,
+                    &mut self.output_cases,
+                    vec![
+                        (UntypedOutput::Number(Output2::with_count(count)), "Number"),
+                        (UntypedOutput::Text(Output2::with_count(count)), "Text"),
+                        (UntypedOutput::Tint(Output2::with_count(count)), "Color"),
+                        (UntypedOutput::Boolean(Output2::with_count(count)), "Yes/No"),
+                        (UntypedOutput::Texture(Output2::with_count(count)), "Image"),
+                    ],
+                )
+                .changed();
         });
         ui.separator();
 
@@ -158,7 +137,8 @@ impl Map {
                 ui.vertical(|ui| {
                     ui.label("output");
                     ui.horizontal(|ui| {
-                        changed |= case.output.show(ui, asset_repo);
+                        // TODO edit the output case.
+                        //changed |= case.output.show(ui, asset_repo);
                     });
                 });
             });
@@ -202,7 +182,6 @@ impl Map {
     fn new_case(&self) -> Case {
         Case {
             comparison: self.new_comparison(),
-            output: self.new_output(),
             remove: false,
         }
     }
@@ -218,16 +197,6 @@ impl Map {
             ValueType::Tint => unreachable!(),
             ValueType::Boolean => unreachable!(),
             ValueType::Texture => unreachable!(),
-        }
-    }
-
-    fn new_output(&self) -> Output {
-        match self.output_type {
-            ValueType::Number => Output::Number(Property::Fixed(Number(0.0))),
-            ValueType::Text => Output::Text(Property::Fixed(Text(String::new()))),
-            ValueType::Tint => Output::Color(Property::Fixed(Tint(Color::WHITE))),
-            ValueType::Boolean => Output::Boolean(Property::Fixed(Boolean(false))),
-            ValueType::Texture => Output::Image(Property::Fixed(Texture::None)),
         }
     }
 }
@@ -305,7 +274,6 @@ impl Map {
 #[derive(Serialize, Deserialize, Clone)]
 struct Case {
     comparison: Comparison,
-    output: Output,
     remove: bool,
 }
 

@@ -150,7 +150,22 @@ impl Map {
         ui.separator();
 
         for case in self.cases.iter_mut() {
-            changed |= case.show(ui, asset_repo);
+            ui.horizontal(|ui| {
+                changed |= case.comparison.show(ui, asset_repo);
+                ui.allocate_space(vec2(10.0, 0.0));
+                ui.label("then");
+                ui.allocate_space(vec2(10.0, 0.0));
+                ui.vertical(|ui| {
+                    ui.label("output");
+                    ui.horizontal(|ui| {
+                        changed |= case.output.show(ui, asset_repo);
+                    });
+                });
+            });
+            if ui.small_button("remove").clicked() {
+                case.remove = true;
+            }
+            ui.separator();
         }
 
         self.cases.retain(|c| !c.remove);
@@ -292,31 +307,6 @@ struct Case {
     comparison: Comparison,
     output: Output,
     remove: bool,
-}
-
-impl Case {
-    fn show(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
-        let mut changed = false;
-
-        ui.horizontal(|ui| {
-            changed |= self.comparison.show(ui, asset_repo);
-            ui.allocate_space(vec2(10.0, 0.0));
-            ui.label("then");
-            ui.allocate_space(vec2(10.0, 0.0));
-            ui.vertical(|ui| {
-                ui.label("output");
-                ui.horizontal(|ui| {
-                    changed |= self.output.show(ui, asset_repo);
-                });
-            });
-        });
-        if ui.small_button("remove").clicked() {
-            self.remove = true;
-        }
-        ui.separator();
-
-        changed
-    }
 }
 
 #[derive(Serialize, Deserialize, Clone)]

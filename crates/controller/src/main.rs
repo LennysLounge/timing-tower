@@ -7,9 +7,9 @@ use bevy::{
     DefaultPlugins,
 };
 use common::{cell::style::CellStyle, communication::ToRendererMessage};
-use my_websocket::{WebsocketClient, WebsocketPlugin};
+use websocket::{WebsocketClient, WebsocketPlugin};
 
-mod my_websocket;
+mod websocket;
 
 fn main() {
     App::new()

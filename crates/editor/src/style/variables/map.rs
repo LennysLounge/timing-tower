@@ -1,26 +1,122 @@
-use std::marker::PhantomData;
-
-use bevy_egui::egui::{vec2, ComboBox, InnerResponse, Ui};
+use bevy_egui::egui::{vec2, ComboBox, InnerResponse, Response, Ui};
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
+use uuid::Uuid;
 
 use crate::{
     reference_store::ReferenceStore,
-    style::properties::{Property, PropertyEditor},
-    value_store::{
-        TypedValueProducer, TypedValueResolver, UntypedValueRef, ValueProducer, ValueRef,
-        ValueStore,
-    },
-    value_types::{Boolean, Number, Text, Texture, Tint, ValueType},
+    style::properties::{Property, PropertyEditor, ValueTypeEditor},
+    value_store::{TypedValueProducer, TypedValueResolver, ValueProducer, ValueRef, ValueStore},
+    value_types::{Boolean, Number, Text, Texture, Tint, ValueType, ValueTypeOf},
 };
 
 use super::EguiComboBoxExtension;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Map {
-    input: UntypedValueRef,
-    cases: Vec<Case>,
+    input_case: Input,
     output_cases: UntypedOutput,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+enum Input {
+    Number {
+        input: ValueRef<Number>,
+        cases: Vec<NumberCase>,
+    },
+    Text {
+        input: ValueRef<Text>,
+        cases: Vec<TextCase>,
+    },
+}
+
+impl Input {
+    fn input_id(&self) -> Uuid {
+        match self {
+            Input::Number { input, .. } => input.id,
+            Input::Text { input, .. } => input.id,
+        }
+    }
+    fn case_count(&self) -> usize {
+        match self {
+            Input::Number { cases, .. } => cases.len(),
+            Input::Text { cases, .. } => cases.len(),
+        }
+    }
+
+    fn remove(&mut self, index: usize) {
+        match self {
+            Input::Number { cases, .. } => _ = cases.remove(index),
+            Input::Text { cases, .. } => _ = cases.remove(index),
+        }
+    }
+
+    fn push(&mut self) {
+        match self {
+            Input::Number { cases, .. } => cases.push(NumberCase::default()),
+            Input::Text { cases, .. } => cases.push(TextCase::default()),
+        }
+    }
+
+    fn edit_case(&mut self, ui: &mut Ui, reference_store: &ReferenceStore, index: usize) -> bool {
+        let mut changed = false;
+        match self {
+            Input::Number { cases, .. } => {
+                let case = cases.get_mut(index).expect("the case index must be valid");
+                ui.label("If input is");
+                changed |= ComboBox::from_id_source(ui.next_auto_id())
+                    .width(50.0)
+                    .choose(
+                        ui,
+                        &mut case.comparator,
+                        vec![
+                            (NumberComparator::Equal, "equal"),
+                            (NumberComparator::Greater, "greater"),
+                            (NumberComparator::GreaterEqual, "greater or equal"),
+                            (NumberComparator::Less, "less"),
+                            (NumberComparator::LessEqual, "less or equal"),
+                        ],
+                    )
+                    .changed();
+                ui.horizontal(|ui| {
+                    changed |= ui
+                        .add(PropertyEditor::new(&mut case.right, reference_store))
+                        .changed()
+                });
+            }
+            Input::Text { cases, .. } => {
+                let case = cases.get_mut(index).expect("the case index must be valid");
+                ui.label("If input is");
+                changed |= ComboBox::from_id_source(ui.next_auto_id())
+                    .width(50.0)
+                    .choose(
+                        ui,
+                        &mut case.comparator,
+                        vec![(TextComparator::Like, "like")],
+                    )
+                    .changed();
+                ui.horizontal(|ui| {
+                    changed |= ui
+                        .add(PropertyEditor::new(&mut case.right, reference_store))
+                        .changed();
+                });
+            }
+        }
+
+        changed
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Default)]
+struct NumberCase {
+    right: Property<Number>,
+    comparator: NumberComparator,
+}
+
+#[derive(Serialize, Deserialize, Clone, Default)]
+struct TextCase {
+    right: Property<Text>,
+    comparator: TextComparator,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -30,6 +126,61 @@ enum UntypedOutput {
     Tint(Output<Tint>),
     Boolean(Output<Boolean>),
     Texture(Output<Texture>),
+}
+
+impl UntypedOutput {
+    fn remove(&mut self, index: usize) {
+        match self {
+            UntypedOutput::Number(output) => _ = output.cases.remove(index),
+            UntypedOutput::Text(output) => _ = output.cases.remove(index),
+            UntypedOutput::Tint(output) => _ = output.cases.remove(index),
+            UntypedOutput::Boolean(output) => _ = output.cases.remove(index),
+            UntypedOutput::Texture(output) => _ = output.cases.remove(index),
+        }
+    }
+    fn push(&mut self) {
+        match self {
+            UntypedOutput::Number(o) => o.cases.push(Property::default()),
+            UntypedOutput::Text(o) => o.cases.push(Property::default()),
+            UntypedOutput::Tint(o) => o.cases.push(Property::default()),
+            UntypedOutput::Boolean(o) => o.cases.push(Property::default()),
+            UntypedOutput::Texture(o) => o.cases.push(Property::default()),
+        }
+    }
+    fn edit_case(
+        &mut self,
+        ui: &mut Ui,
+        reference_store: &ReferenceStore,
+        index: usize,
+    ) -> Response {
+        match self {
+            UntypedOutput::Number(output) => output.edit_case(ui, reference_store, index),
+            UntypedOutput::Text(output) => output.edit_case(ui, reference_store, index),
+            UntypedOutput::Tint(output) => output.edit_case(ui, reference_store, index),
+            UntypedOutput::Boolean(output) => output.edit_case(ui, reference_store, index),
+            UntypedOutput::Texture(output) => output.edit_case(ui, reference_store, index),
+        }
+    }
+
+    fn edit_default(&mut self, ui: &mut Ui, reference_store: &ReferenceStore) -> Response {
+        match self {
+            UntypedOutput::Number(Output { default, .. }) => {
+                ui.add(PropertyEditor::new(default, reference_store))
+            }
+            UntypedOutput::Text(Output { default, .. }) => {
+                ui.add(PropertyEditor::new(default, reference_store))
+            }
+            UntypedOutput::Tint(Output { default, .. }) => {
+                ui.add(PropertyEditor::new(default, reference_store))
+            }
+            UntypedOutput::Boolean(Output { default, .. }) => {
+                ui.add(PropertyEditor::new(default, reference_store))
+            }
+            UntypedOutput::Texture(Output { default, .. }) => {
+                ui.add(PropertyEditor::new(default, reference_store))
+            }
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Default)]
@@ -53,13 +204,27 @@ where
             default: Property::default(),
         }
     }
+
+    fn edit_case(&mut self, ui: &mut Ui, reference_store: &ReferenceStore, index: usize) -> Response
+    where
+        ValueType: ValueTypeOf<T>,
+        T: Default + ValueTypeEditor,
+    {
+        let property = self
+            .cases
+            .get_mut(index)
+            .expect("the case index must be valid");
+        ui.add(PropertyEditor::new(property, &reference_store))
+    }
 }
 
 impl Default for Map {
     fn default() -> Self {
         Self {
-            input: UntypedValueRef::default(),
-            cases: Vec::new(),
+            input_case: Input::Number {
+                input: ValueRef::default(),
+                cases: Vec::new(),
+            },
             output_cases: UntypedOutput::Number(Output::default()),
         }
     }
@@ -75,41 +240,37 @@ impl Map {
             let InnerResponse {
                 inner: new_untyped_ref,
                 response: _,
-            } = asset_repo.untyped_editor(ui, &self.input.id, |v| match v.asset_type {
-                ValueType::Number => true,
-                ValueType::Text => true,
-                _ => false,
+            } = asset_repo.untyped_editor(ui, &self.input_case.input_id(), |v| {
+                match v.asset_type {
+                    ValueType::Number => true,
+                    ValueType::Text => true,
+                    _ => false,
+                }
             });
 
             if let Some(new_untyped_ref) = new_untyped_ref {
-                if self.input.value_type != new_untyped_ref.value_type {
-                    let new_comparison = match self.input.value_type {
-                        ValueType::Number => Comparison::Number(
-                            Property::Fixed(Number(0.0)),
-                            NumberComparator::Equal,
-                        ),
-                        ValueType::Text => Comparison::Text(
-                            Property::Fixed(Text(String::new())),
-                            TextComparator::Like,
-                        ),
-                        ValueType::Tint => unreachable!("Type Color not allowed in comparison"),
-                        ValueType::Boolean => {
-                            unreachable!("Type Boolean not allowed in comparison")
-                        }
-                        ValueType::Texture => unreachable!("Type Image not allowed in comparison"),
-                    };
-                    for case in self.cases.iter_mut() {
-                        case.comparison = new_comparison.clone();
+                self.input_case = match new_untyped_ref.value_type {
+                    ValueType::Number => Input::Number {
+                        input: new_untyped_ref.typed(),
+                        cases: Vec::new(),
+                    },
+                    ValueType::Text => Input::Text {
+                        input: new_untyped_ref.typed(),
+                        cases: Vec::new(),
+                    },
+                    ValueType::Tint => unreachable!("Type Color not allowed in comparison"),
+                    ValueType::Boolean => {
+                        unreachable!("Type Boolean not allowed in comparison")
                     }
-                }
-                self.input = new_untyped_ref;
+                    ValueType::Texture => unreachable!("Type Image not allowed in comparison"),
+                };
                 changed |= true;
             };
         });
         ui.horizontal(|ui| {
             ui.label("to type: ");
 
-            let count = self.cases.len();
+            let count = self.input_case.case_count();
             changed |= ComboBox::from_id_source(ui.next_auto_id())
                 .choose(
                     ui,
@@ -126,76 +287,42 @@ impl Map {
         });
         ui.separator();
 
-        for case in self.cases.iter_mut() {
+        let mut remove_case = None;
+        for index in 0..self.input_case.case_count() {
             ui.horizontal(|ui| {
-                changed |= case.comparison.show(ui, asset_repo);
+                changed |= self.input_case.edit_case(ui, asset_repo, index);
                 ui.allocate_space(vec2(10.0, 0.0));
                 ui.label("then");
                 ui.allocate_space(vec2(10.0, 0.0));
                 ui.vertical(|ui| {
                     ui.label("output");
                     ui.horizontal(|ui| {
-                        // TODO edit the output case.
-                        //changed |= case.output.show(ui, asset_repo);
+                        changed |= self.output_cases.edit_case(ui, asset_repo, index).changed();
                     });
                 });
             });
             if ui.small_button("remove").clicked() {
-                case.remove = true;
+                remove_case = Some(index);
             }
             ui.separator();
         }
 
-        self.cases.retain(|c| !c.remove);
+        if let Some(index) = remove_case {
+            self.input_case.remove(index);
+            self.output_cases.remove(index);
+        }
 
         if ui.button("add case").clicked() {
-            self.cases.push(self.new_case());
+            self.input_case.push();
+            self.output_cases.push();
         }
 
         ui.label("Default:");
         ui.horizontal(|ui| {
-            changed |= match &mut self.output_cases {
-                UntypedOutput::Number(Output { default, .. }) => {
-                    ui.add(PropertyEditor::new(default, asset_repo))
-                }
-                UntypedOutput::Text(Output { default, .. }) => {
-                    ui.add(PropertyEditor::new(default, asset_repo))
-                }
-                UntypedOutput::Tint(Output { default, .. }) => {
-                    ui.add(PropertyEditor::new(default, asset_repo))
-                }
-                UntypedOutput::Boolean(Output { default, .. }) => {
-                    ui.add(PropertyEditor::new(default, asset_repo))
-                }
-                UntypedOutput::Texture(Output { default, .. }) => {
-                    ui.add(PropertyEditor::new(default, asset_repo))
-                }
-            }
-            .changed();
+            changed |= self.output_cases.edit_default(ui, asset_repo).changed();
         });
 
         changed
-    }
-
-    fn new_case(&self) -> Case {
-        Case {
-            comparison: self.new_comparison(),
-            remove: false,
-        }
-    }
-
-    fn new_comparison(&self) -> Comparison {
-        match self.input.value_type {
-            ValueType::Number => {
-                Comparison::Number(Property::Fixed(Number(0.0)), NumberComparator::Equal)
-            }
-            ValueType::Text => {
-                Comparison::Text(Property::Fixed(Text(String::new())), TextComparator::Like)
-            }
-            ValueType::Tint => unreachable!(),
-            ValueType::Boolean => unreachable!(),
-            ValueType::Texture => unreachable!(),
-        }
     }
 }
 
@@ -237,41 +364,20 @@ impl Map {
     }
 
     fn generate_cases(&self) -> Vec<CaseComparison> {
-        let mut cases = Vec::new();
-        for case in self.cases.iter() {
-            match self.input.value_type {
-                ValueType::Number => {
-                    let case_comp = match &case.comparison {
-                        Comparison::Number(property, comp) => (
-                            ValueRef {
-                                id: self.input.id,
-                                phantom: PhantomData,
-                            },
-                            comp.clone(),
-                            property.clone(),
-                        ),
-                        _ => unreachable!(),
-                    };
-                    cases.push(CaseComparison::Number(case_comp));
-                }
-                ValueType::Text => {
-                    let case_comp = match &case.comparison {
-                        Comparison::Text(property, comp) => (
-                            ValueRef {
-                                id: self.input.id,
-                                phantom: PhantomData,
-                            },
-                            comp.clone(),
-                            property.clone(),
-                        ),
-                        _ => unreachable!(),
-                    };
-                    cases.push(CaseComparison::Text(case_comp));
-                }
-                _ => unreachable!(),
-            };
+        match &self.input_case {
+            Input::Number { input, cases } => cases
+                .iter()
+                .map(|c| {
+                    CaseComparison::Number((input.clone(), c.comparator.clone(), c.right.clone()))
+                })
+                .collect(),
+            Input::Text { input, cases } => cases
+                .iter()
+                .map(|c| {
+                    CaseComparison::Text((input.clone(), c.comparator.clone(), c.right.clone()))
+                })
+                .collect(),
         }
-        cases
     }
 }
 
@@ -287,67 +393,9 @@ enum Comparison {
     Text(Property<Text>, TextComparator),
 }
 
-impl Comparison {
-    fn show(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
-        let mut changed = false;
-
-        ui.vertical(|ui| match self {
-            Comparison::Number(np, c) => {
-                ui.label("If input is");
-                ComboBox::from_id_source(ui.next_auto_id())
-                    .width(50.0)
-                    .selected_text(match c {
-                        NumberComparator::Equal => "equal",
-                        NumberComparator::Greater => "greater",
-                        NumberComparator::GreaterEqual => "greater or equal",
-                        NumberComparator::Less => "less",
-                        NumberComparator::LessEqual => "less or equal",
-                    })
-                    .show_ui(ui, |ui| {
-                        changed |= true;
-                        ui.selectable_value(c, NumberComparator::Equal, "equal")
-                            .changed();
-                        changed |= true;
-                        ui.selectable_value(c, NumberComparator::Greater, "greater")
-                            .changed();
-                        changed |= true;
-                        ui.selectable_value(c, NumberComparator::GreaterEqual, "greater or equal")
-                            .changed();
-                        changed |= true;
-                        ui.selectable_value(c, NumberComparator::Less, "less")
-                            .changed();
-                        changed |= true;
-                        ui.selectable_value(c, NumberComparator::LessEqual, "less or equal")
-                            .changed();
-                    });
-                ui.horizontal(|ui| {
-                    changed |= ui.add(PropertyEditor::new(np, asset_repo)).changed()
-                });
-            }
-            Comparison::Text(tp, c) => {
-                ui.label("If input is");
-                ComboBox::from_id_source(ui.next_auto_id())
-                    .width(50.0)
-                    .selected_text(match c {
-                        TextComparator::Like => "like",
-                    })
-                    .show_ui(ui, |ui| {
-                        changed |= true;
-                        ui.selectable_value(c, TextComparator::Like, "like")
-                            .changed()
-                    });
-                ui.horizontal(|ui| {
-                    changed |= ui.add(PropertyEditor::new(tp, asset_repo)).changed();
-                });
-            }
-        });
-
-        changed
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 enum NumberComparator {
+    #[default]
     Equal,
     Greater,
     GreaterEqual,
@@ -366,8 +414,9 @@ impl NumberComparator {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 enum TextComparator {
+    #[default]
     Like,
 }
 impl TextComparator {
@@ -406,107 +455,6 @@ where
         value_store.get_property(output_property, entry)
     }
 }
-
-// impl ValueProducer<Number> for MapSource {
-//     fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
-//         self.cases
-//             .iter()
-//             .find_map(|(case, output)| {
-//                 if case.test(value_store, entry) {
-//                     match output {
-//                         Output::Number(n) => value_store.get_property(n, entry),
-//                         _ => unreachable!(),
-//                     }
-//                 } else {
-//                     None
-//                 }
-//             })
-//             .or_else(|| match &self.default {
-//                 Output::Number(p) => value_store.get_property(p, entry),
-//                 _ => unreachable!(),
-//             })
-//     }
-// }
-// impl ValueProducer<Text> for MapSource {
-//     fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
-//         self.cases
-//             .iter()
-//             .find_map(|(case, output)| {
-//                 if case.test(value_store, entry) {
-//                     match output {
-//                         Output::Text(n) => value_store.get_property(n, entry),
-//                         _ => unreachable!(),
-//                     }
-//                 } else {
-//                     None
-//                 }
-//             })
-//             .or_else(|| match &self.default {
-//                 Output::Text(p) => value_store.get_property(p, entry),
-//                 _ => unreachable!(),
-//             })
-//     }
-// }
-// impl ValueProducer<Tint> for MapSource {
-//     fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Tint> {
-//         self.cases
-//             .iter()
-//             .find_map(|(case, output)| {
-//                 if case.test(value_store, entry) {
-//                     match output {
-//                         Output::Color(n) => value_store.get_property(n, entry),
-//                         _ => unreachable!(),
-//                     }
-//                 } else {
-//                     None
-//                 }
-//             })
-//             .or_else(|| match &self.default {
-//                 Output::Color(p) => value_store.get_property(p, entry),
-//                 _ => unreachable!(),
-//             })
-//     }
-// }
-// impl ValueProducer<Boolean> for MapSource {
-//     fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
-//         self.cases
-//             .iter()
-//             .find_map(|(case, output)| {
-//                 if case.test(value_store, entry) {
-//                     match output {
-//                         Output::Boolean(n) => value_store.get_property(n, entry),
-//                         _ => unreachable!(),
-//                     }
-//                 } else {
-//                     None
-//                 }
-//             })
-//             .or_else(|| match &self.default {
-//                 Output::Boolean(p) => value_store.get_property(p, entry),
-//                 _ => unreachable!(),
-//             })
-//     }
-// }
-// impl ValueProducer<Texture> for MapSource {
-//     fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Texture> {
-//         self.cases
-//             .iter()
-//             .find_map(|(case, output)| {
-//                 if case.test(value_store, entry) {
-//                     match output {
-//                         Output::Image(n) => value_store.get_property(n, entry),
-//                         _ => unreachable!(),
-//                     }
-//                 } else {
-//                     None
-//                 }
-//             })
-//             .or_else(|| match &self.default {
-//                 Output::Image(p) => value_store.get_property(p, entry),
-//                 _ => unreachable!(),
-//             })
-//     }
-// }
 
 enum CaseComparison {
     Number((ValueRef<Number>, NumberComparator, Property<Number>)),

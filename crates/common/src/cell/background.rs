@@ -1,10 +1,11 @@
 use bevy::{
+    ecs::system::Res,
     math::vec3,
     prelude::{Assets, Component, Entity, EventReader, Handle, Query, ResMut},
     render::primitives::Aabb,
 };
 
-use crate::cell_material::CellMaterial;
+use crate::{asset_store::AssetStore, cell_material::CellMaterial};
 
 use super::SetStyle;
 
@@ -16,6 +17,7 @@ pub fn update_style(
     mut materials_assets: ResMut<Assets<CellMaterial>>,
     cells: Query<&Background>,
     mut background: Query<(&Handle<CellMaterial>, &mut Aabb)>,
+    asset_store: Res<AssetStore>,
 ) {
     for event in events.read() {
         let Ok(background_hadle) = cells.get(event.entity) else {
@@ -29,7 +31,7 @@ pub fn update_style(
         };
 
         material.color = event.style.color;
-        material.texture = event.style.texture.clone();
+        material.texture = event.style.texture.and_then(|id| asset_store.get(&id));
         material.size = event.style.size;
         material.skew = event.style.skew;
         material.rounding = event.style.rounding.into();

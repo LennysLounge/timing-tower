@@ -31,8 +31,10 @@ use style::StyleDefinition;
 
 use timing_tower::{init_timing_tower, TimingTowerPlugin};
 use unified_sim_model::Adapter;
+use uuid::Uuid;
 use value_store::ValueStore;
 
+mod asset_store;
 mod editor;
 mod game_sources;
 mod reference_store;
@@ -41,7 +43,6 @@ mod style;
 mod timing_tower;
 mod value_store;
 mod value_types;
-mod asset_store;
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
@@ -136,7 +137,8 @@ fn setup(
             text_alignment: TextAlignment::Center,
             text_position: Vec2::ZERO,
             color: Color::WHITE,
-            texture: Some(asset_server.load("acc6.PNG".to_string())),
+            //texture: Some(asset_server.load("acc6.PNG".to_string())),
+            texture: Some(Uuid::new_v4()),
             pos: Vec3::new(0.0, 0.0, 0.0),
             size: Vec2::new(1920.0, 1080.0),
             skew: 0.0,

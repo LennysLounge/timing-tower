@@ -407,42 +407,36 @@
           "name": "Cup category background",
           "behavior": {
             "Map": {
-              "input": {
-                "Number": {
-                  "input": "4d519d42-52e9-435c-b614-8d70b42ed3b0",
-                  "cases": [
-                    {
-                      "right": 0.0,
-                      "comparator": "Equal"
-                    },
-                    {
-                      "right": 3.0,
-                      "comparator": "Equal"
-                    },
-                    {
-                      "right": 2.0,
-                      "comparator": "Equal"
-                    }
-                  ]
+              "input_type": "Number",
+              "input_ref": "4d519d42-52e9-435c-b614-8d70b42ed3b0",
+              "input_cases": [
+                {
+                  "right": 0.0,
+                  "comparator": "Equal"
+                },
+                {
+                  "right": 3.0,
+                  "comparator": "Equal"
+                },
+                {
+                  "right": 2.0,
+                  "comparator": "Equal"
                 }
-              },
-              "output": {
-                "Tint": {
-                  "cases": [
-                    {
-                      "ValueRef": "5a657363-96fc-4329-a580-8ed41b85405e"
-                    },
-                    {
-                      "ValueRef": "ecdfcaf2-d808-4fca-b118-88aee5d1b495"
-                    },
-                    {
-                      "ValueRef": "7a126bfa-2fb7-464f-9ed1-1f92665d9460"
-                    }
-                  ],
-                  "default": {
-                    "ValueRef": "5a657363-96fc-4329-a580-8ed41b85405e"
-                  }
+              ],
+              "output_type": "Tint",
+              "output_cases": [
+                {
+                  "ValueRef": "5a657363-96fc-4329-a580-8ed41b85405e"
+                },
+                {
+                  "ValueRef": "ecdfcaf2-d808-4fca-b118-88aee5d1b495"
+                },
+                {
+                  "ValueRef": "7a126bfa-2fb7-464f-9ed1-1f92665d9460"
                 }
+              ],
+              "default": {
+                "ValueRef": "5a657363-96fc-4329-a580-8ed41b85405e"
               }
             }
           }
@@ -454,61 +448,55 @@
           "name": "Cup Category text color",
           "behavior": {
             "Map": {
-              "input": {
-                "Number": {
-                  "input": "4d519d42-52e9-435c-b614-8d70b42ed3b0",
-                  "cases": [
-                    {
-                      "right": 0.0,
-                      "comparator": "Equal"
-                    },
-                    {
-                      "right": 2.0,
-                      "comparator": "Equal"
-                    },
-                    {
-                      "right": 3.0,
-                      "comparator": "Equal"
-                    }
-                  ]
+              "input_type": "Number",
+              "input_ref": "4d519d42-52e9-435c-b614-8d70b42ed3b0",
+              "input_cases": [
+                {
+                  "right": 0.0,
+                  "comparator": "Equal"
+                },
+                {
+                  "right": 2.0,
+                  "comparator": "Equal"
+                },
+                {
+                  "right": 3.0,
+                  "comparator": "Equal"
                 }
-              },
-              "output": {
-                "Tint": {
-                  "cases": [
-                    {
-                      "Rgba": {
-                        "red": 0.0,
-                        "green": 0.0,
-                        "blue": 0.0,
-                        "alpha": 1.0
-                      }
-                    },
-                    {
-                      "Rgba": {
-                        "red": 0.0,
-                        "green": 0.0,
-                        "blue": 0.0,
-                        "alpha": 1.0
-                      }
-                    },
-                    {
-                      "Rgba": {
-                        "red": 1.0,
-                        "green": 1.0,
-                        "blue": 1.0,
-                        "alpha": 1.0
-                      }
-                    }
-                  ],
-                  "default": {
-                    "Rgba": {
-                      "red": 0.0,
-                      "green": 0.0,
-                      "blue": 0.0,
-                      "alpha": 1.0
-                    }
+              ],
+              "output_type": "Tint",
+              "output_cases": [
+                {
+                  "Rgba": {
+                    "red": 0.0,
+                    "green": 0.0,
+                    "blue": 0.0,
+                    "alpha": 1.0
                   }
+                },
+                {
+                  "Rgba": {
+                    "red": 0.0,
+                    "green": 0.0,
+                    "blue": 0.0,
+                    "alpha": 1.0
+                  }
+                },
+                {
+                  "Rgba": {
+                    "red": 1.0,
+                    "green": 1.0,
+                    "blue": 1.0,
+                    "alpha": 1.0
+                  }
+                }
+              ],
+              "default": {
+                "Rgba": {
+                  "red": 0.0,
+                  "green": 0.0,
+                  "blue": 0.0,
+                  "alpha": 1.0
                 }
               }
             }

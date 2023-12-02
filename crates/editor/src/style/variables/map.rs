@@ -14,7 +14,9 @@ use super::EguiComboBoxExtension;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Map {
+    #[serde(flatten)]
     input: Input,
+    #[serde(flatten)]
     output: UntypedOutput,
 }
 
@@ -198,13 +200,18 @@ impl Map {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
+#[serde(tag="input_type")]
 enum Input {
     Number {
+        #[serde(rename="input_ref")]
         input: ValueRef<Number>,
+        #[serde(rename="input_cases")]
         cases: Vec<NumberCase>,
     },
     Text {
+        #[serde(rename="input_ref")]
         input: ValueRef<Text>,
+        #[serde(rename="input_cases")]
         cases: Vec<TextCase>,
     },
 }
@@ -339,6 +346,7 @@ impl TextComparator {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
+#[serde(tag="output_type")]
 enum UntypedOutput {
     Number(Output<Number>),
     Text(Output<Text>),
@@ -422,6 +430,7 @@ impl UntypedOutput {
 
 #[derive(Serialize, Deserialize, Clone, Default)]
 struct Output<T> {
+    #[serde(rename="output_cases")]
     cases: Vec<Property<T>>,
     default: Property<T>,
 }

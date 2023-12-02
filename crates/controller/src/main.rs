@@ -7,7 +7,7 @@ use bevy::{
     DefaultPlugins,
 };
 use common::{cell::style::CellStyle, communication::ToRendererMessage};
-use websocket::{WebsocketClient, WebsocketPlugin};
+use websocket::{WebsocketClient, WebsocketPlugin, ClientState};
 
 mod websocket;
 
@@ -38,7 +38,9 @@ fn send_render_cell(
     let styles = get_cell_styles();
 
     for mut client in clients.iter_mut() {
-        client.send_message(ToRendererMessage::CellStyle(styles.clone()));
+        if client.state() == &ClientState::Ready {
+            client.send_message(ToRendererMessage::CellStyle(styles.clone()));
+        }
     }
 }
 

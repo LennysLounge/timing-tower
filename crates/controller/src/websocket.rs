@@ -86,15 +86,17 @@ impl WebsocketClient {
             error!("Error trying to send on websocket: {e:?}");
         }
     }
+    pub fn state(&self) -> &ClientState {
+        &self.state
+    }
     fn read_message(&mut self, data: Vec<u8>) {
         let message =
             postcard::from_bytes::<ToControllerMessage>(&data).expect("Cannot deserialize");
 
         match message {
             ToControllerMessage::Opened => {
-                self.state = ClientState::Ready;
-                //self.state = ClientState::ProcessingAssets;
-                //self.send_message(ToRendererMessage::Assets { images: Vec::new() });
+                self.state = ClientState::ProcessingAssets;
+                self.send_message(ToRendererMessage::Assets { images: Vec::new() });
             }
             ToControllerMessage::AssetsLoaded => {
                 self.state = ClientState::Ready;
@@ -134,7 +136,9 @@ fn read_clients(mut commands: Commands, mut clients: Query<(&mut WebsocketClient
     }
 }
 
-enum ClientState {
+#[derive(PartialEq, Eq)]
+pub enum ClientState {
     Initializing,
+    ProcessingAssets,
     Ready,
 }

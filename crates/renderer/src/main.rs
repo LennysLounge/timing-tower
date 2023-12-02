@@ -104,6 +104,7 @@ fn spawn_cells(
     for messages in received_messages.read() {
         for message in messages.messages.iter() {
             match message {
+                ToRendererMessage::Assets { images: _ } => todo!(),
                 ToRendererMessage::CellStyle(styles) => {
                     let cell_ids: Vec<Entity> = cells.iter().collect();
                     for (index, style) in styles.iter().enumerate() {

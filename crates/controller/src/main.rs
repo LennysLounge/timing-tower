@@ -148,6 +148,7 @@ fn read_websockets(websocket_connections: Res<WebsocketConnections>) {
                         ToControllerMessage::Debug(message) => {
                             println!("Message from renderer: {message}");
                         }
+                        ToControllerMessage::AssetsLoaded => todo!(),
                     }
                 }
                 m @ _ => println!("Incomming message: {m:?}"),

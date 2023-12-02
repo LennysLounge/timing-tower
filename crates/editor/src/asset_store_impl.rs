@@ -13,11 +13,11 @@ use crate::{
 
 /// The asset store holds a bevy handle to all assets that are
 /// defined in the style.
-pub struct AssetStore {
+pub struct AssetStoreImpl {
     assets: HashMap<Uuid, Handle<Image>>,
 }
 
-impl AssetStore {
+impl AssetStoreImpl {
     fn new(assets: &Folder<AssetDefinition>, asset_server: &AssetServer) -> Self {
         Self {
             assets: assets
@@ -47,7 +47,7 @@ where
     fn get_asset(&self, value: &T) -> Option<Handle<U>>;
 }
 
-impl AssetResolver<Texture, Image> for AssetStore {
+impl AssetResolver<Texture, Image> for AssetStoreImpl {
     fn get_asset(&self, value: &Texture) -> Option<Handle<Image>> {
         None
         //self.assets.get(value.0)

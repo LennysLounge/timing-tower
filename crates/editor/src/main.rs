@@ -17,6 +17,7 @@ use bevy::{
 };
 use bevy_egui::EguiPlugin;
 use common::{
+    asset_store::AssetStore,
     cell::{
         init_cell,
         style::{CellStyle, SetStyle, TextAlignment},
@@ -34,7 +35,7 @@ use unified_sim_model::Adapter;
 use uuid::Uuid;
 use value_store::ValueStore;
 
-mod asset_store;
+mod asset_store_impl;
 mod editor;
 mod game_sources;
 mod reference_store;
@@ -146,6 +147,8 @@ fn setup(
             rounding: [0.0, 0.0, 0.0, 0.0],
         },
     });
+
+    commands.insert_resource(AssetStore);
 
     commands.insert_resource(style.clone());
     let mut repo = ValueStore {

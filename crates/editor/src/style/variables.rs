@@ -25,10 +25,12 @@ pub mod map;
 pub struct VariableDefinition {
     id: Uuid,
     name: String,
+    #[serde(flatten)]
     behavior: VariableBehavior,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
+#[serde(tag = "behavior")]
 enum VariableBehavior {
     FixedValue(FixedValue),
     Condition(Condition),

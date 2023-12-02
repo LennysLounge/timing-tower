@@ -274,16 +274,13 @@
                     "T": {
                       "id": "5a657363-96fc-4329-a580-8ed41b85405e",
                       "name": "Gold/Plat",
-                      "behavior": {
-                        "FixedValue": {
-                          "output_type": "Tint",
-                          "Rgba": {
-                            "red": 1.0,
-                            "green": 1.0,
-                            "blue": 1.0,
-                            "alpha": 1.0
-                          }
-                        }
+                      "behavior": "FixedValue",
+                      "output_type": "Tint",
+                      "Rgba": {
+                        "red": 1.0,
+                        "green": 1.0,
+                        "blue": 1.0,
+                        "alpha": 1.0
                       }
                     }
                   },
@@ -291,16 +288,13 @@
                     "T": {
                       "id": "ecdfcaf2-d808-4fca-b118-88aee5d1b495",
                       "name": "Silver",
-                      "behavior": {
-                        "FixedValue": {
-                          "output_type": "Tint",
-                          "Rgba": {
-                            "red": 0.40197778,
-                            "green": 0.40197778,
-                            "blue": 0.40197778,
-                            "alpha": 1.0
-                          }
-                        }
+                      "behavior": "FixedValue",
+                      "output_type": "Tint",
+                      "Rgba": {
+                        "red": 0.40197778,
+                        "green": 0.40197778,
+                        "blue": 0.40197778,
+                        "alpha": 1.0
                       }
                     }
                   },
@@ -308,16 +302,13 @@
                     "T": {
                       "id": "7a126bfa-2fb7-464f-9ed1-1f92665d9460",
                       "name": "Bronze",
-                      "behavior": {
-                        "FixedValue": {
-                          "output_type": "Tint",
-                          "Rgba": {
-                            "red": 0.8950744,
-                            "green": 0.0,
-                            "blue": 0.0,
-                            "alpha": 1.0
-                          }
-                        }
+                      "behavior": "FixedValue",
+                      "output_type": "Tint",
+                      "Rgba": {
+                        "red": 0.8950744,
+                        "green": 0.0,
+                        "blue": 0.0,
+                        "alpha": 1.0
                       }
                     }
                   }
@@ -329,16 +320,13 @@
               "T": {
                 "id": "e41f142f-2026-4126-9dc4-bed03fecd31e",
                 "name": "Manufacturer",
-                "behavior": {
-                  "FixedValue": {
-                    "output_type": "Tint",
-                    "Rgba": {
-                      "red": 0.8549927,
-                      "green": 0.8549927,
-                      "blue": 0.8549927,
-                      "alpha": 1.0
-                    }
-                  }
+                "behavior": "FixedValue",
+                "output_type": "Tint",
+                "Rgba": {
+                  "red": 0.8549927,
+                  "green": 0.8549927,
+                  "blue": 0.8549927,
+                  "alpha": 1.0
                 }
               }
             },
@@ -346,16 +334,13 @@
               "T": {
                 "id": "e63c62b8-900a-476d-973b-2b0f12fb7b26",
                 "name": "Position",
-                "behavior": {
-                  "FixedValue": {
-                    "output_type": "Tint",
-                    "Rgba": {
-                      "red": 0.0,
-                      "green": 0.0,
-                      "blue": 0.0,
-                      "alpha": 1.0
-                    }
-                  }
+                "behavior": "FixedValue",
+                "output_type": "Tint",
+                "Rgba": {
+                  "red": 0.0,
+                  "green": 0.0,
+                  "blue": 0.0,
+                  "alpha": 1.0
                 }
               }
             },
@@ -363,16 +348,13 @@
               "T": {
                 "id": "3b9c1864-f07f-46ca-aa86-01cba7629860",
                 "name": "Position selected",
-                "behavior": {
-                  "FixedValue": {
-                    "output_type": "Tint",
-                    "Rgba": {
-                      "red": 0.8649127,
-                      "green": 0.0,
-                      "blue": 0.0,
-                      "alpha": 1.0
-                    }
-                  }
+                "behavior": "FixedValue",
+                "output_type": "Tint",
+                "Rgba": {
+                  "red": 0.8649127,
+                  "green": 0.0,
+                  "blue": 0.0,
+                  "alpha": 1.0
                 }
               }
             }
@@ -384,20 +366,17 @@
         "T": {
           "id": "e86a2ae3-6486-4941-bee9-b063f3ff0152",
           "name": "position color",
-          "behavior": {
-            "Condition": {
-              "comparison_type": "Boolean",
-              "left": "de909160-f54b-40cf-a987-6a8453df0914",
-              "comparator": "Is",
-              "right": true,
-              "output_type": "Color",
-              "truee": {
-                "ValueRef": "3b9c1864-f07f-46ca-aa86-01cba7629860"
-              },
-              "falsee": {
-                "ValueRef": "e63c62b8-900a-476d-973b-2b0f12fb7b26"
-              }
-            }
+          "behavior": "Condition",
+          "comparison_type": "Boolean",
+          "left": "de909160-f54b-40cf-a987-6a8453df0914",
+          "comparator": "Is",
+          "right": true,
+          "output_type": "Color",
+          "truee": {
+            "ValueRef": "3b9c1864-f07f-46ca-aa86-01cba7629860"
+          },
+          "falsee": {
+            "ValueRef": "e63c62b8-900a-476d-973b-2b0f12fb7b26"
           }
         }
       },
@@ -405,40 +384,37 @@
         "T": {
           "id": "8536ebf5-82e1-41e3-bc37-b713534a7780",
           "name": "Cup category background",
-          "behavior": {
-            "Map": {
-              "input_type": "Number",
-              "input_ref": "4d519d42-52e9-435c-b614-8d70b42ed3b0",
-              "input_cases": [
-                {
-                  "right": 0.0,
-                  "comparator": "Equal"
-                },
-                {
-                  "right": 3.0,
-                  "comparator": "Equal"
-                },
-                {
-                  "right": 2.0,
-                  "comparator": "Equal"
-                }
-              ],
-              "output_type": "Tint",
-              "output_cases": [
-                {
-                  "ValueRef": "5a657363-96fc-4329-a580-8ed41b85405e"
-                },
-                {
-                  "ValueRef": "ecdfcaf2-d808-4fca-b118-88aee5d1b495"
-                },
-                {
-                  "ValueRef": "7a126bfa-2fb7-464f-9ed1-1f92665d9460"
-                }
-              ],
-              "default": {
-                "ValueRef": "5a657363-96fc-4329-a580-8ed41b85405e"
-              }
+          "behavior": "Map",
+          "input_type": "Number",
+          "input_ref": "4d519d42-52e9-435c-b614-8d70b42ed3b0",
+          "input_cases": [
+            {
+              "right": 0.0,
+              "comparator": "Equal"
+            },
+            {
+              "right": 3.0,
+              "comparator": "Equal"
+            },
+            {
+              "right": 2.0,
+              "comparator": "Equal"
             }
+          ],
+          "output_type": "Tint",
+          "output_cases": [
+            {
+              "ValueRef": "5a657363-96fc-4329-a580-8ed41b85405e"
+            },
+            {
+              "ValueRef": "ecdfcaf2-d808-4fca-b118-88aee5d1b495"
+            },
+            {
+              "ValueRef": "7a126bfa-2fb7-464f-9ed1-1f92665d9460"
+            }
+          ],
+          "default": {
+            "ValueRef": "5a657363-96fc-4329-a580-8ed41b85405e"
           }
         }
       },
@@ -446,59 +422,56 @@
         "T": {
           "id": "925dacee-265f-45ee-baf8-668e3005a03d",
           "name": "Cup Category text color",
-          "behavior": {
-            "Map": {
-              "input_type": "Number",
-              "input_ref": "4d519d42-52e9-435c-b614-8d70b42ed3b0",
-              "input_cases": [
-                {
-                  "right": 0.0,
-                  "comparator": "Equal"
-                },
-                {
-                  "right": 2.0,
-                  "comparator": "Equal"
-                },
-                {
-                  "right": 3.0,
-                  "comparator": "Equal"
-                }
-              ],
-              "output_type": "Tint",
-              "output_cases": [
-                {
-                  "Rgba": {
-                    "red": 0.0,
-                    "green": 0.0,
-                    "blue": 0.0,
-                    "alpha": 1.0
-                  }
-                },
-                {
-                  "Rgba": {
-                    "red": 0.0,
-                    "green": 0.0,
-                    "blue": 0.0,
-                    "alpha": 1.0
-                  }
-                },
-                {
-                  "Rgba": {
-                    "red": 1.0,
-                    "green": 1.0,
-                    "blue": 1.0,
-                    "alpha": 1.0
-                  }
-                }
-              ],
-              "default": {
-                "Rgba": {
-                  "red": 0.0,
-                  "green": 0.0,
-                  "blue": 0.0,
-                  "alpha": 1.0
-                }
+          "behavior": "Map",
+          "input_type": "Number",
+          "input_ref": "4d519d42-52e9-435c-b614-8d70b42ed3b0",
+          "input_cases": [
+            {
+              "right": 0.0,
+              "comparator": "Equal"
+            },
+            {
+              "right": 2.0,
+              "comparator": "Equal"
+            },
+            {
+              "right": 3.0,
+              "comparator": "Equal"
+            }
+          ],
+          "output_type": "Tint",
+          "output_cases": [
+            {
+              "Rgba": {
+                "red": 0.0,
+                "green": 0.0,
+                "blue": 0.0,
+                "alpha": 1.0
               }
+            },
+            {
+              "Rgba": {
+                "red": 0.0,
+                "green": 0.0,
+                "blue": 0.0,
+                "alpha": 1.0
+              }
+            },
+            {
+              "Rgba": {
+                "red": 1.0,
+                "green": 1.0,
+                "blue": 1.0,
+                "alpha": 1.0
+              }
+            }
+          ],
+          "default": {
+            "Rgba": {
+              "red": 0.0,
+              "green": 0.0,
+              "blue": 0.0,
+              "alpha": 1.0
             }
           }
         }

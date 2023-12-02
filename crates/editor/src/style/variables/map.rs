@@ -18,230 +18,6 @@ pub struct Map {
     output: UntypedOutput,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
-enum Input {
-    Number {
-        input: ValueRef<Number>,
-        cases: Vec<NumberCase>,
-    },
-    Text {
-        input: ValueRef<Text>,
-        cases: Vec<TextCase>,
-    },
-}
-
-impl Input {
-    fn value_type(&self) -> ValueType {
-        match self {
-            Input::Number { .. } => ValueType::Number,
-            Input::Text { .. } => ValueType::Text,
-        }
-    }
-    fn input_id(&self) -> Uuid {
-        match self {
-            Input::Number { input, .. } => input.id,
-            Input::Text { input, .. } => input.id,
-        }
-    }
-    fn case_count(&self) -> usize {
-        match self {
-            Input::Number { cases, .. } => cases.len(),
-            Input::Text { cases, .. } => cases.len(),
-        }
-    }
-
-    fn remove(&mut self, index: usize) {
-        match self {
-            Input::Number { cases, .. } => _ = cases.remove(index),
-            Input::Text { cases, .. } => _ = cases.remove(index),
-        }
-    }
-
-    fn push(&mut self) {
-        match self {
-            Input::Number { cases, .. } => cases.push(NumberCase::default()),
-            Input::Text { cases, .. } => cases.push(TextCase::default()),
-        }
-    }
-
-    fn edit_case(&mut self, ui: &mut Ui, reference_store: &ReferenceStore, index: usize) -> bool {
-        let mut changed = false;
-        match self {
-            Input::Number { cases, .. } => {
-                let case = cases.get_mut(index).expect("the case index must be valid");
-                ui.label("If input is");
-                changed |= ComboBox::from_id_source(ui.next_auto_id())
-                    .width(50.0)
-                    .choose(
-                        ui,
-                        &mut case.comparator,
-                        vec![
-                            (NumberComparator::Equal, "equal"),
-                            (NumberComparator::Greater, "greater"),
-                            (NumberComparator::GreaterEqual, "greater or equal"),
-                            (NumberComparator::Less, "less"),
-                            (NumberComparator::LessEqual, "less or equal"),
-                        ],
-                    )
-                    .changed();
-                ui.horizontal(|ui| {
-                    changed |= ui
-                        .add(PropertyEditor::new(&mut case.right, reference_store))
-                        .changed()
-                });
-            }
-            Input::Text { cases, .. } => {
-                let case = cases.get_mut(index).expect("the case index must be valid");
-                ui.label("If input is");
-                changed |= ComboBox::from_id_source(ui.next_auto_id())
-                    .width(50.0)
-                    .choose(
-                        ui,
-                        &mut case.comparator,
-                        vec![(TextComparator::Like, "like")],
-                    )
-                    .changed();
-                ui.horizontal(|ui| {
-                    changed |= ui
-                        .add(PropertyEditor::new(&mut case.right, reference_store))
-                        .changed();
-                });
-            }
-        }
-
-        changed
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Default)]
-struct NumberCase {
-    right: Property<Number>,
-    comparator: NumberComparator,
-}
-
-#[derive(Serialize, Deserialize, Clone, Default)]
-struct TextCase {
-    right: Property<Text>,
-    comparator: TextComparator,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-enum UntypedOutput {
-    Number(Output<Number>),
-    Text(Output<Text>),
-    Tint(Output<Tint>),
-    Boolean(Output<Boolean>),
-    Texture(Output<Texture>),
-}
-
-impl UntypedOutput {
-    fn case_count(&self) -> usize {
-        match self {
-            UntypedOutput::Number(o) => o.cases.len(),
-            UntypedOutput::Text(o) => o.cases.len(),
-            UntypedOutput::Tint(o) => o.cases.len(),
-            UntypedOutput::Boolean(o) => o.cases.len(),
-            UntypedOutput::Texture(o) => o.cases.len(),
-        }
-    }
-    fn remove(&mut self, index: usize) {
-        match self {
-            UntypedOutput::Number(output) => _ = output.cases.remove(index),
-            UntypedOutput::Text(output) => _ = output.cases.remove(index),
-            UntypedOutput::Tint(output) => _ = output.cases.remove(index),
-            UntypedOutput::Boolean(output) => _ = output.cases.remove(index),
-            UntypedOutput::Texture(output) => _ = output.cases.remove(index),
-        }
-    }
-    fn push(&mut self) {
-        match self {
-            UntypedOutput::Number(o) => o.cases.push(Property::default()),
-            UntypedOutput::Text(o) => o.cases.push(Property::default()),
-            UntypedOutput::Tint(o) => o.cases.push(Property::default()),
-            UntypedOutput::Boolean(o) => o.cases.push(Property::default()),
-            UntypedOutput::Texture(o) => o.cases.push(Property::default()),
-        }
-    }
-    fn clear(&mut self) {
-        match self {
-            UntypedOutput::Number(o) => o.cases.clear(),
-            UntypedOutput::Text(o) => o.cases.clear(),
-            UntypedOutput::Tint(o) => o.cases.clear(),
-            UntypedOutput::Boolean(o) => o.cases.clear(),
-            UntypedOutput::Texture(o) => o.cases.clear(),
-        }
-    }
-    fn edit_case(
-        &mut self,
-        ui: &mut Ui,
-        reference_store: &ReferenceStore,
-        index: usize,
-    ) -> Response {
-        match self {
-            UntypedOutput::Number(output) => output.edit_case(ui, reference_store, index),
-            UntypedOutput::Text(output) => output.edit_case(ui, reference_store, index),
-            UntypedOutput::Tint(output) => output.edit_case(ui, reference_store, index),
-            UntypedOutput::Boolean(output) => output.edit_case(ui, reference_store, index),
-            UntypedOutput::Texture(output) => output.edit_case(ui, reference_store, index),
-        }
-    }
-
-    fn edit_default(&mut self, ui: &mut Ui, reference_store: &ReferenceStore) -> Response {
-        match self {
-            UntypedOutput::Number(Output { default, .. }) => {
-                ui.add(PropertyEditor::new(default, reference_store))
-            }
-            UntypedOutput::Text(Output { default, .. }) => {
-                ui.add(PropertyEditor::new(default, reference_store))
-            }
-            UntypedOutput::Tint(Output { default, .. }) => {
-                ui.add(PropertyEditor::new(default, reference_store))
-            }
-            UntypedOutput::Boolean(Output { default, .. }) => {
-                ui.add(PropertyEditor::new(default, reference_store))
-            }
-            UntypedOutput::Texture(Output { default, .. }) => {
-                ui.add(PropertyEditor::new(default, reference_store))
-            }
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Default)]
-struct Output<T> {
-    cases: Vec<Property<T>>,
-    default: Property<T>,
-}
-impl<T> Output<T>
-where
-    Property<T>: Default,
-{
-    fn with_count(count: usize) -> Self {
-        Self {
-            cases: {
-                let mut v = Vec::with_capacity(count);
-                for _ in 0..count {
-                    v.push(Property::default());
-                }
-                v
-            },
-            default: Property::default(),
-        }
-    }
-
-    fn edit_case(&mut self, ui: &mut Ui, reference_store: &ReferenceStore, index: usize) -> Response
-    where
-        ValueType: ValueTypeOf<T>,
-        T: Default + ValueTypeEditor,
-    {
-        let property = self
-            .cases
-            .get_mut(index)
-            .expect("the case index must be valid");
-        ui.add(PropertyEditor::new(property, &reference_store))
-    }
-}
-
 impl Default for Map {
     fn default() -> Self {
         Self {
@@ -422,15 +198,104 @@ impl Map {
 }
 
 #[derive(Serialize, Deserialize, Clone)]
-struct Case {
-    comparison: Comparison,
-    remove: bool,
+enum Input {
+    Number {
+        input: ValueRef<Number>,
+        cases: Vec<NumberCase>,
+    },
+    Text {
+        input: ValueRef<Text>,
+        cases: Vec<TextCase>,
+    },
 }
 
-#[derive(Serialize, Deserialize, Clone)]
-enum Comparison {
-    Number(Property<Number>, NumberComparator),
-    Text(Property<Text>, TextComparator),
+impl Input {
+    fn value_type(&self) -> ValueType {
+        match self {
+            Input::Number { .. } => ValueType::Number,
+            Input::Text { .. } => ValueType::Text,
+        }
+    }
+    fn input_id(&self) -> Uuid {
+        match self {
+            Input::Number { input, .. } => input.id,
+            Input::Text { input, .. } => input.id,
+        }
+    }
+    fn case_count(&self) -> usize {
+        match self {
+            Input::Number { cases, .. } => cases.len(),
+            Input::Text { cases, .. } => cases.len(),
+        }
+    }
+
+    fn remove(&mut self, index: usize) {
+        match self {
+            Input::Number { cases, .. } => _ = cases.remove(index),
+            Input::Text { cases, .. } => _ = cases.remove(index),
+        }
+    }
+
+    fn push(&mut self) {
+        match self {
+            Input::Number { cases, .. } => cases.push(NumberCase::default()),
+            Input::Text { cases, .. } => cases.push(TextCase::default()),
+        }
+    }
+
+    fn edit_case(&mut self, ui: &mut Ui, reference_store: &ReferenceStore, index: usize) -> bool {
+        let mut changed = false;
+        match self {
+            Input::Number { cases, .. } => {
+                let case = cases.get_mut(index).expect("the case index must be valid");
+                ui.label("If input is");
+                changed |= ComboBox::from_id_source(ui.next_auto_id())
+                    .width(50.0)
+                    .choose(
+                        ui,
+                        &mut case.comparator,
+                        vec![
+                            (NumberComparator::Equal, "equal"),
+                            (NumberComparator::Greater, "greater"),
+                            (NumberComparator::GreaterEqual, "greater or equal"),
+                            (NumberComparator::Less, "less"),
+                            (NumberComparator::LessEqual, "less or equal"),
+                        ],
+                    )
+                    .changed();
+                ui.horizontal(|ui| {
+                    changed |= ui
+                        .add(PropertyEditor::new(&mut case.right, reference_store))
+                        .changed()
+                });
+            }
+            Input::Text { cases, .. } => {
+                let case = cases.get_mut(index).expect("the case index must be valid");
+                ui.label("If input is");
+                changed |= ComboBox::from_id_source(ui.next_auto_id())
+                    .width(50.0)
+                    .choose(
+                        ui,
+                        &mut case.comparator,
+                        vec![(TextComparator::Like, "like")],
+                    )
+                    .changed();
+                ui.horizontal(|ui| {
+                    changed |= ui
+                        .add(PropertyEditor::new(&mut case.right, reference_store))
+                        .changed();
+                });
+            }
+        }
+
+        changed
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Default)]
+struct NumberCase {
+    right: Property<Number>,
+    comparator: NumberComparator,
 }
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
@@ -454,6 +319,12 @@ impl NumberComparator {
     }
 }
 
+#[derive(Serialize, Deserialize, Clone, Default)]
+struct TextCase {
+    right: Property<Text>,
+    comparator: TextComparator,
+}
+
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 enum TextComparator {
     #[default]
@@ -464,6 +335,123 @@ impl TextComparator {
         match self {
             TextComparator::Like => t1 == t2,
         }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+enum UntypedOutput {
+    Number(Output<Number>),
+    Text(Output<Text>),
+    Tint(Output<Tint>),
+    Boolean(Output<Boolean>),
+    Texture(Output<Texture>),
+}
+
+impl UntypedOutput {
+    fn case_count(&self) -> usize {
+        match self {
+            UntypedOutput::Number(o) => o.cases.len(),
+            UntypedOutput::Text(o) => o.cases.len(),
+            UntypedOutput::Tint(o) => o.cases.len(),
+            UntypedOutput::Boolean(o) => o.cases.len(),
+            UntypedOutput::Texture(o) => o.cases.len(),
+        }
+    }
+    fn remove(&mut self, index: usize) {
+        match self {
+            UntypedOutput::Number(output) => _ = output.cases.remove(index),
+            UntypedOutput::Text(output) => _ = output.cases.remove(index),
+            UntypedOutput::Tint(output) => _ = output.cases.remove(index),
+            UntypedOutput::Boolean(output) => _ = output.cases.remove(index),
+            UntypedOutput::Texture(output) => _ = output.cases.remove(index),
+        }
+    }
+    fn push(&mut self) {
+        match self {
+            UntypedOutput::Number(o) => o.cases.push(Property::default()),
+            UntypedOutput::Text(o) => o.cases.push(Property::default()),
+            UntypedOutput::Tint(o) => o.cases.push(Property::default()),
+            UntypedOutput::Boolean(o) => o.cases.push(Property::default()),
+            UntypedOutput::Texture(o) => o.cases.push(Property::default()),
+        }
+    }
+    fn clear(&mut self) {
+        match self {
+            UntypedOutput::Number(o) => o.cases.clear(),
+            UntypedOutput::Text(o) => o.cases.clear(),
+            UntypedOutput::Tint(o) => o.cases.clear(),
+            UntypedOutput::Boolean(o) => o.cases.clear(),
+            UntypedOutput::Texture(o) => o.cases.clear(),
+        }
+    }
+    fn edit_case(
+        &mut self,
+        ui: &mut Ui,
+        reference_store: &ReferenceStore,
+        index: usize,
+    ) -> Response {
+        match self {
+            UntypedOutput::Number(output) => output.edit_case(ui, reference_store, index),
+            UntypedOutput::Text(output) => output.edit_case(ui, reference_store, index),
+            UntypedOutput::Tint(output) => output.edit_case(ui, reference_store, index),
+            UntypedOutput::Boolean(output) => output.edit_case(ui, reference_store, index),
+            UntypedOutput::Texture(output) => output.edit_case(ui, reference_store, index),
+        }
+    }
+
+    fn edit_default(&mut self, ui: &mut Ui, reference_store: &ReferenceStore) -> Response {
+        match self {
+            UntypedOutput::Number(Output { default, .. }) => {
+                ui.add(PropertyEditor::new(default, reference_store))
+            }
+            UntypedOutput::Text(Output { default, .. }) => {
+                ui.add(PropertyEditor::new(default, reference_store))
+            }
+            UntypedOutput::Tint(Output { default, .. }) => {
+                ui.add(PropertyEditor::new(default, reference_store))
+            }
+            UntypedOutput::Boolean(Output { default, .. }) => {
+                ui.add(PropertyEditor::new(default, reference_store))
+            }
+            UntypedOutput::Texture(Output { default, .. }) => {
+                ui.add(PropertyEditor::new(default, reference_store))
+            }
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Default)]
+struct Output<T> {
+    cases: Vec<Property<T>>,
+    default: Property<T>,
+}
+impl<T> Output<T>
+where
+    Property<T>: Default,
+{
+    fn with_count(count: usize) -> Self {
+        Self {
+            cases: {
+                let mut v = Vec::with_capacity(count);
+                for _ in 0..count {
+                    v.push(Property::default());
+                }
+                v
+            },
+            default: Property::default(),
+        }
+    }
+
+    fn edit_case(&mut self, ui: &mut Ui, reference_store: &ReferenceStore, index: usize) -> Response
+    where
+        ValueType: ValueTypeOf<T>,
+        T: Default + ValueTypeEditor,
+    {
+        let property = self
+            .cases
+            .get_mut(index)
+            .expect("the case index must be valid");
+        ui.add(PropertyEditor::new(property, &reference_store))
     }
 }
 

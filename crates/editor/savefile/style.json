@@ -182,7 +182,7 @@
                 "Image": {
                   "id": {
                     "id": "230297a5-ff60-494e-acba-5af35c4f7e99",
-                    "name": "Maserait",
+                    "name": "Maserati",
                     "asset_type": "Texture"
                   },
                   "path": "constructors/Maserati.png"
@@ -473,6 +473,156 @@
               "blue": 0.0,
               "alpha": 1.0
             }
+          }
+        }
+      },
+      {
+        "T": {
+          "id": "94d9d538-676d-4ea9-a72c-923b054a2b6d",
+          "name": "Manufacturer icons",
+          "behavior": "Map",
+          "input_type": "Text",
+          "input_ref": "d1a60628-1ac7-4ad4-a502-95bc649edf07",
+          "input_cases": [
+            {
+              "right": "Alpine",
+              "comparator": "Like"
+            },
+            {
+              "right": "Aston-Martin",
+              "comparator": "Like"
+            },
+            {
+              "right": "Audi",
+              "comparator": "Like"
+            },
+            {
+              "right": "Bentley",
+              "comparator": "Like"
+            },
+            {
+              "right": "BMW",
+              "comparator": "Like"
+            },
+            {
+              "right": "Chevrolet",
+              "comparator": "Like"
+            },
+            {
+              "right": "Ferrari",
+              "comparator": "Like"
+            },
+            {
+              "right": "Ginetta",
+              "comparator": "Like"
+            },
+            {
+              "right": "Honda",
+              "comparator": "Like"
+            },
+            {
+              "right": "Jaguar",
+              "comparator": "Like"
+            },
+            {
+              "right": "KTM",
+              "comparator": "Like"
+            },
+            {
+              "right": "Lamborghini",
+              "comparator": "Like"
+            },
+            {
+              "right": "Lexus",
+              "comparator": "Like"
+            },
+            {
+              "right": "Maserati",
+              "comparator": "Like"
+            },
+            {
+              "right": "McLaren",
+              "comparator": "Like"
+            },
+            {
+              "right": "Mercedes-AMG",
+              "comparator": "Like"
+            },
+            {
+              "right": "Nissan",
+              "comparator": "Like"
+            },
+            {
+              "right": "Porsche",
+              "comparator": "Like"
+            },
+            {
+              "right": "Reiter-Engineering",
+              "comparator": "Like"
+            }
+          ],
+          "output_type": "Texture",
+          "output_cases": [
+            {
+              "ValueRef": "b7ba5250-cf78-4146-a7c8-f2b85adc4c5f"
+            },
+            {
+              "ValueRef": "3eee3a38-140e-453e-8830-4f256ee83e07"
+            },
+            {
+              "ValueRef": "1e8814f4-16dd-4ad9-be24-2ea075bcff6a"
+            },
+            {
+              "ValueRef": "ecfb2bad-459a-4b64-b8ed-5d5147053ea2"
+            },
+            {
+              "ValueRef": "ecd425a6-2490-484b-9979-a19933de1193"
+            },
+            {
+              "ValueRef": "48368915-4dcb-443b-8f6e-d6ace044ced9"
+            },
+            {
+              "ValueRef": "afcae1d6-f887-4417-bdfb-c09e91116adb"
+            },
+            {
+              "ValueRef": "77133dec-724a-491a-b2ce-fd2888a78ab1"
+            },
+            {
+              "ValueRef": "c0432571-650f-4fdc-a708-aa9a01117590"
+            },
+            {
+              "ValueRef": "95dc96a9-97ce-436b-bf78-8465e0929ce9"
+            },
+            {
+              "ValueRef": "922570d9-792b-4555-aa52-65f1d890996b"
+            },
+            {
+              "ValueRef": "fc0aba26-4d09-41a8-982a-d2534c9fdb8c"
+            },
+            {
+              "ValueRef": "66146a86-cb01-437f-814d-5c86efd5a777"
+            },
+            {
+              "ValueRef": "230297a5-ff60-494e-acba-5af35c4f7e99"
+            },
+            {
+              "ValueRef": "2295c661-0609-483d-b3df-248efa705f9d"
+            },
+            {
+              "ValueRef": "d0edeef4-f187-44df-9c65-d81d405d8062"
+            },
+            {
+              "ValueRef": "1f2524af-9c72-495e-89e2-fda763f2ee18"
+            },
+            {
+              "ValueRef": "4971fafb-479d-470f-8afd-b85e6820a396"
+            },
+            {
+              "ValueRef": "109ecca7-9500-4c6a-b496-95a8da13d299"
+            }
+          ],
+          "default": {
+            "ValueRef": "62823f7e-db28-4087-a148-79d943b6ecfc"
           }
         }
       }
@@ -781,7 +931,7 @@
                     "ValueRef": "e41f142f-2026-4126-9dc4-bed03fecd31e"
                   },
                   "image": {
-                    "ValueRef": "90eb20ce-9b39-41ab-b6c8-626ba182ea6e"
+                    "ValueRef": "94d9d538-676d-4ea9-a72c-923b054a2b6d"
                   },
                   "pos": {
                     "x": 191.0,

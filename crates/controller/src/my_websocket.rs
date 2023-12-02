@@ -74,20 +74,27 @@ fn accept_new_clients(mut commands: Commands, mut server: ResMut<WebsocketServer
 }
 
 #[derive(Component)]
-struct WebsocketClient {
+pub struct WebsocketClient {
     client: SyncCell<Client<TcpStream>>,
     state: ClientState,
 }
 
 impl WebsocketClient {
+    pub fn send_message(&mut self, message: ToRendererMessage) {
+        let data = postcard::to_allocvec(&message).expect("Cannot convert to postcard");
+        if let Err(e) = self.client.get().send_message(&Message::binary(data)) {
+            error!("Error trying to send on websocket: {e:?}");
+        }
+    }
     fn read_message(&mut self, data: Vec<u8>) {
         let message =
             postcard::from_bytes::<ToControllerMessage>(&data).expect("Cannot deserialize");
 
         match message {
             ToControllerMessage::Opened => {
-                self.state = ClientState::ProcessingAssets;
-                self.send_message(ToRendererMessage::Assets { images: Vec::new() });
+                self.state = ClientState::Ready;
+                //self.state = ClientState::ProcessingAssets;
+                //self.send_message(ToRendererMessage::Assets { images: Vec::new() });
             }
             ToControllerMessage::AssetsLoaded => {
                 self.state = ClientState::Ready;
@@ -95,13 +102,6 @@ impl WebsocketClient {
             ToControllerMessage::Debug(message) => {
                 println!("Message from renderer: {message}");
             }
-        }
-    }
-
-    fn send_message(&mut self, message: ToRendererMessage) {
-        let data = postcard::to_allocvec(&message).expect("Cannot convert to postcard");
-        if let Err(e) = self.client.get().send_message(&Message::binary(data)) {
-            error!("Error trying to send on websocket: {e:?}");
         }
     }
 }
@@ -136,6 +136,5 @@ fn read_clients(mut commands: Commands, mut clients: Query<(&mut WebsocketClient
 
 enum ClientState {
     Initializing,
-    ProcessingAssets,
     Ready,
 }

@@ -8,7 +8,7 @@ pub struct SetStyle {
     pub style: CellStyle,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct CellStyle {
     pub text: String,
     pub text_color: Color,

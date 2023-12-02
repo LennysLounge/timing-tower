@@ -21,7 +21,7 @@ pub trait IntoProducerData {
 pub struct ProducerData {
     pub id: Uuid,
     pub name: String,
-    pub asset_type: ValueType,
+    pub value_type: ValueType,
 }
 
 impl Default for ProducerData {
@@ -29,14 +29,14 @@ impl Default for ProducerData {
         Self {
             name: "Variable".to_string(),
             id: Uuid::new_v4(),
-            asset_type: ValueType::default(),
+            value_type: ValueType::default(),
         }
     }
 }
 impl ProducerData {
     pub fn get_ref(&self) -> UntypedValueRef {
         UntypedValueRef {
-            value_type: self.asset_type.clone(),
+            value_type: self.value_type.clone(),
             id: self.id.clone(),
         }
     }
@@ -64,7 +64,7 @@ impl ReferenceStore {
         let target_type: ValueType = ValueTypeOf::<T>::get();
 
         let mut editor_res = self.untyped_editor(ui, &value_ref.id, |v| {
-            v.asset_type.can_cast_to(&target_type)
+            v.value_type.can_cast_to(&target_type)
         });
         if let Some(UntypedValueRef { id, value_type }) = editor_res.inner {
             if !value_type.can_cast_to(&target_type) {
@@ -90,7 +90,7 @@ impl ReferenceStore {
         let target_type: ValueType = ValueTypeOf::<T>::get();
 
         let mut editor_res =
-            self.untyped_editor_small(ui, |v| v.asset_type.can_cast_to(&target_type));
+            self.untyped_editor_small(ui, |v| v.value_type.can_cast_to(&target_type));
 
         let inner = editor_res.inner.map(|new_untyped_value_ref| {
             if !new_untyped_value_ref.value_type.can_cast_to(&target_type) {
@@ -239,7 +239,7 @@ impl AssetOrFolder {
                 if !is_asset_allowed {
                     res.response.on_hover_text(format!(
                         "{} type not allowed for this reference.",
-                        asset_id.asset_type.name()
+                        asset_id.value_type.name()
                     ));
                 }
             }

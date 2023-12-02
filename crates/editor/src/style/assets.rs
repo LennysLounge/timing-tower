@@ -1,27 +1,27 @@
-use bevy::{
-    asset::LoadState,
-    prelude::{AssetServer, Handle, Image},
-};
+use bevy::prelude::AssetServer;
 use bevy_egui::egui::Ui;
 use serde::{Deserialize, Serialize};
 use tree_view::{TreeUi, TreeViewBuilder};
-use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
 use crate::{
     reference_store::{IntoProducerData, ProducerData, ReferenceStore},
-    value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore},
+    value_store::{IntoValueProducer, TypedValueProducer},
     value_types::{Texture, ValueType},
 };
 
 use super::{
     folder::{Folder, FolderActions},
+    variables::StaticValueProducer,
     StyleTreeNode, StyleTreeUi, TreeViewAction,
 };
 
 #[derive(Serialize, Deserialize, Clone)]
-pub enum AssetDefinition {
-    Image(ImageAsset),
+pub struct AssetDefinition {
+    pub id: Uuid,
+    pub name: String,
+    pub value_type: ValueType,
+    pub path: String,
 }
 
 impl FolderActions for AssetDefinition {
@@ -33,7 +33,12 @@ impl FolderActions for AssetDefinition {
         actions: &mut Vec<TreeViewAction>,
     ) {
         if ui.button("add image").clicked() {
-            let image = AssetDefinition::Image(ImageAsset::new());
+            let image = AssetDefinition {
+                id: Uuid::new_v4(),
+                name: String::from("Image"),
+                value_type: ValueType::Texture,
+                path: String::new(),
+            };
             actions.push(TreeViewAction::Select { node: *image.id() });
             actions.push(TreeViewAction::Insert {
                 target: folder.id,
@@ -61,119 +66,46 @@ impl FolderActions for AssetDefinition {
     }
 }
 
-impl IntoValueProducer for AssetDefinition {
-    fn get_value_producer(&self) -> (Uuid, TypedValueProducer) {
-        match self {
-            AssetDefinition::Image(i) => i.get_value_producer(),
+impl IntoProducerData for AssetDefinition {
+    fn producer_data(&self) -> ProducerData {
+        ProducerData {
+            id: self.id.clone(),
+            name: self.name.clone(),
+            value_type: self.value_type.clone(),
         }
     }
 }
-impl IntoProducerData for AssetDefinition {
-    fn producer_data(&self) -> ProducerData {
-        match self {
-            AssetDefinition::Image(i) => i.producer_data(),
-        }
+
+impl IntoValueProducer for AssetDefinition {
+    fn get_value_producer(&self) -> (Uuid, TypedValueProducer) {
+        let typed_value_producer = match self.value_type {
+            ValueType::Texture => {
+                TypedValueProducer::Texture(Box::new(StaticValueProducer(Texture::Handle(self.id))))
+            }
+            _ => unreachable!(),
+        };
+        (self.id, typed_value_producer)
     }
 }
 
 impl StyleTreeUi for AssetDefinition {
-    fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
-        match self {
-            AssetDefinition::Image(o) => o.tree_view(ui, actions),
-        }
-    }
-
-    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
-        match self {
-            AssetDefinition::Image(o) => o.property_editor(ui, asset_repo),
-        }
-    }
-}
-
-impl StyleTreeNode for AssetDefinition {
-    fn id(&self) -> &uuid::Uuid {
-        match self {
-            AssetDefinition::Image(o) => o.id(),
-        }
-    }
-
-    fn chidren(&self) -> Vec<&dyn StyleTreeNode> {
-        match self {
-            AssetDefinition::Image(o) => o.chidren(),
-        }
-    }
-
-    fn chidren_mut(&mut self) -> Vec<&mut dyn StyleTreeNode> {
-        match self {
-            AssetDefinition::Image(o) => o.chidren_mut(),
-        }
-    }
-
-    fn can_insert(&self, node: &dyn std::any::Any) -> bool {
-        match self {
-            AssetDefinition::Image(o) => o.can_insert(node),
-        }
-    }
-
-    fn remove(&mut self, id: &uuid::Uuid) -> Option<Box<dyn std::any::Any>> {
-        match self {
-            AssetDefinition::Image(o) => o.remove(id),
-        }
-    }
-
-    fn insert(&mut self, node: Box<dyn std::any::Any>, position: &tree_view::DropPosition) {
-        match self {
-            AssetDefinition::Image(o) => o.insert(node, position),
-        }
-    }
-}
-
-impl AssetDefinition {
-    pub fn load_asset(&mut self, asset_server: &AssetServer) {
-        match self {
-            AssetDefinition::Image(o) => o.load_asset(asset_server),
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct ImageAsset {
-    pub id: ProducerData,
-    pub path: String,
-    #[serde(skip)]
-    handle: Option<Handle<Image>>,
-    #[serde(skip)]
-    #[serde(default = "default_load_state")]
-    load_state: LoadState,
-}
-
-impl IntoValueProducer for ImageAsset {
-    fn get_value_producer(&self) -> (Uuid, TypedValueProducer) {
-        (
-            self.id.id,
-            TypedValueProducer::Texture(Box::new(StaticImage(self.handle.clone()))),
-        )
-    }
-}
-impl IntoProducerData for ImageAsset {
-    fn producer_data(&self) -> ProducerData {
-        self.id.clone()
-    }
-}
-
-impl StyleTreeUi for ImageAsset {
     fn tree_view(&mut self, tree_ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
-        let res = TreeViewBuilder::leaf(self.id.id).show(tree_ui, |ui| {
-            ui.label(&self.id.name);
+        let res = TreeViewBuilder::leaf(self.id).show(tree_ui, |ui| {
+            ui.label(&self.name);
         });
         res.response.context_menu(|ui| {
             if ui.button("add image").clicked() {
-                let image = AssetDefinition::Image(ImageAsset::new());
+                let image = AssetDefinition {
+                    id: Uuid::new_v4(),
+                    name: String::from("Image"),
+                    value_type: ValueType::Texture,
+                    path: String::new(),
+                };
                 actions.push(TreeViewAction::Select { node: *image.id() });
                 actions.push(TreeViewAction::Insert {
                     target: tree_ui.parent_id.unwrap(),
                     node: Box::new(image),
-                    position: tree_view::DropPosition::After(self.id.id),
+                    position: tree_view::DropPosition::After(self.id),
                 });
                 ui.close_menu();
             }
@@ -183,40 +115,41 @@ impl StyleTreeUi for ImageAsset {
                 actions.push(TreeViewAction::Insert {
                     target: tree_ui.parent_id.unwrap(),
                     node: Box::new(folder),
-                    position: tree_view::DropPosition::After(self.id.id),
+                    position: tree_view::DropPosition::After(self.id),
                 });
                 ui.close_menu();
             }
             if ui.button("delete").clicked() {
-                actions.push(TreeViewAction::Remove { node: self.id.id });
+                actions.push(TreeViewAction::Remove { node: self.id });
                 ui.close_menu();
             }
         });
     }
 
-    fn property_editor(&mut self, ui: &mut Ui, _asset_repo: &ReferenceStore) -> bool {
+    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
         let mut changed = false;
 
         ui.label("Name");
-        changed |= ui.text_edit_singleline(&mut self.id.name).changed();
+        changed |= ui.text_edit_singleline(&mut self.name).changed();
         ui.separator();
         ui.label("Path:");
         changed |= ui.text_edit_singleline(&mut self.path).changed();
-        match self.load_state {
-            LoadState::NotLoaded => ui.label("Asset is not loaded"),
-            LoadState::Loading => ui.label("Asset is loading"),
-            LoadState::Loaded => ui.label("Asset loaded correctly"),
-            LoadState::Failed => ui.label(
-                "Failed to load the asset. Make sure the path is pointing to a valid image file.",
-            ),
-        };
+        // Feature: Show load state of assets
+        // match self.load_state {
+        //     LoadState::NotLoaded => ui.label("Asset is not loaded"),
+        //     LoadState::Loading => ui.label("Asset is loading"),
+        //     LoadState::Loaded => ui.label("Asset loaded correctly"),
+        //     LoadState::Failed => ui.label(
+        //         "Failed to load the asset. Make sure the path is pointing to a valid image file.",
+        //     ),
+        // };
         changed
     }
 }
 
-impl StyleTreeNode for ImageAsset {
+impl StyleTreeNode for AssetDefinition {
     fn id(&self) -> &Uuid {
-        &self.id.id
+        &self.id
     }
 
     fn chidren(&self) -> Vec<&dyn StyleTreeNode> {
@@ -238,39 +171,11 @@ impl StyleTreeNode for ImageAsset {
     fn insert(&mut self, _node: Box<dyn std::any::Any>, _position: &tree_view::DropPosition) {}
 }
 
-impl ImageAsset {
-    fn new() -> Self {
-        Self {
-            id: ProducerData {
-                id: Uuid::new_v4(),
-                name: "new image".to_string(),
-                asset_type: ValueType::Texture,
-            },
-            path: String::new(),
-            handle: None,
-            load_state: default_load_state(),
-        }
-    }
-
+impl AssetDefinition {
     pub fn load_asset(&mut self, asset_server: &AssetServer) {
-        self.handle = Some(asset_server.load(format!("savefile://{}", &self.path)));
-        if let Some(load_state) = self
-            .handle
-            .as_ref()
-            .and_then(|handle| asset_server.get_load_state(handle))
-        {
-            self.load_state = load_state;
-        }
-    }
-}
-
-fn default_load_state() -> LoadState {
-    LoadState::NotLoaded
-}
-
-pub struct StaticImage(pub Option<Handle<Image>>);
-impl ValueProducer<Texture> for StaticImage {
-    fn get(&self, _vars: &ValueStore, _entry: Option<&Entry>) -> Option<Texture> {
-        self.0.clone().map(|h| Texture::Handle(h))
+        // Feature: Show load state of assets
+        // match self {
+        //     AssetDefinition::Image(o) => o.load_asset(asset_server),
+        // }
     }
 }

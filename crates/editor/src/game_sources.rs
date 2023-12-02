@@ -147,7 +147,7 @@ impl GameSource {
             asset_id: ProducerData {
                 id,
                 name: name.to_string(),
-                asset_type: ValueType::Number,
+                value_type: ValueType::Number,
             },
             extractor: Extractor::Number(extractor),
         }
@@ -161,7 +161,7 @@ impl GameSource {
             asset_id: ProducerData {
                 id,
                 name: name.to_string(),
-                asset_type: ValueType::Text,
+                value_type: ValueType::Text,
             },
             extractor: Extractor::Text(extractor),
         }
@@ -175,7 +175,7 @@ impl GameSource {
             asset_id: ProducerData {
                 id,
                 name: name.to_string(),
-                asset_type: ValueType::Boolean,
+                value_type: ValueType::Boolean,
             },
             extractor: Extractor::Boolean(extractor),
         }

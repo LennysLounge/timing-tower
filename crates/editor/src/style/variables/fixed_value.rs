@@ -1,11 +1,12 @@
 use bevy_egui::egui::{ComboBox, DragValue, Ui};
 use serde::{Deserialize, Serialize};
-use unified_sim_model::model::Entry;
 
 use crate::{
-    value_store::{TypedValueProducer, ValueProducer, ValueStore},
+    value_store::TypedValueProducer,
     value_types::{Boolean, Number, Text, Tint, ValueType},
 };
+
+use super::StaticValueProducer;
 
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(tag = "output_type")]
@@ -118,15 +119,5 @@ impl FixedValue {
             FixedValue::Tint(c) => TypedValueProducer::Tint(Box::new(StaticValueProducer(c))),
             FixedValue::Boolean(b) => TypedValueProducer::Boolean(Box::new(StaticValueProducer(b))),
         }
-    }
-}
-
-struct StaticValueProducer<T>(T);
-impl<T> ValueProducer<T> for StaticValueProducer<T>
-where
-    T: Clone,
-{
-    fn get(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<T> {
-        Some(self.0.clone())
     }
 }

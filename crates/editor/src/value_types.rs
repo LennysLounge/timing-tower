@@ -1,8 +1,6 @@
-use bevy::{
-    asset::Handle,
-    render::{color::Color, texture::Image},
-};
+use bevy::render::color::Color;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct Number(pub f32);
@@ -20,8 +18,7 @@ pub struct Boolean(pub bool);
 pub enum Texture {
     #[default]
     None,
-    #[serde(skip)]
-    Handle(Handle<Image>),
+    Handle(Uuid),
 }
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug, Default, Copy)]

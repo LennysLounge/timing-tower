@@ -8,7 +8,7 @@ use uuid::Uuid;
 
 use crate::{
     style::{assets::AssetDefinition, folder::Folder},
-    value_types::Texture,
+    value_types::{Texture, ValueType},
 };
 
 /// The asset store holds a bevy handle to all assets that are
@@ -23,10 +23,9 @@ impl AssetStore {
             assets: assets
                 .all_t()
                 .iter()
-                .filter_map(|asset_def| match asset_def {
-                    AssetDefinition::Image(image_asset) => {
-                        Some((image_asset.id.id, asset_server.load(&image_asset.path)))
-                    }
+                .filter_map(|asset_def| match asset_def.value_type {
+                    ValueType::Texture => Some((asset_def.id, asset_server.load(&asset_def.path))),
+                    _ => unreachable!(),
                 })
                 .collect(),
         }

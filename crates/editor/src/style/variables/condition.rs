@@ -66,7 +66,7 @@ impl Condition {
                 inner: new_untyped_ref,
                 response: _,
             } = asset_repo.untyped_editor(ui, self.comparison.left_side_id(), |v| {
-                return match v.asset_type {
+                return match v.value_type {
                     ValueType::Number => true,
                     ValueType::Text => true,
                     ValueType::Boolean => true,

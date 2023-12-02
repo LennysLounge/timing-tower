@@ -42,7 +42,7 @@ impl Map {
             let InnerResponse {
                 inner: new_untyped_ref,
                 response: _,
-            } = asset_repo.untyped_editor(ui, &self.input.input_id(), |v| match v.asset_type {
+            } = asset_repo.untyped_editor(ui, &self.input.input_id(), |v| match v.value_type {
                 ValueType::Number => true,
                 ValueType::Text => true,
                 _ => false,

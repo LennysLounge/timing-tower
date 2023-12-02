@@ -3,11 +3,12 @@ use std::mem::discriminant;
 use bevy_egui::egui::{ComboBox, Response, Ui};
 use serde::{Deserialize, Serialize};
 use tree_view::{DropPosition, TreeUi, TreeViewBuilder};
+use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
 use crate::{
     reference_store::{IntoProducerData, ProducerData, ReferenceStore},
-    value_store::{IntoValueProducer, TypedValueProducer},
+    value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore},
 };
 
 use self::{condition::Condition, fixed_value::FixedValue, map::Map};
@@ -42,7 +43,7 @@ impl IntoProducerData for VariableDefinition {
         ProducerData {
             id: self.id,
             name: self.name.clone(),
-            asset_type: match &self.behavior {
+            value_type: match &self.behavior {
                 VariableBehavior::FixedValue(o) => o.output_type(),
                 VariableBehavior::Condition(o) => o.output_type(),
                 VariableBehavior::Map(o) => o.output_type(),
@@ -212,6 +213,16 @@ impl VariableDefinition {
             name: "Variables".to_string(),
             behavior: VariableBehavior::FixedValue(FixedValue::default()),
         }
+    }
+}
+
+pub struct StaticValueProducer<T>(pub T);
+impl<T> ValueProducer<T> for StaticValueProducer<T>
+where
+    T: Clone,
+{
+    fn get(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<T> {
+        Some(self.0.clone())
     }
 }
 

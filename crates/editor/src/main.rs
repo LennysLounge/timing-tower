@@ -41,6 +41,7 @@ mod style;
 mod timing_tower;
 mod value_store;
 mod value_types;
+mod asset_store;
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");

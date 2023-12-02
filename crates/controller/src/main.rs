@@ -14,7 +14,7 @@ use bevy::{
     DefaultPlugins,
 };
 use common::{
-    cell::style::CellStyleMessage,
+    cell::style::CellStyle,
     communication::{ToControllerMessage, ToRendererMessage},
 };
 use tracing::error;
@@ -90,7 +90,7 @@ fn setup(websocket_writers: ResMut<WebsocketConnections>) {
 fn send_cell_style(connections: &mut WebsocketConnections) {
     let mut styles = Vec::new();
     for _ in 0..200 {
-        styles.push(CellStyleMessage {
+        styles.push(CellStyle {
             text: String::from("AABB"),
             text_color: Color::BLACK,
             text_size: 40.0,
@@ -119,6 +119,7 @@ fn send_cell_style(connections: &mut WebsocketConnections) {
                 rand::random::<f32>() * 20.0,
                 rand::random::<f32>() * 20.0,
             ],
+            texture: None,
         });
     }
     let message = ToRendererMessage::CellStyle(styles);

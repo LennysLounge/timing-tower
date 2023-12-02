@@ -8,6 +8,7 @@ pub struct SetStyle {
     pub style: CellStyle,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct CellStyle {
     pub text: String,
     pub text_color: Color,
@@ -29,20 +30,4 @@ pub enum TextAlignment {
     Left,
     Center,
     Right,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct CellStyleMessage {
-    pub text: String,
-    pub text_color: Color,
-    pub text_size: f32,
-    pub text_alignment: TextAlignment,
-    pub text_position: Vec2,
-    pub color: Color,
-    //pub texture: Option<Handle<Image>>,
-    pub pos: Vec3,
-    pub size: Vec2,
-    pub skew: f32,
-    pub visible: bool,
-    pub rounding: [f32; 4],
 }

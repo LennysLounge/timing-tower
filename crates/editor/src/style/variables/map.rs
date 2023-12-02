@@ -18,7 +18,6 @@ use super::EguiComboBoxExtension;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Map {
-    output_type: ValueType,
     input: UntypedValueRef,
     cases: Vec<Case>,
     output_cases: UntypedOutput,
@@ -59,7 +58,6 @@ where
 impl Default for Map {
     fn default() -> Self {
         Self {
-            output_type: ValueType::Number,
             input: UntypedValueRef::default(),
             cases: Vec::new(),
             output_cases: UntypedOutput::Number(Output2::default()),
@@ -203,7 +201,13 @@ impl Map {
 
 impl Map {
     pub fn output_type(&self) -> ValueType {
-        self.output_type
+        match self.output_cases {
+            UntypedOutput::Number(_) => ValueType::Number,
+            UntypedOutput::Text(_) => ValueType::Text,
+            UntypedOutput::Tint(_) => ValueType::Tint,
+            UntypedOutput::Boolean(_) => ValueType::Boolean,
+            UntypedOutput::Texture(_) => ValueType::Texture,
+        }
     }
 
     pub fn as_typed_producer(&self) -> TypedValueProducer {

@@ -19,7 +19,39 @@ pub struct Map {
     output_type: ValueType,
     input: UntypedValueRef,
     cases: Vec<Case>,
-    default: Output,
+    output_cases: UntypedOutput,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+enum UntypedOutput {
+    Number(Output2<Number>),
+    Text(Output2<Text>),
+    Tint(Output2<Tint>),
+    Boolean(Output2<Boolean>),
+    Texture(Output2<Texture>),
+}
+
+#[derive(Serialize, Deserialize, Clone, Default)]
+struct Output2<T> {
+    cases: Vec<Property<T>>,
+    default: Property<T>,
+}
+impl<T> Output2<T>
+where
+    Property<T>: Default,
+{
+    fn with_count(count: usize) -> Self {
+        Self {
+            cases: {
+                let mut v = Vec::with_capacity(count);
+                for _ in 0..count {
+                    v.push(Property::default());
+                }
+                v
+            },
+            default: Property::default(),
+        }
+    }
 }
 
 impl Default for Map {
@@ -28,7 +60,7 @@ impl Default for Map {
             output_type: ValueType::Number,
             input: UntypedValueRef::default(),
             cases: Vec::new(),
-            default: Output::Number(Property::Fixed(Number(0.0))),
+            output_cases: UntypedOutput::Number(Output2::default()),
         }
     }
 }
@@ -99,10 +131,17 @@ impl Map {
                     ValueType::Boolean => Output::Boolean(Property::Fixed(Boolean(false))),
                     ValueType::Texture => Output::Image(Property::Fixed(Texture::None)),
                 };
-                self.default = new_output.clone();
                 for case in self.cases.iter_mut() {
                     case.output = new_output.clone();
                 }
+                let case_count = self.cases.len();
+                self.output_cases = match self.output_type {
+                    ValueType::Number => UntypedOutput::Number(Output2::with_count(case_count)),
+                    ValueType::Text => UntypedOutput::Text(Output2::with_count(case_count)),
+                    ValueType::Tint => UntypedOutput::Tint(Output2::with_count(case_count)),
+                    ValueType::Boolean => UntypedOutput::Boolean(Output2::with_count(case_count)),
+                    ValueType::Texture => UntypedOutput::Texture(Output2::with_count(case_count)),
+                };
             }
         });
         ui.separator();
@@ -119,7 +158,24 @@ impl Map {
 
         ui.label("Default:");
         ui.horizontal(|ui| {
-            changed |= self.default.show(ui, asset_repo);
+            changed |= match &mut self.output_cases {
+                UntypedOutput::Number(Output2 { default, .. }) => {
+                    ui.add(PropertyEditor::new(default, asset_repo))
+                }
+                UntypedOutput::Text(Output2 { default, .. }) => {
+                    ui.add(PropertyEditor::new(default, asset_repo))
+                }
+                UntypedOutput::Tint(Output2 { default, .. }) => {
+                    ui.add(PropertyEditor::new(default, asset_repo))
+                }
+                UntypedOutput::Boolean(Output2 { default, .. }) => {
+                    ui.add(PropertyEditor::new(default, asset_repo))
+                }
+                UntypedOutput::Texture(Output2 { default, .. }) => {
+                    ui.add(PropertyEditor::new(default, asset_repo))
+                }
+            }
+            .changed();
         });
 
         changed
@@ -201,7 +257,13 @@ impl Map {
 
         let source = MapSource {
             cases,
-            default: self.default.clone(),
+            default: match &self.output_cases {
+                UntypedOutput::Number(output) => Output::Number(output.default.clone()),
+                UntypedOutput::Text(output) => Output::Text(output.default.clone()),
+                UntypedOutput::Tint(output) => Output::Color(output.default.clone()),
+                UntypedOutput::Boolean(output) => Output::Boolean(output.default.clone()),
+                UntypedOutput::Texture(output) => Output::Image(output.default.clone()),
+            },
         };
 
         match self.output_type {

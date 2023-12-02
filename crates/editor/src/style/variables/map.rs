@@ -8,7 +8,10 @@ use unified_sim_model::model::Entry;
 use crate::{
     reference_store::ReferenceStore,
     style::properties::{Property, PropertyEditor},
-    value_store::{TypedValueProducer, UntypedValueRef, ValueProducer, ValueRef, ValueStore},
+    value_store::{
+        TypedValueProducer, TypedValueResolver, UntypedValueRef, ValueProducer, ValueRef,
+        ValueStore,
+    },
     value_types::{Boolean, Number, Text, Texture, Tint, ValueType},
 };
 
@@ -220,6 +223,32 @@ impl Map {
     }
 
     pub fn as_typed_producer(&self) -> TypedValueProducer {
+        let cases = self.generate_cases();
+        match &self.output_cases {
+            UntypedOutput::Number(output) => TypedValueProducer::Number(Box::new(MapProducer {
+                cases,
+                output: output.clone(),
+            })),
+            UntypedOutput::Text(output) => TypedValueProducer::Text(Box::new(MapProducer {
+                cases,
+                output: output.clone(),
+            })),
+            UntypedOutput::Tint(output) => TypedValueProducer::Tint(Box::new(MapProducer {
+                cases,
+                output: output.clone(),
+            })),
+            UntypedOutput::Boolean(output) => TypedValueProducer::Boolean(Box::new(MapProducer {
+                cases,
+                output: output.clone(),
+            })),
+            UntypedOutput::Texture(output) => TypedValueProducer::Texture(Box::new(MapProducer {
+                cases,
+                output: output.clone(),
+            })),
+        }
+    }
+
+    fn generate_cases(&self) -> Vec<CaseComparison> {
         let mut cases = Vec::new();
         for case in self.cases.iter() {
             match self.input.value_type {
@@ -235,7 +264,7 @@ impl Map {
                         ),
                         _ => unreachable!(),
                     };
-                    cases.push((CaseComparison::Number(case_comp), case.output.clone()));
+                    cases.push(CaseComparison::Number(case_comp));
                 }
                 ValueType::Text => {
                     let case_comp = match &case.comparison {
@@ -249,30 +278,12 @@ impl Map {
                         ),
                         _ => unreachable!(),
                     };
-                    cases.push((CaseComparison::Text(case_comp), case.output.clone()));
+                    cases.push(CaseComparison::Text(case_comp));
                 }
                 _ => unreachable!(),
             };
         }
-
-        let source = MapSource {
-            cases,
-            default: match &self.output_cases {
-                UntypedOutput::Number(output) => Output::Number(output.default.clone()),
-                UntypedOutput::Text(output) => Output::Text(output.default.clone()),
-                UntypedOutput::Tint(output) => Output::Color(output.default.clone()),
-                UntypedOutput::Boolean(output) => Output::Boolean(output.default.clone()),
-                UntypedOutput::Texture(output) => Output::Image(output.default.clone()),
-            },
-        };
-
-        match self.output_type {
-            ValueType::Number => TypedValueProducer::Number(Box::new(source)),
-            ValueType::Text => TypedValueProducer::Text(Box::new(source)),
-            ValueType::Tint => TypedValueProducer::Tint(Box::new(source)),
-            ValueType::Boolean => TypedValueProducer::Boolean(Box::new(source)),
-            ValueType::Texture => TypedValueProducer::Texture(Box::new(source)),
-        }
+        cases
     }
 }
 
@@ -431,110 +442,135 @@ impl Output {
     }
 }
 
-struct MapSource {
-    cases: Vec<(CaseComparison, Output)>,
-    default: Output,
+struct MapProducer<T> {
+    cases: Vec<CaseComparison>,
+    output: Output2<T>,
 }
-impl ValueProducer<Number> for MapSource {
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
-        self.cases
+
+impl<T> ValueProducer<T> for MapProducer<T>
+where
+    ValueStore: TypedValueResolver<T>,
+    T: Clone,
+{
+    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<T> {
+        let case_index = self
+            .cases
             .iter()
-            .find_map(|(case, output)| {
-                if case.test(value_store, entry) {
-                    match output {
-                        Output::Number(n) => value_store.get_property(n, entry),
-                        _ => unreachable!(),
-                    }
-                } else {
-                    None
-                }
-            })
-            .or_else(|| match &self.default {
-                Output::Number(p) => value_store.get_property(p, entry),
-                _ => unreachable!(),
-            })
+            .enumerate()
+            .find_map(|(index, case)| case.test(value_store, entry).then_some(index));
+
+        if case_index.is_none() {
+            return value_store.get_property(&self.output.default, entry);
+        }
+
+        let output_property = case_index
+            .and_then(|index| self.output.cases.get(index))
+            .expect("Index should be valid since cases and ouputs have the same length");
+
+        value_store.get_property(output_property, entry)
     }
 }
-impl ValueProducer<Text> for MapSource {
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
-        self.cases
-            .iter()
-            .find_map(|(case, output)| {
-                if case.test(value_store, entry) {
-                    match output {
-                        Output::Text(n) => value_store.get_property(n, entry),
-                        _ => unreachable!(),
-                    }
-                } else {
-                    None
-                }
-            })
-            .or_else(|| match &self.default {
-                Output::Text(p) => value_store.get_property(p, entry),
-                _ => unreachable!(),
-            })
-    }
-}
-impl ValueProducer<Tint> for MapSource {
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Tint> {
-        self.cases
-            .iter()
-            .find_map(|(case, output)| {
-                if case.test(value_store, entry) {
-                    match output {
-                        Output::Color(n) => value_store.get_property(n, entry),
-                        _ => unreachable!(),
-                    }
-                } else {
-                    None
-                }
-            })
-            .or_else(|| match &self.default {
-                Output::Color(p) => value_store.get_property(p, entry),
-                _ => unreachable!(),
-            })
-    }
-}
-impl ValueProducer<Boolean> for MapSource {
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
-        self.cases
-            .iter()
-            .find_map(|(case, output)| {
-                if case.test(value_store, entry) {
-                    match output {
-                        Output::Boolean(n) => value_store.get_property(n, entry),
-                        _ => unreachable!(),
-                    }
-                } else {
-                    None
-                }
-            })
-            .or_else(|| match &self.default {
-                Output::Boolean(p) => value_store.get_property(p, entry),
-                _ => unreachable!(),
-            })
-    }
-}
-impl ValueProducer<Texture> for MapSource {
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Texture> {
-        self.cases
-            .iter()
-            .find_map(|(case, output)| {
-                if case.test(value_store, entry) {
-                    match output {
-                        Output::Image(n) => value_store.get_property(n, entry),
-                        _ => unreachable!(),
-                    }
-                } else {
-                    None
-                }
-            })
-            .or_else(|| match &self.default {
-                Output::Image(p) => value_store.get_property(p, entry),
-                _ => unreachable!(),
-            })
-    }
-}
+
+// impl ValueProducer<Number> for MapSource {
+//     fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
+//         self.cases
+//             .iter()
+//             .find_map(|(case, output)| {
+//                 if case.test(value_store, entry) {
+//                     match output {
+//                         Output::Number(n) => value_store.get_property(n, entry),
+//                         _ => unreachable!(),
+//                     }
+//                 } else {
+//                     None
+//                 }
+//             })
+//             .or_else(|| match &self.default {
+//                 Output::Number(p) => value_store.get_property(p, entry),
+//                 _ => unreachable!(),
+//             })
+//     }
+// }
+// impl ValueProducer<Text> for MapSource {
+//     fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
+//         self.cases
+//             .iter()
+//             .find_map(|(case, output)| {
+//                 if case.test(value_store, entry) {
+//                     match output {
+//                         Output::Text(n) => value_store.get_property(n, entry),
+//                         _ => unreachable!(),
+//                     }
+//                 } else {
+//                     None
+//                 }
+//             })
+//             .or_else(|| match &self.default {
+//                 Output::Text(p) => value_store.get_property(p, entry),
+//                 _ => unreachable!(),
+//             })
+//     }
+// }
+// impl ValueProducer<Tint> for MapSource {
+//     fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Tint> {
+//         self.cases
+//             .iter()
+//             .find_map(|(case, output)| {
+//                 if case.test(value_store, entry) {
+//                     match output {
+//                         Output::Color(n) => value_store.get_property(n, entry),
+//                         _ => unreachable!(),
+//                     }
+//                 } else {
+//                     None
+//                 }
+//             })
+//             .or_else(|| match &self.default {
+//                 Output::Color(p) => value_store.get_property(p, entry),
+//                 _ => unreachable!(),
+//             })
+//     }
+// }
+// impl ValueProducer<Boolean> for MapSource {
+//     fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
+//         self.cases
+//             .iter()
+//             .find_map(|(case, output)| {
+//                 if case.test(value_store, entry) {
+//                     match output {
+//                         Output::Boolean(n) => value_store.get_property(n, entry),
+//                         _ => unreachable!(),
+//                     }
+//                 } else {
+//                     None
+//                 }
+//             })
+//             .or_else(|| match &self.default {
+//                 Output::Boolean(p) => value_store.get_property(p, entry),
+//                 _ => unreachable!(),
+//             })
+//     }
+// }
+// impl ValueProducer<Texture> for MapSource {
+//     fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Texture> {
+//         self.cases
+//             .iter()
+//             .find_map(|(case, output)| {
+//                 if case.test(value_store, entry) {
+//                     match output {
+//                         Output::Image(n) => value_store.get_property(n, entry),
+//                         _ => unreachable!(),
+//                     }
+//                 } else {
+//                     None
+//                 }
+//             })
+//             .or_else(|| match &self.default {
+//                 Output::Image(p) => value_store.get_property(p, entry),
+//                 _ => unreachable!(),
+//             })
+//     }
+// }
 
 enum CaseComparison {
     Number((ValueRef<Number>, NumberComparator, Property<Number>)),

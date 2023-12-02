@@ -31,6 +31,12 @@ enum Input {
 }
 
 impl Input {
+    fn value_type(&self) -> ValueType {
+        match self {
+            Input::Number { .. } => ValueType::Number,
+            Input::Text { .. } => ValueType::Text,
+        }
+    }
     fn input_id(&self) -> Uuid {
         match self {
             Input::Number { input, .. } => input.id,
@@ -129,6 +135,15 @@ enum UntypedOutput {
 }
 
 impl UntypedOutput {
+    fn case_count(&self) -> usize {
+        match self {
+            UntypedOutput::Number(o) => o.cases.len(),
+            UntypedOutput::Text(o) => o.cases.len(),
+            UntypedOutput::Tint(o) => o.cases.len(),
+            UntypedOutput::Boolean(o) => o.cases.len(),
+            UntypedOutput::Texture(o) => o.cases.len(),
+        }
+    }
     fn remove(&mut self, index: usize) {
         match self {
             UntypedOutput::Number(output) => _ = output.cases.remove(index),
@@ -145,6 +160,15 @@ impl UntypedOutput {
             UntypedOutput::Tint(o) => o.cases.push(Property::default()),
             UntypedOutput::Boolean(o) => o.cases.push(Property::default()),
             UntypedOutput::Texture(o) => o.cases.push(Property::default()),
+        }
+    }
+    fn clear(&mut self) {
+        match self {
+            UntypedOutput::Number(o) => o.cases.clear(),
+            UntypedOutput::Text(o) => o.cases.clear(),
+            UntypedOutput::Tint(o) => o.cases.clear(),
+            UntypedOutput::Boolean(o) => o.cases.clear(),
+            UntypedOutput::Texture(o) => o.cases.clear(),
         }
     }
     fn edit_case(
@@ -240,30 +264,38 @@ impl Map {
             let InnerResponse {
                 inner: new_untyped_ref,
                 response: _,
-            } = asset_repo.untyped_editor(ui, &self.input.input_id(), |v| {
-                match v.asset_type {
-                    ValueType::Number => true,
-                    ValueType::Text => true,
-                    _ => false,
-                }
+            } = asset_repo.untyped_editor(ui, &self.input.input_id(), |v| match v.asset_type {
+                ValueType::Number => true,
+                ValueType::Text => true,
+                _ => false,
             });
 
             if let Some(new_untyped_ref) = new_untyped_ref {
-                self.input = match new_untyped_ref.value_type {
-                    ValueType::Number => Input::Number {
-                        input: new_untyped_ref.typed(),
-                        cases: Vec::new(),
-                    },
-                    ValueType::Text => Input::Text {
-                        input: new_untyped_ref.typed(),
-                        cases: Vec::new(),
-                    },
-                    ValueType::Tint => unreachable!("Type Color not allowed in comparison"),
-                    ValueType::Boolean => {
-                        unreachable!("Type Boolean not allowed in comparison")
+                // Only update the actual input reference
+                if new_untyped_ref.value_type == self.input.value_type() {
+                    match &mut self.input {
+                        Input::Number { input, .. } => *input = new_untyped_ref.typed(),
+                        Input::Text { input, .. } => *input = new_untyped_ref.typed(),
                     }
-                    ValueType::Texture => unreachable!("Type Image not allowed in comparison"),
-                };
+                } else {
+                    // Change the entire type of the input to match the new reference.
+                    self.input = match new_untyped_ref.value_type {
+                        ValueType::Number => Input::Number {
+                            input: new_untyped_ref.typed(),
+                            cases: Vec::new(),
+                        },
+                        ValueType::Text => Input::Text {
+                            input: new_untyped_ref.typed(),
+                            cases: Vec::new(),
+                        },
+                        ValueType::Tint => unreachable!("Type Color not allowed in comparison"),
+                        ValueType::Boolean => {
+                            unreachable!("Type Boolean not allowed in comparison")
+                        }
+                        ValueType::Texture => unreachable!("Type Image not allowed in comparison"),
+                    };
+                    self.output.clear();
+                }
                 changed |= true;
             };
         });
@@ -321,6 +353,14 @@ impl Map {
         ui.horizontal(|ui| {
             changed |= self.output.edit_default(ui, asset_repo).changed();
         });
+
+        if self.input.case_count() != self.output.case_count() {
+            panic!(
+                "Case counts in map are different. This should never happen. inputs: {}, outputs:{}",
+                self.input.case_count(),
+                self.output.case_count()
+            );
+        }
 
         changed
     }

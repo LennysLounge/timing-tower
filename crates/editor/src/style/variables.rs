@@ -213,33 +213,6 @@ impl VariableDefinition {
     }
 }
 
-fn variant_checkbox<T: Clone>(ui: &mut Ui, thing: &mut T, other_things: &[(&T, &str)]) -> Response {
-    let mut changed = false;
-    let mut res = ComboBox::new(ui.next_auto_id(), "")
-        .selected_text({
-            other_things
-                .iter()
-                .find_map(|(other, name)| {
-                    (discriminant(thing) == discriminant(other)).then_some(*name)
-                })
-                .unwrap_or("Not Found")
-        })
-        .show_ui(ui, |ui| {
-            for (other, name) in other_things {
-                let is_same = discriminant(thing) == discriminant(other);
-                if ui.selectable_label(is_same, *name).clicked() && !is_same {
-                    *thing = (*other).clone();
-                    changed = true;
-                }
-            }
-        })
-        .response;
-    if changed {
-        res.mark_changed();
-    }
-    res
-}
-
 trait EguiComboBoxExtension {
     /// Shows the combobox with one entry for each variant.
     /// Compares variants based on their discriminants and not PartialEq.

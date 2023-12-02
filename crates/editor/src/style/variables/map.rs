@@ -1,23 +1,22 @@
 use std::marker::PhantomData;
 
 use bevy::prelude::Color;
-use bevy_egui::egui::{vec2, ComboBox, Ui};
+use bevy_egui::egui::{vec2, ComboBox, InnerResponse, Ui};
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 
 use crate::{
-    reference_store::{ProducerData, ReferenceStore},
+    reference_store::ReferenceStore,
     style::properties::{Property, PropertyEditor},
     value_store::{TypedValueProducer, UntypedValueRef, ValueProducer, ValueRef, ValueStore},
     value_types::{Boolean, Number, Text, Texture, Tint, ValueType},
 };
 
-use super::variant_checkbox;
+use super::EguiComboBoxExtension;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Map {
-    #[serde(flatten)]
-    id: ProducerData,
+    output_type: ValueType,
     input: UntypedValueRef,
     cases: Vec<Case>,
     default: Output,
@@ -26,7 +25,7 @@ pub struct Map {
 impl Default for Map {
     fn default() -> Self {
         Self {
-            id: ProducerData::default(),
+            output_type: ValueType::Number,
             input: UntypedValueRef::default(),
             cases: Vec::new(),
             default: Output::Number(Property::Fixed(Number(0.0))),
@@ -40,50 +39,60 @@ impl Map {
 
         ui.horizontal(|ui| {
             ui.label("Map input: ");
-            let new_ref = asset_repo.untyped_editor(ui, &self.input.id, |v|
-                match v.asset_type{
-                    ValueType::Number => true,
-                    ValueType::Text => true,
-                    _ => false
-                } &&
-                v.id != self.id.id);
-            if let Some(new_ref) = new_ref.inner {
-                self.input = new_ref;
-                changed |= true;
-                let new_comparison = match self.input.value_type {
-                    ValueType::Number => {
-                        Comparison::Number(Property::Fixed(Number(0.0)), NumberComparator::Equal)
+
+            let InnerResponse {
+                inner: new_untyped_ref,
+                response: _,
+            } = asset_repo.untyped_editor(ui, &self.input.id, |v| match v.asset_type {
+                ValueType::Number => true,
+                ValueType::Text => true,
+                _ => false,
+            });
+
+            if let Some(new_untyped_ref) = new_untyped_ref {
+                if self.input.value_type != new_untyped_ref.value_type {
+                    let new_comparison = match self.input.value_type {
+                        ValueType::Number => Comparison::Number(
+                            Property::Fixed(Number(0.0)),
+                            NumberComparator::Equal,
+                        ),
+                        ValueType::Text => Comparison::Text(
+                            Property::Fixed(Text(String::new())),
+                            TextComparator::Like,
+                        ),
+                        ValueType::Tint => unreachable!("Type Color not allowed in comparison"),
+                        ValueType::Boolean => {
+                            unreachable!("Type Boolean not allowed in comparison")
+                        }
+                        ValueType::Texture => unreachable!("Type Image not allowed in comparison"),
+                    };
+                    for case in self.cases.iter_mut() {
+                        case.comparison = new_comparison.clone();
                     }
-                    ValueType::Text => {
-                        Comparison::Text(Property::Fixed(Text(String::new())), TextComparator::Like)
-                    }
-                    ValueType::Tint => unreachable!("Type Color not allowed in comparison"),
-                    ValueType::Boolean => unreachable!("Type Boolean not allowed in comparison"),
-                    ValueType::Texture => unreachable!("Type Image not allowed in comparison"),
-                };
-                for case in self.cases.iter_mut() {
-                    case.comparison = new_comparison.clone();
                 }
+                self.input = new_untyped_ref;
+                changed |= true;
             };
         });
         ui.horizontal(|ui| {
             ui.label("to type: ");
-            let output_type_before = self.id.asset_type;
-            let res = variant_checkbox(
+
+            let res = ComboBox::from_id_source(ui.next_auto_id()).choose(
                 ui,
-                &mut self.id.asset_type,
-                &[
-                    (&ValueType::Number, "Number"),
-                    (&ValueType::Text, "Text"),
-                    (&ValueType::Tint, "Color"),
-                    (&ValueType::Boolean, "Yes/No"),
-                    (&ValueType::Texture, "Image"),
+                &mut self.output_type,
+                vec![
+                    (ValueType::Number, "Number"),
+                    (ValueType::Text, "Text"),
+                    (ValueType::Tint, "Color"),
+                    (ValueType::Boolean, "Yes/No"),
+                    (ValueType::Texture, "Image"),
                 ],
             );
+
             changed |= res.changed();
-            if res.changed() && output_type_before != self.id.asset_type {
+            if res.changed() {
                 println!("Update output types");
-                let new_output = match self.id.asset_type {
+                let new_output = match self.output_type {
                     ValueType::Number => Output::Number(Property::Fixed(Number(0.0))),
                     ValueType::Text => Output::Text(Property::Fixed(Text(String::new()))),
                     ValueType::Tint => Output::Color(Property::Fixed(Tint(Color::WHITE))),
@@ -139,7 +148,7 @@ impl Map {
     }
 
     fn new_output(&self) -> Output {
-        match self.id.asset_type {
+        match self.output_type {
             ValueType::Number => Output::Number(Property::Fixed(Number(0.0))),
             ValueType::Text => Output::Text(Property::Fixed(Text(String::new()))),
             ValueType::Tint => Output::Color(Property::Fixed(Tint(Color::WHITE))),
@@ -151,7 +160,7 @@ impl Map {
 
 impl Map {
     pub fn output_type(&self) -> ValueType {
-        self.id.asset_type
+        self.output_type
     }
 
     pub fn as_typed_producer(&self) -> TypedValueProducer {
@@ -195,7 +204,7 @@ impl Map {
             default: self.default.clone(),
         };
 
-        match self.id.asset_type {
+        match self.output_type {
             ValueType::Number => TypedValueProducer::Number(Box::new(source)),
             ValueType::Text => TypedValueProducer::Text(Box::new(source)),
             ValueType::Tint => TypedValueProducer::Tint(Box::new(source)),

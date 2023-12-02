@@ -172,6 +172,14 @@
           ],
           "renameable": true
         }
+      },
+      {
+        "T": {
+          "id": "819d2f30-0d03-413a-8f09-9a0afa58b3ed",
+          "name": "background",
+          "value_type": "Texture",
+          "path": "acc6.PNG"
+        }
       }
     ],
     "renameable": false

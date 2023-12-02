@@ -33,7 +33,7 @@ use style::StyleDefinition;
 
 use timing_tower::{init_timing_tower, TimingTowerPlugin};
 use unified_sim_model::Adapter;
-use uuid::Uuid;
+use uuid::uuid;
 use value_store::ValueStore;
 
 mod asset_store_impl;
@@ -139,8 +139,7 @@ fn setup(
             text_alignment: TextAlignment::Center,
             text_position: Vec2::ZERO,
             color: Color::WHITE,
-            //texture: Some(asset_server.load("acc6.PNG".to_string())),
-            texture: Some(Uuid::new_v4()),
+            texture: Some(uuid!("819d2f30-0d03-413a-8f09-9a0afa58b3ed")),
             pos: Vec3::new(0.0, 0.0, 0.0),
             size: Vec2::new(1920.0, 1080.0),
             skew: 0.0,

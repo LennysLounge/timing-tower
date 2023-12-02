@@ -25,7 +25,10 @@ impl AssetStoreImpl {
                 .all_t()
                 .iter()
                 .filter_map(|asset_def| match asset_def.value_type {
-                    ValueType::Texture => Some((asset_def.id, asset_server.load(&asset_def.path))),
+                    ValueType::Texture => Some((
+                        asset_def.id,
+                        asset_server.load(format!("savefile://{}", &asset_def.path)),
+                    )),
                     _ => unreachable!(),
                 })
                 .collect(),

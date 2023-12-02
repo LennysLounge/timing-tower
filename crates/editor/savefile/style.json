@@ -403,354 +403,45 @@
       },
       {
         "T": {
-          "id": "90eb20ce-9b39-41ab-b6c8-626ba182ea6e",
-          "name": "Manufacturer icons",
-          "behavior": {
-            "Map": {
-              "id": "90eb20ce-9b39-41ab-b6c8-626ba182ea6e",
-              "name": "Manufacturer icons",
-              "asset_type": "Texture",
-              "input": {
-                "value_type": "Text",
-                "id": "d1a60628-1ac7-4ad4-a502-95bc649edf07"
-              },
-              "cases": [
-                {
-                  "comparison": {
-                    "Text": [
-                      "Alpine",
-                      "Like"
-                    ]
-                  },
-                  "output": {
-                    "Image": {
-                      "ValueRef": "b7ba5250-cf78-4146-a7c8-f2b85adc4c5f"
-                    }
-                  },
-                  "remove": false
-                },
-                {
-                  "comparison": {
-                    "Text": [
-                      "Aston-Martin",
-                      "Like"
-                    ]
-                  },
-                  "output": {
-                    "Image": {
-                      "ValueRef": "3eee3a38-140e-453e-8830-4f256ee83e07"
-                    }
-                  },
-                  "remove": false
-                },
-                {
-                  "comparison": {
-                    "Text": [
-                      "Audi",
-                      "Like"
-                    ]
-                  },
-                  "output": {
-                    "Image": {
-                      "ValueRef": "1e8814f4-16dd-4ad9-be24-2ea075bcff6a"
-                    }
-                  },
-                  "remove": false
-                },
-                {
-                  "comparison": {
-                    "Text": [
-                      "Bentley",
-                      "Like"
-                    ]
-                  },
-                  "output": {
-                    "Image": {
-                      "ValueRef": "ecfb2bad-459a-4b64-b8ed-5d5147053ea2"
-                    }
-                  },
-                  "remove": false
-                },
-                {
-                  "comparison": {
-                    "Text": [
-                      "BMW",
-                      "Like"
-                    ]
-                  },
-                  "output": {
-                    "Image": {
-                      "ValueRef": "ecd425a6-2490-484b-9979-a19933de1193"
-                    }
-                  },
-                  "remove": false
-                },
-                {
-                  "comparison": {
-                    "Text": [
-                      "Chevrolet",
-                      "Like"
-                    ]
-                  },
-                  "output": {
-                    "Image": {
-                      "ValueRef": "48368915-4dcb-443b-8f6e-d6ace044ced9"
-                    }
-                  },
-                  "remove": false
-                },
-                {
-                  "comparison": {
-                    "Text": [
-                      "Ferrari",
-                      "Like"
-                    ]
-                  },
-                  "output": {
-                    "Image": {
-                      "ValueRef": "afcae1d6-f887-4417-bdfb-c09e91116adb"
-                    }
-                  },
-                  "remove": false
-                },
-                {
-                  "comparison": {
-                    "Text": [
-                      "Ginetta",
-                      "Like"
-                    ]
-                  },
-                  "output": {
-                    "Image": {
-                      "ValueRef": "77133dec-724a-491a-b2ce-fd2888a78ab1"
-                    }
-                  },
-                  "remove": false
-                },
-                {
-                  "comparison": {
-                    "Text": [
-                      "Honda",
-                      "Like"
-                    ]
-                  },
-                  "output": {
-                    "Image": {
-                      "ValueRef": "c0432571-650f-4fdc-a708-aa9a01117590"
-                    }
-                  },
-                  "remove": false
-                },
-                {
-                  "comparison": {
-                    "Text": [
-                      "Jaguar",
-                      "Like"
-                    ]
-                  },
-                  "output": {
-                    "Image": {
-                      "ValueRef": "95dc96a9-97ce-436b-bf78-8465e0929ce9"
-                    }
-                  },
-                  "remove": false
-                },
-                {
-                  "comparison": {
-                    "Text": [
-                      "KTM",
-                      "Like"
-                    ]
-                  },
-                  "output": {
-                    "Image": {
-                      "ValueRef": "922570d9-792b-4555-aa52-65f1d890996b"
-                    }
-                  },
-                  "remove": false
-                },
-                {
-                  "comparison": {
-                    "Text": [
-                      "Lamborghini",
-                      "Like"
-                    ]
-                  },
-                  "output": {
-                    "Image": {
-                      "ValueRef": "fc0aba26-4d09-41a8-982a-d2534c9fdb8c"
-                    }
-                  },
-                  "remove": false
-                },
-                {
-                  "comparison": {
-                    "Text": [
-                      "Lexus",
-                      "Like"
-                    ]
-                  },
-                  "output": {
-                    "Image": {
-                      "ValueRef": "66146a86-cb01-437f-814d-5c86efd5a777"
-                    }
-                  },
-                  "remove": false
-                },
-                {
-                  "comparison": {
-                    "Text": [
-                      "Maserati",
-                      "Like"
-                    ]
-                  },
-                  "output": {
-                    "Image": {
-                      "ValueRef": "230297a5-ff60-494e-acba-5af35c4f7e99"
-                    }
-                  },
-                  "remove": false
-                },
-                {
-                  "comparison": {
-                    "Text": [
-                      "McLaren",
-                      "Like"
-                    ]
-                  },
-                  "output": {
-                    "Image": {
-                      "ValueRef": "2295c661-0609-483d-b3df-248efa705f9d"
-                    }
-                  },
-                  "remove": false
-                },
-                {
-                  "comparison": {
-                    "Text": [
-                      "Mercedes-AMG",
-                      "Like"
-                    ]
-                  },
-                  "output": {
-                    "Image": {
-                      "ValueRef": "d0edeef4-f187-44df-9c65-d81d405d8062"
-                    }
-                  },
-                  "remove": false
-                },
-                {
-                  "comparison": {
-                    "Text": [
-                      "Nissan",
-                      "Like"
-                    ]
-                  },
-                  "output": {
-                    "Image": {
-                      "ValueRef": "1f2524af-9c72-495e-89e2-fda763f2ee18"
-                    }
-                  },
-                  "remove": false
-                },
-                {
-                  "comparison": {
-                    "Text": [
-                      "Porsche",
-                      "Like"
-                    ]
-                  },
-                  "output": {
-                    "Image": {
-                      "ValueRef": "4971fafb-479d-470f-8afd-b85e6820a396"
-                    }
-                  },
-                  "remove": false
-                },
-                {
-                  "comparison": {
-                    "Text": [
-                      "Reiter-Engineering",
-                      "Like"
-                    ]
-                  },
-                  "output": {
-                    "Image": {
-                      "ValueRef": "109ecca7-9500-4c6a-b496-95a8da13d299"
-                    }
-                  },
-                  "remove": false
-                }
-              ],
-              "default": {
-                "Image": {
-                  "ValueRef": "62823f7e-db28-4087-a148-79d943b6ecfc"
-                }
-              }
-            }
-          }
-        }
-      },
-      {
-        "T": {
           "id": "8536ebf5-82e1-41e3-bc37-b713534a7780",
           "name": "Cup category background",
           "behavior": {
             "Map": {
-              "id": "8536ebf5-82e1-41e3-bc37-b713534a7780",
-              "name": "Cup category background",
-              "asset_type": "Tint",
               "input": {
-                "value_type": "Number",
-                "id": "4d519d42-52e9-435c-b614-8d70b42ed3b0"
+                "Number": {
+                  "input": "4d519d42-52e9-435c-b614-8d70b42ed3b0",
+                  "cases": [
+                    {
+                      "right": 0.0,
+                      "comparator": "Equal"
+                    },
+                    {
+                      "right": 3.0,
+                      "comparator": "Equal"
+                    },
+                    {
+                      "right": 2.0,
+                      "comparator": "Equal"
+                    }
+                  ]
+                }
               },
-              "cases": [
-                {
-                  "comparison": {
-                    "Number": [
-                      0.0,
-                      "Equal"
-                    ]
-                  },
-                  "output": {
-                    "Color": {
+              "output": {
+                "Tint": {
+                  "cases": [
+                    {
                       "ValueRef": "5a657363-96fc-4329-a580-8ed41b85405e"
-                    }
-                  },
-                  "remove": false
-                },
-                {
-                  "comparison": {
-                    "Number": [
-                      3.0,
-                      "Equal"
-                    ]
-                  },
-                  "output": {
-                    "Color": {
+                    },
+                    {
                       "ValueRef": "ecdfcaf2-d808-4fca-b118-88aee5d1b495"
-                    }
-                  },
-                  "remove": false
-                },
-                {
-                  "comparison": {
-                    "Number": [
-                      2.0,
-                      "Equal"
-                    ]
-                  },
-                  "output": {
-                    "Color": {
+                    },
+                    {
                       "ValueRef": "7a126bfa-2fb7-464f-9ed1-1f92665d9460"
                     }
-                  },
-                  "remove": false
-                }
-              ],
-              "default": {
-                "Color": {
-                  "ValueRef": "5a657363-96fc-4329-a580-8ed41b85405e"
+                  ],
+                  "default": {
+                    "ValueRef": "5a657363-96fc-4329-a580-8ed41b85405e"
+                  }
                 }
               }
             }
@@ -763,61 +454,45 @@
           "name": "Cup Category text color",
           "behavior": {
             "Map": {
-              "id": "925dacee-265f-45ee-baf8-668e3005a03d",
-              "name": "Cup Category text color",
-              "asset_type": "Tint",
               "input": {
-                "value_type": "Number",
-                "id": "4d519d42-52e9-435c-b614-8d70b42ed3b0"
+                "Number": {
+                  "input": "4d519d42-52e9-435c-b614-8d70b42ed3b0",
+                  "cases": [
+                    {
+                      "right": 0.0,
+                      "comparator": "Equal"
+                    },
+                    {
+                      "right": 2.0,
+                      "comparator": "Equal"
+                    },
+                    {
+                      "right": 3.0,
+                      "comparator": "Equal"
+                    }
+                  ]
+                }
               },
-              "cases": [
-                {
-                  "comparison": {
-                    "Number": [
-                      0.0,
-                      "Equal"
-                    ]
-                  },
-                  "output": {
-                    "Color": {
+              "output": {
+                "Tint": {
+                  "cases": [
+                    {
                       "Rgba": {
                         "red": 0.0,
                         "green": 0.0,
                         "blue": 0.0,
                         "alpha": 1.0
                       }
-                    }
-                  },
-                  "remove": false
-                },
-                {
-                  "comparison": {
-                    "Number": [
-                      2.0,
-                      "Equal"
-                    ]
-                  },
-                  "output": {
-                    "Color": {
+                    },
+                    {
                       "Rgba": {
                         "red": 0.0,
                         "green": 0.0,
                         "blue": 0.0,
                         "alpha": 1.0
                       }
-                    }
-                  },
-                  "remove": false
-                },
-                {
-                  "comparison": {
-                    "Number": [
-                      3.0,
-                      "Equal"
-                    ]
-                  },
-                  "output": {
-                    "Color": {
+                    },
+                    {
                       "Rgba": {
                         "red": 1.0,
                         "green": 1.0,
@@ -825,17 +500,14 @@
                         "alpha": 1.0
                       }
                     }
-                  },
-                  "remove": false
-                }
-              ],
-              "default": {
-                "Color": {
-                  "Rgba": {
-                    "red": 0.0,
-                    "green": 0.0,
-                    "blue": 0.0,
-                    "alpha": 1.0
+                  ],
+                  "default": {
+                    "Rgba": {
+                      "red": 0.0,
+                      "green": 0.0,
+                      "blue": 0.0,
+                      "alpha": 1.0
+                    }
                   }
                 }
               }

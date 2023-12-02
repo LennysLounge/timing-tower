@@ -14,8 +14,8 @@ use super::EguiComboBoxExtension;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Map {
-    input_case: Input,
-    output_cases: UntypedOutput,
+    input: Input,
+    output: UntypedOutput,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -221,11 +221,11 @@ where
 impl Default for Map {
     fn default() -> Self {
         Self {
-            input_case: Input::Number {
+            input: Input::Number {
                 input: ValueRef::default(),
                 cases: Vec::new(),
             },
-            output_cases: UntypedOutput::Number(Output::default()),
+            output: UntypedOutput::Number(Output::default()),
         }
     }
 }
@@ -240,7 +240,7 @@ impl Map {
             let InnerResponse {
                 inner: new_untyped_ref,
                 response: _,
-            } = asset_repo.untyped_editor(ui, &self.input_case.input_id(), |v| {
+            } = asset_repo.untyped_editor(ui, &self.input.input_id(), |v| {
                 match v.asset_type {
                     ValueType::Number => true,
                     ValueType::Text => true,
@@ -249,7 +249,7 @@ impl Map {
             });
 
             if let Some(new_untyped_ref) = new_untyped_ref {
-                self.input_case = match new_untyped_ref.value_type {
+                self.input = match new_untyped_ref.value_type {
                     ValueType::Number => Input::Number {
                         input: new_untyped_ref.typed(),
                         cases: Vec::new(),
@@ -270,11 +270,11 @@ impl Map {
         ui.horizontal(|ui| {
             ui.label("to type: ");
 
-            let count = self.input_case.case_count();
+            let count = self.input.case_count();
             changed |= ComboBox::from_id_source(ui.next_auto_id())
                 .choose(
                     ui,
-                    &mut self.output_cases,
+                    &mut self.output,
                     vec![
                         (UntypedOutput::Number(Output::with_count(count)), "Number"),
                         (UntypedOutput::Text(Output::with_count(count)), "Text"),
@@ -288,16 +288,16 @@ impl Map {
         ui.separator();
 
         let mut remove_case = None;
-        for index in 0..self.input_case.case_count() {
+        for index in 0..self.input.case_count() {
             ui.horizontal(|ui| {
-                changed |= self.input_case.edit_case(ui, asset_repo, index);
+                changed |= self.input.edit_case(ui, asset_repo, index);
                 ui.allocate_space(vec2(10.0, 0.0));
                 ui.label("then");
                 ui.allocate_space(vec2(10.0, 0.0));
                 ui.vertical(|ui| {
                     ui.label("output");
                     ui.horizontal(|ui| {
-                        changed |= self.output_cases.edit_case(ui, asset_repo, index).changed();
+                        changed |= self.output.edit_case(ui, asset_repo, index).changed();
                     });
                 });
             });
@@ -308,18 +308,18 @@ impl Map {
         }
 
         if let Some(index) = remove_case {
-            self.input_case.remove(index);
-            self.output_cases.remove(index);
+            self.input.remove(index);
+            self.output.remove(index);
         }
 
         if ui.button("add case").clicked() {
-            self.input_case.push();
-            self.output_cases.push();
+            self.input.push();
+            self.output.push();
         }
 
         ui.label("Default:");
         ui.horizontal(|ui| {
-            changed |= self.output_cases.edit_default(ui, asset_repo).changed();
+            changed |= self.output.edit_default(ui, asset_repo).changed();
         });
 
         changed
@@ -328,7 +328,7 @@ impl Map {
 
 impl Map {
     pub fn output_type(&self) -> ValueType {
-        match self.output_cases {
+        match self.output {
             UntypedOutput::Number(_) => ValueType::Number,
             UntypedOutput::Text(_) => ValueType::Text,
             UntypedOutput::Tint(_) => ValueType::Tint,
@@ -339,7 +339,7 @@ impl Map {
 
     pub fn as_typed_producer(&self) -> TypedValueProducer {
         let cases = self.generate_cases();
-        match &self.output_cases {
+        match &self.output {
             UntypedOutput::Number(output) => TypedValueProducer::Number(Box::new(MapProducer {
                 cases,
                 output: output.clone(),
@@ -364,7 +364,7 @@ impl Map {
     }
 
     fn generate_cases(&self) -> Vec<CaseComparison> {
-        match &self.input_case {
+        match &self.input {
             Input::Number { input, cases } => cases
                 .iter()
                 .map(|c| {

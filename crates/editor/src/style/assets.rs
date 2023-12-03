@@ -1,28 +1,14 @@
-use bevy::prelude::AssetServer;
 use bevy_egui::egui::Ui;
-use serde::{Deserialize, Serialize};
 use tree_view::{TreeUi, TreeViewBuilder};
 use uuid::Uuid;
 
 use crate::reference_store::{IntoProducerData, ProducerData, ReferenceStore};
 use backend::{
-    value_store::{IntoValueProducer, TypedValueProducer},
-    value_types::{Texture, ValueType},
+    style::{assets::AssetDefinition, folder::Folder},
+    value_types::ValueType,
 };
 
-use super::{
-    folder::{Folder, FolderActions},
-    variables::StaticValueProducer,
-    StyleTreeNode, StyleTreeUi, TreeViewAction,
-};
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct AssetDefinition {
-    pub id: Uuid,
-    pub name: String,
-    pub value_type: ValueType,
-    pub path: String,
-}
+use super::{folder::FolderActions, StyleTreeNode, StyleTreeUi, TreeViewAction};
 
 impl FolderActions for AssetDefinition {
     type FolderType = AssetDefinition;
@@ -73,18 +59,6 @@ impl IntoProducerData for AssetDefinition {
             name: self.name.clone(),
             value_type: self.value_type.clone(),
         }
-    }
-}
-
-impl IntoValueProducer for AssetDefinition {
-    fn get_value_producer(&self) -> (Uuid, TypedValueProducer) {
-        let typed_value_producer = match self.value_type {
-            ValueType::Texture => {
-                TypedValueProducer::Texture(Box::new(StaticValueProducer(Texture::Handle(self.id))))
-            }
-            _ => unreachable!(),
-        };
-        (self.id, typed_value_producer)
     }
 }
 
@@ -169,13 +143,4 @@ impl StyleTreeNode for AssetDefinition {
     }
 
     fn insert(&mut self, _node: Box<dyn std::any::Any>, _position: &tree_view::DropPosition) {}
-}
-
-impl AssetDefinition {
-    pub fn load_asset(&mut self, _asset_server: &AssetServer) {
-        // Feature: Show load state of assets
-        // match self {
-        //     AssetDefinition::Image(o) => o.load_asset(asset_server),
-        // }
-    }
 }

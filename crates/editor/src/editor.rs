@@ -6,8 +6,7 @@ use backend::value_store::ValueStore;
 use bevy::{
     math::vec3,
     prelude::{
-        resource_exists, AssetEvent, AssetServer, EventReader, Image, IntoSystemConfigs, Plugin,
-        Query, Res, ResMut, Resource, Startup, Update, With,
+        resource_exists, IntoSystemConfigs, Plugin, Query, ResMut, Resource, Startup, Update, With,
     },
     transform::components::Transform,
 };
@@ -37,8 +36,7 @@ impl Plugin for EditorPlugin {
                 Update,
                 ui.run_if(resource_exists::<EditorState>())
                     .before(camera::set_camera_viewport),
-            )
-            .add_systems(Update, update_asset_load_state);
+            );
     }
 }
 
@@ -81,7 +79,6 @@ struct EditorTabViewer<'a> {
     viewport: &'a mut Rect,
     selected_node: &'a mut Option<Uuid>,
     style: &'a mut StyleDefinition,
-    asset_server: &'a AssetServer,
 }
 impl<'a> TabViewer for EditorTabViewer<'a> {
     type Tab = Tab;
@@ -105,7 +102,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 tree_view_elements(ui, self.selected_node, self.style);
             }
             Tab::PropertyEditor => {
-                property_editor(ui, self.selected_node, self.style, self.asset_server);
+                property_editor(ui, self.selected_node, self.style);
             }
             Tab::Variables => {
                 tree_view_vars(ui, self.selected_node, self.style);
@@ -135,7 +132,6 @@ fn ui(
     mut style: ResMut<StyleDefinition>,
     mut variable_repo: ResMut<ValueStore>,
     mut editor_camera: Query<(&mut EditorCamera, &mut Transform), With<MainCamera>>,
-    asset_server: Res<AssetServer>,
 ) {
     egui::TopBottomPanel::top("Top panel").show(ctx.ctx_mut(), |ui| {
         egui::menu::bar(ui, |ui| {
@@ -185,7 +181,6 @@ fn ui(
                 viewport,
                 selected_node,
                 style: &mut *style,
-                asset_server: &asset_server,
             },
         );
 
@@ -315,12 +310,7 @@ fn tree_view_assets(ui: &mut Ui, selected_node: &mut Option<Uuid>, style: &mut S
     }
 }
 
-fn property_editor(
-    ui: &mut Ui,
-    selected_node: &mut Option<Uuid>,
-    style: &mut StyleDefinition,
-    asset_server: &AssetServer,
-) {
+fn property_editor(ui: &mut Ui, selected_node: &mut Option<Uuid>, style: &mut StyleDefinition) {
     let mut changed = false;
 
     let asset_reference_repo = ReferenceStore::new(&style.vars, &style.assets);
@@ -333,27 +323,4 @@ fn property_editor(
                 .map(|selected_node| selected_node.property_editor(ui, &asset_reference_repo))
                 .is_some_and(|b| b);
         });
-
-    if changed {
-        style
-            .assets
-            .all_t_mut()
-            .into_iter()
-            .for_each(|a| a.load_asset(&*asset_server));
-    }
-}
-
-fn update_asset_load_state(
-    event: EventReader<AssetEvent<Image>>,
-    asset_server: Res<AssetServer>,
-    mut style: ResMut<StyleDefinition>,
-) {
-    if event.is_empty() {
-        return;
-    }
-    style
-        .assets
-        .all_t_mut()
-        .into_iter()
-        .for_each(|a| a.load_asset(&*asset_server));
 }

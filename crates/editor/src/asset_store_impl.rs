@@ -1,14 +1,12 @@
 use std::collections::HashMap;
 
-use backend::value_types::ValueType;
+use backend::{style::{folder::Folder, assets::AssetDefinition}, value_types::ValueType};
 use bevy::{
     asset::{AssetServer, Handle},
     render::texture::Image,
 };
 use common::asset_store::{AssetResolver, SpecializedAssetStore};
 use uuid::Uuid;
-
-use crate::style::{assets::AssetDefinition, folder::Folder};
 
 /// The asset store holds a bevy handle to all assets that are
 /// defined in the style.

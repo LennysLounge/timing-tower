@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use backend::{
+    style::cell::Cell,
     value_store::ValueStore,
     value_types::{Boolean, Number, Text, Texture, Tint},
 };
@@ -21,10 +22,7 @@ use unified_sim_model::{
     Adapter,
 };
 
-use crate::{
-    style::{cell::Cell, StyleDefinition},
-    SpawnAndInitWorld,
-};
+use crate::{style::StyleDefinition, SpawnAndInitWorld};
 
 pub struct TimingTowerPlugin;
 impl Plugin for TimingTowerPlugin {
@@ -308,9 +306,11 @@ fn create_cell_style(cell: &Cell, vars: &ValueStore, entry: Option<&Entry>) -> C
             .unwrap_or(Number(20.0))
             .0,
         text_alignment: match cell.text_alginment {
-            crate::style::cell::TextAlignment::Left => common::cell::style::TextAlignment::Left,
-            crate::style::cell::TextAlignment::Center => common::cell::style::TextAlignment::Center,
-            crate::style::cell::TextAlignment::Right => common::cell::style::TextAlignment::Right,
+            backend::style::cell::TextAlignment::Left => common::cell::style::TextAlignment::Left,
+            backend::style::cell::TextAlignment::Center => {
+                common::cell::style::TextAlignment::Center
+            }
+            backend::style::cell::TextAlignment::Right => common::cell::style::TextAlignment::Right,
         },
         text_position: Vec2::new(
             vars.get_property(&cell.text_position.x, entry)

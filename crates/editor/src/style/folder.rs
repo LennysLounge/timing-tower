@@ -1,21 +1,13 @@
 use std::any::{Any, TypeId};
 
+use backend::style::folder::{Folder, FolderOrT};
 use bevy_egui::egui::Ui;
-use serde::{Deserialize, Serialize};
 use tree_view::{DropPosition, TreeUi, TreeViewBuilder};
 use uuid::Uuid;
 
 use crate::reference_store::ReferenceStore;
 
 use super::{StyleTreeNode, StyleTreeUi, TreeViewAction};
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct Folder<T: StyleTreeNode + FolderActions<FolderType = T>> {
-    pub id: Uuid,
-    pub name: String,
-    pub content: Vec<FolderOrT<T>>,
-    renameable: bool,
-}
 
 pub trait FolderActions {
     type FolderType: StyleTreeNode + FolderActions<FolderType = Self::FolderType>;
@@ -105,30 +97,20 @@ impl<T: StyleTreeNode + FolderActions<FolderType = T>> StyleTreeNode for Folder<
     }
 }
 
-impl<T: StyleTreeNode + FolderActions<FolderType = T>> Folder<T> {
-    pub fn new() -> Self {
-        Self {
-            id: Uuid::new_v4(),
-            name: "new group".to_string(),
-            content: Vec::new(),
-            renameable: true,
-        }
-    }
-    /// Get a reference to all contained things of this folder.
-    pub fn all_t(&self) -> Vec<&T> {
-        self.content.iter().flat_map(|c| c.all_t()).collect()
-    }
+pub trait FolderActionsExtended<T>
+where
+    T: StyleTreeNode + FolderActions<FolderType = T>,
+{
+    fn tree_view_flat(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>);
+    fn insert_at(&mut self, node: FolderOrT<T>, position: &DropPosition);
+}
 
-    /// Get a reference to all contained things of this folder.
-    pub fn all_t_mut(&mut self) -> Vec<&mut T> {
-        self.content
-            .iter_mut()
-            .flat_map(|c| c.all_t_mut())
-            .collect()
-    }
-
+impl<T> FolderActionsExtended<T> for Folder<T>
+where
+    T: StyleTreeNode + FolderActions<FolderType = T>,
+{
     /// Show the contents of this folder without a collapsing header.
-    pub fn tree_view_flat(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
+    fn tree_view_flat(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
         TreeViewBuilder::dir(self.id).headless().show(ui, |ui| {
             for c in self.content.iter_mut() {
                 c.tree_view(ui, actions);
@@ -160,11 +142,6 @@ impl<T: StyleTreeNode + FolderActions<FolderType = T>> Folder<T> {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone)]
-pub enum FolderOrT<T: StyleTreeNode + FolderActions<FolderType = T>> {
-    T(T),
-    Folder(Folder<T>),
-}
 impl<T: StyleTreeNode + FolderActions<FolderType = T>> StyleTreeUi for FolderOrT<T> {
     fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
         match self {
@@ -221,20 +198,6 @@ impl<T: StyleTreeNode + FolderActions<FolderType = T>> StyleTreeNode for FolderO
         match self {
             FolderOrT::T(o) => o.insert(node, position),
             FolderOrT::Folder(o) => o.insert(node, position),
-        }
-    }
-}
-impl<T: StyleTreeNode + FolderActions<FolderType = T>> FolderOrT<T> {
-    pub fn all_t(&self) -> Vec<&T> {
-        match self {
-            FolderOrT::T(t) => vec![t],
-            FolderOrT::Folder(f) => f.all_t(),
-        }
-    }
-    pub fn all_t_mut(&mut self) -> Vec<&mut T> {
-        match self {
-            FolderOrT::T(t) => vec![t],
-            FolderOrT::Folder(f) => f.all_t_mut(),
         }
     }
 }

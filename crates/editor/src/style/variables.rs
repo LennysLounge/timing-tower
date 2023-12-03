@@ -1,40 +1,27 @@
 use std::mem::discriminant;
 
 use bevy_egui::egui::{ComboBox, Response, Ui};
-use serde::{Deserialize, Serialize};
 use tree_view::{DropPosition, TreeUi, TreeViewBuilder};
 use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
 use crate::reference_store::{IntoProducerData, ProducerData, ReferenceStore};
-use backend::value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore};
-
-use self::{condition::Condition, fixed_value::FixedValue, map::Map};
-
-use super::{
-    folder::{Folder, FolderActions},
-    StyleTreeNode, StyleTreeUi, TreeViewAction,
+use backend::{
+    style::{
+        folder::Folder,
+        variables::{
+            condition::Condition, fixed_value::FixedValue, map::Map, VariableBehavior,
+            VariableDefinition,
+        },
+    },
+    value_store::{ValueProducer, ValueStore},
 };
+
+use super::{folder::FolderActions, AttributeEditor, StyleTreeNode, StyleTreeUi, TreeViewAction};
 
 pub mod condition;
 pub mod fixed_value;
 pub mod map;
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct VariableDefinition {
-    id: Uuid,
-    name: String,
-    #[serde(flatten)]
-    behavior: VariableBehavior,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-#[serde(tag = "behavior")]
-enum VariableBehavior {
-    FixedValue(FixedValue),
-    Condition(Condition),
-    Map(Map),
-}
 
 impl IntoProducerData for VariableDefinition {
     fn producer_data(&self) -> ProducerData {
@@ -47,16 +34,6 @@ impl IntoProducerData for VariableDefinition {
                 VariableBehavior::Map(o) => o.output_type(),
             },
         }
-    }
-}
-impl IntoValueProducer for VariableDefinition {
-    fn get_value_producer(&self) -> (Uuid, TypedValueProducer) {
-        let producer = match &self.behavior {
-            VariableBehavior::FixedValue(o) => o.as_typed_producer(),
-            VariableBehavior::Condition(o) => o.as_typed_producer(),
-            VariableBehavior::Map(o) => o.as_typed_producer(),
-        };
-        (self.id, producer)
     }
 }
 
@@ -103,7 +80,7 @@ impl StyleTreeUi for VariableDefinition {
 
         ui.separator();
         changed |= match &mut self.behavior {
-            VariableBehavior::FixedValue(o) => o.property_editor(ui),
+            VariableBehavior::FixedValue(o) => o.property_editor(ui, asset_repo),
             VariableBehavior::Condition(o) => o.property_editor(ui, asset_repo),
             VariableBehavior::Map(o) => o.property_editor(ui, asset_repo),
         };
@@ -172,7 +149,7 @@ impl FolderActions for VariableDefinition {
 
     fn context_menu(
         ui: &mut bevy_egui::egui::Ui,
-        folder: &super::folder::Folder<Self::FolderType>,
+        folder: &Folder<Self::FolderType>,
         actions: &mut Vec<TreeViewAction>,
     ) {
         if ui.button("add variable").clicked() {
@@ -200,16 +177,6 @@ impl FolderActions for VariableDefinition {
         if ui.button("delete").clicked() {
             actions.push(TreeViewAction::Remove { node: *folder.id() });
             ui.close_menu();
-        }
-    }
-}
-
-impl VariableDefinition {
-    fn new() -> Self {
-        Self {
-            id: Uuid::new_v4(),
-            name: "Variables".to_string(),
-            behavior: VariableBehavior::FixedValue(FixedValue::default()),
         }
     }
 }

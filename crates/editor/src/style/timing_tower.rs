@@ -1,25 +1,19 @@
 use std::any::Any;
 
-use backend::value_types::Vec2Property;
+use backend::style::{
+    folder::Folder,
+    timing_tower::{TimingTower, TimingTowerColumn, TimingTowerRow, TimingTowerTable},
+};
 use bevy_egui::egui::Ui;
-use serde::{Deserialize, Serialize};
 use tree_view::{DropPosition, TreeUi, TreeViewBuilder};
 use uuid::Uuid;
 
 use crate::{properties::PropertyEditor, reference_store::ReferenceStore};
 
 use super::{
-    cell::Cell,
-    folder::{Folder, FolderActions},
-    StyleTreeNode, StyleTreeUi, TreeViewAction,
+    folder::{FolderActions, FolderActionsExtended},
+    AttributeEditor, StyleTreeNode, StyleTreeUi, TreeViewAction,
 };
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct TimingTower {
-    pub id: Uuid,
-    pub cell: Cell,
-    pub table: TimingTowerTable,
-}
 
 impl StyleTreeUi for TimingTower {
     fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
@@ -61,14 +55,6 @@ impl StyleTreeNode for TimingTower {
     }
 
     fn insert(&mut self, _node: Box<dyn Any>, _position: &DropPosition) {}
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct TimingTowerTable {
-    pub id: Uuid,
-    pub cell: Cell,
-    pub row_offset: Vec2Property,
-    pub row: TimingTowerRow,
 }
 
 impl StyleTreeUi for TimingTowerTable {
@@ -128,13 +114,6 @@ impl StyleTreeNode for TimingTowerTable {
     }
 
     fn insert(&mut self, _node: Box<dyn Any>, _position: &DropPosition) {}
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct TimingTowerRow {
-    pub id: Uuid,
-    pub cell: Cell,
-    pub columns: Folder<TimingTowerColumn>,
 }
 
 impl StyleTreeUi for TimingTowerRow {
@@ -204,13 +183,6 @@ impl StyleTreeNode for TimingTowerRow {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone)]
-pub struct TimingTowerColumn {
-    pub id: Uuid,
-    pub cell: Cell,
-    pub name: String,
-}
-
 impl StyleTreeUi for TimingTowerColumn {
     fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
         let mut changed = false;
@@ -275,15 +247,6 @@ impl StyleTreeNode for TimingTowerColumn {
     fn insert(&mut self, _node: Box<dyn Any>, _position: &DropPosition) {}
 }
 
-impl TimingTowerColumn {
-    fn new() -> Self {
-        Self {
-            id: Uuid::new_v4(),
-            cell: Cell::default(),
-            name: "new column".to_string(),
-        }
-    }
-}
 impl FolderActions for TimingTowerColumn {
     type FolderType = Self;
 

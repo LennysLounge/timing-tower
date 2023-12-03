@@ -2,13 +2,13 @@ use bevy_egui::egui::{InnerResponse, Response, Ui};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::style::{
-    assets::AssetDefinition,
-    folder::{Folder, FolderOrT},
-    variables::VariableDefinition,
-};
 use backend::{
     game_sources::{self},
+    style::{
+        assets::AssetDefinition,
+        folder::{Folder, FolderOrT},
+        variables::VariableDefinition,
+    },
     value_types::{UntypedValueRef, ValueRef, ValueType, ValueTypeOf},
 };
 

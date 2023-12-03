@@ -1,5 +1,9 @@
 use std::any::Any;
 
+use backend::style::{
+    assets::AssetDefinition, folder::Folder, timing_tower::TimingTower,
+    variables::VariableDefinition,
+};
 use bevy::prelude::Resource;
 use bevy_egui::egui::Ui;
 use serde::{Deserialize, Serialize};
@@ -7,11 +11,6 @@ use tree_view::{DropAction, DropPosition, TreeUi, TreeViewBuilder};
 use uuid::Uuid;
 
 use crate::reference_store::ReferenceStore;
-
-use self::{
-    assets::AssetDefinition, folder::Folder, timing_tower::TimingTower,
-    variables::VariableDefinition,
-};
 
 pub mod assets;
 pub mod cell;
@@ -31,6 +30,10 @@ pub enum TreeViewAction {
     Select {
         node: Uuid,
     },
+}
+
+trait AttributeEditor {
+    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool;
 }
 
 pub trait StyleTreeUi {

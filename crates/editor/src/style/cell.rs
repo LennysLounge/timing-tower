@@ -3,9 +3,8 @@ use bevy::prelude::Color;
 use bevy_egui::egui::{ComboBox, Ui};
 use serde::{Deserialize, Serialize};
 
-use crate::reference_store::ReferenceStore;
+use crate::{properties::PropertyEditor, reference_store::ReferenceStore};
 
-use super::properties::PropertyEditor;
 use backend::value_types::{Boolean, Number, Text, Texture, Tint};
 
 #[derive(Serialize, Deserialize, Clone)]

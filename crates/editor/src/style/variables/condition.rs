@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
-use crate::{reference_store::ReferenceStore, style::properties::PropertyEditor};
+use crate::{properties::PropertyEditor, reference_store::ReferenceStore};
 use backend::{
     value_store::{TypedValueProducer, TypedValueResolver, ValueProducer, ValueStore},
     value_types::{

@@ -6,12 +6,11 @@ use serde::{Deserialize, Serialize};
 use tree_view::{DropPosition, TreeUi, TreeViewBuilder};
 use uuid::Uuid;
 
-use crate::reference_store::ReferenceStore;
+use crate::{properties::PropertyEditor, reference_store::ReferenceStore};
 
 use super::{
     cell::Cell,
     folder::{Folder, FolderActions},
-    properties::PropertyEditor,
     StyleTreeNode, StyleTreeUi, TreeViewAction,
 };
 

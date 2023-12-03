@@ -38,6 +38,7 @@ use uuid::uuid;
 
 mod asset_store_impl;
 mod editor;
+mod properties;
 mod reference_store;
 mod savefile;
 mod style;

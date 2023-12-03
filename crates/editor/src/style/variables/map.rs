@@ -4,8 +4,8 @@ use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
 use crate::{
+    properties::{PropertyEditor, ValueTypeEditor},
     reference_store::ReferenceStore,
-    style::properties::{PropertyEditor, ValueTypeEditor},
 };
 use backend::{
     value_store::{TypedValueProducer, TypedValueResolver, ValueProducer, ValueStore},

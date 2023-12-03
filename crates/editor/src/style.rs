@@ -16,7 +16,6 @@ use self::{
 pub mod assets;
 pub mod cell;
 pub mod folder;
-pub mod properties;
 pub mod timing_tower;
 pub mod variables;
 

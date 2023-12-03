@@ -2,7 +2,7 @@ pub mod camera;
 
 use std::{fs::File, io::Write};
 
-use backend::value_store::ValueStore;
+use backend::{style::StyleDefinition, value_store::ValueStore};
 use bevy::{
     math::vec3,
     prelude::{
@@ -21,7 +21,7 @@ use uuid::Uuid;
 
 use crate::{
     reference_store::ReferenceStore,
-    style::{StyleDefinition, StyleTreeNode, TreeViewAction},
+    style::{StyleDefinitionUiThings, StyleTreeNode, TreeViewAction},
     MainCamera,
 };
 
@@ -235,8 +235,8 @@ fn tree_view_elements(ui: &mut Ui, selected_node: &mut Option<Uuid>, style: &mut
                 target,
                 node,
                 position,
-            } => style.insert(&target, node, position),
-            TreeViewAction::Remove { node } => style.remove(&node),
+            } => StyleDefinitionUiThings::insert(style, &target, node, position),
+            TreeViewAction::Remove { node } => StyleDefinitionUiThings::remove(style, &node),
             TreeViewAction::Select { node } => *selected_node = Some(node),
         }
     }
@@ -269,8 +269,8 @@ fn tree_view_vars(ui: &mut Ui, selected_node: &mut Option<Uuid>, style: &mut Sty
                 target,
                 node,
                 position,
-            } => style.insert(&target, node, position),
-            TreeViewAction::Remove { node } => style.remove(&node),
+            } => StyleDefinitionUiThings::insert(style, &target, node, position),
+            TreeViewAction::Remove { node } => StyleDefinitionUiThings::remove(style, &node),
             TreeViewAction::Select { node } => *selected_node = Some(node),
         }
     }
@@ -303,8 +303,8 @@ fn tree_view_assets(ui: &mut Ui, selected_node: &mut Option<Uuid>, style: &mut S
                 target,
                 node,
                 position,
-            } => style.insert(&target, node, position),
-            TreeViewAction::Remove { node } => style.remove(&node),
+            } => StyleDefinitionUiThings::insert(style, &target, node, position),
+            TreeViewAction::Remove { node } => StyleDefinitionUiThings::remove(style, &node),
             TreeViewAction::Select { node } => *selected_node = Some(node),
         }
     }

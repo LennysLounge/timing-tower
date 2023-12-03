@@ -1,12 +1,7 @@
 use std::any::Any;
 
-use backend::style::{
-    assets::AssetDefinition, folder::Folder, timing_tower::TimingTower,
-    variables::VariableDefinition,
-};
-use bevy::prelude::Resource;
+use backend::style::StyleDefinition;
 use bevy_egui::egui::Ui;
-use serde::{Deserialize, Serialize};
 use tree_view::{DropAction, DropPosition, TreeUi, TreeViewBuilder};
 use uuid::Uuid;
 
@@ -95,14 +90,6 @@ pub trait StyleTreeNode: StyleTreeNodeConversions + StyleTreeUi {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Resource)]
-pub struct StyleDefinition {
-    pub id: Uuid,
-    pub assets: Folder<AssetDefinition>,
-    pub vars: Folder<VariableDefinition>,
-    pub timing_tower: TimingTower,
-}
-
 impl StyleTreeUi for StyleDefinition {
     fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
         TreeViewBuilder::dir(self.id).headless().show(ui, |ui| {
@@ -140,24 +127,33 @@ impl StyleTreeNode for StyleDefinition {
     fn insert(&mut self, _node: Box<dyn Any>, _position: &DropPosition) {}
 }
 
-impl StyleDefinition {
-    pub fn tree_view_elements(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
+pub trait StyleDefinitionUiThings {
+    fn tree_view_elements(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>);
+    fn tree_view_variables(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>);
+    fn tree_view_assets(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>);
+    fn can_drop(&self, drop_action: &DropAction) -> bool;
+    fn perform_drop(&mut self, drop_action: &DropAction);
+    fn insert(&mut self, target: &Uuid, node: Box<dyn Any>, position: DropPosition);
+    fn remove(&mut self, node: &Uuid);
+}
+impl StyleDefinitionUiThings for StyleDefinition {
+    fn tree_view_elements(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
         TreeViewBuilder::dir(self.id).headless().show(ui, |ui| {
             self.timing_tower.tree_view(ui, actions);
         });
     }
-    pub fn tree_view_variables(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
+    fn tree_view_variables(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
         TreeViewBuilder::dir(self.id).headless().show(ui, |ui| {
             self.vars.tree_view(ui, actions);
         });
     }
-    pub fn tree_view_assets(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
+    fn tree_view_assets(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
         TreeViewBuilder::dir(self.id).headless().show(ui, |ui| {
             self.assets.tree_view(ui, actions);
         });
     }
 
-    pub fn can_drop(&self, drop_action: &DropAction) -> bool {
+    fn can_drop(&self, drop_action: &DropAction) -> bool {
         let dragged = self.find(&drop_action.dragged_node);
         let target = self.find(&drop_action.target_node);
         if let (Some(dragged), Some(target)) = (dragged, target) {
@@ -167,7 +163,7 @@ impl StyleDefinition {
         }
     }
 
-    pub fn perform_drop(&mut self, drop_action: &DropAction) {
+    fn perform_drop(&mut self, drop_action: &DropAction) {
         if !self.can_drop(drop_action) {
             return;
         };
@@ -181,7 +177,7 @@ impl StyleDefinition {
         }
     }
 
-    pub fn insert(&mut self, target: &Uuid, node: Box<dyn Any>, position: DropPosition) {
+    fn insert(&mut self, target: &Uuid, node: Box<dyn Any>, position: DropPosition) {
         if let Some(target) = self.find_mut(&target) {
             target.insert(node, &position);
         } else {
@@ -189,7 +185,7 @@ impl StyleDefinition {
         }
     }
 
-    pub fn remove(&mut self, node: &Uuid) {
+    fn remove(&mut self, node: &Uuid) {
         self.find_parent_of(&node)
             .map(|parent| parent.remove(&node));
     }

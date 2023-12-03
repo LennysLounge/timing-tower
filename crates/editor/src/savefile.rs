@@ -1,3 +1,4 @@
+use backend::style::StyleDefinition;
 use bevy::{
     app::Update,
     asset::{Asset, AssetApp, AssetEvent, AssetId, AssetLoader, AsyncReadExt},
@@ -5,8 +6,6 @@ use bevy::{
     prelude::Plugin,
     reflect::TypePath,
 };
-
-use crate::style::StyleDefinition;
 
 pub struct SaveFilePlugin;
 impl Plugin for SaveFilePlugin {

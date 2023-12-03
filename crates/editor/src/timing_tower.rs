@@ -1,16 +1,15 @@
 use std::collections::HashMap;
 
 use backend::{
-    style::cell::Cell,
+    style::{cell::Cell, StyleDefinition},
     value_store::ValueStore,
     value_types::{Boolean, Number, Text, Texture, Tint},
 };
 use bevy::{
-    ecs::system::EntityCommand,
+    ecs::{schedule::IntoSystemConfigs, system::EntityCommand},
     prelude::{
         BuildChildren, BuildWorldChildren, Bundle, Color, Commands, Component, Entity,
-        EntityWorldMut, EventWriter, IntoSystemConfigs, Plugin, Query, Res, SpatialBundle, Update,
-        Vec2, Vec3, With,
+        EntityWorldMut, EventWriter, Plugin, Query, Res, SpatialBundle, Update, Vec2, Vec3, With,
     },
 };
 use common::cell::{
@@ -22,7 +21,7 @@ use unified_sim_model::{
     Adapter,
 };
 
-use crate::{style::StyleDefinition, SpawnAndInitWorld};
+use crate::SpawnAndInitWorld;
 
 pub struct TimingTowerPlugin;
 impl Plugin for TimingTowerPlugin {

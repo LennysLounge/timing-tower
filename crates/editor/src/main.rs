@@ -5,7 +5,7 @@ use std::{
 };
 
 use asset_store_impl::AssetStoreImpl;
-use backend::value_store::ValueStore;
+use backend::{style::StyleDefinition, value_store::ValueStore};
 use bevy::{
     diagnostic::FrameTimeDiagnosticsPlugin,
     ecs::system::EntityCommand,
@@ -30,7 +30,6 @@ use common::{
 use editor::{EditorPlugin, EditorState};
 
 use savefile::SaveFilePlugin;
-use style::StyleDefinition;
 
 use timing_tower::{init_timing_tower, TimingTowerPlugin};
 use unified_sim_model::Adapter;

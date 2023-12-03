@@ -2,15 +2,15 @@ use bevy_egui::egui::{InnerResponse, Response, Ui};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::{
-    game_sources::{self, GameSource},
-    style::{
-        assets::AssetDefinition,
-        folder::{Folder, FolderOrT},
-        variables::VariableDefinition,
-    },
+use crate::style::{
+    assets::AssetDefinition,
+    folder::{Folder, FolderOrT},
+    variables::VariableDefinition,
 };
-use backend::value_types::{UntypedValueRef, ValueRef, ValueType, ValueTypeOf};
+use backend::{
+    game_sources::{self},
+    value_types::{UntypedValueRef, ValueRef, ValueType, ValueTypeOf},
+};
 
 pub trait IntoProducerData {
     fn producer_data(&self) -> ProducerData;
@@ -51,7 +51,7 @@ impl ReferenceStore {
     pub fn new(vars: &Folder<VariableDefinition>, assets: &Folder<AssetDefinition>) -> Self {
         Self {
             variables: AssetOrFolder::from_vars(vars),
-            game_sources: AssetOrFolder::from_game(game_sources::get_game_sources()),
+            game_sources: AssetOrFolder::from_game(),
             assets: AssetOrFolder::from_asset_defs(assets),
         }
     }
@@ -181,12 +181,18 @@ impl AssetOrFolder {
                 .collect(),
         }
     }
-    fn from_game(game_sources: Vec<&GameSource>) -> Self {
+    fn from_game() -> Self {
         Self::Folder {
             name: "Game".to_string(),
-            assets: game_sources
+            assets: game_sources::get_game_sources()
                 .into_iter()
-                .map(|s| Self::Asset(s.producer_data().clone()))
+                .map(|s| {
+                    Self::Asset(ProducerData {
+                        id: s.id,
+                        name: s.name.clone(),
+                        value_type: s.value_type,
+                    })
+                })
                 .collect(),
         }
     }

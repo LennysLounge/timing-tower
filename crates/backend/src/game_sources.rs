@@ -3,9 +3,7 @@ use std::sync::OnceLock;
 use unified_sim_model::model::Entry;
 use uuid::{uuid, Uuid};
 
-use crate::reference_store::{IntoProducerData, ProducerData};
-
-use backend::{
+use crate::{
     value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore},
     value_types::{Boolean, Number, Text, ValueType},
 };
@@ -119,14 +117,12 @@ impl ValueProducer<Boolean> for Extractor {
 }
 
 pub struct GameSource {
-    asset_id: ProducerData,
+    pub id: Uuid,
+    pub name: String,
+    pub value_type: ValueType,
     extractor: Extractor,
 }
-impl IntoProducerData for GameSource {
-    fn producer_data(&self) -> ProducerData {
-        self.asset_id.clone()
-    }
-}
+
 impl IntoValueProducer for GameSource {
     fn get_value_producer(&self) -> (Uuid, TypedValueProducer) {
         let producer = match self.extractor {
@@ -134,7 +130,7 @@ impl IntoValueProducer for GameSource {
             Extractor::Text(_) => TypedValueProducer::Text(Box::new(self.extractor.clone())),
             Extractor::Boolean(_) => TypedValueProducer::Boolean(Box::new(self.extractor.clone())),
         };
-        (self.asset_id.id, producer)
+        (self.id, producer)
     }
 }
 
@@ -145,11 +141,9 @@ impl GameSource {
         extractor: fn(&ValueStore, Option<&Entry>) -> Option<f32>,
     ) -> Self {
         Self {
-            asset_id: ProducerData {
-                id,
-                name: name.to_string(),
-                value_type: ValueType::Number,
-            },
+            id,
+            name: name.to_string(),
+            value_type: ValueType::Number,
             extractor: Extractor::Number(extractor),
         }
     }
@@ -159,11 +153,9 @@ impl GameSource {
         extractor: fn(&ValueStore, Option<&Entry>) -> Option<String>,
     ) -> Self {
         Self {
-            asset_id: ProducerData {
-                id,
-                name: name.to_string(),
-                value_type: ValueType::Text,
-            },
+            id,
+            name: name.to_string(),
+            value_type: ValueType::Text,
             extractor: Extractor::Text(extractor),
         }
     }
@@ -173,11 +165,9 @@ impl GameSource {
         extractor: fn(&ValueStore, Option<&Entry>) -> Option<bool>,
     ) -> Self {
         Self {
-            asset_id: ProducerData {
-                id,
-                name: name.to_string(),
-                value_type: ValueType::Boolean,
-            },
+            id,
+            name: name.to_string(),
+            value_type: ValueType::Boolean,
             extractor: Extractor::Boolean(extractor),
         }
     }

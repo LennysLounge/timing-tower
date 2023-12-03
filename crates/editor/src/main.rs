@@ -38,7 +38,6 @@ use uuid::uuid;
 
 mod asset_store_impl;
 mod editor;
-mod game_sources;
 mod reference_store;
 mod savefile;
 mod style;

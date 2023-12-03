@@ -1,13 +1,12 @@
+use backend::value_types::{Property, Vec2Property, Vec3Property};
 use bevy::prelude::Color;
 use bevy_egui::egui::{ComboBox, Ui};
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    reference_store::ReferenceStore,
-    value_types::{Boolean, Number, Text, Texture, Tint},
-};
+use crate::reference_store::ReferenceStore;
 
-use super::properties::{Property, PropertyEditor, Vec2Property, Vec3Property};
+use super::properties::PropertyEditor;
+use backend::value_types::{Boolean, Number, Text, Texture, Tint};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Cell {

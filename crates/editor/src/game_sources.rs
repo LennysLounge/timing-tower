@@ -4,10 +4,10 @@ use unified_sim_model::model::Entry;
 use uuid::{uuid, Uuid};
 
 use crate::{
-    reference_store::{ProducerData, IntoProducerData},
+    reference_store::{IntoProducerData, ProducerData},
     value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore},
-    value_types::{Boolean, Number, Text, ValueType},
 };
+use backend::value_types::{Boolean, Number, Text, ValueType};
 
 static GAME_SOURCES: OnceLock<Vec<GameSource>> = OnceLock::new();
 

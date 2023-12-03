@@ -9,9 +9,8 @@ use crate::{
         folder::{Folder, FolderOrT},
         variables::VariableDefinition,
     },
-    value_store::{UntypedValueRef, ValueRef},
-    value_types::{ValueType, ValueTypeOf},
 };
+use backend::value_types::{UntypedValueRef, ValueRef, ValueType, ValueTypeOf};
 
 pub trait IntoProducerData {
     fn producer_data(&self) -> ProducerData;

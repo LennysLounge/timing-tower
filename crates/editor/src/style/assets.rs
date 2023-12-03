@@ -7,8 +7,8 @@ use uuid::Uuid;
 use crate::{
     reference_store::{IntoProducerData, ProducerData, ReferenceStore},
     value_store::{IntoValueProducer, TypedValueProducer},
-    value_types::{Texture, ValueType},
 };
+use backend::value_types::{Texture, ValueType};
 
 use super::{
     folder::{Folder, FolderActions},

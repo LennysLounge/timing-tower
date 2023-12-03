@@ -1,5 +1,6 @@
 use std::any::Any;
 
+use backend::value_types::Vec2Property;
 use bevy_egui::egui::Ui;
 use serde::{Deserialize, Serialize};
 use tree_view::{DropPosition, TreeUi, TreeViewBuilder};
@@ -10,7 +11,7 @@ use crate::reference_store::ReferenceStore;
 use super::{
     cell::Cell,
     folder::{Folder, FolderActions},
-    properties::{PropertyEditor, Vec2Property},
+    properties::PropertyEditor,
     StyleTreeNode, StyleTreeUi, TreeViewAction,
 };
 

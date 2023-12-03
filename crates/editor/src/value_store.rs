@@ -1,15 +1,11 @@
-use std::{collections::HashMap, marker::PhantomData};
+use std::collections::HashMap;
 
+use backend::value_types::{Boolean, Number, Property, Text, Texture, Tint, ValueRef};
 use bevy::prelude::Resource;
-use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
-use crate::{
-    game_sources,
-    style::properties::Property,
-    value_types::{Boolean, Number, Text, Texture, Tint, ValueType},
-};
+use crate::game_sources;
 
 pub trait ValueProducer<T> {
     fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<T>;
@@ -17,29 +13,6 @@ pub trait ValueProducer<T> {
 
 pub trait IntoValueProducer {
     fn get_value_producer(&self) -> (Uuid, TypedValueProducer);
-}
-
-#[derive(Serialize, Deserialize, Clone, Default)]
-#[serde(transparent)]
-pub struct ValueRef<T> {
-    pub id: Uuid,
-    #[serde(skip)]
-    pub phantom: PhantomData<T>,
-}
-
-#[derive(Serialize, Deserialize, Clone, Default)]
-pub struct UntypedValueRef {
-    pub id: Uuid,
-    pub value_type: ValueType,
-}
-
-impl UntypedValueRef {
-    pub fn typed<T>(self) -> ValueRef<T> {
-        ValueRef {
-            id: self.id,
-            phantom: PhantomData,
-        }
-    }
 }
 
 pub enum TypedValueProducer {

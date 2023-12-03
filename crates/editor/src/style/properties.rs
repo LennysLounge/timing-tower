@@ -1,37 +1,9 @@
-use bevy_egui::egui::{ComboBox, DragValue, Response, TextEdit, Ui, Widget};
-use serde::{Deserialize, Serialize};
-
-use crate::{
-    reference_store::ReferenceStore,
-    value_store::ValueRef,
-    value_types::{Boolean, Number, Text, Texture, Tint, ValueType, ValueTypeOf},
+use backend::value_types::{
+    Boolean, Number, Property, Text, Texture, Tint, ValueType, ValueTypeOf,
 };
+use bevy_egui::egui::{ComboBox, DragValue, Response, TextEdit, Ui, Widget};
 
-#[derive(Serialize, Deserialize, Clone)]
-pub enum Property<T> {
-    ValueRef(ValueRef<T>),
-    #[serde(untagged)]
-    Fixed(T),
-}
-
-impl<T: Default> Default for Property<T> {
-    fn default() -> Self {
-        Property::Fixed(T::default())
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct Vec2Property {
-    pub x: Property<Number>,
-    pub y: Property<Number>,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct Vec3Property {
-    pub x: Property<Number>,
-    pub y: Property<Number>,
-    pub z: Property<Number>,
-}
+use crate::reference_store::ReferenceStore;
 
 pub struct PropertyEditor<'a, T> {
     property: &'a mut Property<T>,

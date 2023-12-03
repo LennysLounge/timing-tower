@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use bevy::render::color::Color;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -80,4 +82,53 @@ impl ValueTypeOf<Texture> for ValueType {
     fn get() -> Self {
         ValueType::Texture
     }
+}
+
+#[derive(Serialize, Deserialize, Clone, Default)]
+#[serde(transparent)]
+pub struct ValueRef<T> {
+    pub id: Uuid,
+    #[serde(skip)]
+    pub phantom: PhantomData<T>,
+}
+
+#[derive(Serialize, Deserialize, Clone, Default)]
+pub struct UntypedValueRef {
+    pub id: Uuid,
+    pub value_type: ValueType,
+}
+
+impl UntypedValueRef {
+    pub fn typed<T>(self) -> ValueRef<T> {
+        ValueRef {
+            id: self.id,
+            phantom: PhantomData,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub enum Property<T> {
+    ValueRef(ValueRef<T>),
+    #[serde(untagged)]
+    Fixed(T),
+}
+
+impl<T: Default> Default for Property<T> {
+    fn default() -> Self {
+        Property::Fixed(T::default())
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Vec2Property {
+    pub x: Property<Number>,
+    pub y: Property<Number>,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Vec3Property {
+    pub x: Property<Number>,
+    pub y: Property<Number>,
+    pub z: Property<Number>,
 }

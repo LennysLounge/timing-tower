@@ -6,7 +6,7 @@ use bevy::{
     render::primitives::Aabb,
 };
 
-use crate::{asset_store::AssetStore, cell_material::CellMaterial};
+use crate::cell_material::CellMaterial;
 
 use super::SetStyle;
 

@@ -30,7 +30,6 @@ use timing_tower::{init_timing_tower, TimingTowerPlugin};
 use unified_sim_model::Adapter;
 use uuid::uuid;
 
-mod asset_store_impl;
 mod editor;
 mod properties;
 mod reference_store;

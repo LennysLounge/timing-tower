@@ -35,7 +35,8 @@ pub fn update_style(
         material.texture = event
             .style
             .texture
-            .and_then(|id| asset_server.get_handle(id.to_string()));
+            .as_ref()
+            .and_then(|id| Some(asset_server.load(id)));
         material.size = event.style.size;
         material.skew = event.style.skew;
         material.rounding = event.style.rounding.into();

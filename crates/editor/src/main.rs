@@ -28,7 +28,6 @@ use editor::{EditorPlugin, EditorState};
 
 use timing_tower::{init_timing_tower, TimingTowerPlugin};
 use unified_sim_model::Adapter;
-use uuid::uuid;
 
 mod editor;
 mod properties;
@@ -99,7 +98,7 @@ fn setup(
     });
 
     commands.insert_resource(MainSavefile(
-        asset_server.load::<Savefile>("../savefile//style.style.json"),
+        asset_server.load::<Savefile>("../savefile/style.style.json"),
     ));
 
     let background_id = commands
@@ -116,7 +115,7 @@ fn setup(
             text_alignment: TextAlignment::Center,
             text_position: Vec2::ZERO,
             color: Color::WHITE,
-            texture: Some(uuid!("819d2f30-0d03-413a-8f09-9a0afa58b3ed")),
+            texture: Some(String::from("../savefile/acc6.PNG")),
             pos: Vec3::new(0.0, 0.0, 0.0),
             size: Vec2::new(1920.0, 1080.0),
             skew: 0.0,

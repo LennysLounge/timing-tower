@@ -1,6 +1,5 @@
 use bevy::prelude::{Color, Entity, Event, Vec2, Vec3};
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 #[derive(Event)]
 pub struct SetStyle {
@@ -16,7 +15,7 @@ pub struct CellStyle {
     pub text_alignment: TextAlignment,
     pub text_position: Vec2,
     pub color: Color,
-    pub texture: Option<Uuid>,
+    pub texture: Option<String>,
     pub pos: Vec3,
     pub size: Vec2,
     pub skew: f32,

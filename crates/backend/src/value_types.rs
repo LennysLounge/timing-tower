@@ -20,7 +20,7 @@ pub struct Boolean(pub bool);
 pub enum Texture {
     #[default]
     None,
-    Handle(Uuid),
+    Handle(String),
 }
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug, Default, Copy)]

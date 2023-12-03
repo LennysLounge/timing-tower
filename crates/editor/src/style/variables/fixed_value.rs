@@ -1,8 +1,10 @@
 use bevy_egui::egui::{ComboBox, DragValue, Ui};
 use serde::{Deserialize, Serialize};
 
-use crate::value_store::TypedValueProducer;
-use backend::value_types::{Boolean, Number, Text, Tint, ValueType};
+use backend::{
+    value_store::TypedValueProducer,
+    value_types::{Boolean, Number, Text, Tint, ValueType},
+};
 
 use super::StaticValueProducer;
 

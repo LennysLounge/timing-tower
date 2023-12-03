@@ -578,6 +578,7 @@ dependencies = [
  "bevy",
  "serde",
  "serde_json",
+ "unified_sim_model",
  "uuid",
 ]
 

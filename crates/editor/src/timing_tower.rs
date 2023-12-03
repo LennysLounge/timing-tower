@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 
-use backend::value_types::{Boolean, Number, Text, Texture, Tint};
+use backend::{
+    value_store::ValueStore,
+    value_types::{Boolean, Number, Text, Texture, Tint},
+};
 use bevy::{
     ecs::system::EntityCommand,
     prelude::{
@@ -20,7 +23,6 @@ use unified_sim_model::{
 
 use crate::{
     style::{cell::Cell, StyleDefinition},
-    value_store::ValueStore,
     SpawnAndInitWorld,
 };
 

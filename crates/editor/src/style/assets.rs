@@ -4,11 +4,11 @@ use serde::{Deserialize, Serialize};
 use tree_view::{TreeUi, TreeViewBuilder};
 use uuid::Uuid;
 
-use crate::{
-    reference_store::{IntoProducerData, ProducerData, ReferenceStore},
+use crate::reference_store::{IntoProducerData, ProducerData, ReferenceStore};
+use backend::{
     value_store::{IntoValueProducer, TypedValueProducer},
+    value_types::{Texture, ValueType},
 };
-use backend::value_types::{Texture, ValueType};
 
 use super::{
     folder::{Folder, FolderActions},

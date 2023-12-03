@@ -2,6 +2,7 @@ pub mod camera;
 
 use std::{fs::File, io::Write};
 
+use backend::value_store::ValueStore;
 use bevy::{
     math::vec3,
     prelude::{
@@ -21,7 +22,6 @@ use uuid::Uuid;
 
 use crate::{
     reference_store::ReferenceStore,
-    value_store::ValueStore,
     style::{StyleDefinition, StyleTreeNode, TreeViewAction},
     MainCamera,
 };

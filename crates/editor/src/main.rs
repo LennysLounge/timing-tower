@@ -5,6 +5,7 @@ use std::{
 };
 
 use asset_store_impl::AssetStoreImpl;
+use backend::value_store::ValueStore;
 use bevy::{
     diagnostic::FrameTimeDiagnosticsPlugin,
     ecs::system::EntityCommand,
@@ -34,7 +35,6 @@ use style::StyleDefinition;
 use timing_tower::{init_timing_tower, TimingTowerPlugin};
 use unified_sim_model::Adapter;
 use uuid::uuid;
-use value_store::ValueStore;
 
 mod asset_store_impl;
 mod editor;
@@ -43,7 +43,6 @@ mod reference_store;
 mod savefile;
 mod style;
 mod timing_tower;
-mod value_store;
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");

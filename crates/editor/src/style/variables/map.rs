@@ -6,10 +6,12 @@ use uuid::Uuid;
 use crate::{
     reference_store::ReferenceStore,
     style::properties::{PropertyEditor, ValueTypeEditor},
-    value_store::{TypedValueProducer, TypedValueResolver, ValueProducer, ValueStore},
 };
-use backend::value_types::{
-    Boolean, Number, Property, Text, Texture, Tint, ValueRef, ValueType, ValueTypeOf,
+use backend::{
+    value_store::{TypedValueProducer, TypedValueResolver, ValueProducer, ValueStore},
+    value_types::{
+        Boolean, Number, Property, Text, Texture, Tint, ValueRef, ValueType, ValueTypeOf,
+    },
 };
 
 use super::EguiComboBoxExtension;

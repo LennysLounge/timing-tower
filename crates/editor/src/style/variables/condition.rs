@@ -3,13 +3,12 @@ use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
-use crate::{
-    reference_store::ReferenceStore,
-    style::properties::PropertyEditor,
+use crate::{reference_store::ReferenceStore, style::properties::PropertyEditor};
+use backend::{
     value_store::{TypedValueProducer, TypedValueResolver, ValueProducer, ValueStore},
-};
-use backend::value_types::{
-    Boolean, Number, Property, Text, Texture, Tint, UntypedValueRef, ValueRef, ValueType,
+    value_types::{
+        Boolean, Number, Property, Text, Texture, Tint, UntypedValueRef, ValueRef, ValueType,
+    },
 };
 
 use super::EguiComboBoxExtension;

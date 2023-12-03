@@ -1,11 +1,9 @@
 use std::collections::HashMap;
 
-use backend::value_types::{Boolean, Number, Property, Text, Texture, Tint, ValueRef};
+use crate::value_types::{Boolean, Number, Property, Text, Texture, Tint, ValueRef};
 use bevy::prelude::Resource;
 use unified_sim_model::model::Entry;
 use uuid::Uuid;
-
-use crate::game_sources;
 
 pub trait ValueProducer<T> {
     fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<T>;
@@ -37,7 +35,8 @@ impl ValueStore {
         self.assets.clear();
         self.convert(vars);
         self.convert(assets);
-        self.convert(game_sources::get_game_sources());
+        todo!();
+        //self.convert(game_sources::get_game_sources());
     }
 
     fn convert(&mut self, asset_defs: Vec<&impl IntoValueProducer>) {

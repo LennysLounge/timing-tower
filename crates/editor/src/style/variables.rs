@@ -6,10 +6,8 @@ use tree_view::{DropPosition, TreeUi, TreeViewBuilder};
 use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
-use crate::{
-    reference_store::{IntoProducerData, ProducerData, ReferenceStore},
-    value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore},
-};
+use crate::reference_store::{IntoProducerData, ProducerData, ReferenceStore};
+use backend::value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore};
 
 use self::{condition::Condition, fixed_value::FixedValue, map::Map};
 

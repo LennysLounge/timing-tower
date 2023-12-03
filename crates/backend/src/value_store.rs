@@ -2,11 +2,41 @@ use std::collections::HashMap;
 
 use crate::{
     game_sources,
+    savefile::{Savefile, SavefileLoaded},
     value_types::{Boolean, Number, Property, Text, Texture, Tint, ValueRef},
 };
-use bevy::prelude::Resource;
+use bevy::{
+    app::{Plugin, Update},
+    asset::Assets,
+    ecs::{
+        event::EventReader,
+        system::{Res, ResMut},
+    },
+    prelude::Resource,
+};
 use unified_sim_model::model::Entry;
 use uuid::Uuid;
+
+pub struct ValueStorePlugin;
+impl Plugin for ValueStorePlugin {
+    fn build(&self, app: &mut bevy::prelude::App) {
+        app.init_resource::<ValueStore>()
+            .add_systems(Update, reload_value_store);
+    }
+}
+
+fn reload_value_store(
+    savefiles: Res<Assets<Savefile>>,
+    mut value_store: ResMut<ValueStore>,
+    mut savefile_loaded_events: EventReader<SavefileLoaded>,
+) {
+    for SavefileLoaded { savefile_id } in savefile_loaded_events.read() {
+        let Some(savefile) = savefiles.get(*savefile_id) else {
+            continue;
+        };
+        value_store.reload_repo(savefile.style.vars.all_t(), savefile.style.assets.all_t());
+    }
+}
 
 pub trait ValueProducer<T> {
     fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<T>;
@@ -24,7 +54,7 @@ pub enum TypedValueProducer {
     Texture(Box<dyn ValueProducer<Texture> + Send + Sync>),
 }
 
-#[derive(Resource)]
+#[derive(Resource, Default)]
 pub struct ValueStore {
     pub assets: HashMap<Uuid, TypedValueProducer>,
 }

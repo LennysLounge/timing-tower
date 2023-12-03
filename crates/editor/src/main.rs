@@ -1,11 +1,9 @@
-use std::{
-    collections::HashMap,
-    env,
-    fs::{self},
-};
+use std::env;
 
-use asset_store_impl::AssetStoreImpl;
-use backend::{savefile::SaveFilePlugin, style::StyleDefinition, value_store::ValueStore};
+use backend::{
+    savefile::{SaveFilePlugin, Savefile},
+    value_store::ValueStorePlugin,
+};
 use bevy::{
     diagnostic::FrameTimeDiagnosticsPlugin,
     ecs::system::EntityCommand,
@@ -19,7 +17,6 @@ use bevy::{
 };
 use bevy_egui::EguiPlugin;
 use common::{
-    asset_store::AssetStore,
     cell::{
         init_cell,
         style::{CellStyle, SetStyle, TextAlignment},
@@ -51,6 +48,7 @@ fn main() {
         .add_plugins(FrameTimeDiagnosticsPlugin)
         .add_plugins(EguiPlugin)
         // Crate plugins
+        .add_plugins(ValueStorePlugin)
         .add_plugins(SaveFilePlugin)
         .add_plugins(CellPlugin)
         .add_plugins(CustomMaterialPlugin)
@@ -67,6 +65,9 @@ struct SimpleTimer(Timer);
 
 #[derive(Resource)]
 pub struct DefaultFont(pub Handle<Font>);
+
+#[derive(Resource)]
+pub struct MainSavefile(pub Handle<Savefile>);
 
 #[derive(Resource)]
 #[allow(unused)]
@@ -98,26 +99,9 @@ fn setup(
         adapter: adapter.clone(),
     });
 
-    let s = match fs::read_to_string("crates/editor/savefile/style.style.json") {
-        Err(e) => {
-            eprintln!("Cannot read 'style.json': {}", e);
-            return;
-        }
-        Ok(s) => s,
-    };
-    let style = match serde_json::from_str::<StyleDefinition>(&s) {
-        Ok(o) => o,
-        Err(e) => {
-            println!("Error parsing json: {}", e);
-            return;
-        }
-    };
-
-    // style
-    //     .assets
-    //     .all_t_mut()
-    //     .into_iter()
-    //     .for_each(|a| a.load_asset(&*asset_server));
+    commands.insert_resource(MainSavefile(
+        asset_server.load::<Savefile>("../savefile//style.style.json"),
+    ));
 
     let background_id = commands
         .spawn_empty()
@@ -142,20 +126,7 @@ fn setup(
         },
     });
 
-    commands.insert_resource(AssetStore::new(Box::new(AssetStoreImpl::new(
-        &style.assets,
-        &asset_server,
-    ))));
-
-    commands.insert_resource(style.clone());
-    let mut repo = ValueStore {
-        assets: HashMap::new(),
-    };
-    repo.reload_repo(style.vars.all_t(), style.assets.all_t());
-    commands.insert_resource(repo);
-
     commands.insert_resource(EditorState::new());
-
     commands.spawn_empty().add(init_timing_tower(adapter));
 }
 

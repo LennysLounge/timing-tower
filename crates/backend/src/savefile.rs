@@ -20,12 +20,12 @@ impl Plugin for SaveFilePlugin {
 
 #[derive(Event)]
 pub struct SavefileLoaded {
-    savefile: AssetId<Savefile>,
+    pub savefile_id: AssetId<Savefile>,
 }
 
 #[derive(Asset, TypePath)]
 pub struct Savefile {
-    _style: StyleDefinition,
+    pub style: StyleDefinition,
 }
 
 #[derive(Default)]
@@ -49,15 +49,11 @@ impl AssetLoader for JsonSavefileLoader {
 
             let mut style = serde_json::from_slice::<StyleDefinition>(&bytes)?;
 
-            let base_path = load_context
-                .path()
-                .parent()
-                .map(|p| p.to_owned())
-                .expect("Path has no parent");
+            let base_path = load_context.path().parent().expect("Path has no parent");
 
             // Update the paths of all assets.
             style.assets.all_t_mut().into_iter().for_each(|asset| {
-                let mut asset_path = base_path.clone();
+                let mut asset_path = base_path.to_owned();
                 asset_path.push(asset.path.clone());
                 asset.path = asset_path
                     .into_os_string()
@@ -65,7 +61,7 @@ impl AssetLoader for JsonSavefileLoader {
                     .expect("Path should be convertable into a string");
             });
 
-            Ok(Savefile { _style: style })
+            Ok(Savefile { style })
         })
     }
 
@@ -81,7 +77,7 @@ pub fn listen_for_savefile_assets_events(
     for event in events.read() {
         if let AssetEvent::Added { id } = event {
             send_event.send(SavefileLoaded {
-                savefile: id.clone(),
+                savefile_id: id.clone(),
             });
         }
     }

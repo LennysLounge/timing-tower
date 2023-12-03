@@ -1,6 +1,9 @@
 use std::collections::HashMap;
 
-use backend::{style::{folder::Folder, assets::AssetDefinition}, value_types::ValueType};
+use backend::{
+    style::{assets::AssetDefinition, folder::Folder},
+    value_types::ValueType,
+};
 use bevy::{
     asset::{AssetServer, Handle},
     render::texture::Image,

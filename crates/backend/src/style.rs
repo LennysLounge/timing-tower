@@ -1,4 +1,3 @@
-use bevy::prelude::Resource;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -13,7 +12,7 @@ pub mod folder;
 pub mod timing_tower;
 pub mod variables;
 
-#[derive(Serialize, Deserialize, Clone, Resource)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct StyleDefinition {
     pub id: Uuid,
     pub assets: Folder<AssetDefinition>,

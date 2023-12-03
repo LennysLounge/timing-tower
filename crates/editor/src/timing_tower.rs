@@ -1,11 +1,13 @@
 use std::collections::HashMap;
 
 use backend::{
-    style::{cell::Cell, StyleDefinition},
+    savefile::Savefile,
+    style::cell::Cell,
     value_store::ValueStore,
     value_types::{Boolean, Number, Text, Texture, Tint},
 };
 use bevy::{
+    asset::Assets,
     ecs::{schedule::IntoSystemConfigs, system::EntityCommand},
     prelude::{
         BuildChildren, BuildWorldChildren, Bundle, Color, Commands, Component, Entity,
@@ -21,7 +23,7 @@ use unified_sim_model::{
     Adapter,
 };
 
-use crate::SpawnAndInitWorld;
+use crate::{MainSavefile, SpawnAndInitWorld};
 
 pub struct TimingTowerPlugin;
 impl Plugin for TimingTowerPlugin {
@@ -86,11 +88,22 @@ pub fn init_timing_tower(adapter: Adapter) -> impl EntityCommand {
 }
 
 pub fn update_tower(
-    elements: Res<StyleDefinition>,
+    savefile: Option<Res<MainSavefile>>,
+    savefiles: Res<Assets<Savefile>>,
     variables: Res<ValueStore>,
     mut towers: Query<(Entity, &TimingTower), With<TimingTower>>,
     mut set_style_event: EventWriter<SetStyle>,
 ) {
+    let style = {
+        if savefile.is_none() {
+            return;
+        }
+        match savefile.and_then(|savefile| savefiles.get(savefile.0.id())) {
+            Some(o) => &o.style,
+            None => return,
+        }
+    };
+
     for (tower_id, tower) in towers.iter_mut() {
         let Ok(model) = tower.adapter.model.read() else {
             continue;
@@ -104,7 +117,7 @@ pub fn update_tower(
             continue;
         };
 
-        let style = create_cell_style(&elements.timing_tower.cell, &variables, Some(entry));
+        let style = create_cell_style(&style.timing_tower.cell, &variables, Some(entry));
         set_style_event.send(SetStyle {
             entity: tower_id,
             style,
@@ -115,10 +128,21 @@ pub fn update_tower(
 fn update_table(
     tables: Query<(Entity, &Table)>,
     towers: Query<&TimingTower>,
-    elements: Res<StyleDefinition>,
+    savefile: Option<Res<MainSavefile>>,
+    savefiles: Res<Assets<Savefile>>,
     variables: Res<ValueStore>,
     mut set_style_event: EventWriter<SetStyle>,
 ) {
+    let style = {
+        if savefile.is_none() {
+            return;
+        }
+        match savefile.and_then(|savefile| savefiles.get(savefile.0.id())) {
+            Some(o) => &o.style,
+            None => return,
+        }
+    };
+
     for (table_id, table) in tables.iter() {
         let Ok(tower) = towers.get(table.tower_id) else {
             continue;
@@ -136,8 +160,7 @@ fn update_table(
             continue;
         };
 
-        let mut style =
-            create_cell_style(&elements.timing_tower.table.cell, &variables, Some(entry));
+        let mut style = create_cell_style(&style.timing_tower.table.cell, &variables, Some(entry));
         style.pos.z += 1.0;
         set_style_event.send(SetStyle {
             entity: table_id.clone(),
@@ -148,12 +171,22 @@ fn update_table(
 
 fn update_rows(
     towers: Query<&TimingTower>,
-    elements: Res<StyleDefinition>,
+    savefile: Option<Res<MainSavefile>>,
+    savefiles: Res<Assets<Savefile>>,
     variables: Res<ValueStore>,
     mut tables: Query<(Entity, &mut Table)>,
     mut commands: Commands,
     mut set_style_event: EventWriter<SetStyle>,
 ) {
+    let main_style = {
+        if savefile.is_none() {
+            return;
+        }
+        match savefile.and_then(|savefile| savefiles.get(savefile.0.id())) {
+            Some(o) => &o.style,
+            None => return,
+        }
+    };
     for (table_id, mut table) in tables.iter_mut() {
         let Ok(tower) = towers.get(table.tower_id) else {
             continue;
@@ -173,7 +206,7 @@ fn update_rows(
                 let row_id = commands.spawn_empty().add(init_cell).id();
                 // create all necessairy cells for rows.
                 let mut columns = HashMap::new();
-                for column in elements.timing_tower.table.row.columns.all_t() {
+                for column in main_style.timing_tower.table.row.columns.all_t() {
                     let cell_id = commands.spawn_empty().add(init_cell).id();
                     columns.insert(column.name.clone(), cell_id);
                     commands.entity(row_id).add_child(cell_id);
@@ -207,7 +240,7 @@ fn update_rows(
             };
 
             let mut style = create_cell_style(
-                &elements.timing_tower.table.row.cell,
+                &main_style.timing_tower.table.row.cell,
                 &variables,
                 Some(entry),
             );
@@ -221,12 +254,12 @@ fn update_rows(
             offset.y -= row_height;
             offset -= Vec2::new(
                 variables
-                    .get_property(&elements.timing_tower.table.row_offset.x, None)
+                    .get_property(&main_style.timing_tower.table.row_offset.x, None)
                     .unwrap_or(Number(0.0))
                     .0
                     * -1.0,
                 variables
-                    .get_property(&elements.timing_tower.table.row_offset.y, None)
+                    .get_property(&main_style.timing_tower.table.row_offset.y, None)
                     .unwrap_or(Number(0.0))
                     .0,
             );
@@ -237,10 +270,20 @@ fn update_rows(
 fn update_columns(
     rows: Query<&Row>,
     towers: Query<&TimingTower>,
-    elements: Res<StyleDefinition>,
+    savefile: Option<Res<MainSavefile>>,
+    savefiles: Res<Assets<Savefile>>,
     variables: Res<ValueStore>,
     mut set_style_event: EventWriter<SetStyle>,
 ) {
+    let style = {
+        if savefile.is_none() {
+            return;
+        }
+        match savefile.and_then(|savefile| savefiles.get(savefile.0.id())) {
+            Some(o) => &o.style,
+            None => return,
+        }
+    };
     for row in rows.iter() {
         let Ok(tower) = towers.get(row.tower_id) else {
             continue;
@@ -258,7 +301,7 @@ fn update_columns(
             continue;
         };
 
-        for column in elements.timing_tower.table.row.columns.all_t() {
+        for column in style.timing_tower.table.row.columns.all_t() {
             let Some(cell_id) = row.columns.get(&column.name) else {
                 continue;
             };

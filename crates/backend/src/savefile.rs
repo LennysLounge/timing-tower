@@ -27,10 +27,14 @@ pub struct SavefileLoaded;
 
 #[derive(Resource)]
 pub struct Savefile {
-    pub style: StyleDefinition,
+    style: StyleDefinition,
 }
 
 impl Savefile {
+    pub fn style(&self) -> &StyleDefinition {
+        &self.style
+    }
+
     pub fn load<P>(path: P) -> Self
     where
         P: AsRef<Path>,

@@ -92,7 +92,7 @@ pub fn update_tower(
     mut towers: Query<(Entity, &TimingTower), With<TimingTower>>,
     mut set_style_event: EventWriter<SetStyle>,
 ) {
-    let Some(style) = savefile.as_ref().map(|s| &s.style) else {
+    let Some(style) = savefile.as_ref().map(|s| s.style()) else {
         return;
     };
 
@@ -124,7 +124,7 @@ fn update_table(
     variables: Res<ValueStore>,
     mut set_style_event: EventWriter<SetStyle>,
 ) {
-    let Some(style) = savefile.as_ref().map(|s| &s.style) else {
+    let Some(style) = savefile.as_ref().map(|s| s.style()) else {
         return;
     };
 
@@ -162,7 +162,7 @@ fn update_rows(
     mut commands: Commands,
     mut set_style_event: EventWriter<SetStyle>,
 ) {
-    let Some(style) = savefile.as_ref().map(|s| &s.style) else {
+    let Some(style) = savefile.as_ref().map(|s| s.style()) else {
         return;
     };
     for (table_id, mut table) in tables.iter_mut() {
@@ -249,7 +249,7 @@ fn update_columns(
     variables: Res<ValueStore>,
     mut set_style_event: EventWriter<SetStyle>,
 ) {
-    let Some(style) = savefile.as_ref().map(|s| &s.style) else {
+    let Some(style) = savefile.as_ref().map(|s| s.style()) else {
         return;
     };
     for row in rows.iter() {

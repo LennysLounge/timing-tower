@@ -78,7 +78,7 @@ enum Tab {
 struct EditorTabViewer<'a> {
     viewport: &'a mut Rect,
     selected_node: &'a mut Option<Uuid>,
-    style: &'a mut StyleDefinition,
+    //style: &'a mut StyleDefinition,
 }
 impl<'a> TabViewer for EditorTabViewer<'a> {
     type Tab = Tab;
@@ -99,16 +99,16 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 *self.viewport = ui.clip_rect();
             }
             Tab::Elements => {
-                tree_view_elements(ui, self.selected_node, self.style);
+                // tree_view_elements(ui, self.selected_node, self.style);
             }
             Tab::PropertyEditor => {
-                property_editor(ui, self.selected_node, self.style);
+                // property_editor(ui, self.selected_node, self.style);
             }
             Tab::Variables => {
-                tree_view_vars(ui, self.selected_node, self.style);
+                // tree_view_vars(ui, self.selected_node, self.style);
             }
             Tab::Assets => {
-                tree_view_assets(ui, self.selected_node, self.style);
+                // tree_view_assets(ui, self.selected_node, self.style);
             }
         }
     }
@@ -133,7 +133,7 @@ fn ui(
     mut variable_repo: ResMut<ValueStore>,
     mut editor_camera: Query<(&mut EditorCamera, &mut Transform), With<MainCamera>>,
 ) {
-    let Some(mut style) = savefile.as_mut().map(|s| &mut s.style) else {
+    let Some(mut style) = savefile.as_mut().map(|s| s.style()) else {
         return;
     };
 
@@ -184,7 +184,7 @@ fn ui(
             &mut EditorTabViewer {
                 viewport,
                 selected_node,
-                style: &mut style,
+                //style: &mut style,
             },
         );
 

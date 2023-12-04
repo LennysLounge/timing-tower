@@ -34,7 +34,10 @@ fn reload_value_store(
     };
 
     for _ in savefile_loaded_events.read() {
-        value_store.reload_repo(savefile.style.vars.all_t(), savefile.style.assets.all_t());
+        value_store.reload_repo(
+            savefile.style().vars.all_t(),
+            savefile.style().assets.all_t(),
+        );
     }
 }
 

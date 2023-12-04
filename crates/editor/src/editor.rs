@@ -4,8 +4,6 @@ use std::{fs::File, io::Write};
 
 use backend::{savefile::Savefile, style::StyleDefinition, value_store::ValueStore};
 use bevy::{
-    asset::Assets,
-    ecs::system::Res,
     math::vec3,
     prelude::{
         resource_exists, IntoSystemConfigs, Plugin, Query, ResMut, Resource, Startup, Update, With,
@@ -24,7 +22,7 @@ use uuid::Uuid;
 use crate::{
     reference_store::ReferenceStore,
     style::{StyleDefinitionUiThings, StyleTreeNode, TreeViewAction},
-    MainCamera, MainSavefile,
+    MainCamera,
 };
 
 use self::camera::{EditorCamera, EditorCameraPlugin};
@@ -129,21 +127,14 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
 }
 
 fn ui(
-    savefile: Option<Res<MainSavefile>>,
-    mut savefiles: ResMut<Assets<Savefile>>,
+    mut savefile: Option<ResMut<Savefile>>,
     mut ctx: EguiContexts,
     mut state: ResMut<EditorState>,
     mut variable_repo: ResMut<ValueStore>,
     mut editor_camera: Query<(&mut EditorCamera, &mut Transform), With<MainCamera>>,
 ) {
-    let style = {
-        if savefile.is_none() {
-            return;
-        }
-        match savefile.and_then(|savefile| savefiles.get_mut(savefile.0.id())) {
-            Some(o) => &mut o.style,
-            None => return,
-        }
+    let Some(mut style) = savefile.as_mut().map(|s| &mut s.style) else {
+        return;
     };
 
     egui::TopBottomPanel::top("Top panel").show(ctx.ctx_mut(), |ui| {
@@ -193,7 +184,7 @@ fn ui(
             &mut EditorTabViewer {
                 viewport,
                 selected_node,
-                style: &mut *style,
+                style: &mut style,
             },
         );
 

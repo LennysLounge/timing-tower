@@ -1,9 +1,12 @@
+use std::{fs, path::Path};
+
 use bevy::{
-    app::Update,
-    asset::{Asset, AssetApp, AssetEvent, AssetId, AssetLoader, AsyncReadExt},
-    ecs::event::{Event, EventReader, EventWriter},
+    asset::{
+        io::{file::FileAssetReader, AssetSourceBuilder},
+        AssetApp,
+    },
+    ecs::{event::Event, system::Resource},
     prelude::Plugin,
-    reflect::TypePath,
 };
 
 use crate::style::StyleDefinition;
@@ -11,74 +14,59 @@ use crate::style::StyleDefinition;
 pub struct SaveFilePlugin;
 impl Plugin for SaveFilePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.init_asset::<Savefile>()
-            .add_event::<SavefileLoaded>()
-            .init_asset_loader::<JsonSavefileLoader>()
-            .add_systems(Update, listen_for_savefile_assets_events);
+        app.register_asset_source(
+            "savefile",
+            AssetSourceBuilder::default().with_reader(|| Box::new(FileAssetReader::new(""))),
+        )
+        .add_event::<SavefileLoaded>();
     }
 }
 
 #[derive(Event)]
-pub struct SavefileLoaded {
-    pub savefile_id: AssetId<Savefile>,
-}
+pub struct SavefileLoaded;
 
-#[derive(Asset, TypePath)]
+#[derive(Resource)]
 pub struct Savefile {
     pub style: StyleDefinition,
 }
 
-#[derive(Default)]
-struct JsonSavefileLoader;
-impl AssetLoader for JsonSavefileLoader {
-    type Asset = Savefile;
-    type Settings = ();
-    type Error = std::io::Error;
+impl Savefile {
+    pub fn load<P>(path: P) -> Self
+    where
+        P: AsRef<Path>,
+    {
+        let root_path = FileAssetReader::get_base_path().join(&path);
 
-    fn load<'a>(
-        &'a self,
-        reader: &'a mut bevy::asset::io::Reader,
-        _settings: &'a Self::Settings,
-        load_context: &'a mut bevy::asset::LoadContext,
-    ) -> bevy::utils::BoxedFuture<'a, Result<Self::Asset, Self::Error>> {
-        Box::pin(async move {
-            println!("load savefile from path: {:?}", load_context.path());
+        let s = match fs::read_to_string(&root_path) {
+            Err(e) => {
+                eprintln!("Cannot read 'style.json': {}", e);
+                panic!();
+            }
+            Ok(s) => s,
+        };
+        let mut style = match serde_json::from_str::<StyleDefinition>(&s) {
+            Ok(o) => o,
+            Err(e) => {
+                println!("Error parsing json: {}", e);
+                panic!();
+            }
+        };
 
-            let mut bytes = Vec::new();
-            reader.read_to_end(&mut bytes).await?;
+        let Some(base_path) = path.as_ref().parent() else {
+            panic!("Path has no parent");
+        };
 
-            let mut style = serde_json::from_slice::<StyleDefinition>(&bytes)?;
-
-            let base_path = load_context.path().parent().expect("Path has no parent");
-
-            // Update the paths of all assets.
-            style.assets.all_t_mut().into_iter().for_each(|asset| {
-                let mut asset_path = base_path.to_owned();
-                asset_path.push(asset.path.clone());
-                asset.path = asset_path
+        // Update the paths of all assets.
+        style.assets.all_t_mut().into_iter().for_each(|asset| {
+            let asset_path = base_path.to_owned().join(asset.path.clone());
+            asset.path = format!(
+                "savefile://{}",
+                asset_path
                     .into_os_string()
                     .into_string()
-                    .expect("Path should be convertable into a string");
-            });
-
-            Ok(Savefile { style })
-        })
-    }
-
-    fn extensions(&self) -> &[&str] {
-        &["style.json"]
-    }
-}
-
-pub fn listen_for_savefile_assets_events(
-    mut events: EventReader<AssetEvent<Savefile>>,
-    mut send_event: EventWriter<SavefileLoaded>,
-) {
-    for event in events.read() {
-        if let AssetEvent::Added { id } = event {
-            send_event.send(SavefileLoaded {
-                savefile_id: id.clone(),
-            });
-        }
+                    .expect("Path should be convertable into a string")
+            );
+        });
+        Savefile { style }
     }
 }

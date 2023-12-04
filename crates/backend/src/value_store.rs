@@ -7,7 +7,6 @@ use crate::{
 };
 use bevy::{
     app::{Plugin, Update},
-    asset::Assets,
     ecs::{
         event::EventReader,
         system::{Res, ResMut},
@@ -26,14 +25,15 @@ impl Plugin for ValueStorePlugin {
 }
 
 fn reload_value_store(
-    savefiles: Res<Assets<Savefile>>,
+    savefile: Option<Res<Savefile>>,
     mut value_store: ResMut<ValueStore>,
     mut savefile_loaded_events: EventReader<SavefileLoaded>,
 ) {
-    for SavefileLoaded { savefile_id } in savefile_loaded_events.read() {
-        let Some(savefile) = savefiles.get(*savefile_id) else {
-            continue;
-        };
+    let Some(savefile) = savefile else {
+        return;
+    };
+
+    for _ in savefile_loaded_events.read() {
         value_store.reload_repo(savefile.style.vars.all_t(), savefile.style.assets.all_t());
     }
 }

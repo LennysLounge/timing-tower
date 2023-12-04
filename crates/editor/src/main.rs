@@ -1,7 +1,7 @@
 use std::env;
 
 use backend::{
-    savefile::{SaveFilePlugin, Savefile},
+    savefile::{SaveFilePlugin, Savefile, SavefileLoaded},
     value_store::ValueStorePlugin,
 };
 use bevy::{
@@ -41,13 +41,13 @@ fn main() {
         .insert_resource(ClearColor(Color::rgba(0.1, 0.1, 0.1, 0.0)))
         .insert_resource(SimpleTimer(Timer::from_seconds(1.0, TimerMode::Repeating)))
         // Crate plugins
+        .add_plugins(SaveFilePlugin)
         // Plugins
         .add_plugins(DefaultPlugins)
         .add_plugins(FrameTimeDiagnosticsPlugin)
         .add_plugins(EguiPlugin)
         // Crate plugins
         .add_plugins(ValueStorePlugin)
-        .add_plugins(SaveFilePlugin)
         .add_plugins(CellPlugin)
         .add_plugins(CustomMaterialPlugin)
         .add_plugins(TimingTowerPlugin)
@@ -63,9 +63,6 @@ struct SimpleTimer(Timer);
 
 #[derive(Resource)]
 pub struct DefaultFont(pub Handle<Font>);
-
-#[derive(Resource)]
-pub struct MainSavefile(pub Handle<Savefile>);
 
 #[derive(Resource)]
 #[allow(unused)]
@@ -90,16 +87,15 @@ fn load(asset_server: Res<AssetServer>, mut commands: Commands) {
 fn setup(
     mut commands: Commands,
     mut set_style_event: EventWriter<SetStyle>,
-    asset_server: Res<AssetServer>,
+    mut savefile_loaded_event: EventWriter<SavefileLoaded>,
 ) {
     let adapter = Adapter::new_dummy();
     commands.insert_resource(GameAdapterResource {
         adapter: adapter.clone(),
     });
 
-    commands.insert_resource(MainSavefile(
-        asset_server.load::<Savefile>("../savefile/style.style.json"),
-    ));
+    commands.insert_resource(Savefile::load("savefile/style.style.json"));
+    savefile_loaded_event.send(SavefileLoaded);
 
     let background_id = commands
         .spawn_empty()

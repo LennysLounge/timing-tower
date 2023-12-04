@@ -21,7 +21,10 @@ use uuid::Uuid;
 
 use crate::{
     reference_store::ReferenceStore,
-    style::{StyleDefinitionUiThings, StyleTreeNode, TreeViewAction},
+    style::{
+        tree::{StyleTreeNode, TreeViewAction},
+        StyleDefinitionUiThings,
+    },
     MainCamera,
 };
 

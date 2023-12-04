@@ -120,13 +120,13 @@ impl<T: Default> Default for Property<T> {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Default)]
 pub struct Vec2Property {
     pub x: Property<Number>,
     pub y: Property<Number>,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Default)]
 pub struct Vec3Property {
     pub x: Property<Number>,
     pub y: Property<Number>,

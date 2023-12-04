@@ -5,14 +5,14 @@ use crate::value_types::Vec2Property;
 
 use super::{cell::Cell, folder::Folder};
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Default)]
 pub struct TimingTower {
     pub id: Uuid,
     pub cell: Cell,
     pub table: TimingTowerTable,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Default)]
 pub struct TimingTowerTable {
     pub id: Uuid,
     pub cell: Cell,
@@ -20,14 +20,14 @@ pub struct TimingTowerTable {
     pub row: TimingTowerRow,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Default)]
 pub struct TimingTowerRow {
     pub id: Uuid,
     pub cell: Cell,
     pub columns: Folder<TimingTowerColumn>,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Default)]
 pub struct TimingTowerColumn {
     pub id: Uuid,
     pub cell: Cell,

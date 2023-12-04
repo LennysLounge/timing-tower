@@ -18,6 +18,7 @@ impl Plugin for SaveFilePlugin {
             "savefile",
             AssetSourceBuilder::default().with_reader(|| Box::new(FileAssetReader::new(""))),
         )
+        .init_resource::<Savefile>()
         .add_event::<SavefileLoaded>();
     }
 }
@@ -25,7 +26,7 @@ impl Plugin for SaveFilePlugin {
 #[derive(Event)]
 pub struct SavefileLoaded;
 
-#[derive(Resource)]
+#[derive(Resource, Default)]
 pub struct Savefile {
     style: StyleDefinition,
 }
@@ -72,5 +73,9 @@ impl Savefile {
             );
         });
         Savefile { style }
+    }
+
+    pub fn set(&mut self, new_style: &StyleDefinition) {
+        self.style = new_style.clone();
     }
 }

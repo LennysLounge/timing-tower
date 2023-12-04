@@ -9,6 +9,17 @@ pub struct Folder<T> {
     pub renameable: bool,
 }
 
+impl<T> Default for Folder<T> {
+    fn default() -> Self {
+        Self {
+            id: Default::default(),
+            name: Default::default(),
+            content: Default::default(),
+            renameable: Default::default(),
+        }
+    }
+}
+
 impl<T> Folder<T> {
     pub fn new() -> Self {
         Self {

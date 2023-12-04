@@ -16,34 +16,49 @@ pub mod timing_tower;
 pub mod tree;
 pub mod variables;
 
+pub struct StyleModel {
+    pub def: StyleDefinition,
+}
+impl StyleModel {
+    pub fn new(style_def: &StyleDefinition) -> Self {
+        Self {
+            def: style_def.clone(),
+        }
+    }
+}
+
 trait AttributeEditor {
     fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool;
 }
 
-impl StyleTreeUi for StyleDefinition {
+impl StyleTreeUi for StyleModel {
     fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
-        TreeViewBuilder::dir(self.id).headless().show(ui, |ui| {
-            self.assets.tree_view(ui, actions);
+        TreeViewBuilder::dir(self.def.id).headless().show(ui, |ui| {
+            self.def.assets.tree_view(ui, actions);
             ui.ui.separator();
-            self.vars.tree_view(ui, actions);
+            self.def.vars.tree_view(ui, actions);
             ui.ui.separator();
-            self.timing_tower.tree_view(ui, actions);
+            self.def.timing_tower.tree_view(ui, actions);
             ui.ui.separator();
         });
     }
 }
 
-impl StyleTreeNode for StyleDefinition {
+impl StyleTreeNode for StyleModel {
     fn id(&self) -> &Uuid {
-        &self.id
+        &self.def.id
     }
 
     fn chidren(&self) -> Vec<&dyn StyleTreeNode> {
-        vec![&self.vars, &self.timing_tower, &self.assets]
+        vec![&self.def.vars, &self.def.timing_tower, &self.def.assets]
     }
 
     fn chidren_mut(&mut self) -> Vec<&mut dyn StyleTreeNode> {
-        vec![&mut self.vars, &mut self.timing_tower, &mut self.assets]
+        vec![
+            &mut self.def.vars,
+            &mut self.def.timing_tower,
+            &mut self.def.assets,
+        ]
     }
 
     fn can_insert(&self, _node: &dyn Any) -> bool {
@@ -66,20 +81,20 @@ pub trait StyleDefinitionUiThings {
     fn insert(&mut self, target: &Uuid, node: Box<dyn Any>, position: DropPosition);
     fn remove(&mut self, node: &Uuid);
 }
-impl StyleDefinitionUiThings for StyleDefinition {
+impl StyleDefinitionUiThings for StyleModel {
     fn tree_view_elements(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
-        TreeViewBuilder::dir(self.id).headless().show(ui, |ui| {
-            self.timing_tower.tree_view(ui, actions);
+        TreeViewBuilder::dir(self.def.id).headless().show(ui, |ui| {
+            self.def.timing_tower.tree_view(ui, actions);
         });
     }
     fn tree_view_variables(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
-        TreeViewBuilder::dir(self.id).headless().show(ui, |ui| {
-            self.vars.tree_view(ui, actions);
+        TreeViewBuilder::dir(self.def.id).headless().show(ui, |ui| {
+            self.def.vars.tree_view(ui, actions);
         });
     }
     fn tree_view_assets(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
-        TreeViewBuilder::dir(self.id).headless().show(ui, |ui| {
-            self.assets.tree_view(ui, actions);
+        TreeViewBuilder::dir(self.def.id).headless().show(ui, |ui| {
+            self.def.assets.tree_view(ui, actions);
         });
     }
 

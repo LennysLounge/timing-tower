@@ -12,7 +12,7 @@ pub mod folder;
 pub mod timing_tower;
 pub mod variables;
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Default)]
 pub struct StyleDefinition {
     pub id: Uuid,
     pub assets: Folder<AssetDefinition>,

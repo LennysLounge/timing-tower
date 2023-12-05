@@ -24,7 +24,7 @@ use common::{
     },
     gradient_material::CustomMaterialPlugin,
 };
-use editor::{EditorPlugin, EditorState};
+use editor::EditorPlugin;
 
 use timing_tower::{init_timing_tower, TimingTowerPlugin};
 use unified_sim_model::Adapter;
@@ -119,8 +119,6 @@ fn setup(
             rounding: [0.0, 0.0, 0.0, 0.0],
         },
     });
-
-    commands.insert_resource(EditorState::new());
     commands.spawn_empty().add(init_timing_tower(adapter));
 }
 

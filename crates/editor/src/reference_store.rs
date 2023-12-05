@@ -1,9 +1,17 @@
+use bevy::{
+    app::{First, Plugin},
+    ecs::{
+        event::EventReader,
+        system::{Res, ResMut, Resource},
+    },
+};
 use bevy_egui::egui::{InnerResponse, Response, Ui};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use backend::{
     game_sources::{self},
+    savefile::{Savefile, SavefileChanged},
     style::{
         assets::AssetDefinition,
         folder::{Folder, FolderOrT},
@@ -11,6 +19,14 @@ use backend::{
     },
     value_types::{UntypedValueRef, ValueRef, ValueType, ValueTypeOf},
 };
+
+pub struct ReferenceStorePlugin;
+impl Plugin for ReferenceStorePlugin {
+    fn build(&self, app: &mut bevy::prelude::App) {
+        app.insert_resource(ReferenceStore::default())
+            .add_systems(First, savefile_changed);
+    }
+}
 
 pub trait IntoProducerData {
     fn producer_data(&self) -> ProducerData;
@@ -41,6 +57,7 @@ impl ProducerData {
     }
 }
 
+#[derive(Resource, Default)]
 pub struct ReferenceStore {
     assets: AssetOrFolder,
     game_sources: AssetOrFolder,
@@ -48,12 +65,10 @@ pub struct ReferenceStore {
 }
 
 impl ReferenceStore {
-    pub fn new(vars: &Folder<VariableDefinition>, assets: &Folder<AssetDefinition>) -> Self {
-        Self {
-            variables: AssetOrFolder::from_vars(vars),
-            game_sources: AssetOrFolder::from_game(),
-            assets: AssetOrFolder::from_asset_defs(assets),
-        }
+    fn reload(&mut self, vars: &Folder<VariableDefinition>, assets: &Folder<AssetDefinition>) {
+        self.variables = AssetOrFolder::from_vars(vars);
+        self.game_sources = AssetOrFolder::from_game();
+        self.assets = AssetOrFolder::from_asset_defs(assets);
     }
 
     pub fn editor<T>(&self, ui: &mut Ui, value_ref: &mut ValueRef<T>) -> Response
@@ -167,6 +182,14 @@ enum AssetOrFolder {
         assets: Vec<AssetOrFolder>,
     },
 }
+impl Default for AssetOrFolder {
+    fn default() -> Self {
+        Self::Folder {
+            name: String::from(""),
+            assets: Vec::new(),
+        }
+    }
+}
 impl AssetOrFolder {
     fn from_vars(vars: &Folder<VariableDefinition>) -> Self {
         Self::Folder {
@@ -268,4 +291,18 @@ impl AssetOrFolder {
             }
         }
     }
+}
+
+fn savefile_changed(
+    savefile: Res<Savefile>,
+    mut reference_store: ResMut<ReferenceStore>,
+    mut savefile_changed_event: EventReader<SavefileChanged>,
+) {
+    if savefile_changed_event.is_empty() {
+        return;
+    }
+    savefile_changed_event.clear();
+
+    println!("Reload reference store");
+    reference_store.reload(&savefile.style().vars, &savefile.style().assets);
 }

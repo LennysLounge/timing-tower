@@ -7,7 +7,7 @@ use backend::{
     style::StyleDefinition,
 };
 use bevy::{
-    ecs::event::EventWriter,
+    ecs::{event::EventWriter, system::Res},
     math::vec3,
     prelude::{
         resource_exists, IntoSystemConfigs, Plugin, Query, ResMut, Resource, Startup, Update, With,
@@ -24,7 +24,7 @@ use tree_view::TreeViewBuilder;
 use uuid::Uuid;
 
 use crate::{
-    reference_store::ReferenceStore,
+    reference_store::{ReferenceStore, ReferenceStorePlugin},
     style::{
         tree::{StyleTreeNode, TreeViewAction},
         StyleDefinitionUiThings, StyleModel,
@@ -37,7 +37,9 @@ use self::camera::{EditorCamera, EditorCameraPlugin};
 pub struct EditorPlugin;
 impl Plugin for EditorPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_plugins(EditorCameraPlugin)
+        app.insert_resource(EditorState::new())
+            .add_plugins(ReferenceStorePlugin)
+            .add_plugins(EditorCameraPlugin)
             .add_systems(Startup, setup)
             .add_systems(
                 Update,
@@ -87,6 +89,7 @@ struct EditorTabViewer<'a> {
     selected_node: &'a mut Option<Uuid>,
     style: &'a mut StyleModel,
     style_changed: &'a mut bool,
+    reference_store: &'a ReferenceStore,
 }
 impl<'a> TabViewer for EditorTabViewer<'a> {
     type Tab = Tab;
@@ -110,7 +113,13 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 tree_view_elements(ui, self.selected_node, self.style);
             }
             Tab::PropertyEditor => {
-                property_editor(ui, self.selected_node, self.style, self.style_changed);
+                property_editor(
+                    ui,
+                    self.selected_node,
+                    self.style,
+                    self.style_changed,
+                    self.reference_store,
+                );
             }
             Tab::Variables => {
                 tree_view_vars(ui, self.selected_node, self.style);
@@ -135,6 +144,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
 }
 
 fn ui(
+    reference_store: Res<ReferenceStore>,
     mut savefile: ResMut<Savefile>,
     mut ctx: EguiContexts,
     mut state: ResMut<EditorState>,
@@ -192,6 +202,7 @@ fn ui(
                 selected_node,
                 style: &mut style_model,
                 style_changed: &mut style_changed,
+                reference_store: &reference_store,
             },
         );
 
@@ -329,13 +340,13 @@ fn property_editor(
     selected_node: &mut Option<Uuid>,
     style: &mut StyleModel,
     changed: &mut bool,
+    reference_store: &ReferenceStore,
 ) {
-    let asset_reference_repo = ReferenceStore::new(&style.def.vars, &style.def.assets);
     ScrollArea::vertical()
         .auto_shrink([false, false])
         .show(ui, |ui| {
             if let Some(selected_node) = selected_node.as_ref().and_then(|id| style.find_mut(id)) {
-                *changed |= selected_node.property_editor(ui, &asset_reference_repo);
+                *changed |= selected_node.property_editor(ui, &reference_store);
             }
         });
 }

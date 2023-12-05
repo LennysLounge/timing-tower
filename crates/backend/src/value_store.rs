@@ -2,11 +2,11 @@ use std::collections::HashMap;
 
 use crate::{
     game_sources,
-    savefile::{Savefile, SavefileLoaded},
+    savefile::{Savefile, SavefileChanged},
     value_types::{Boolean, Number, Property, Text, Texture, Tint, ValueRef},
 };
 use bevy::{
-    app::{Plugin, Update},
+    app::{First, Plugin},
     ecs::{
         event::EventReader,
         system::{Res, ResMut},
@@ -20,24 +20,7 @@ pub struct ValueStorePlugin;
 impl Plugin for ValueStorePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.init_resource::<ValueStore>()
-            .add_systems(Update, reload_value_store);
-    }
-}
-
-fn reload_value_store(
-    savefile: Option<Res<Savefile>>,
-    mut value_store: ResMut<ValueStore>,
-    mut savefile_loaded_events: EventReader<SavefileLoaded>,
-) {
-    let Some(savefile) = savefile else {
-        return;
-    };
-
-    for _ in savefile_loaded_events.read() {
-        value_store.reload_repo(
-            savefile.style().vars.all_t(),
-            savefile.style().assets.all_t(),
-        );
+            .add_systems(First, savefile_changed);
     }
 }
 
@@ -152,4 +135,21 @@ impl TypedValueResolver<Texture> for ValueStore {
             _ => None,
         }
     }
+}
+
+fn savefile_changed(
+    savefile: Res<Savefile>,
+    mut value_store: ResMut<ValueStore>,
+    mut savefile_changed_event: EventReader<SavefileChanged>,
+) {
+    if savefile_changed_event.is_empty() {
+        return;
+    }
+    savefile_changed_event.clear();
+
+    println!("Reload value store");
+    value_store.reload_repo(
+        savefile.style().vars.all_t(),
+        savefile.style().assets.all_t(),
+    );
 }

@@ -1,12 +1,12 @@
 use std::env;
 
 use backend::{
-    savefile::{SaveFilePlugin, Savefile, SavefileLoaded},
+    savefile::{SaveFilePlugin, Savefile, SavefileChanged},
     value_store::ValueStorePlugin,
 };
 use bevy::{
     diagnostic::FrameTimeDiagnosticsPlugin,
-    ecs::system::EntityCommand,
+    ecs::system::{EntityCommand, ResMut},
     prelude::{
         App, AssetServer, ClearColor, Color, Commands, Component, EntityWorldMut, EventWriter,
         Handle, PreStartup, Res, Resource, Startup, Vec2, Vec3, World,
@@ -85,17 +85,17 @@ fn load(asset_server: Res<AssetServer>, mut commands: Commands) {
 }
 
 fn setup(
+    savefile_changed_event: EventWriter<SavefileChanged>,
     mut commands: Commands,
     mut set_style_event: EventWriter<SetStyle>,
-    mut savefile_loaded_event: EventWriter<SavefileLoaded>,
+    mut savefile: ResMut<Savefile>,
 ) {
     let adapter = Adapter::new_dummy();
     commands.insert_resource(GameAdapterResource {
         adapter: adapter.clone(),
     });
 
-    commands.insert_resource(Savefile::load("savefile/style.style.json"));
-    savefile_loaded_event.send(SavefileLoaded);
+    savefile.load("savefile/style.style.json", savefile_changed_event);
 
     let background_id = commands
         .spawn_empty()

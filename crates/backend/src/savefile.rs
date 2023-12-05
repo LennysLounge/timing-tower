@@ -5,7 +5,10 @@ use bevy::{
         io::{file::FileAssetReader, AssetSourceBuilder},
         AssetApp,
     },
-    ecs::{event::Event, system::Resource},
+    ecs::{
+        event::{Event, EventWriter},
+        system::Resource,
+    },
     prelude::Plugin,
 };
 
@@ -19,12 +22,12 @@ impl Plugin for SaveFilePlugin {
             AssetSourceBuilder::default().with_reader(|| Box::new(FileAssetReader::new(""))),
         )
         .init_resource::<Savefile>()
-        .add_event::<SavefileLoaded>();
+        .add_event::<SavefileChanged>();
     }
 }
 
 #[derive(Event)]
-pub struct SavefileLoaded;
+pub struct SavefileChanged;
 
 #[derive(Resource, Default)]
 pub struct Savefile {
@@ -32,11 +35,7 @@ pub struct Savefile {
 }
 
 impl Savefile {
-    pub fn style(&self) -> &StyleDefinition {
-        &self.style
-    }
-
-    pub fn load<P>(path: P) -> Self
+    fn new<P>(path: P) -> Self
     where
         P: AsRef<Path>,
     {
@@ -75,7 +74,20 @@ impl Savefile {
         Savefile { style }
     }
 
-    pub fn set(&mut self, new_style: &StyleDefinition) {
+    pub fn load<P>(&mut self, path: P, mut event: EventWriter<SavefileChanged>)
+    where
+        P: AsRef<Path>,
+    {
+        *self = Self::new(path);
+        event.send(SavefileChanged);
+    }
+
+    pub fn set(&mut self, new_style: &StyleDefinition, mut event: EventWriter<SavefileChanged>) {
         self.style = new_style.clone();
+        event.send(SavefileChanged);
+    }
+
+    pub fn style(&self) -> &StyleDefinition {
+        &self.style
     }
 }

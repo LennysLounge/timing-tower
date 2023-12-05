@@ -82,7 +82,7 @@ impl Savefile {
         event.send(SavefileChanged);
     }
 
-    pub fn set(&mut self, new_style: &StyleDefinition, mut event: EventWriter<SavefileChanged>) {
+    pub fn set(&mut self, new_style: &StyleDefinition, event: &mut EventWriter<SavefileChanged>) {
         self.style = new_style.clone();
         event.send(SavefileChanged);
     }

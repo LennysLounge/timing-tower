@@ -7,7 +7,7 @@ use backend::{
     style::StyleDefinition,
 };
 use bevy::{
-    ecs::{event::EventWriter, system::Res},
+    ecs::event::EventWriter,
     math::vec3,
     prelude::{
         resource_exists, IntoSystemConfigs, Plugin, Query, ResMut, Resource, Startup, Update, With,
@@ -135,21 +135,17 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
 }
 
 fn ui(
-    savefile: Option<Res<Savefile>>,
+    mut savefile: ResMut<Savefile>,
     mut ctx: EguiContexts,
     mut state: ResMut<EditorState>,
     mut editor_camera: Query<(&mut EditorCamera, &mut Transform), With<MainCamera>>,
     mut save_file_changed: EventWriter<SavefileChanged>,
 ) {
-    let Some(style) = savefile.as_ref().map(|s| s.style()) else {
-        return;
-    };
-
     egui::TopBottomPanel::top("Top panel").show(ctx.ctx_mut(), |ui| {
         egui::menu::bar(ui, |ui| {
             ui.menu_button("File", |ui| {
                 if ui.button("Save").clicked() {
-                    save_style(&style);
+                    save_style(savefile.style());
                     ui.close_menu();
                 }
             });
@@ -186,6 +182,7 @@ fn ui(
     } = &mut *state;
     let viewport = &mut editor_camera.single_mut().0.raw_viewport;
     let mut style_changed = false;
+    let mut style_model = StyleModel::new(savefile.style());
     DockArea::new(dock_state)
         .style(egui_dock::Style::from_egui(ctx.ctx_mut().style().as_ref()))
         .show(
@@ -193,14 +190,14 @@ fn ui(
             &mut EditorTabViewer {
                 viewport,
                 selected_node,
-                style: &mut StyleModel::new(style),
+                style: &mut style_model,
                 style_changed: &mut style_changed,
             },
         );
 
     if style_changed {
         println!("style was changed.");
-        save_file_changed.send(SavefileChanged);
+        savefile.set(&style_model.def, &mut save_file_changed);
     }
 }
 

@@ -2,9 +2,12 @@ pub mod camera;
 
 use std::{fs::File, io::Write};
 
-use backend::{savefile::Savefile, style::StyleDefinition, value_store::ValueStore};
+use backend::{
+    savefile::{Savefile, SavefileChanged},
+    style::StyleDefinition,
+};
 use bevy::{
-    ecs::system::Res,
+    ecs::{event::EventWriter, system::Res},
     math::vec3,
     prelude::{
         resource_exists, IntoSystemConfigs, Plugin, Query, ResMut, Resource, Startup, Update, With,
@@ -83,6 +86,7 @@ struct EditorTabViewer<'a> {
     viewport: &'a mut Rect,
     selected_node: &'a mut Option<Uuid>,
     style: &'a mut StyleModel,
+    style_changed: &'a mut bool,
 }
 impl<'a> TabViewer for EditorTabViewer<'a> {
     type Tab = Tab;
@@ -106,7 +110,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 tree_view_elements(ui, self.selected_node, self.style);
             }
             Tab::PropertyEditor => {
-                property_editor(ui, self.selected_node, self.style);
+                property_editor(ui, self.selected_node, self.style, self.style_changed);
             }
             Tab::Variables => {
                 tree_view_vars(ui, self.selected_node, self.style);
@@ -134,8 +138,8 @@ fn ui(
     savefile: Option<Res<Savefile>>,
     mut ctx: EguiContexts,
     mut state: ResMut<EditorState>,
-    mut variable_repo: ResMut<ValueStore>,
     mut editor_camera: Query<(&mut EditorCamera, &mut Transform), With<MainCamera>>,
+    mut save_file_changed: EventWriter<SavefileChanged>,
 ) {
     let Some(style) = savefile.as_ref().map(|s| s.style()) else {
         return;
@@ -181,6 +185,7 @@ fn ui(
         selected_node,
     } = &mut *state;
     let viewport = &mut editor_camera.single_mut().0.raw_viewport;
+    let mut style_changed = false;
     DockArea::new(dock_state)
         .style(egui_dock::Style::from_egui(ctx.ctx_mut().style().as_ref()))
         .show(
@@ -189,10 +194,14 @@ fn ui(
                 viewport,
                 selected_node,
                 style: &mut StyleModel::new(style),
+                style_changed: &mut style_changed,
             },
         );
 
-    variable_repo.reload_repo(style.vars.all_t(), style.assets.all_t());
+    if style_changed {
+        println!("style was changed.");
+        save_file_changed.send(SavefileChanged);
+    }
 }
 
 fn save_style(style: &StyleDefinition) {
@@ -318,17 +327,18 @@ fn tree_view_assets(ui: &mut Ui, selected_node: &mut Option<Uuid>, style: &mut S
     }
 }
 
-fn property_editor(ui: &mut Ui, selected_node: &mut Option<Uuid>, style: &mut StyleModel) {
-    let mut changed = false;
-
+fn property_editor(
+    ui: &mut Ui,
+    selected_node: &mut Option<Uuid>,
+    style: &mut StyleModel,
+    changed: &mut bool,
+) {
     let asset_reference_repo = ReferenceStore::new(&style.def.vars, &style.def.assets);
     ScrollArea::vertical()
         .auto_shrink([false, false])
         .show(ui, |ui| {
-            changed |= selected_node
-                .as_ref()
-                .and_then(|id| style.find_mut(id))
-                .map(|selected_node| selected_node.property_editor(ui, &asset_reference_repo))
-                .is_some_and(|b| b);
+            if let Some(selected_node) = selected_node.as_ref().and_then(|id| style.find_mut(id)) {
+                *changed |= selected_node.property_editor(ui, &asset_reference_repo);
+            }
         });
 }

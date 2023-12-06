@@ -60,7 +60,7 @@ fn egui(mut ctx: EguiContexts, mut state: ResMut<EditorState>) {
     egui::CentralPanel::default().show(ctx.ctx_mut(), |ui| {
         let EditorState { tree } = &mut *state;
 
-        TreeViewBuilder2::new(ui, |root| {
+        TreeViewBuilder2::new(ui, ui.make_persistent_id("tree view"), |root| {
             tree.accept(&mut TreeViewVisitor::new(root));
         });
     });
@@ -80,7 +80,7 @@ impl Visitable for Node {
 }
 
 struct Directory {
-    _id: Uuid,
+    id: Uuid,
     name: String,
     nodes: Vec<Node>,
     _is_root: bool,
@@ -89,7 +89,7 @@ struct Directory {
 impl Directory {
     fn new(name: &str, nodes: Vec<Node>) -> Node {
         Node::Directory(Self {
-            _id: Uuid::new_v4(),
+            id: Uuid::new_v4(),
             name: name.to_string(),
             nodes,
             _is_root: false,
@@ -108,14 +108,14 @@ impl Visitable for Directory {
 }
 
 struct File {
-    _id: Uuid,
+    id: Uuid,
     name: String,
 }
 
 impl File {
     fn new(name: &str) -> Node {
         Node::File(Self {
-            _id: Uuid::new_v4(),
+            id: Uuid::new_v4(),
             name: name.to_string(),
         })
     }
@@ -155,33 +155,27 @@ impl NodeVisitor for PrintVisitor {
 }
 
 struct TreeViewVisitor<'a> {
-    builder: Option<TreeViewBuilder2<'a>>,
+    builder: TreeViewBuilder2<'a>,
 }
 impl<'a> TreeViewVisitor<'a> {
     fn new(builder: TreeViewBuilder2<'a>) -> Self {
-        Self {
-            builder: Some(builder),
-        }
+        Self { builder: builder }
     }
 }
 impl NodeVisitor for TreeViewVisitor<'_> {
     fn enter_dir(&mut self, dir: &mut Directory) {
-        self.builder = self.builder.take().map(|builder| {
-            builder.dir(|ui| {
-                ui.label(&dir.name);
-            })
+        self.builder.dir(&dir.id, |ui| {
+            ui.label(&dir.name);
         });
     }
 
     fn leave_dir(&mut self, _dir: &mut Directory) {
-        self.builder = self.builder.take().and_then(|builder| builder.close_dir());
+        self.builder.close_dir();
     }
 
     fn visit_file(&mut self, file: &mut File) {
-        self.builder.as_mut().map(|builder| {
-            builder.leaf(|ui| {
-                ui.label(&file.name);
-            })
+        self.builder.leaf(&file.id, |ui| {
+            ui.label(&file.name);
         });
     }
 }

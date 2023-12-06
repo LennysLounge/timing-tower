@@ -11,6 +11,7 @@ use split_collapsing_state::SplitCollapsingState;
 use uuid::Uuid;
 
 pub mod split_collapsing_state;
+pub mod v2;
 
 pub struct TreeUi<'a> {
     pub ui: &'a mut Ui,

@@ -22,6 +22,9 @@ struct DirectoryState {
     id: Option<Uuid>,
     /// Counter to keep track of directories that are hidden inside this dir.
     invisible_dirs_stack: i32,
+    /// If a directory is dragged, dropping is disallowed for any of
+    /// its child nodes.
+    drop_forbidden: bool,
 }
 pub struct TreeViewBuilder2<'a> {
     ui: &'a mut Ui,
@@ -63,6 +66,7 @@ impl<'a> TreeViewBuilder2<'a> {
                     is_open: true,
                     id: None,
                     invisible_dirs_stack: 0,
+                    drop_forbidden: false,
                 },
                 stack: Vec::new(),
             });
@@ -108,7 +112,7 @@ impl<'a> TreeViewBuilder2<'a> {
         // Interact with the row
         let interaction = self.interact(row_rect, row_id, Sense::click_and_drag());
 
-        if interaction.drag_started() {
+        if interaction.clicked() {
             *self.selected = Some(node_config.id);
             println!("{} was clicked with egui_id: {:?}", node_config.id, row_id);
         }
@@ -173,6 +177,7 @@ impl<'a> TreeViewBuilder2<'a> {
             is_open: open,
             id: Some(*id),
             invisible_dirs_stack: 0,
+            drop_forbidden: self.current_dir.drop_forbidden || self.is_dragged(id),
         }
     }
 
@@ -252,8 +257,12 @@ impl<'a> TreeViewBuilder2<'a> {
     }
 
     fn drop(&mut self, interaction: &Response, node_config: &NodeConfig) {
-        pub const DROP_LINE_HEIGHT: f32 = 3.0;
-
+        if self.current_dir.drop_forbidden {
+            return;
+        }
+        if self.is_dragged(&node_config.id) {
+            return;
+        }
         if !self.ui.ctx().memory(|m| m.is_anything_being_dragged()) {
             return;
         }
@@ -282,26 +291,10 @@ impl<'a> TreeViewBuilder2<'a> {
             return;
         };
 
-        if let Some((parent_id, drop_position)) = drop_quater.get_drop_position(node_config) {
-            let drop_marker = match &drop_position {
-                DropPosition::Before(_) => {
-                    Rangef::point(interaction.rect.min.y).expand(DROP_LINE_HEIGHT * 0.5)
-                }
-                DropPosition::First | DropPosition::After(_) => {
-                    Rangef::point(interaction.rect.max.y).expand(DROP_LINE_HEIGHT * 0.5)
-                }
-                DropPosition::Last => interaction.rect.y_range(),
-            };
-
-            self.ui.painter().add(epaint::RectShape::new(
-                Rect::from_x_y_ranges(interaction.rect.x_range(), drop_marker),
-                self.ui.visuals().widgets.active.rounding,
-                self.ui.style().visuals.selection.bg_fill,
-                Stroke::NONE,
-            ));
-
-            *self.drop = Some((parent_id, drop_position));
-        }
+        *self.drop = drop_quater.get_drop_position(node_config).map(|pos| {
+            self.draw_drop_marker(&pos.1, interaction);
+            pos
+        });
     }
 
     fn draw_row(
@@ -338,6 +331,27 @@ impl<'a> TreeViewBuilder2<'a> {
         res.with_new_rect(background_rect)
     }
 
+    fn draw_drop_marker(&mut self, drop_position: &DropPosition, interaction: &Response) {
+        pub const DROP_LINE_HEIGHT: f32 = 3.0;
+
+        let drop_marker = match drop_position {
+            DropPosition::Before(_) => {
+                Rangef::point(interaction.rect.min.y).expand(DROP_LINE_HEIGHT * 0.5)
+            }
+            DropPosition::First | DropPosition::After(_) => {
+                Rangef::point(interaction.rect.max.y).expand(DROP_LINE_HEIGHT * 0.5)
+            }
+            DropPosition::Last => interaction.rect.y_range(),
+        };
+
+        self.ui.painter().add(epaint::RectShape::new(
+            Rect::from_x_y_ranges(interaction.rect.x_range(), drop_marker),
+            self.ui.visuals().widgets.active.rounding,
+            self.ui.style().visuals.selection.bg_fill,
+            Stroke::NONE,
+        ));
+    }
+
     /// Interact with the ui without egui adding any extra space.
     fn interact(&mut self, rect: Rect, id: Id, sense: Sense) -> Response {
         let spacing_before = self.ui.spacing().clone();
@@ -351,6 +365,10 @@ impl<'a> TreeViewBuilder2<'a> {
         self.selected
             .as_ref()
             .is_some_and(|selected_id| selected_id == id)
+    }
+    
+    fn is_dragged(&self, id: &Uuid) -> bool {
+        self.drag.as_ref().is_some_and(|drag_id| drag_id == id)
     }
 }
 

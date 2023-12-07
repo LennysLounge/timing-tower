@@ -1,6 +1,6 @@
 use bevy_egui::egui::{
-    self, epaint, vec2, Color32, CursorIcon, Id, InnerResponse, LayerId, Layout, Order,
-    PointerButton, Pos2, Rangef, Rect, Response, Rounding, Sense, Shape, Stroke, Ui, Vec2,
+    self, epaint, layers::ShapeIdx, vec2, Color32, CursorIcon, Id, InnerResponse, LayerId, Layout,
+    Order, PointerButton, Pos2, Rangef, Rect, Response, Rounding, Sense, Shape, Stroke, Ui, Vec2,
 };
 use uuid::Uuid;
 
@@ -25,6 +25,10 @@ struct DirectoryState {
     /// If a directory is dragged, dropping is disallowed for any of
     /// its child nodes.
     drop_forbidden: bool,
+    /// The rectangle of the row.
+    row_rect: Rect,
+    ///// The shape index where the background is drawn.
+    //background_idx: ShapeIdx,
 }
 pub struct TreeViewBuilder2<'a> {
     ui: &'a mut Ui,
@@ -68,6 +72,7 @@ impl<'a> TreeViewBuilder2<'a> {
                     id: None,
                     invisible_dirs_stack: 0,
                     drop_forbidden: false,
+                    row_rect: Rect::NOTHING,
                 },
                 stack: Vec::new(),
             });
@@ -96,44 +101,6 @@ impl<'a> TreeViewBuilder2<'a> {
         }
 
         InnerResponse::new(actions, res)
-    }
-
-    fn row(&mut self, node_config: &mut NodeConfig) -> RowResponse {
-        // Load row data
-        let row_id = self.ui.id().with(node_config.id).with("row");
-        let row_rect = self
-            .ui
-            .data_mut(|d| d.get_persisted::<Rect>(row_id))
-            .unwrap_or(Rect::NOTHING);
-
-        // Interact with the row
-        let interaction = self.interact(row_rect, row_id, Sense::click_and_drag());
-
-        if interaction.clicked() {
-            *self.selected = Some(node_config.id);
-            println!("{} was clicked with egui_id: {:?}", node_config.id, row_id);
-        }
-
-        self.drag(&interaction, node_config);
-        self.drop(&interaction, node_config);
-
-        let (row_response, icon_response) = TreeViewBuilder2::draw_row(
-            self.ui,
-            node_config,
-            self.is_selected(&node_config.id),
-            self.stack.len() as f32,
-            1.0,
-        );
-
-        // Store row data
-        self.ui
-            .data_mut(|d| d.insert_persisted(row_id, row_response.rect));
-
-        RowResponse {
-            interaction,
-            _visual: row_response,
-            icon: icon_response,
-        }
     }
 
     pub fn leaf(&mut self, id: &Uuid, mut add_content: impl FnMut(&mut Ui)) {
@@ -180,8 +147,9 @@ impl<'a> TreeViewBuilder2<'a> {
 
         let RowResponse {
             interaction,
-            _visual: _,
+            visual,
             icon,
+            ..
         } = self.row(&mut node_config);
 
         if interaction.double_clicked() {
@@ -200,6 +168,7 @@ impl<'a> TreeViewBuilder2<'a> {
             id: Some(*id),
             invisible_dirs_stack: 0,
             drop_forbidden: self.current_dir.drop_forbidden || self.is_dragged(id),
+            row_rect: visual.rect,
         }
     }
 
@@ -208,6 +177,54 @@ impl<'a> TreeViewBuilder2<'a> {
             self.current_dir.invisible_dirs_stack -= 1;
         } else {
             self.current_dir = self.stack.pop().expect("Stack was empty");
+        }
+    }
+
+    fn row(&mut self, node_config: &mut NodeConfig) -> RowResponse {
+        // Load row data
+        let row_id = self.ui.id().with(node_config.id).with("row");
+        let row_rect = self
+            .ui
+            .data_mut(|d| d.get_persisted::<Rect>(row_id))
+            .unwrap_or(Rect::NOTHING);
+
+        // Interact with the row
+        let interaction = self.interact(row_rect, row_id, Sense::click_and_drag());
+
+        if interaction.clicked() {
+            *self.selected = Some(node_config.id);
+            println!("{} was clicked with egui_id: {:?}", node_config.id, row_id);
+        }
+
+        self.drag(&interaction, node_config);
+        self.drop(&interaction, node_config);
+
+        let background_position = self.ui.painter().add(Shape::Noop);
+
+        let (row_response, icon_response) =
+            TreeViewBuilder2::draw_row(self.ui, node_config, self.stack.len() as f32);
+
+        if self.is_selected(&node_config.id) {
+            self.ui.painter().set(
+                background_position,
+                epaint::RectShape::new(
+                    row_response.rect,
+                    self.ui.visuals().widgets.active.rounding,
+                    self.ui.visuals().selection.bg_fill,
+                    Stroke::NONE,
+                ),
+            );
+        }
+
+        // Store row data
+        self.ui
+            .data_mut(|d| d.insert_persisted(row_id, row_response.rect));
+
+        RowResponse {
+            interaction,
+            visual: row_response,
+            icon: icon_response,
+            background_idx: background_position,
         }
     }
 
@@ -246,11 +263,22 @@ impl<'a> TreeViewBuilder2<'a> {
             .ui
             .child_ui(self.ui.available_rect_before_wrap(), *self.ui.layout())
             .with_layer_id(layer_id, |ui| {
-                TreeViewBuilder2::draw_row(ui, node_config, true, self.stack.len() as f32, 0.4)
+                let background_position = ui.painter().add(Shape::Noop);
+
+                let (row, _) = TreeViewBuilder2::draw_row(ui, node_config, self.stack.len() as f32);
+
+                ui.painter().set(
+                    background_position,
+                    epaint::RectShape::new(
+                        row.rect,
+                        ui.visuals().widgets.active.rounding,
+                        ui.visuals().selection.bg_fill.linear_multiply(0.4),
+                        Stroke::NONE,
+                    ),
+                );
+                row.rect
             })
-            .inner
-            .0
-            .rect;
+            .inner;
 
         // Move layer to the drag position
         if let Some(pointer_pos) = self.ui.ctx().pointer_interact_pos() {
@@ -303,11 +331,9 @@ impl<'a> TreeViewBuilder2<'a> {
     fn draw_row(
         ui: &mut Ui,
         node_config: &mut NodeConfig,
-        draw_background: bool,
         depth: f32,
-        transparency: f32,
     ) -> (Response, Option<Response>) {
-        let background_position = ui.painter().add(Shape::Noop);
+        //let background_position = ui.painter().add(Shape::Noop);
 
         let InnerResponse {
             inner: icon_response,
@@ -336,17 +362,17 @@ impl<'a> TreeViewBuilder2<'a> {
             .rect
             .expand2(vec2(0.0, ui.spacing().item_spacing.y * 0.5));
 
-        if draw_background {
-            ui.painter().set(
-                background_position,
-                epaint::RectShape::new(
-                    background_rect,
-                    ui.visuals().widgets.active.rounding,
-                    ui.visuals().selection.bg_fill.linear_multiply(transparency),
-                    Stroke::NONE,
-                ),
-            );
-        }
+        // if draw_background {
+        //     ui.painter().set(
+        //         background_position,
+        //         epaint::RectShape::new(
+        //             background_rect,
+        //             ui.visuals().widgets.active.rounding,
+        //             ui.visuals().selection.bg_fill.linear_multiply(transparency),
+        //             Stroke::NONE,
+        //         ),
+        //     );
+        // }
         (row_response.with_new_rect(background_rect), icon_response)
     }
 
@@ -479,7 +505,8 @@ impl DropQuater {
 }
 
 struct RowResponse {
+    background_idx: ShapeIdx,
     interaction: Response,
-    _visual: Response,
+    visual: Response,
     icon: Option<Response>,
 }

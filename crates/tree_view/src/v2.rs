@@ -322,7 +322,7 @@ impl<'a> TreeViewBuilder2<'a> {
                 background_position,
                 epaint::RectShape::new(
                     background_rect,
-                    Rounding::ZERO,
+                    self.ui.visuals().widgets.active.rounding,
                     self.ui.visuals().selection.bg_fill,
                     Stroke::NONE,
                 ),

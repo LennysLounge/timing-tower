@@ -47,6 +47,7 @@ pub struct TreeViewBuilder2<'a> {
     drag: &'a mut Option<Uuid>,
     drop: &'a mut Option<(Uuid, DropPosition)>,
     stack: Vec<DirectoryState>,
+    was_dragged_last_frame: bool,
 }
 
 impl<'a> TreeViewBuilder2<'a> {
@@ -55,9 +56,15 @@ impl<'a> TreeViewBuilder2<'a> {
         base_id: Id,
         mut add_content: impl FnMut(TreeViewBuilder2<'_>),
     ) -> InnerResponse<Vec<TreeViewAction>> {
-        let mut selected = ui
-            .data_mut(|d| d.get_persisted::<Option<Uuid>>(base_id))
-            .flatten();
+        #[derive(Clone, Default)]
+        struct TreeViewBuilderState {
+            selected: Option<Uuid>,
+            was_dragged_last_frame: bool,
+        }
+        let mut state = ui
+            .data_mut(|d| d.get_persisted::<TreeViewBuilderState>(base_id))
+            .unwrap_or_default();
+
         let mut drag = None;
         let mut drop = None;
 
@@ -74,10 +81,11 @@ impl<'a> TreeViewBuilder2<'a> {
             child_ui.add_space(child_ui.spacing().item_spacing.y * 0.5);
             add_content(TreeViewBuilder2 {
                 ui: &mut child_ui,
-                selected: &mut selected,
+                selected: &mut state.selected,
                 drag: &mut drag,
                 drop: &mut drop,
                 stack: Vec::new(),
+                was_dragged_last_frame: state.was_dragged_last_frame,
             });
             // Add negative space because the place will add the item spacing on top of this.
             child_ui.add_space(-child_ui.spacing().item_spacing.y * 0.5);
@@ -87,7 +95,9 @@ impl<'a> TreeViewBuilder2<'a> {
 
         ui.painter()
             .rect_stroke(rect, Rounding::ZERO, Stroke::new(1.0, Color32::BLACK));
-        ui.data_mut(|d| d.insert_persisted(base_id, selected));
+
+        state.was_dragged_last_frame = drag.is_some();
+        ui.data_mut(|d| d.insert_persisted(base_id, state));
 
         ui.label(format!("drag: {:?}", drag));
         ui.label(format!("drop: {:?}", drop));
@@ -333,7 +343,7 @@ impl<'a> TreeViewBuilder2<'a> {
         if self.is_dragged(&node_config.id) {
             return;
         }
-        if !self.ui.ctx().memory(|m| m.is_anything_being_dragged()) {
+        if !self.was_dragged_last_frame {
             return;
         }
         if self.is_selected(&node_config.id) {

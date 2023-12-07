@@ -68,9 +68,13 @@ impl<'a> TreeViewBuilder2<'a> {
         ui.label(format!("drop: {:?}", drop));
     }
 
-    fn row(&mut self, id: &Uuid, mut add_content: impl FnMut(&mut Ui)) -> InnerResponse<Response> {
+    fn row(
+        &mut self,
+        node_config: &NodeConfig,
+        mut add_content: impl FnMut(&mut Ui),
+    ) -> InnerResponse<Response> {
         // Load row data
-        let row_id = self.ui.id().with(id).with("row");
+        let row_id = self.ui.id().with(node_config.id).with("row");
         let row_rect = self
             .ui
             .data_mut(|d| d.get_persisted::<Rect>(row_id))
@@ -80,14 +84,14 @@ impl<'a> TreeViewBuilder2<'a> {
         let interaction = self.interact(row_rect, row_id, Sense::click_and_drag());
 
         if interaction.drag_started() {
-            *self.selected = Some(*id);
-            println!("{} was clicked with egui_id: {:?}", id, row_id);
+            *self.selected = Some(node_config.id);
+            println!("{} was clicked with egui_id: {:?}", node_config.id, row_id);
         }
 
-        self.drag(&interaction, id, &mut add_content);
-        self.drop(&interaction, id);
+        self.drag(&interaction, &node_config.id, &mut add_content);
+        self.drop(&interaction, node_config);
 
-        let row_response = self.draw_row(add_content, self.is_selected(id));
+        let row_response = self.draw_row(add_content, self.is_selected(&node_config.id));
 
         // Store row data
         self.ui
@@ -100,7 +104,12 @@ impl<'a> TreeViewBuilder2<'a> {
         if !self.current_dir.is_open {
             return;
         }
-        self.row(id, add_content);
+        let node_config = NodeConfig {
+            parent: self.current_dir.id,
+            id: *id,
+            drop_on_allowed: false,
+        };
+        self.row(&node_config, add_content);
     }
 
     pub fn dir(&mut self, id: &Uuid, add_content: impl FnMut(&mut Ui)) {
@@ -109,10 +118,16 @@ impl<'a> TreeViewBuilder2<'a> {
             return;
         }
 
+        let node_config = NodeConfig {
+            parent: self.current_dir.id,
+            id: *id,
+            drop_on_allowed: true,
+        };
+
         let InnerResponse {
             inner: interaction,
             response: _,
-        } = self.row(id, add_content);
+        } = self.row(&node_config, add_content);
 
         let dir_id = self.ui.id().with(id).with("dir");
         let mut open = self
@@ -209,13 +224,13 @@ impl<'a> TreeViewBuilder2<'a> {
         }
     }
 
-    fn drop(&mut self, interaction: &Response, id: &Uuid) {
+    fn drop(&mut self, interaction: &Response, node_config: &NodeConfig) {
         pub const DROP_LINE_HEIGHT: f32 = 3.0;
 
         if !self.ui.ctx().memory(|m| m.is_anything_being_dragged()) {
             return;
         }
-        if self.is_selected(id) {
+        if self.is_selected(&node_config.id) {
             return;
         }
 
@@ -240,26 +255,26 @@ impl<'a> TreeViewBuilder2<'a> {
             return;
         };
 
-        let (parent_id, drop_position) = drop_quater.get_drop_position(self.current_dir.id, *id);
+        if let Some((parent_id, drop_position)) = drop_quater.get_drop_position(node_config) {
+            let drop_marker = match &drop_position {
+                DropPosition::Before(_) => {
+                    Rangef::point(interaction.rect.min.y).expand(DROP_LINE_HEIGHT * 0.5)
+                }
+                DropPosition::First | DropPosition::After(_) => {
+                    Rangef::point(interaction.rect.max.y).expand(DROP_LINE_HEIGHT * 0.5)
+                }
+                DropPosition::Last => interaction.rect.y_range(),
+            };
 
-        let drop_marker = match &drop_position {
-            DropPosition::Before(_) => {
-                Rangef::point(interaction.rect.min.y).expand(DROP_LINE_HEIGHT * 0.5)
-            }
-            DropPosition::First | DropPosition::After(_) => {
-                Rangef::point(interaction.rect.max.y).expand(DROP_LINE_HEIGHT * 0.5)
-            }
-            DropPosition::Last => interaction.rect.y_range(),
-        };
+            self.ui.painter().add(epaint::RectShape::new(
+                Rect::from_x_y_ranges(interaction.rect.x_range(), drop_marker),
+                self.ui.visuals().widgets.active.rounding,
+                self.ui.style().visuals.selection.bg_fill,
+                Stroke::NONE,
+            ));
 
-        self.ui.painter().add(epaint::RectShape::new(
-            Rect::from_x_y_ranges(interaction.rect.x_range(), drop_marker),
-            self.ui.visuals().widgets.active.rounding,
-            self.ui.style().visuals.selection.bg_fill,
-            Stroke::NONE,
-        ));
-
-        *self.drop = Some((parent_id, drop_position));
+            *self.drop = Some((parent_id, drop_position));
+        }
     }
 
     fn draw_row(
@@ -312,6 +327,12 @@ impl<'a> TreeViewBuilder2<'a> {
     }
 }
 
+struct NodeConfig {
+    parent: Option<Uuid>,
+    id: Uuid,
+    drop_on_allowed: bool,
+}
+
 enum DropQuater {
     Top,
     MiddleTop,
@@ -337,16 +358,50 @@ impl DropQuater {
             _ => None,
         }
     }
-    fn get_drop_position(&self, parent: Option<Uuid>, id: Uuid) -> (Uuid, DropPosition) {
+    fn get_drop_position(&self, node_config: &NodeConfig) -> Option<(Uuid, DropPosition)> {
+        let NodeConfig {
+            parent,
+            id,
+            drop_on_allowed,
+        } = node_config;
+
         match self {
-            DropQuater::Top => parent
-                .map(|parent_id| (parent_id, DropPosition::Before(id)))
-                .unwrap_or_else(|| (id, DropPosition::Last)),
-            DropQuater::MiddleTop => (id, DropPosition::Last),
-            DropQuater::MiddleBottom => (id, DropPosition::Last),
-            DropQuater::Bottom => parent
-                .map(|parent_id| (parent_id, DropPosition::After(id)))
-                .unwrap_or_else(|| (id, DropPosition::Last)),
+            DropQuater::Top => {
+                if let Some(parent_id) = parent {
+                    return Some((*parent_id, DropPosition::Before(*id)));
+                }
+                if *drop_on_allowed {
+                    return Some((*id, DropPosition::Last));
+                }
+                return None;
+            }
+            DropQuater::MiddleTop => {
+                if *drop_on_allowed {
+                    return Some((*id, DropPosition::Last));
+                }
+                if let Some(parent_id) = parent {
+                    return Some((*parent_id, DropPosition::Before(*id)));
+                }
+                return None;
+            }
+            DropQuater::MiddleBottom => {
+                if *drop_on_allowed {
+                    return Some((*id, DropPosition::Last));
+                }
+                if let Some(parent_id) = parent {
+                    return Some((*parent_id, DropPosition::After(*id)));
+                }
+                return None;
+            }
+            DropQuater::Bottom => {
+                if let Some(parent_id) = parent {
+                    return Some((*parent_id, DropPosition::After(*id)));
+                }
+                if *drop_on_allowed {
+                    return Some((*id, DropPosition::Last));
+                }
+                return None;
+            }
         }
     }
 }

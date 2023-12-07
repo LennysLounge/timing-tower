@@ -165,7 +165,8 @@ impl<'a> TreeViewVisitor<'a> {
 impl NodeVisitor for TreeViewVisitor<'_> {
     fn enter_dir(&mut self, dir: &mut Directory) {
         self.builder.dir(&dir.id, |ui| {
-            ui.label(&dir.name);
+            ui.label(format!("{} {}",&dir.name, &dir.id));
+            //ui.label(&dir.name);
         });
     }
 
@@ -175,7 +176,8 @@ impl NodeVisitor for TreeViewVisitor<'_> {
 
     fn visit_file(&mut self, file: &mut File) {
         self.builder.leaf(&file.id, |ui| {
-            ui.label(&file.name);
+            ui.label(format!("{} {}",&file.name, &file.id));
+            //ui.label(&file.name);
         });
     }
 }

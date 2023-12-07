@@ -184,6 +184,7 @@ impl<'a> TreeViewBuilder2<'a> {
         let icon = icon.expect("Icon response is not available");
         if icon.clicked() {
             open = !open;
+            *self.selected = Some(*id);
         }
 
         self.ui.data_mut(|d| d.insert_persisted(dir_id, open));

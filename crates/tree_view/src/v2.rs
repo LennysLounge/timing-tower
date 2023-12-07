@@ -133,6 +133,7 @@ impl<'a> TreeViewBuilder2<'a> {
             parent: self.current_dir.id,
             id: *id,
             drop_on_allowed: false,
+            is_open: false,
         };
         self.row(&node_config, add_content);
     }
@@ -143,22 +144,23 @@ impl<'a> TreeViewBuilder2<'a> {
             return;
         }
 
+        let dir_id = self.ui.id().with(id).with("dir");
+        let mut open = self
+            .ui
+            .data_mut(|d| d.get_persisted(dir_id))
+            .unwrap_or(true);
+
         let node_config = NodeConfig {
             parent: self.current_dir.id,
             id: *id,
             drop_on_allowed: true,
+            is_open: open,
         };
 
         let InnerResponse {
             inner: interaction,
             response: _,
         } = self.row(&node_config, add_content);
-
-        let dir_id = self.ui.id().with(id).with("dir");
-        let mut open = self
-            .ui
-            .data_mut(|d| d.get_persisted(dir_id))
-            .unwrap_or(true);
 
         if interaction.double_clicked() {
             open = !open;
@@ -356,6 +358,7 @@ struct NodeConfig {
     parent: Option<Uuid>,
     id: Uuid,
     drop_on_allowed: bool,
+    is_open: bool,
 }
 
 enum DropQuater {
@@ -388,6 +391,7 @@ impl DropQuater {
             parent,
             id,
             drop_on_allowed,
+            is_open,
         } = node_config;
 
         match self {
@@ -419,6 +423,9 @@ impl DropQuater {
                 return None;
             }
             DropQuater::Bottom => {
+                if *drop_on_allowed && *is_open {
+                    return Some((*id, DropPosition::First));
+                }
                 if let Some(parent_id) = parent {
                     return Some((*parent_id, DropPosition::After(*id)));
                 }

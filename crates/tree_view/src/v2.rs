@@ -106,20 +106,9 @@ impl<'a> TreeViewBuilder2<'a> {
         InnerResponse::new(actions, res)
     }
 
-    fn current_dir(&self) -> Option<&DirectoryState> {
-        if self.stack.is_empty() {
-            None
-        } else {
-            self.stack.last()
-        }
-    }
-    fn current_dir_is_open(&self) -> bool {
-        self.current_dir().map_or(true, |dir| dir.is_open)
-    }
-
-    pub fn leaf(&mut self, id: &Uuid, mut add_content: impl FnMut(&mut Ui)) {
+    pub fn leaf(&mut self, id: &Uuid, mut add_content: impl FnMut(&mut Ui)) -> Option<Response> {
         if !self.current_dir_is_open() {
-            return;
+            return None;
         }
         let mut node_config = NodeConfig {
             id: *id,
@@ -129,14 +118,10 @@ impl<'a> TreeViewBuilder2<'a> {
             add_icon: None,
             drop_marker_idx: self.ui.painter().add(Shape::Noop),
         };
-        self.row(&mut node_config);
+        Some(self.row(&mut node_config).interaction)
     }
 
-    fn current_dir_drop_forbidden(&self) -> bool {
-        self.current_dir().is_some_and(|dir| dir.drop_forbidden)
-    }
-
-    pub fn dir(&mut self, id: &Uuid, mut add_content: impl FnMut(&mut Ui)) {
+    pub fn dir(&mut self, id: &Uuid, mut add_content: impl FnMut(&mut Ui)) -> Option<Response> {
         if !self.current_dir_is_open() {
             self.stack.push(DirectoryState {
                 is_open: false,
@@ -146,7 +131,7 @@ impl<'a> TreeViewBuilder2<'a> {
                 icon_rect: Rect::NOTHING,
                 drop_marker_idx: self.ui.painter().add(Shape::Noop),
             });
-            return;
+            return None;
         }
 
         let dir_id = self.ui.id().with(id).with("dir");
@@ -198,7 +183,8 @@ impl<'a> TreeViewBuilder2<'a> {
             row_rect: visual.rect,
             icon_rect: icon.rect,
             drop_marker_idx,
-        })
+        });
+        Some(interaction)
     }
 
     pub fn close_dir(&mut self) {
@@ -457,6 +443,21 @@ impl<'a> TreeViewBuilder2<'a> {
         let res = self.ui.interact(rect, id, sense);
         *self.ui.spacing_mut() = spacing_before;
         res
+    }
+
+    fn current_dir(&self) -> Option<&DirectoryState> {
+        if self.stack.is_empty() {
+            None
+        } else {
+            self.stack.last()
+        }
+    }
+    fn current_dir_is_open(&self) -> bool {
+        self.current_dir().map_or(true, |dir| dir.is_open)
+    }
+
+    fn current_dir_drop_forbidden(&self) -> bool {
+        self.current_dir().is_some_and(|dir| dir.drop_forbidden)
     }
 
     fn is_selected(&self, id: &Uuid) -> bool {

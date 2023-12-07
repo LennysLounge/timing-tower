@@ -216,10 +216,14 @@ impl<'a> TreeViewVisitor<'a> {
 }
 impl NodeVisitor for TreeViewVisitor<'_> {
     fn enter_dir(&mut self, dir: &mut Directory) -> bool {
-        self.builder.dir(&dir.id, |ui| {
-            //ui.label(format!("{} {}", &dir.name, &dir.id));
+        let res = self.builder.dir(&dir.id, |ui| {
             ui.label(&dir.name);
         });
+        if let Some(res) = res{
+            res.context_menu(|ui|{
+                ui.label("Contex menu of a dir");
+            });
+        }
         true
     }
 
@@ -229,10 +233,14 @@ impl NodeVisitor for TreeViewVisitor<'_> {
     }
 
     fn visit_file(&mut self, file: &mut File) -> bool {
-        self.builder.leaf(&file.id, |ui| {
-            //ui.label(format!("{} {}", &file.name, &file.id));
+        let res = self.builder.leaf(&file.id, |ui| {
             ui.label(&file.name);
         });
+        if let Some(res) = res{
+            res.context_menu(|ui|{
+                ui.label("Contex menu of a leaf");
+            });
+        }
         true
     }
 }

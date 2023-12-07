@@ -98,12 +98,7 @@ impl<'a> TreeViewBuilder2<'a> {
         InnerResponse::new(actions, res)
     }
 
-    fn row(
-        &mut self,
-        node_config: &NodeConfig,
-        mut add_content: impl FnMut(&mut Ui),
-        mut add_icon: impl FnMut(&mut Ui, Rect) -> Response,
-    ) -> RowResponse {
+    fn row(&mut self, node_config: &mut NodeConfig) -> RowResponse {
         // Load row data
         let row_id = self.ui.id().with(node_config.id).with("row");
         let row_rect = self
@@ -119,18 +114,12 @@ impl<'a> TreeViewBuilder2<'a> {
             println!("{} was clicked with egui_id: {:?}", node_config.id, row_id);
         }
 
-        self.drag(
-            &interaction,
-            &node_config.id,
-            &mut add_content,
-            &mut add_icon,
-        );
+        self.drag(&interaction, node_config);
         self.drop(&interaction, node_config);
 
         let (row_response, icon_response) = TreeViewBuilder2::draw_row(
             self.ui,
-            add_content,
-            add_icon,
+            node_config,
             self.is_selected(&node_config.id),
             self.stack.len() as f32,
             1.0,
@@ -147,22 +136,22 @@ impl<'a> TreeViewBuilder2<'a> {
         }
     }
 
-    pub fn leaf(&mut self, id: &Uuid, add_content: impl FnMut(&mut Ui)) {
+    pub fn leaf(&mut self, id: &Uuid, mut add_content: impl FnMut(&mut Ui)) {
         if !self.current_dir.is_open {
             return;
         }
-        let node_config = NodeConfig {
+        let mut node_config = NodeConfig {
             parent: self.current_dir.id,
             id: *id,
             drop_on_allowed: false,
             is_open: false,
+            add_content: &mut add_content,
+            add_icon: None,
         };
-        self.row(&node_config, add_content, |ui, rect| {
-            ui.allocate_rect(rect, Sense::hover())
-        });
+        self.row(&mut node_config);
     }
 
-    pub fn dir(&mut self, id: &Uuid, add_content: impl FnMut(&mut Ui)) {
+    pub fn dir(&mut self, id: &Uuid, mut add_content: impl FnMut(&mut Ui)) {
         if !self.current_dir.is_open {
             self.current_dir.invisible_dirs_stack += 1;
             return;
@@ -174,27 +163,32 @@ impl<'a> TreeViewBuilder2<'a> {
             .data_mut(|d| d.get_persisted(dir_id))
             .unwrap_or(true);
 
-        let node_config = NodeConfig {
+        let mut add_icon = |ui: &mut Ui, rect| {
+            let icon_res = ui.allocate_rect(rect, Sense::click());
+            egui::collapsing_header::paint_default_icon(ui, open as i32 as f32, &icon_res);
+            icon_res
+        };
+
+        let mut node_config = NodeConfig {
             parent: self.current_dir.id,
             id: *id,
             drop_on_allowed: true,
             is_open: open,
+            add_content: &mut add_content,
+            add_icon: Some(&mut add_icon),
         };
 
         let RowResponse {
             interaction,
             _visual: _,
             icon,
-        } = self.row(&node_config, add_content, |ui, rect| {
-            let icon_res = ui.allocate_rect(rect, Sense::click());
-            egui::collapsing_header::paint_default_icon(ui, open as i32 as f32, &icon_res);
-            icon_res
-        });
+        } = self.row(&mut node_config);
 
         if interaction.double_clicked() {
             open = !open;
         }
-        if icon.clicked() {
+
+        if icon.expect("Icon response is not available").clicked() {
             open = !open;
         }
 
@@ -218,20 +212,14 @@ impl<'a> TreeViewBuilder2<'a> {
     }
 
     /// Draw the content as a drag overlay if it is beeing dragged.
-    fn drag(
-        &mut self,
-        interaction: &Response,
-        id: &Uuid,
-        add_content: &mut impl FnMut(&mut Ui),
-        add_icon: &mut impl FnMut(&mut Ui, Rect) -> Response,
-    ) {
+    fn drag(&mut self, interaction: &Response, node_config: &mut NodeConfig) {
         if !interaction.dragged_by(PointerButton::Primary)
             && !interaction.drag_released_by(PointerButton::Primary)
         {
             return;
         }
 
-        *self.drag = Some(*id);
+        *self.drag = Some(node_config.id);
         self.ui.ctx().set_cursor_icon(CursorIcon::Alias);
 
         let drag_source_id = self.ui.make_persistent_id("Drag source");
@@ -258,14 +246,7 @@ impl<'a> TreeViewBuilder2<'a> {
             .ui
             .child_ui(self.ui.available_rect_before_wrap(), *self.ui.layout())
             .with_layer_id(layer_id, |ui| {
-                TreeViewBuilder2::draw_row(
-                    ui,
-                    add_content,
-                    add_icon,
-                    true,
-                    self.stack.len() as f32,
-                    0.4,
-                )
+                TreeViewBuilder2::draw_row(ui, node_config, true, self.stack.len() as f32, 0.4)
             })
             .inner
             .0
@@ -321,30 +302,37 @@ impl<'a> TreeViewBuilder2<'a> {
 
     fn draw_row(
         ui: &mut Ui,
-        mut add_content: impl FnMut(&mut Ui),
-        mut add_icon: impl FnMut(&mut Ui, Rect) -> Response,
+        node_config: &mut NodeConfig,
         draw_background: bool,
         depth: f32,
         transparency: f32,
-    ) -> (Response, Response) {
+    ) -> (Response, Option<Response>) {
         let background_position = ui.painter().add(Shape::Noop);
 
-        let row_response = ui.horizontal(|ui| {
+        let InnerResponse {
+            inner: icon_response,
+            response: row_response,
+        } = ui.horizontal(|ui| {
             ui.add_space(ui.spacing().indent * depth);
+
             let icon_pos = ui.cursor().min;
-            ui.add_space(ui.spacing().icon_width);
-            add_content(ui);
+            if node_config.add_icon.is_some() {
+                ui.add_space(ui.spacing().icon_width);
+            };
+
+            (node_config.add_content)(ui);
             ui.add_space(ui.available_width());
 
-            let (icon_rect, _) = ui.spacing().icon_rectangles(Rect::from_min_size(
-                icon_pos,
-                vec2(ui.spacing().icon_width, ui.min_size().y),
-            ));
-            add_icon(ui, icon_rect)
+            node_config.add_icon.as_mut().map(|add_icon| {
+                let (small_rect, _) = ui.spacing().icon_rectangles(Rect::from_min_size(
+                    icon_pos,
+                    vec2(ui.spacing().icon_width, ui.min_size().y),
+                ));
+                add_icon(ui, small_rect)
+            })
         });
 
         let background_rect = row_response
-            .response
             .rect
             .expand2(vec2(0.0, ui.spacing().item_spacing.y * 0.5));
 
@@ -359,10 +347,7 @@ impl<'a> TreeViewBuilder2<'a> {
                 ),
             );
         }
-        (
-            row_response.response.with_new_rect(background_rect),
-            row_response.inner,
-        )
+        (row_response.with_new_rect(background_rect), icon_response)
     }
 
     fn draw_drop_marker(&mut self, drop_position: &DropPosition, interaction: &Response) {
@@ -406,11 +391,13 @@ impl<'a> TreeViewBuilder2<'a> {
     }
 }
 
-struct NodeConfig {
+struct NodeConfig<'a> {
     parent: Option<Uuid>,
     id: Uuid,
     drop_on_allowed: bool,
     is_open: bool,
+    add_content: &'a mut dyn FnMut(&mut Ui),
+    add_icon: Option<&'a mut dyn FnMut(&mut Ui, Rect) -> Response>,
 }
 
 enum DropQuater {
@@ -444,6 +431,7 @@ impl DropQuater {
             id,
             drop_on_allowed,
             is_open,
+            ..
         } = node_config;
 
         match self {
@@ -493,5 +481,5 @@ impl DropQuater {
 struct RowResponse {
     interaction: Response,
     _visual: Response,
-    icon: Response,
+    icon: Option<Response>,
 }

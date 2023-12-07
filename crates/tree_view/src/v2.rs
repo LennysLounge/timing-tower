@@ -19,10 +19,10 @@ pub enum TreeViewAction {
 
 #[derive(Clone)]
 struct DirectoryState {
-    /// If directory is expanded
-    is_open: bool,
     /// Id of the directory node.
     id: Uuid,
+    /// If directory is expanded
+    is_open: bool,
     /// If a directory is dragged, dropping is disallowed for any of
     /// its child nodes.
     drop_forbidden: bool,
@@ -31,7 +31,7 @@ struct DirectoryState {
     /// The rectangle of the icon.
     icon_rect: Rect,
     /// The shape index where the background is drawn.
-    background_idx: Option<ShapeIdx>,
+    background_idx: ShapeIdx,
 }
 pub struct TreeViewBuilder2<'a> {
     ui: &'a mut Ui,
@@ -135,7 +135,7 @@ impl<'a> TreeViewBuilder2<'a> {
                 drop_forbidden: true,
                 row_rect: Rect::NOTHING,
                 icon_rect: Rect::NOTHING,
-                background_idx: None,
+                background_idx: self.ui.painter().add(Shape::Noop),
             });
             return;
         }
@@ -185,7 +185,7 @@ impl<'a> TreeViewBuilder2<'a> {
             drop_forbidden: self.current_dir_drop_forbidden() || self.is_dragged(id),
             row_rect: visual.rect,
             icon_rect: icon.rect,
-            background_idx: Some(background_idx),
+            background_idx: background_idx,
         })
     }
 
@@ -213,21 +213,17 @@ impl<'a> TreeViewBuilder2<'a> {
         //     _ => (),
         // }
 
-        // if self.current_dir.is_open {
-        //     let mut p1 = self.current_dir.icon_rect.center_bottom();
-        //     p1.y += self.ui.spacing().item_spacing.y;
-        //     let mut p2 = p1.clone();
-        //     p2.y = self.ui.cursor().min.y - self.ui.spacing().item_spacing.y;
-        //     self.ui
-        //         .painter()
-        //         .line_segment([p1, p2], self.ui.visuals().widgets.noninteractive.bg_stroke);
-        // }
-
-        // if self.current_dir.invisible_dirs_stack > 0 {
-        //     self.current_dir.invisible_dirs_stack -= 1;
-        // } else {
-        //     self.current_dir = self.stack.pop().expect("Stack was empty");
-        // }
+        if let Some(current_dir) = self.current_dir() {
+            if current_dir.is_open {
+                let mut p1 = current_dir.icon_rect.center_bottom();
+                p1.y += self.ui.spacing().item_spacing.y;
+                let mut p2 = p1.clone();
+                p2.y = self.ui.cursor().min.y - self.ui.spacing().item_spacing.y;
+                self.ui
+                    .painter()
+                    .line_segment([p1, p2], self.ui.visuals().widgets.noninteractive.bg_stroke);
+            }
+        }
         self.stack.pop();
     }
 

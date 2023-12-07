@@ -6,6 +6,14 @@ use uuid::Uuid;
 
 use crate::DropPosition;
 
+pub enum TreeViewAction {
+    Drop {
+        node_to_remove: Uuid,
+        receiver_node: Uuid,
+        position: DropPosition,
+    },
+}
+
 #[derive(Clone)]
 struct DirectoryState {
     /// If directory is expanded
@@ -25,7 +33,11 @@ pub struct TreeViewBuilder2<'a> {
 }
 
 impl<'a> TreeViewBuilder2<'a> {
-    pub fn new(ui: &mut Ui, base_id: Id, mut add_content: impl FnMut(TreeViewBuilder2<'_>)) {
+    pub fn new(
+        ui: &mut Ui,
+        base_id: Id,
+        mut add_content: impl FnMut(TreeViewBuilder2<'_>),
+    ) -> InnerResponse<Vec<TreeViewAction>> {
         let mut selected = ui
             .data_mut(|d| d.get_persisted::<Option<Uuid>>(base_id))
             .flatten();
@@ -58,7 +70,7 @@ impl<'a> TreeViewBuilder2<'a> {
             child_ui.add_space(-child_ui.spacing().item_spacing.y * 0.5);
             child_ui.min_rect()
         };
-        ui.allocate_rect(child_ui.min_rect(), Sense::hover());
+        let res = ui.allocate_rect(child_ui.min_rect(), Sense::hover());
 
         ui.painter()
             .rect_stroke(rect, Rounding::ZERO, Stroke::new(1.0, Color32::BLACK));
@@ -66,6 +78,19 @@ impl<'a> TreeViewBuilder2<'a> {
 
         ui.label(format!("drag: {:?}", drag));
         ui.label(format!("drop: {:?}", drop));
+
+        let mut actions = Vec::new();
+        if ui.ctx().input(|i| i.pointer.any_released()) {
+            if let (Some(node_to_remove), Some((receiver_node, position))) = (drag, drop) {
+                actions.push(TreeViewAction::Drop {
+                    node_to_remove,
+                    receiver_node,
+                    position,
+                });
+            }
+        }
+
+        InnerResponse::new(actions, res)
     }
 
     fn row(

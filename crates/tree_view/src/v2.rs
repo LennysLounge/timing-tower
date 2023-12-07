@@ -1,6 +1,6 @@
 use bevy_egui::egui::{
     self,
-    epaint::{self},
+    epaint::{self, RectShape},
     layers::ShapeIdx,
     vec2, Color32, CursorIcon, Id, InnerResponse, LayerId, Layout, Order, PointerButton, Pos2,
     Rangef, Rect, Response, Rounding, Sense, Shape, Stroke, Ui, Vec2,
@@ -30,8 +30,16 @@ struct DirectoryState {
     row_rect: Rect,
     /// The rectangle of the icon.
     icon_rect: Rect,
-    /// The shape index where the background is drawn.
-    background_idx: ShapeIdx,
+    /// The shape index where the drop marker is drawn.
+    drop_marker_idx: ShapeIdx,
+}
+struct NodeConfig<'a> {
+    id: Uuid,
+    drop_on_allowed: bool,
+    is_open: bool,
+    add_content: &'a mut dyn FnMut(&mut Ui),
+    add_icon: Option<&'a mut dyn FnMut(&mut Ui, Rect) -> Response>,
+    drop_marker_idx: ShapeIdx,
 }
 pub struct TreeViewBuilder2<'a> {
     ui: &'a mut Ui,
@@ -119,7 +127,6 @@ impl<'a> TreeViewBuilder2<'a> {
             is_open: false,
             add_content: &mut add_content,
             add_icon: None,
-            background_idx: self.ui.painter().add(Shape::Noop),
             drop_marker_idx: self.ui.painter().add(Shape::Noop),
         };
         self.row(&mut node_config);
@@ -137,7 +144,7 @@ impl<'a> TreeViewBuilder2<'a> {
                 drop_forbidden: true,
                 row_rect: Rect::NOTHING,
                 icon_rect: Rect::NOTHING,
-                background_idx: self.ui.painter().add(Shape::Noop),
+                drop_marker_idx: self.ui.painter().add(Shape::Noop),
             });
             return;
         }
@@ -160,7 +167,6 @@ impl<'a> TreeViewBuilder2<'a> {
             is_open: open,
             add_content: &mut add_content,
             add_icon: Some(&mut add_icon),
-            background_idx: self.ui.painter().add(Shape::Noop),
             drop_marker_idx: self.ui.painter().add(Shape::Noop),
         };
 
@@ -169,7 +175,7 @@ impl<'a> TreeViewBuilder2<'a> {
             visual,
             icon,
         } = self.row(&mut node_config);
-        let background_idx = node_config.background_idx;
+        let drop_marker_idx = node_config.drop_marker_idx;
 
         if interaction.double_clicked() {
             open = !open;
@@ -189,33 +195,28 @@ impl<'a> TreeViewBuilder2<'a> {
             drop_forbidden: self.current_dir_drop_forbidden() || self.is_dragged(id),
             row_rect: visual.rect,
             icon_rect: icon.rect,
-            background_idx,
+            drop_marker_idx,
         })
     }
 
     pub fn close_dir(&mut self) {
-        // match (
-        //     self.drop.as_ref(),
-        //     self.current_dir.id,
-        //     self.current_dir.background_idx,
-        // ) {
-        //     (Some((ref parent_id, DropPosition::Last)), Some(ref id), Some(background_idx))
-        //         if parent_id == id =>
-        //     {
-        //         let mut rect = self.current_dir.row_rect;
-        //         *rect.bottom_mut() = self.ui.cursor().top();
-        //         self.ui.painter().set(
-        //             background_idx,
-        //             RectShape::new(
-        //                 rect,
-        //                 self.ui.visuals().widgets.active.rounding,
-        //                 self.ui.visuals().selection.bg_fill.linear_multiply(0.4),
-        //                 Stroke::NONE,
-        //             ),
-        //         );
-        //     }
-        //     _ => (),
-        // }
+        if let Some(current_dir) = self.current_dir() {
+            if let Some((drop_parent, DropPosition::Last)) = &self.drop {
+                if drop_parent == &current_dir.id {
+                    let mut rect = current_dir.row_rect;
+                    *rect.bottom_mut() = self.ui.cursor().top() - self.ui.spacing().item_spacing.y * 0.5;
+                    self.ui.painter().set(
+                        current_dir.drop_marker_idx,
+                        RectShape::new(
+                            rect,
+                            self.ui.visuals().widgets.active.rounding,
+                            self.ui.visuals().selection.bg_fill.linear_multiply(0.6),
+                            Stroke::NONE,
+                        ),
+                    );
+                }
+            }
+        }
 
         if let Some(current_dir) = self.current_dir() {
             if current_dir.is_open {
@@ -247,6 +248,8 @@ impl<'a> TreeViewBuilder2<'a> {
             println!("{} was clicked with egui_id: {:?}", node_config.id, row_id);
         }
 
+        let background_idx = self.ui.painter().add(Shape::Noop);
+
         self.drag(&interaction, node_config);
         self.drop(&interaction, node_config);
 
@@ -255,7 +258,7 @@ impl<'a> TreeViewBuilder2<'a> {
 
         if self.is_selected(&node_config.id) {
             self.ui.painter().set(
-                node_config.background_idx,
+                background_idx,
                 epaint::RectShape::new(
                     row_response.rect,
                     self.ui.visuals().widgets.active.rounding,
@@ -370,10 +373,10 @@ impl<'a> TreeViewBuilder2<'a> {
             return;
         };
 
-        *self.drop = self.get_drop_position(node_config, drop_quater).map(|pos| {
-            self.draw_drop_marker(&pos.1, interaction);
-            pos
-        });
+        if let Some(pos) = self.get_drop_position(node_config, drop_quater) {
+            self.draw_drop_marker(&pos.1, interaction, node_config.drop_marker_idx);
+            *self.drop = Some(pos);
+        }
     }
 
     fn draw_row(
@@ -411,7 +414,12 @@ impl<'a> TreeViewBuilder2<'a> {
         (row_response.with_new_rect(background_rect), icon_response)
     }
 
-    fn draw_drop_marker(&mut self, drop_position: &DropPosition, interaction: &Response) {
+    fn draw_drop_marker(
+        &mut self,
+        drop_position: &DropPosition,
+        interaction: &Response,
+        marker_idx: ShapeIdx,
+    ) {
         pub const DROP_LINE_HEIGHT: f32 = 3.0;
 
         let drop_marker = match drop_position {
@@ -424,13 +432,20 @@ impl<'a> TreeViewBuilder2<'a> {
             DropPosition::Last => interaction.rect.y_range(),
         };
 
-        self.ui.painter().add(epaint::RectShape::new(
-            Rect::from_x_y_ranges(interaction.rect.x_range(), drop_marker),
-            self.ui.visuals().widgets.active.rounding,
-            //self.ui.style().visuals.selection.bg_fill,
-            Color32::RED,
-            Stroke::NONE,
-        ));
+        self.ui.painter().set(
+            marker_idx,
+            epaint::RectShape::new(
+                Rect::from_x_y_ranges(interaction.rect.x_range(), drop_marker),
+                self.ui.visuals().widgets.active.rounding,
+                self.ui
+                    .style()
+                    .visuals
+                    .selection
+                    .bg_fill
+                    .linear_multiply(0.6),
+                Stroke::NONE,
+            ),
+        );
     }
 
     /// Interact with the ui without egui adding any extra space.
@@ -506,16 +521,6 @@ impl<'a> TreeViewBuilder2<'a> {
             }
         }
     }
-}
-
-struct NodeConfig<'a> {
-    id: Uuid,
-    drop_on_allowed: bool,
-    is_open: bool,
-    add_content: &'a mut dyn FnMut(&mut Ui),
-    add_icon: Option<&'a mut dyn FnMut(&mut Ui, Rect) -> Response>,
-    background_idx: ShapeIdx,
-    drop_marker_idx: ShapeIdx,
 }
 
 enum DropQuater {

@@ -217,8 +217,8 @@ impl<'a> TreeViewVisitor<'a> {
 impl NodeVisitor for TreeViewVisitor<'_> {
     fn enter_dir(&mut self, dir: &mut Directory) -> bool {
         self.builder.dir(&dir.id, |ui| {
-            ui.label(format!("{} {}", &dir.name, &dir.id));
-            //ui.label(&dir.name);
+            //ui.label(format!("{} {}", &dir.name, &dir.id));
+            ui.label(&dir.name);
         });
         true
     }
@@ -230,8 +230,8 @@ impl NodeVisitor for TreeViewVisitor<'_> {
 
     fn visit_file(&mut self, file: &mut File) -> bool {
         self.builder.leaf(&file.id, |ui| {
-            ui.label(format!("{} {}", &file.name, &file.id));
-            //ui.label(&file.name);
+            //ui.label(format!("{} {}", &file.name, &file.id));
+            ui.label(&file.name);
         });
         true
     }

@@ -1,6 +1,6 @@
 use bevy_egui::egui::{
-    epaint, vec2, Color32, CursorIcon, Id, InnerResponse, LayerId, Layout, Order, PointerButton,
-    Pos2, Rangef, Rect, Response, Rounding, Sense, Shape, Stroke, Ui, Vec2,
+    self, epaint, vec2, Color32, CursorIcon, Id, InnerResponse, LayerId, Layout, Order,
+    PointerButton, Pos2, Rangef, Rect, Response, Rounding, Sense, Shape, Stroke, Ui, Vec2,
 };
 use uuid::Uuid;
 
@@ -54,7 +54,8 @@ impl<'a> TreeViewBuilder2<'a> {
         );
 
         let rect = {
-            child_ui.spacing_mut().item_spacing.y = 15.0;
+            child_ui.spacing_mut().item_spacing.y = 7.0;
+            child_ui.spacing_mut().indent = 20.0;
 
             child_ui.add_space(child_ui.spacing().item_spacing.y * 0.5);
             add_content(TreeViewBuilder2 {
@@ -101,7 +102,8 @@ impl<'a> TreeViewBuilder2<'a> {
         &mut self,
         node_config: &NodeConfig,
         mut add_content: impl FnMut(&mut Ui),
-    ) -> InnerResponse<Response> {
+        mut add_icon: impl FnMut(&mut Ui, Rect) -> Response,
+    ) -> RowResponse {
         // Load row data
         let row_id = self.ui.id().with(node_config.id).with("row");
         let row_rect = self
@@ -117,16 +119,32 @@ impl<'a> TreeViewBuilder2<'a> {
             println!("{} was clicked with egui_id: {:?}", node_config.id, row_id);
         }
 
-        self.drag(&interaction, &node_config.id, &mut add_content);
+        self.drag(
+            &interaction,
+            &node_config.id,
+            &mut add_content,
+            &mut add_icon,
+        );
         self.drop(&interaction, node_config);
 
-        let row_response = self.draw_row(add_content, self.is_selected(&node_config.id));
+        let (row_response, icon_response) = TreeViewBuilder2::draw_row(
+            self.ui,
+            add_content,
+            add_icon,
+            self.is_selected(&node_config.id),
+            self.stack.len() as f32,
+            1.0,
+        );
 
         // Store row data
         self.ui
             .data_mut(|d| d.insert_persisted(row_id, row_response.rect));
 
-        InnerResponse::new(interaction, row_response)
+        RowResponse {
+            interaction,
+            _visual: row_response,
+            icon: icon_response,
+        }
     }
 
     pub fn leaf(&mut self, id: &Uuid, add_content: impl FnMut(&mut Ui)) {
@@ -139,7 +157,9 @@ impl<'a> TreeViewBuilder2<'a> {
             drop_on_allowed: false,
             is_open: false,
         };
-        self.row(&node_config, add_content);
+        self.row(&node_config, add_content, |ui, rect| {
+            ui.allocate_rect(rect, Sense::hover())
+        });
     }
 
     pub fn dir(&mut self, id: &Uuid, add_content: impl FnMut(&mut Ui)) {
@@ -161,12 +181,20 @@ impl<'a> TreeViewBuilder2<'a> {
             is_open: open,
         };
 
-        let InnerResponse {
-            inner: interaction,
-            response: _,
-        } = self.row(&node_config, add_content);
+        let RowResponse {
+            interaction,
+            _visual: _,
+            icon,
+        } = self.row(&node_config, add_content, |ui, rect| {
+            let icon_res = ui.allocate_rect(rect, Sense::click());
+            egui::collapsing_header::paint_default_icon(ui, open as i32 as f32, &icon_res);
+            icon_res
+        });
 
         if interaction.double_clicked() {
+            open = !open;
+        }
+        if icon.clicked() {
             open = !open;
         }
 
@@ -190,7 +218,13 @@ impl<'a> TreeViewBuilder2<'a> {
     }
 
     /// Draw the content as a drag overlay if it is beeing dragged.
-    fn drag(&mut self, interaction: &Response, id: &Uuid, add_content: &mut impl FnMut(&mut Ui)) {
+    fn drag(
+        &mut self,
+        interaction: &Response,
+        id: &Uuid,
+        add_content: &mut impl FnMut(&mut Ui),
+        add_icon: &mut impl FnMut(&mut Ui, Rect) -> Response,
+    ) {
         if !interaction.dragged_by(PointerButton::Primary)
             && !interaction.drag_released_by(PointerButton::Primary)
         {
@@ -219,34 +253,22 @@ impl<'a> TreeViewBuilder2<'a> {
 
         // Paint the content to a new layer for the drag overlay.
         let layer_id = LayerId::new(Order::Tooltip, drag_source_id);
+
         let background_rect = self
             .ui
             .child_ui(self.ui.available_rect_before_wrap(), *self.ui.layout())
             .with_layer_id(layer_id, |ui| {
-                let background = ui.painter().add(Shape::Noop);
-
-                let res = ui.horizontal(|ui| {
-                    ui.allocate_response(vec2(20.0 * self.stack.len() as f32, 0.0), Sense::hover());
-                    add_content(ui);
-                    ui.allocate_response(vec2(ui.available_width(), 0.0), Sense::hover());
-                });
-                let rect = res
-                    .response
-                    .rect
-                    .expand2(vec2(0.0, ui.spacing().item_spacing.y * 0.5));
-
-                ui.painter().set(
-                    background,
-                    epaint::RectShape::new(
-                        rect,
-                        ui.visuals().widgets.active.rounding,
-                        ui.visuals().selection.bg_fill.linear_multiply(0.5),
-                        Stroke::NONE,
-                    ),
-                );
-                res.response.with_new_rect(rect)
+                TreeViewBuilder2::draw_row(
+                    ui,
+                    add_content,
+                    add_icon,
+                    true,
+                    self.stack.len() as f32,
+                    0.4,
+                )
             })
             .inner
+            .0
             .rect;
 
         // Move layer to the drag position
@@ -298,37 +320,49 @@ impl<'a> TreeViewBuilder2<'a> {
     }
 
     fn draw_row(
-        &mut self,
+        ui: &mut Ui,
         mut add_content: impl FnMut(&mut Ui),
+        mut add_icon: impl FnMut(&mut Ui, Rect) -> Response,
         draw_background: bool,
-    ) -> Response {
-        let background_position = self.ui.painter().add(Shape::Noop);
+        depth: f32,
+        transparency: f32,
+    ) -> (Response, Response) {
+        let background_position = ui.painter().add(Shape::Noop);
 
-        let res = self
-            .ui
-            .horizontal(|ui| {
-                ui.allocate_response(vec2(20.0 * self.stack.len() as f32, 0.0), Sense::hover());
-                add_content(ui);
-                ui.allocate_response(vec2(ui.available_width(), 0.0), Sense::hover());
-            })
-            .response;
+        let row_response = ui.horizontal(|ui| {
+            ui.add_space(ui.spacing().indent * depth);
+            let icon_pos = ui.cursor().min;
+            ui.add_space(ui.spacing().icon_width);
+            add_content(ui);
+            ui.add_space(ui.available_width());
 
-        let background_rect = res
+            let (icon_rect, _) = ui.spacing().icon_rectangles(Rect::from_min_size(
+                icon_pos,
+                vec2(ui.spacing().icon_width, ui.min_size().y),
+            ));
+            add_icon(ui, icon_rect)
+        });
+
+        let background_rect = row_response
+            .response
             .rect
-            .expand2(vec2(0.0, self.ui.spacing().item_spacing.y * 0.5));
+            .expand2(vec2(0.0, ui.spacing().item_spacing.y * 0.5));
 
         if draw_background {
-            self.ui.painter().set(
+            ui.painter().set(
                 background_position,
                 epaint::RectShape::new(
                     background_rect,
-                    self.ui.visuals().widgets.active.rounding,
-                    self.ui.visuals().selection.bg_fill,
+                    ui.visuals().widgets.active.rounding,
+                    ui.visuals().selection.bg_fill.linear_multiply(transparency),
                     Stroke::NONE,
                 ),
             );
         }
-        res.with_new_rect(background_rect)
+        (
+            row_response.response.with_new_rect(background_rect),
+            row_response.inner,
+        )
     }
 
     fn draw_drop_marker(&mut self, drop_position: &DropPosition, interaction: &Response) {
@@ -366,7 +400,7 @@ impl<'a> TreeViewBuilder2<'a> {
             .as_ref()
             .is_some_and(|selected_id| selected_id == id)
     }
-    
+
     fn is_dragged(&self, id: &Uuid) -> bool {
         self.drag.as_ref().is_some_and(|drag_id| drag_id == id)
     }
@@ -454,4 +488,10 @@ impl DropQuater {
             }
         }
     }
+}
+
+struct RowResponse {
+    interaction: Response,
+    _visual: Response,
+    icon: Response,
 }

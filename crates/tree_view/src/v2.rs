@@ -119,6 +119,8 @@ impl<'a> TreeViewBuilder2<'a> {
             is_open: false,
             add_content: &mut add_content,
             add_icon: None,
+            background_idx: self.ui.painter().add(Shape::Noop),
+            drop_marker_idx: self.ui.painter().add(Shape::Noop),
         };
         self.row(&mut node_config);
     }
@@ -158,14 +160,16 @@ impl<'a> TreeViewBuilder2<'a> {
             is_open: open,
             add_content: &mut add_content,
             add_icon: Some(&mut add_icon),
+            background_idx: self.ui.painter().add(Shape::Noop),
+            drop_marker_idx: self.ui.painter().add(Shape::Noop),
         };
 
         let RowResponse {
             interaction,
             visual,
             icon,
-            background_idx,
         } = self.row(&mut node_config);
+        let background_idx = node_config.background_idx;
 
         if interaction.double_clicked() {
             open = !open;
@@ -185,7 +189,7 @@ impl<'a> TreeViewBuilder2<'a> {
             drop_forbidden: self.current_dir_drop_forbidden() || self.is_dragged(id),
             row_rect: visual.rect,
             icon_rect: icon.rect,
-            background_idx: background_idx,
+            background_idx,
         })
     }
 
@@ -246,14 +250,12 @@ impl<'a> TreeViewBuilder2<'a> {
         self.drag(&interaction, node_config);
         self.drop(&interaction, node_config);
 
-        let background_position = self.ui.painter().add(Shape::Noop);
-
         let (row_response, icon_response) =
             TreeViewBuilder2::draw_row(self.ui, node_config, self.stack.len() as f32);
 
         if self.is_selected(&node_config.id) {
             self.ui.painter().set(
-                background_position,
+                node_config.background_idx,
                 epaint::RectShape::new(
                     row_response.rect,
                     self.ui.visuals().widgets.active.rounding,
@@ -271,7 +273,6 @@ impl<'a> TreeViewBuilder2<'a> {
             interaction,
             visual: row_response,
             icon: icon_response,
-            background_idx: background_position,
         }
     }
 
@@ -426,7 +427,8 @@ impl<'a> TreeViewBuilder2<'a> {
         self.ui.painter().add(epaint::RectShape::new(
             Rect::from_x_y_ranges(interaction.rect.x_range(), drop_marker),
             self.ui.visuals().widgets.active.rounding,
-            self.ui.style().visuals.selection.bg_fill,
+            //self.ui.style().visuals.selection.bg_fill,
+            Color32::RED,
             Stroke::NONE,
         ));
     }
@@ -512,6 +514,8 @@ struct NodeConfig<'a> {
     is_open: bool,
     add_content: &'a mut dyn FnMut(&mut Ui),
     add_icon: Option<&'a mut dyn FnMut(&mut Ui, Rect) -> Response>,
+    background_idx: ShapeIdx,
+    drop_marker_idx: ShapeIdx,
 }
 
 enum DropQuater {
@@ -542,7 +546,6 @@ impl DropQuater {
 }
 
 struct RowResponse {
-    background_idx: ShapeIdx,
     interaction: Response,
     visual: Response,
     icon: Option<Response>,

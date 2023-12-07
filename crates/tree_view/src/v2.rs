@@ -157,7 +157,8 @@ impl<'a> TreeViewBuilder2<'a> {
 
         let mut add_icon = |ui: &mut Ui, rect| {
             let icon_res = ui.allocate_rect(rect, Sense::click());
-            egui::collapsing_header::paint_default_icon(ui, open as i32 as f32, &icon_res);
+            let openness = ui.ctx().animate_bool(icon_res.id, open);
+            egui::collapsing_header::paint_default_icon(ui, openness, &icon_res);
             icon_res
         };
 

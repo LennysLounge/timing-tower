@@ -1,6 +1,9 @@
 use bevy_egui::egui::{
-    self, epaint, layers::ShapeIdx, vec2, Color32, CursorIcon, Id, InnerResponse, LayerId, Layout,
-    Order, PointerButton, Pos2, Rangef, Rect, Response, Rounding, Sense, Shape, Stroke, Ui, Vec2,
+    self,
+    epaint::{self, RectShape},
+    layers::ShapeIdx,
+    vec2, Color32, CursorIcon, Id, InnerResponse, LayerId, Layout, Order, PointerButton, Pos2,
+    Rangef, Rect, Response, Rounding, Sense, Shape, Stroke, Ui, Vec2,
 };
 use uuid::Uuid;
 
@@ -27,8 +30,10 @@ struct DirectoryState {
     drop_forbidden: bool,
     /// The rectangle of the row.
     row_rect: Rect,
-    ///// The shape index where the background is drawn.
-    //background_idx: ShapeIdx,
+    /// The rectangle of the icon.
+    icon_rect: Rect,
+    /// The shape index where the background is drawn.
+    background_idx: Option<ShapeIdx>,
 }
 pub struct TreeViewBuilder2<'a> {
     ui: &'a mut Ui,
@@ -73,6 +78,8 @@ impl<'a> TreeViewBuilder2<'a> {
                     invisible_dirs_stack: 0,
                     drop_forbidden: false,
                     row_rect: Rect::NOTHING,
+                    icon_rect: Rect::NOTHING,
+                    background_idx: None,
                 },
                 stack: Vec::new(),
             });
@@ -149,14 +156,15 @@ impl<'a> TreeViewBuilder2<'a> {
             interaction,
             visual,
             icon,
-            ..
+            background_idx,
         } = self.row(&mut node_config);
 
         if interaction.double_clicked() {
             open = !open;
         }
 
-        if icon.expect("Icon response is not available").clicked() {
+        let icon = icon.expect("Icon response is not available");
+        if icon.clicked() {
             open = !open;
         }
 
@@ -169,10 +177,45 @@ impl<'a> TreeViewBuilder2<'a> {
             invisible_dirs_stack: 0,
             drop_forbidden: self.current_dir.drop_forbidden || self.is_dragged(id),
             row_rect: visual.rect,
+            icon_rect: icon.rect,
+            background_idx: Some(background_idx),
         }
     }
 
     pub fn close_dir(&mut self) {
+        match (
+            self.drop.as_ref(),
+            self.current_dir.id,
+            self.current_dir.background_idx,
+        ) {
+            (Some((ref parent_id, DropPosition::Last)), Some(ref id), Some(background_idx))
+                if parent_id == id =>
+            {
+                let mut rect = self.current_dir.row_rect;
+                *rect.bottom_mut() = self.ui.cursor().top();
+                self.ui.painter().set(
+                    background_idx,
+                    RectShape::new(
+                        rect,
+                        self.ui.visuals().widgets.active.rounding,
+                        self.ui.visuals().selection.bg_fill.linear_multiply(0.4),
+                        Stroke::NONE,
+                    ),
+                );
+            }
+            _ => (),
+        }
+
+        if self.current_dir.is_open {
+            let mut p1 = self.current_dir.icon_rect.center_bottom();
+            p1.y += self.ui.spacing().item_spacing.y;
+            let mut p2 = p1.clone();
+            p2.y = self.ui.cursor().min.y - self.ui.spacing().item_spacing.y;
+            self.ui
+                .painter()
+                .line_segment([p1, p2], self.ui.visuals().widgets.noninteractive.bg_stroke);
+        }
+
         if self.current_dir.invisible_dirs_stack > 0 {
             self.current_dir.invisible_dirs_stack -= 1;
         } else {
@@ -333,8 +376,6 @@ impl<'a> TreeViewBuilder2<'a> {
         node_config: &mut NodeConfig,
         depth: f32,
     ) -> (Response, Option<Response>) {
-        //let background_position = ui.painter().add(Shape::Noop);
-
         let InnerResponse {
             inner: icon_response,
             response: row_response,
@@ -362,17 +403,6 @@ impl<'a> TreeViewBuilder2<'a> {
             .rect
             .expand2(vec2(0.0, ui.spacing().item_spacing.y * 0.5));
 
-        // if draw_background {
-        //     ui.painter().set(
-        //         background_position,
-        //         epaint::RectShape::new(
-        //             background_rect,
-        //             ui.visuals().widgets.active.rounding,
-        //             ui.visuals().selection.bg_fill.linear_multiply(transparency),
-        //             Stroke::NONE,
-        //         ),
-        //     );
-        // }
         (row_response.with_new_rect(background_rect), icon_response)
     }
 

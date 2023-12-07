@@ -204,7 +204,8 @@ impl<'a> TreeViewBuilder2<'a> {
             if let Some((drop_parent, DropPosition::Last)) = &self.drop {
                 if drop_parent == &current_dir.id {
                     let mut rect = current_dir.row_rect;
-                    *rect.bottom_mut() = self.ui.cursor().top() - self.ui.spacing().item_spacing.y * 0.5;
+                    *rect.bottom_mut() =
+                        self.ui.cursor().top() - self.ui.spacing().item_spacing.y * 0.5;
                     self.ui.painter().set(
                         current_dir.drop_marker_idx,
                         RectShape::new(
@@ -245,7 +246,6 @@ impl<'a> TreeViewBuilder2<'a> {
 
         if interaction.clicked() {
             *self.selected = Some(node_config.id);
-            println!("{} was clicked with egui_id: {:?}", node_config.id, row_id);
         }
 
         let background_idx = self.ui.painter().add(Shape::Noop);

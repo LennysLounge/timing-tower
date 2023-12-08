@@ -69,7 +69,7 @@ impl<'a> TreeViewBuilder<'a> {
         let mut drop = None;
 
         let mut child_ui = ui.child_ui_with_id_source(
-            Rect::from_min_size(ui.cursor().min, vec2(200., ui.available_height())),
+            ui.available_rect_before_wrap(),
             Layout::top_down(bevy_egui::egui::Align::Min),
             base_id,
         );

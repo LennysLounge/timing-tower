@@ -9,7 +9,7 @@ use bevy_egui::{
     EguiContexts, EguiPlugin,
 };
 
-use tree_view::{v2::TreeViewBuilder2, DropPosition};
+use tree_view::{v2::TreeViewBuilder, DropPosition};
 use uuid::{uuid, Uuid};
 
 fn main() {
@@ -63,7 +63,7 @@ fn egui(mut ctx: EguiContexts, mut state: ResMut<EditorState>) {
     egui::CentralPanel::default().show(ctx.ctx_mut(), |ui| {
         let EditorState { tree } = &mut *state;
 
-        let res = TreeViewBuilder2::new(ui, ui.make_persistent_id("tree view"), |root| {
+        let res = TreeViewBuilder::new(ui, ui.make_persistent_id("tree view"), |root| {
             tree.accept(&mut TreeViewVisitor::new(root));
         });
 
@@ -207,10 +207,10 @@ impl NodeVisitor for PrintVisitor {
 }
 
 struct TreeViewVisitor<'a> {
-    builder: TreeViewBuilder2<'a>,
+    builder: TreeViewBuilder<'a>,
 }
 impl<'a> TreeViewVisitor<'a> {
-    fn new(builder: TreeViewBuilder2<'a>) -> Self {
+    fn new(builder: TreeViewBuilder<'a>) -> Self {
         Self { builder: builder }
     }
 }

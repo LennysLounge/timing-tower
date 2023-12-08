@@ -2,8 +2,8 @@ use bevy_egui::egui::{
     self,
     epaint::{self, RectShape},
     layers::ShapeIdx,
-    vec2, Color32, CursorIcon, Id, InnerResponse, LayerId, Layout, Order, PointerButton, Pos2,
-    Rangef, Rect, Response, Rounding, Sense, Shape, Stroke, Ui, Vec2,
+    vec2, CursorIcon, Id, InnerResponse, LayerId, Layout, Order, PointerButton, Pos2, Rangef, Rect,
+    Response, Sense, Shape, Stroke, Ui, Vec2,
 };
 use uuid::Uuid;
 
@@ -41,7 +41,7 @@ struct NodeConfig<'a> {
     add_icon: Option<&'a mut dyn FnMut(&mut Ui, Rect) -> Response>,
     drop_marker_idx: ShapeIdx,
 }
-pub struct TreeViewBuilder2<'a> {
+pub struct TreeViewBuilder<'a> {
     ui: &'a mut Ui,
     selected: &'a mut Option<Uuid>,
     drag: &'a mut Option<Uuid>,
@@ -50,11 +50,11 @@ pub struct TreeViewBuilder2<'a> {
     was_dragged_last_frame: bool,
 }
 
-impl<'a> TreeViewBuilder2<'a> {
+impl<'a> TreeViewBuilder<'a> {
     pub fn new(
         ui: &mut Ui,
         base_id: Id,
-        mut add_content: impl FnMut(TreeViewBuilder2<'_>),
+        mut add_content: impl FnMut(TreeViewBuilder<'_>),
     ) -> InnerResponse<Vec<TreeViewAction>> {
         #[derive(Clone, Default)]
         struct TreeViewBuilderState {
@@ -74,12 +74,12 @@ impl<'a> TreeViewBuilder2<'a> {
             base_id,
         );
 
-        let rect = {
+        {
             child_ui.spacing_mut().item_spacing.y = 7.0;
             child_ui.spacing_mut().indent = 20.0;
 
             child_ui.add_space(child_ui.spacing().item_spacing.y * 0.5);
-            add_content(TreeViewBuilder2 {
+            add_content(TreeViewBuilder {
                 ui: &mut child_ui,
                 selected: &mut state.selected,
                 drag: &mut drag,
@@ -92,9 +92,6 @@ impl<'a> TreeViewBuilder2<'a> {
             child_ui.min_rect()
         };
         let res = ui.allocate_rect(child_ui.min_rect(), Sense::hover());
-
-        ui.painter()
-            .rect_stroke(rect, Rounding::ZERO, Stroke::new(1.0, Color32::BLACK));
 
         state.was_dragged_last_frame = drag.is_some();
         ui.data_mut(|d| d.insert_persisted(base_id, state));
@@ -252,7 +249,7 @@ impl<'a> TreeViewBuilder2<'a> {
         self.drop(&interaction, node_config);
 
         let (row_response, icon_response) =
-            TreeViewBuilder2::draw_row(self.ui, node_config, self.stack.len() as f32);
+            TreeViewBuilder::draw_row(self.ui, node_config, self.stack.len() as f32);
 
         if self.is_selected(&node_config.id) {
             self.ui.painter().set(
@@ -314,7 +311,7 @@ impl<'a> TreeViewBuilder2<'a> {
             .with_layer_id(layer_id, |ui| {
                 let background_position = ui.painter().add(Shape::Noop);
 
-                let (row, _) = TreeViewBuilder2::draw_row(ui, node_config, self.stack.len() as f32);
+                let (row, _) = TreeViewBuilder::draw_row(ui, node_config, self.stack.len() as f32);
 
                 ui.painter().set(
                     background_position,

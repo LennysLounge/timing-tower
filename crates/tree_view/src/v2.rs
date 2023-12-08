@@ -3,8 +3,8 @@ use bevy_egui::egui::{
     epaint::{self, RectShape},
     layers::ShapeIdx,
     util::id_type_map::SerializableAny,
-    vec2, CursorIcon, Id, InnerResponse, LayerId, Layout, Order, PointerButton, Pos2, Rangef, Rect,
-    Response, Sense, Shape, Stroke, Ui, Vec2,
+    vec2, Color32, CursorIcon, Id, InnerResponse, LayerId, Layout, Order, PointerButton, Pos2,
+    Rangef, Rect, Response, Rounding, Sense, Shape, Stroke, Ui, Vec2,
 };
 use uuid::Uuid;
 
@@ -180,10 +180,10 @@ impl<'a> TreeViewBuilder<'a> {
             .data_mut(|d| d.get_persisted(dir_id))
             .unwrap_or(true);
 
-        let mut add_icon = |ui: &mut Ui, rect| {
+        let mut add_icon = |ui: &mut Ui| {
             let icon_id = ui.make_persistent_id(id).with("icon");
             let openness = ui.ctx().animate_bool(icon_id, open);
-            let icon_res = ui.allocate_rect(rect, Sense::click());
+            let icon_res = ui.allocate_rect(ui.max_rect(), Sense::click());
             egui::collapsing_header::paint_default_icon(ui, openness, &icon_res);
             icon_res
         };
@@ -381,7 +381,7 @@ struct Row<'a> {
     drop_on_allowed: bool,
     is_open: bool,
     add_content: &'a mut dyn FnMut(&mut Ui),
-    add_icon: Option<&'a mut dyn FnMut(&mut Ui, Rect) -> Response>,
+    add_icon: Option<&'a mut dyn FnMut(&mut Ui) -> Response>,
     drop_marker_idx: ShapeIdx,
 }
 
@@ -520,7 +520,6 @@ impl Row<'_> {
             if self.add_icon.is_some() {
                 ui.add_space(ui.spacing().icon_width);
             };
-
             (self.add_content)(ui);
             ui.add_space(ui.available_width());
 
@@ -529,7 +528,7 @@ impl Row<'_> {
                     icon_pos,
                     vec2(ui.spacing().icon_width, ui.min_size().y),
                 ));
-                add_icon(ui, small_rect)
+                ui.allocate_ui_at_rect(small_rect, |ui| add_icon(ui)).inner
             })
         });
 

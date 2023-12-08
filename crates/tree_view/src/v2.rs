@@ -148,8 +148,9 @@ impl<'a> TreeViewBuilder<'a> {
             .unwrap_or(true);
 
         let mut add_icon = |ui: &mut Ui, rect| {
+            let icon_id = ui.make_persistent_id(id).with("icon");
+            let openness = ui.ctx().animate_bool(icon_id, open);
             let icon_res = ui.allocate_rect(rect, Sense::click());
-            let openness = ui.ctx().animate_bool(icon_res.id, open);
             egui::collapsing_header::paint_default_icon(ui, openness, &icon_res);
             icon_res
         };

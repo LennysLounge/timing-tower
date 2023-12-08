@@ -3,8 +3,8 @@ use bevy_egui::egui::{
     epaint::{self, RectShape},
     layers::ShapeIdx,
     util::id_type_map::SerializableAny,
-    vec2, Color32, CursorIcon, Id, InnerResponse, LayerId, Layout, Order, PointerButton, Pos2,
-    Rangef, Rect, Response, Rounding, Sense, Shape, Stroke, Ui, Vec2,
+    vec2, CursorIcon, Id, InnerResponse, LayerId, Layout, Order, PointerButton, Pos2, Rangef, Rect,
+    Response, Sense, Shape, Stroke, Ui, Vec2,
 };
 use uuid::Uuid;
 
@@ -41,6 +41,7 @@ pub struct TreeViewBuilder<'a> {
     drop: &'a mut Option<(Uuid, DropPosition)>,
     stack: Vec<DirectoryState>,
     background_shape: &'a mut Option<Shape>,
+    drop_marker_shape: &'a mut Option<Shape>,
 }
 
 impl<'a> TreeViewBuilder<'a> {
@@ -64,6 +65,9 @@ impl<'a> TreeViewBuilder<'a> {
         let selection_background_idx = ui.painter().add(Shape::Noop);
         let mut selection_bakground_shape = None;
 
+        let drop_marker_idx = ui.painter().add(Shape::Noop);
+        let mut drop_marker_shape = None;
+
         let mut child_ui = ui.child_ui_with_id_source(
             ui.available_rect_before_wrap(),
             Layout::top_down(bevy_egui::egui::Align::Min),
@@ -82,6 +86,7 @@ impl<'a> TreeViewBuilder<'a> {
                 drop: &mut drop,
                 stack: Vec::new(),
                 background_shape: &mut selection_bakground_shape,
+                drop_marker_shape: &mut drop_marker_shape,
             });
             // Add negative space because the place will add the item spacing on top of this.
             child_ui.add_space(-child_ui.spacing().item_spacing.y * 0.5);
@@ -115,27 +120,13 @@ impl<'a> TreeViewBuilder<'a> {
         InnerResponse::new(actions, res)
     }
 
-    pub fn leaf(&mut self, id: &Uuid, mut add_content: impl FnMut(&mut Ui)) -> Option<Response> {
-        if !self.parent_dir_is_open() {
-            return None;
-        }
-        let drop_marker_idx = self.ui.painter().add(Shape::Noop);
-
-        let mut row_config = Row {
-            id: *id,
-            drop_on_allowed: false,
-            is_open: false,
-            add_content: &mut add_content,
-            add_icon: None,
-            drop_marker_idx: self.ui.painter().add(Shape::Noop),
-            depth: self.stack.len(),
-        };
+    fn row(&mut self, row_config: &mut Row) -> RowResponse {
         let row_response = row_config.row(self.ui);
 
         if row_response.interaction.clicked() {
-            *self.selected = Some(*id);
+            *self.selected = Some(row_config.id);
         }
-        if self.is_selected(id) {
+        if self.is_selected(&row_config.id) {
             *self.background_shape = Some(
                 epaint::RectShape::new(
                     row_response.visual.rect,
@@ -147,15 +138,32 @@ impl<'a> TreeViewBuilder<'a> {
             );
         }
         if row_response.was_dragged {
-            *self.drag = Some(*id);
+            *self.drag = Some(row_config.id);
         }
-        if let Some(drop_quarter) = row_response.drop_quarter {
+        if let Some(drop_quarter) = &row_response.drop_quarter {
             if self.ui.ctx().memory(|m| m.is_anything_being_dragged()) {
                 *self.drop = self.get_drop_position(&row_config, drop_quarter);
             }
 
-            self.draw_drop_marker(&row_response.interaction, drop_marker_idx);
+            *self.drop_marker_shape = Some(self.drop_marker_shape(&row_response.interaction));
         }
+        row_response
+    }
+
+    pub fn leaf(&mut self, id: &Uuid, mut add_content: impl FnMut(&mut Ui)) -> Option<Response> {
+        if !self.parent_dir_is_open() {
+            return None;
+        }
+
+        let mut row_config = Row {
+            id: *id,
+            drop_on_allowed: false,
+            is_open: false,
+            add_content: &mut add_content,
+            add_icon: None,
+            depth: self.stack.len(),
+        };
+        let row_response = self.row(&mut row_config);
 
         Some(row_response.interaction)
         //Some(self.row(&mut node_config).interaction)
@@ -180,6 +188,8 @@ impl<'a> TreeViewBuilder<'a> {
             .data_mut(|d| d.get_persisted(dir_id))
             .unwrap_or(true);
 
+        let drop_marker_idx = self.ui.painter().add(Shape::Noop);
+
         let mut add_icon = |ui: &mut Ui| {
             let icon_id = ui.make_persistent_id(id).with("icon");
             let openness = ui.ctx().animate_bool(icon_id, open);
@@ -194,7 +204,6 @@ impl<'a> TreeViewBuilder<'a> {
             is_open: open,
             add_content: &mut add_content,
             add_icon: Some(&mut add_icon),
-            drop_marker_idx: self.ui.painter().add(Shape::Noop),
             depth: self.stack.len(),
         };
 
@@ -204,7 +213,6 @@ impl<'a> TreeViewBuilder<'a> {
             icon,
             ..
         } = node_config.row(self.ui);
-        let drop_marker_idx = node_config.drop_marker_idx;
 
         if interaction.double_clicked() {
             open = !open;
@@ -267,7 +275,7 @@ impl<'a> TreeViewBuilder<'a> {
     fn get_drop_position(
         &self,
         node_config: &Row,
-        drop_quater: DropQuarter,
+        drop_quater: &DropQuarter,
     ) -> Option<(Uuid, DropPosition)> {
         let Row {
             id,
@@ -319,7 +327,7 @@ impl<'a> TreeViewBuilder<'a> {
         }
     }
 
-    fn draw_drop_marker(&mut self, interaction: &Response, marker_idx: ShapeIdx) {
+    fn drop_marker_shape(&mut self, interaction: &Response) -> Shape {
         pub const DROP_LINE_HEIGHT: f32 = 3.0;
 
         let drop_marker = match self.drop {
@@ -330,23 +338,21 @@ impl<'a> TreeViewBuilder<'a> {
                 Rangef::point(interaction.rect.max.y).expand(DROP_LINE_HEIGHT * 0.5)
             }
             Some((_, DropPosition::Last)) => interaction.rect.y_range(),
-            None => return,
+            None => return Shape::Noop,
         };
 
-        self.ui.painter().set(
-            marker_idx,
-            epaint::RectShape::new(
-                Rect::from_x_y_ranges(interaction.rect.x_range(), drop_marker),
-                self.ui.visuals().widgets.active.rounding,
-                self.ui
-                    .style()
-                    .visuals
-                    .selection
-                    .bg_fill
-                    .linear_multiply(0.6),
-                Stroke::NONE,
-            ),
-        );
+        epaint::RectShape::new(
+            Rect::from_x_y_ranges(interaction.rect.x_range(), drop_marker),
+            self.ui.visuals().widgets.active.rounding,
+            self.ui
+                .style()
+                .visuals
+                .selection
+                .bg_fill
+                .linear_multiply(0.6),
+            Stroke::NONE,
+        )
+        .into()
     }
 
     fn parent_dir(&self) -> Option<&DirectoryState> {
@@ -382,7 +388,6 @@ struct Row<'a> {
     is_open: bool,
     add_content: &'a mut dyn FnMut(&mut Ui),
     add_icon: Option<&'a mut dyn FnMut(&mut Ui) -> Response>,
-    drop_marker_idx: ShapeIdx,
 }
 
 impl Row<'_> {

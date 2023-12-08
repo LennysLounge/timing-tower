@@ -116,7 +116,7 @@ impl<'a> TreeViewBuilder<'a> {
     }
 
     pub fn leaf(&mut self, id: &Uuid, mut add_content: impl FnMut(&mut Ui)) -> Option<Response> {
-        if !self.current_dir_is_open() {
+        if !self.parent_dir_is_open() {
             return None;
         }
         let drop_marker_idx = self.ui.painter().add(Shape::Noop);
@@ -162,7 +162,7 @@ impl<'a> TreeViewBuilder<'a> {
     }
 
     pub fn dir(&mut self, id: &Uuid, mut add_content: impl FnMut(&mut Ui)) -> Option<Response> {
-        if !self.current_dir_is_open() {
+        if !self.parent_dir_is_open() {
             self.stack.push(DirectoryState {
                 is_open: false,
                 id: *id,
@@ -222,7 +222,7 @@ impl<'a> TreeViewBuilder<'a> {
         self.stack.push(DirectoryState {
             is_open: open,
             id: *id,
-            drop_forbidden: self.current_dir_drop_forbidden() || self.is_dragged(id),
+            drop_forbidden: self.parent_dir_drop_forbidden() || self.is_dragged(id),
             row_rect: visual.rect,
             icon_rect: icon.rect,
             drop_marker_idx,
@@ -231,7 +231,7 @@ impl<'a> TreeViewBuilder<'a> {
     }
 
     pub fn close_dir(&mut self) {
-        if let Some(current_dir) = self.current_dir() {
+        if let Some(current_dir) = self.parent_dir() {
             if let Some((drop_parent, DropPosition::Last)) = &self.drop {
                 if drop_parent == &current_dir.id {
                     let mut rect = current_dir.row_rect;
@@ -250,7 +250,7 @@ impl<'a> TreeViewBuilder<'a> {
             }
         }
 
-        if let Some(current_dir) = self.current_dir() {
+        if let Some(current_dir) = self.parent_dir() {
             if current_dir.is_open {
                 let mut p1 = current_dir.icon_rect.center_bottom();
                 p1.y += self.ui.spacing().item_spacing.y;
@@ -262,6 +262,61 @@ impl<'a> TreeViewBuilder<'a> {
             }
         }
         self.stack.pop();
+    }
+
+    fn get_drop_position(
+        &self,
+        node_config: &Row,
+        drop_quater: DropQuarter,
+    ) -> Option<(Uuid, DropPosition)> {
+        let Row {
+            id,
+            drop_on_allowed,
+            is_open,
+            ..
+        } = node_config;
+
+        match drop_quater {
+            DropQuarter::Top => {
+                if let Some(parent_dir) = self.parent_dir() {
+                    return Some((parent_dir.id, DropPosition::Before(*id)));
+                }
+                if *drop_on_allowed {
+                    return Some((*id, DropPosition::Last));
+                }
+                return None;
+            }
+            DropQuarter::MiddleTop => {
+                if *drop_on_allowed {
+                    return Some((*id, DropPosition::Last));
+                }
+                if let Some(parent_dir) = self.parent_dir() {
+                    return Some((parent_dir.id, DropPosition::Before(*id)));
+                }
+                return None;
+            }
+            DropQuarter::MiddleBottom => {
+                if *drop_on_allowed {
+                    return Some((*id, DropPosition::Last));
+                }
+                if let Some(parent_dir) = self.parent_dir() {
+                    return Some((parent_dir.id, DropPosition::After(*id)));
+                }
+                return None;
+            }
+            DropQuarter::Bottom => {
+                if *drop_on_allowed && *is_open {
+                    return Some((*id, DropPosition::First));
+                }
+                if let Some(parent_dir) = self.parent_dir() {
+                    return Some((parent_dir.id, DropPosition::After(*id)));
+                }
+                if *drop_on_allowed {
+                    return Some((*id, DropPosition::Last));
+                }
+                return None;
+            }
+        }
     }
 
     fn draw_drop_marker(&mut self, interaction: &Response, marker_idx: ShapeIdx) {
@@ -294,19 +349,19 @@ impl<'a> TreeViewBuilder<'a> {
         );
     }
 
-    fn current_dir(&self) -> Option<&DirectoryState> {
+    fn parent_dir(&self) -> Option<&DirectoryState> {
         if self.stack.is_empty() {
             None
         } else {
             self.stack.last()
         }
     }
-    fn current_dir_is_open(&self) -> bool {
-        self.current_dir().map_or(true, |dir| dir.is_open)
+    fn parent_dir_is_open(&self) -> bool {
+        self.parent_dir().map_or(true, |dir| dir.is_open)
     }
 
-    fn current_dir_drop_forbidden(&self) -> bool {
-        self.current_dir().is_some_and(|dir| dir.drop_forbidden)
+    fn parent_dir_drop_forbidden(&self) -> bool {
+        self.parent_dir().is_some_and(|dir| dir.drop_forbidden)
     }
 
     fn is_selected(&self, id: &Uuid) -> bool {
@@ -318,77 +373,6 @@ impl<'a> TreeViewBuilder<'a> {
     fn is_dragged(&self, id: &Uuid) -> bool {
         self.drag.as_ref().is_some_and(|drag_id| drag_id == id)
     }
-
-    fn get_drop_position(
-        &self,
-        node_config: &Row,
-        drop_quater: DropQuarter,
-    ) -> Option<(Uuid, DropPosition)> {
-        let Row {
-            id,
-            drop_on_allowed,
-            is_open,
-            ..
-        } = node_config;
-
-        match drop_quater {
-            DropQuarter::Top => {
-                if let Some(parent_dir) = self.current_dir() {
-                    return Some((parent_dir.id, DropPosition::Before(*id)));
-                }
-                if *drop_on_allowed {
-                    return Some((*id, DropPosition::Last));
-                }
-                return None;
-            }
-            DropQuarter::MiddleTop => {
-                if *drop_on_allowed {
-                    return Some((*id, DropPosition::Last));
-                }
-                if let Some(parent_dir) = self.current_dir() {
-                    return Some((parent_dir.id, DropPosition::Before(*id)));
-                }
-                return None;
-            }
-            DropQuarter::MiddleBottom => {
-                if *drop_on_allowed {
-                    return Some((*id, DropPosition::Last));
-                }
-                if let Some(parent_dir) = self.current_dir() {
-                    return Some((parent_dir.id, DropPosition::After(*id)));
-                }
-                return None;
-            }
-            DropQuarter::Bottom => {
-                if *drop_on_allowed && *is_open {
-                    return Some((*id, DropPosition::First));
-                }
-                if let Some(parent_dir) = self.current_dir() {
-                    return Some((parent_dir.id, DropPosition::After(*id)));
-                }
-                if *drop_on_allowed {
-                    return Some((*id, DropPosition::Last));
-                }
-                return None;
-            }
-        }
-    }
-}
-
-fn load<T: SerializableAny>(ui: &mut Ui, id: Id) -> Option<T> {
-    ui.data_mut(|d| d.get_persisted::<T>(id))
-}
-
-fn store<T: SerializableAny>(ui: &mut Ui, id: Id, value: T) {
-    ui.data_mut(|d| d.insert_persisted(id, value));
-}
-/// Interact with the ui without egui adding any extra space.
-fn interact(ui: &mut Ui, rect: Rect, id: Id, sense: Sense) -> Response {
-    let spacing_before = ui.spacing().clone();
-    ui.spacing_mut().item_spacing = Vec2::ZERO;
-    let res = ui.interact(rect, id, sense);
-    *ui.spacing_mut() = spacing_before;
-    res
 }
 
 struct Row<'a> {
@@ -590,4 +574,20 @@ struct RowResponse {
     icon: Option<Response>,
     was_dragged: bool,
     drop_quarter: Option<DropQuarter>,
+}
+
+fn load<T: SerializableAny>(ui: &mut Ui, id: Id) -> Option<T> {
+    ui.data_mut(|d| d.get_persisted::<T>(id))
+}
+
+fn store<T: SerializableAny>(ui: &mut Ui, id: Id, value: T) {
+    ui.data_mut(|d| d.insert_persisted(id, value));
+}
+/// Interact with the ui without egui adding any extra space.
+fn interact(ui: &mut Ui, rect: Rect, id: Id, sense: Sense) -> Response {
+    let spacing_before = ui.spacing().clone();
+    ui.spacing_mut().item_spacing = Vec2::ZERO;
+    let res = ui.interact(rect, id, sense);
+    *ui.spacing_mut() = spacing_before;
+    res
 }

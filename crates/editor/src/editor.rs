@@ -27,6 +27,8 @@ use crate::{
     reference_store::{ReferenceStore, ReferenceStorePlugin},
     style::{
         tree::{StyleTreeNode, TreeViewAction},
+        tree_view_visitor::TreeViewVisitor,
+        visitor::VisitableStyle,
         StyleDefinitionUiThings, StyleModel,
     },
     MainCamera,
@@ -233,38 +235,42 @@ fn save_style(style: &StyleDefinition) {
     }
 }
 
-fn tree_view_elements(ui: &mut Ui, selected_node: &mut Option<Uuid>, style: &mut StyleModel) {
-    let mut actions = Vec::new();
-    let res = TreeViewBuilder::new()
-        .selected(*selected_node)
-        .show(ui, |ui| {
-            style.tree_view_elements(ui, &mut actions);
-        });
-    *selected_node = res.selected;
+fn tree_view_elements(ui: &mut Ui, _selected_node: &mut Option<Uuid>, style: &mut StyleModel) {
+    tree_view::v2::TreeViewBuilder::new(ui, ui.make_persistent_id("element_tree_view"), |root| {
+        let mut visitor = TreeViewVisitor { builder: root };
+        style.def.accept(&mut visitor);
+    });
+    // let mut actions = Vec::new();
+    // let res = TreeViewBuilder::new()
+    //     .selected(*selected_node)
+    //     .show(ui, |ui| {
+    //         style.tree_view_elements(ui, &mut actions);
+    //     });
+    // *selected_node = res.selected;
 
-    // Set the curso to no drop to show if the drop is not allowed
-    if let Some(hovered_action) = &res.hovered {
-        if !style.can_drop(hovered_action) {
-            ui.ctx().set_cursor_icon(egui::CursorIcon::NoDrop);
-        }
-    }
+    // // Set the curso to no drop to show if the drop is not allowed
+    // if let Some(hovered_action) = &res.hovered {
+    //     if !style.can_drop(hovered_action) {
+    //         ui.ctx().set_cursor_icon(egui::CursorIcon::NoDrop);
+    //     }
+    // }
 
-    // perform the drop action.
-    if let Some(drop_action) = &res.dropped {
-        style.perform_drop(drop_action);
-    }
+    // // perform the drop action.
+    // if let Some(drop_action) = &res.dropped {
+    //     style.perform_drop(drop_action);
+    // }
 
-    for action in actions {
-        match action {
-            TreeViewAction::Insert {
-                target,
-                node,
-                position,
-            } => StyleDefinitionUiThings::insert(style, &target, node, position),
-            TreeViewAction::Remove { node } => StyleDefinitionUiThings::remove(style, &node),
-            TreeViewAction::Select { node } => *selected_node = Some(node),
-        }
-    }
+    // for action in actions {
+    //     match action {
+    //         TreeViewAction::Insert {
+    //             target,
+    //             node,
+    //             position,
+    //         } => StyleDefinitionUiThings::insert(style, &target, node, position),
+    //         TreeViewAction::Remove { node } => StyleDefinitionUiThings::remove(style, &node),
+    //         TreeViewAction::Select { node } => *selected_node = Some(node),
+    //     }
+    // }
 }
 
 fn tree_view_vars(ui: &mut Ui, selected_node: &mut Option<Uuid>, style: &mut StyleModel) {

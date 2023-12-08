@@ -96,9 +96,6 @@ impl<'a> TreeViewBuilder<'a> {
         state.was_dragged_last_frame = drag.is_some();
         ui.data_mut(|d| d.insert_persisted(base_id, state));
 
-        ui.label(format!("drag: {:?}", drag));
-        ui.label(format!("drop: {:?}", drop));
-
         let mut actions = Vec::new();
         if ui.ctx().input(|i| i.pointer.any_released()) {
             if let (Some(node_to_remove), Some((receiver_node, position))) = (drag, drop) {

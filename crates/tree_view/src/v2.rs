@@ -3,8 +3,8 @@ use bevy_egui::egui::{
     epaint::{self, RectShape},
     layers::ShapeIdx,
     util::id_type_map::SerializableAny,
-    vec2, CursorIcon, Id, InnerResponse, LayerId, Layout, Order, PointerButton, Pos2, Rangef, Rect,
-    Response, Sense, Shape, Stroke, Ui, Vec2,
+    vec2, Color32, CursorIcon, Id, InnerResponse, LayerId, Layout, Order, PointerButton, Pos2,
+    Rangef, Rect, Response, Rounding, Sense, Shape, Stroke, Ui, Vec2,
 };
 use uuid::Uuid;
 
@@ -127,15 +127,40 @@ impl<'a> TreeViewBuilder<'a> {
         if row_response.was_dragged {
             *self.drag = Some(row_config.id);
         }
-        if let Some(drop_quarter) = &row_response.drop_quarter {
-            if self.ui.ctx().memory(|m| m.is_anything_being_dragged()) {
-                *self.drop = self.get_drop_position(&row_config, drop_quarter);
-            }
-
-            let shape = self.drop_marker_shape(&row_response.interaction);
-            self.ui.painter().set(self.drop_marker_idx, shape);
-        }
+        self.do_drop(row_config, &row_response);
         row_response
+    }
+
+    fn do_drop(&mut self, row_config: &Row, row_response: &RowResponse) {
+        let Some(drop_quarter) = &row_response.drop_quarter else {
+            return;
+        };
+        if !self.ui.ctx().memory(|m| m.is_anything_being_dragged()) {
+            return;
+        }
+        if self.parent_dir_drop_forbidden() {
+            return;
+        }
+        // For dirs and for nodes that allow dropping on them, it is not
+        // allowed to drop itself onto itself.
+        if self.is_dragged(&row_config.id) && row_config.drop_on_allowed {
+            return;
+        }
+
+        let drop_position = self.get_drop_position(&row_config, drop_quarter);
+        let shape = self.drop_marker_shape(&row_response.interaction, drop_position.as_ref());
+
+        // It is allowed to drop itself `After´ or `Before` itself.
+        // This however doesn't make sense and makes executing the command more
+        // difficult for the caller.
+        // Instead we display the markers only.
+        if self.is_dragged(&row_config.id) {
+            self.ui.painter().set(self.drop_marker_idx, shape);
+            return;
+        }
+
+        *self.drop = drop_position;
+        self.ui.painter().set(self.drop_marker_idx, shape);
     }
 
     pub fn leaf(&mut self, id: &Uuid, mut add_content: impl FnMut(&mut Ui)) -> Option<Response> {
@@ -307,10 +332,14 @@ impl<'a> TreeViewBuilder<'a> {
         }
     }
 
-    fn drop_marker_shape(&mut self, interaction: &Response) -> Shape {
+    fn drop_marker_shape(
+        &self,
+        interaction: &Response,
+        drop_position: Option<&(Uuid, DropPosition)>,
+    ) -> Shape {
         pub const DROP_LINE_HEIGHT: f32 = 3.0;
 
-        let drop_marker = match self.drop {
+        let drop_marker = match drop_position {
             Some((_, DropPosition::Before(_))) => {
                 Rangef::point(interaction.rect.min.y).expand(DROP_LINE_HEIGHT * 0.5)
             }

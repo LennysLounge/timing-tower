@@ -3,8 +3,8 @@ use bevy_egui::egui::{
     epaint::{self, RectShape},
     layers::ShapeIdx,
     util::id_type_map::SerializableAny,
-    vec2, Color32, CursorIcon, Id, InnerResponse, LayerId, Layout, Order, PointerButton, Pos2,
-    Rangef, Rect, Response, Rounding, Sense, Shape, Stroke, Ui, Vec2,
+    vec2, CursorIcon, Id, InnerResponse, LayerId, Layout, Order, PointerButton, Pos2, Rangef, Rect,
+    Response, Sense, Shape, Stroke, Ui, Vec2,
 };
 use uuid::Uuid;
 
@@ -17,7 +17,13 @@ pub enum TreeViewAction {
         position: DropPosition,
     },
 }
-
+#[derive(Clone, Default)]
+struct TreeViewBuilderState {
+    // Id of the node that was selected last frame.
+    selected: Option<Uuid>,
+    // True if something was dragged last frame.
+    was_dragged_last_frame: bool,
+}
 #[derive(Clone)]
 struct DirectoryState {
     /// Id of the directory node.
@@ -40,6 +46,7 @@ pub struct TreeViewBuilder<'a> {
     stack: Vec<DirectoryState>,
     background_idx: ShapeIdx,
     drop_marker_idx: ShapeIdx,
+    was_dragged_last_frame: bool,
 }
 
 impl<'a> TreeViewBuilder<'a> {
@@ -48,50 +55,35 @@ impl<'a> TreeViewBuilder<'a> {
         base_id: Id,
         mut add_content: impl FnMut(TreeViewBuilder<'_>),
     ) -> InnerResponse<Vec<TreeViewAction>> {
-        #[derive(Clone, Default)]
-        struct TreeViewBuilderState {
-            selected: Option<Uuid>,
-            was_dragged_last_frame: bool,
-        }
-        let mut state = ui
-            .data_mut(|d| d.get_persisted::<TreeViewBuilderState>(base_id))
-            .unwrap_or_default();
-
+        let mut state = load(ui, base_id).unwrap_or(TreeViewBuilderState::default());
         let mut drag = None;
         let mut drop = None;
 
-        let mut child_ui = ui.child_ui_with_id_source(
-            ui.available_rect_before_wrap(),
-            Layout::top_down(bevy_egui::egui::Align::Min),
-            base_id,
+        let res = ui.allocate_ui_with_layout(
+            ui.available_size_before_wrap(),
+            Layout::top_down(egui::Align::Min),
+            |ui| {
+                ui.add_space(ui.spacing().item_spacing.y * 0.5);
+                let background_idx = ui.painter().add(Shape::Noop);
+                let drop_marker_idx = ui.painter().add(Shape::Noop);
+                add_content(TreeViewBuilder {
+                    ui,
+                    selected: &mut state.selected,
+                    drag: &mut drag,
+                    drop: &mut drop,
+                    stack: Vec::new(),
+                    background_idx,
+                    drop_marker_idx,
+                    was_dragged_last_frame: state.was_dragged_last_frame,
+                });
+                // Add negative space because the place will add the item spacing on top of this.
+                ui.add_space(-ui.spacing().item_spacing.y * 0.5);
+                ui.min_rect()
+            },
         );
 
-        {
-            child_ui.spacing_mut().item_spacing.y = 7.0;
-            child_ui.spacing_mut().indent = 20.0;
-
-            child_ui.add_space(child_ui.spacing().item_spacing.y * 0.5);
-            add_content(TreeViewBuilder {
-                ui: &mut child_ui,
-                selected: &mut state.selected,
-                drag: &mut drag,
-                drop: &mut drop,
-                stack: Vec::new(),
-                background_idx: ui.painter().add(Shape::Noop),
-                drop_marker_idx: ui.painter().add(Shape::Noop),
-            });
-            // Add negative space because the place will add the item spacing on top of this.
-            child_ui.add_space(-child_ui.spacing().item_spacing.y * 0.5);
-            child_ui.min_rect()
-        };
-        let res = ui.allocate_rect(child_ui.min_rect(), Sense::hover());
-
-        ui.label(format!("selected:\n{:?}", state.selected));
-        ui.label(format!("dragged:\n{:?}", drag));
-        ui.label(format!("drop:\n{:?}", drop));
-
         state.was_dragged_last_frame = drag.is_some();
-        ui.data_mut(|d| d.insert_persisted(base_id, state));
+        store(ui, base_id, state);
 
         let mut actions = Vec::new();
         if ui.ctx().input(|i| i.pointer.any_released()) {
@@ -104,63 +96,7 @@ impl<'a> TreeViewBuilder<'a> {
             }
         }
 
-        InnerResponse::new(actions, res)
-    }
-
-    fn row(&mut self, row_config: &mut Row) -> RowResponse {
-        let row_response = row_config.row(self.ui);
-
-        if row_response.interaction.clicked() {
-            *self.selected = Some(row_config.id);
-        }
-        if self.is_selected(&row_config.id) {
-            self.ui.painter().set(
-                self.background_idx,
-                epaint::RectShape::new(
-                    row_response.visual.rect,
-                    self.ui.visuals().widgets.active.rounding,
-                    self.ui.visuals().selection.bg_fill,
-                    Stroke::NONE,
-                ),
-            );
-        }
-        if row_response.was_dragged {
-            *self.drag = Some(row_config.id);
-        }
-        self.do_drop(row_config, &row_response);
-        row_response
-    }
-
-    fn do_drop(&mut self, row_config: &Row, row_response: &RowResponse) {
-        let Some(drop_quarter) = &row_response.drop_quarter else {
-            return;
-        };
-        if !self.ui.ctx().memory(|m| m.is_anything_being_dragged()) {
-            return;
-        }
-        if self.parent_dir_drop_forbidden() {
-            return;
-        }
-        // For dirs and for nodes that allow dropping on them, it is not
-        // allowed to drop itself onto itself.
-        if self.is_dragged(&row_config.id) && row_config.drop_on_allowed {
-            return;
-        }
-
-        let drop_position = self.get_drop_position(&row_config, drop_quarter);
-        let shape = self.drop_marker_shape(&row_response.interaction, drop_position.as_ref());
-
-        // It is allowed to drop itself `After´ or `Before` itself.
-        // This however doesn't make sense and makes executing the command more
-        // difficult for the caller.
-        // Instead we display the markers only.
-        if self.is_dragged(&row_config.id) {
-            self.ui.painter().set(self.drop_marker_idx, shape);
-            return;
-        }
-
-        *self.drop = drop_position;
-        self.ui.painter().set(self.drop_marker_idx, shape);
+        InnerResponse::new(actions, res.response)
     }
 
     pub fn leaf(&mut self, id: &Uuid, mut add_content: impl FnMut(&mut Ui)) -> Option<Response> {
@@ -275,6 +211,65 @@ impl<'a> TreeViewBuilder<'a> {
             }
         }
         self.stack.pop();
+    }
+
+    fn row(&mut self, row_config: &mut Row) -> RowResponse {
+        let row_response = row_config.row(self.ui);
+
+        if row_response.interaction.clicked() {
+            *self.selected = Some(row_config.id);
+        }
+        if self.is_selected(&row_config.id) {
+            self.ui.painter().set(
+                self.background_idx,
+                epaint::RectShape::new(
+                    row_response.visual.rect,
+                    self.ui.visuals().widgets.active.rounding,
+                    self.ui.visuals().selection.bg_fill,
+                    Stroke::NONE,
+                ),
+            );
+        }
+        if row_response.was_dragged {
+            *self.drag = Some(row_config.id);
+        }
+        self.do_drop(row_config, &row_response);
+        row_response
+    }
+
+    fn do_drop(&mut self, row_config: &Row, row_response: &RowResponse) {
+        let Some(drop_quarter) = &row_response.drop_quarter else {
+            return;
+        };
+        if !self.ui.ctx().memory(|m| m.is_anything_being_dragged()) {
+            return;
+        }
+        if !self.was_dragged_last_frame {
+            return;
+        }
+        if self.parent_dir_drop_forbidden() {
+            return;
+        }
+        // For dirs and for nodes that allow dropping on them, it is not
+        // allowed to drop itself onto itself.
+        if self.is_dragged(&row_config.id) && row_config.drop_on_allowed {
+            return;
+        }
+
+        let drop_position = self.get_drop_position(&row_config, drop_quarter);
+        let shape = self.drop_marker_shape(&row_response.interaction, drop_position.as_ref());
+
+        // It is allowed to drop itself `After´ or `Before` itself.
+        // This however doesn't make sense and makes executing the command more
+        // difficult for the caller.
+        // Instead we display the markers only.
+        if self.is_dragged(&row_config.id) {
+            self.ui.painter().set(self.drop_marker_idx, shape);
+            return;
+        }
+
+        *self.drop = drop_position;
+        self.ui.painter().set(self.drop_marker_idx, shape);
     }
 
     fn get_drop_position(
@@ -441,11 +436,10 @@ impl Row<'_> {
                 .pointer_latest_pos()
                 .map(|pointer_pos| interaction.rect.min - pointer_pos)
                 .unwrap_or(Vec2::ZERO);
-            ui.data_mut(|d| d.insert_persisted::<Vec2>(drag_source_id, drag_offset));
+            store(ui, drag_source_id, drag_offset);
             drag_offset
         } else {
-            ui.data_mut(|d| d.get_persisted::<Vec2>(drag_source_id))
-                .unwrap_or(Vec2::ZERO)
+            load(ui, drag_source_id).unwrap_or(Vec2::ZERO)
         };
 
         // Paint the content to a new layer for the drag overlay.
@@ -481,19 +475,6 @@ impl Row<'_> {
     }
 
     fn drop(&self, ui: &mut Ui, interaction: &Response) -> Option<DropQuarter> {
-        // if self.current_dir_drop_forbidden() {
-        //     return;
-        // }
-        // if self.is_dragged(&self.id) {
-        //     return;
-        // }
-        // if !self.was_dragged_last_frame {
-        //     return;
-        // }
-        // if self.is_selected(&self.id) {
-        //     return;
-        // }
-
         // For some reason we cannot use the provided interation response
         // because once a row is dragged all other rows dont offer any hover information.
         // To fix this we interaction with only hover again.
@@ -511,16 +492,6 @@ impl Row<'_> {
         };
 
         DropQuarter::new(interaction.rect.y_range(), cursor_y)
-        //Drop::new(interaction.rect.y_range(), cursor_y)
-
-        // let Some(drop_quater) = DropQuater::new(interaction.rect.y_range(), cursor_y) else {
-        //     return;
-        // };
-
-        // if let Some(pos) = self.get_drop_position(self, drop_quater) {
-        //     self.draw_drop_marker(&pos.1, interaction, self.drop_marker_idx);
-        //     *self.drop = Some(pos);
-        // }
     }
 
     fn draw_row(&mut self, ui: &mut Ui) -> (Response, Option<Response>) {

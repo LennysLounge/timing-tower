@@ -67,25 +67,25 @@ fn egui(mut ctx: EguiContexts, mut state: ResMut<EditorState>) {
             tree.accept(&mut TreeViewVisitor::new(root));
         });
 
-        for action in res.inner.into_iter() {
-            match action {
-                tree_view::v2::TreeViewAction::Drop {
-                    node_to_remove,
-                    receiver_node,
-                    position,
-                } => {
-                    let mut remove_visitor = RemoveNodeVisitor::new(node_to_remove);
-                    tree.accept(&mut remove_visitor);
-                    if let Some(node) = remove_visitor.removed_node {
-                        tree.accept(&mut InsertNodeVisitor {
-                            receiver_node,
-                            position,
-                            node: Some(node),
-                        });
-                    }
-                }
-            }
-        }
+        // for action in res.inner.into_iter() {
+        //     match action {
+        //         tree_view::v2::TreeViewAction::Drop {
+        //             node_to_remove,
+        //             receiver_node,
+        //             position,
+        //         } => {
+        //             let mut remove_visitor = RemoveNodeVisitor::new(node_to_remove);
+        //             tree.accept(&mut remove_visitor);
+        //             if let Some(node) = remove_visitor.removed_node {
+        //                 tree.accept(&mut InsertNodeVisitor {
+        //                     receiver_node,
+        //                     position,
+        //                     node: Some(node),
+        //                 });
+        //             }
+        //         }
+        //     }
+        // }
     });
 }
 

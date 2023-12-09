@@ -31,8 +31,6 @@ struct DirectoryState {
     row_rect: Rect,
     /// The rectangle of the icon.
     icon_rect: Rect,
-    /// The shape index where the drop marker is drawn.
-    drop_marker_idx: ShapeIdx,
 }
 pub struct TreeViewBuilder<'a> {
     ui: &'a mut Ui,
@@ -97,6 +95,9 @@ impl<'a> TreeViewBuilder<'a> {
         if let Some(selection_background_shape) = selection_bakground_shape {
             ui.painter()
                 .set(selection_background_idx, selection_background_shape);
+        }
+        if let Some(drop_marker_shape) = drop_marker_shape {
+            ui.painter().set(drop_marker_idx, drop_marker_shape);
         }
 
         ui.label(format!("selected:\n{:?}", state.selected));
@@ -166,7 +167,6 @@ impl<'a> TreeViewBuilder<'a> {
         let row_response = self.row(&mut row_config);
 
         Some(row_response.interaction)
-        //Some(self.row(&mut node_config).interaction)
     }
 
     pub fn dir(&mut self, id: &Uuid, mut add_content: impl FnMut(&mut Ui)) -> Option<Response> {
@@ -177,18 +177,12 @@ impl<'a> TreeViewBuilder<'a> {
                 drop_forbidden: true,
                 row_rect: Rect::NOTHING,
                 icon_rect: Rect::NOTHING,
-                drop_marker_idx: self.ui.painter().add(Shape::Noop),
             });
             return None;
         }
 
         let dir_id = self.ui.id().with(id).with("dir");
-        let mut open = self
-            .ui
-            .data_mut(|d| d.get_persisted(dir_id))
-            .unwrap_or(true);
-
-        let drop_marker_idx = self.ui.painter().add(Shape::Noop);
+        let mut open = load(self.ui, dir_id).unwrap_or(true);
 
         let mut add_icon = |ui: &mut Ui| {
             let icon_id = ui.make_persistent_id(id).with("icon");
@@ -212,7 +206,7 @@ impl<'a> TreeViewBuilder<'a> {
             visual,
             icon,
             ..
-        } = node_config.row(self.ui);
+        } = self.row(&mut node_config);
 
         if interaction.double_clicked() {
             open = !open;
@@ -233,30 +227,29 @@ impl<'a> TreeViewBuilder<'a> {
             drop_forbidden: self.parent_dir_drop_forbidden() || self.is_dragged(id),
             row_rect: visual.rect,
             icon_rect: icon.rect,
-            drop_marker_idx,
         });
         Some(interaction)
     }
 
     pub fn close_dir(&mut self) {
-        if let Some(current_dir) = self.parent_dir() {
-            if let Some((drop_parent, DropPosition::Last)) = &self.drop {
-                if drop_parent == &current_dir.id {
-                    let mut rect = current_dir.row_rect;
-                    *rect.bottom_mut() =
-                        self.ui.cursor().top() - self.ui.spacing().item_spacing.y * 0.5;
-                    self.ui.painter().set(
-                        current_dir.drop_marker_idx,
-                        RectShape::new(
-                            rect,
-                            self.ui.visuals().widgets.active.rounding,
-                            self.ui.visuals().selection.bg_fill.linear_multiply(0.6),
-                            Stroke::NONE,
-                        ),
-                    );
-                }
-            }
-        }
+        // if let Some(current_dir) = self.parent_dir() {
+        //     if let Some((drop_parent, DropPosition::Last)) = &self.drop {
+        //         if drop_parent == &current_dir.id {
+        //             let mut rect = current_dir.row_rect;
+        //             *rect.bottom_mut() =
+        //                 self.ui.cursor().top() - self.ui.spacing().item_spacing.y * 0.5;
+        //             self.ui.painter().set(
+        //                 current_dir.drop_marker_idx,
+        //                 RectShape::new(
+        //                     rect,
+        //                     self.ui.visuals().widgets.active.rounding,
+        //                     self.ui.visuals().selection.bg_fill.linear_multiply(0.6),
+        //                     Stroke::NONE,
+        //                 ),
+        //             );
+        //         }
+        //     }
+        // }
 
         if let Some(current_dir) = self.parent_dir() {
             if current_dir.is_open {

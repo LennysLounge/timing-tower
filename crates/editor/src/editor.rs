@@ -236,10 +236,17 @@ fn save_style(style: &StyleDefinition) {
 }
 
 fn tree_view_elements(ui: &mut Ui, _selected_node: &mut Option<Uuid>, style: &mut StyleModel) {
-    tree_view::v2::TreeViewBuilder::new(ui, ui.make_persistent_id("element_tree_view"), |root| {
-        let mut visitor = TreeViewVisitor { builder: root };
-        style.def.accept(&mut visitor);
+    ScrollArea::vertical().show(ui, |ui| {
+        tree_view::v2::TreeViewBuilder::new(
+            ui,
+            ui.make_persistent_id("element_tree_view"),
+            |root| {
+                let mut visitor = TreeViewVisitor { builder: root };
+                style.def.accept(&mut visitor);
+            },
+        );
     });
+
     // let mut actions = Vec::new();
     // let res = TreeViewBuilder::new()
     //     .selected(*selected_node)

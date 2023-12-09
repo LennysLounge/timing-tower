@@ -38,8 +38,8 @@ pub struct TreeViewBuilder<'a> {
     drag: &'a mut Option<Uuid>,
     drop: &'a mut Option<(Uuid, DropPosition)>,
     stack: Vec<DirectoryState>,
-    background_shape: &'a mut Option<Shape>,
-    drop_marker_shape: &'a mut Option<Shape>,
+    background_idx: ShapeIdx,
+    drop_marker_idx: ShapeIdx,
 }
 
 impl<'a> TreeViewBuilder<'a> {
@@ -60,12 +60,6 @@ impl<'a> TreeViewBuilder<'a> {
         let mut drag = None;
         let mut drop = None;
 
-        let selection_background_idx = ui.painter().add(Shape::Noop);
-        let mut selection_bakground_shape = None;
-
-        let drop_marker_idx = ui.painter().add(Shape::Noop);
-        let mut drop_marker_shape = None;
-
         let mut child_ui = ui.child_ui_with_id_source(
             ui.available_rect_before_wrap(),
             Layout::top_down(bevy_egui::egui::Align::Min),
@@ -83,22 +77,14 @@ impl<'a> TreeViewBuilder<'a> {
                 drag: &mut drag,
                 drop: &mut drop,
                 stack: Vec::new(),
-                background_shape: &mut selection_bakground_shape,
-                drop_marker_shape: &mut drop_marker_shape,
+                background_idx: ui.painter().add(Shape::Noop),
+                drop_marker_idx: ui.painter().add(Shape::Noop),
             });
             // Add negative space because the place will add the item spacing on top of this.
             child_ui.add_space(-child_ui.spacing().item_spacing.y * 0.5);
             child_ui.min_rect()
         };
         let res = ui.allocate_rect(child_ui.min_rect(), Sense::hover());
-
-        if let Some(selection_background_shape) = selection_bakground_shape {
-            ui.painter()
-                .set(selection_background_idx, selection_background_shape);
-        }
-        if let Some(drop_marker_shape) = drop_marker_shape {
-            ui.painter().set(drop_marker_idx, drop_marker_shape);
-        }
 
         ui.label(format!("selected:\n{:?}", state.selected));
         ui.label(format!("dragged:\n{:?}", drag));
@@ -128,14 +114,14 @@ impl<'a> TreeViewBuilder<'a> {
             *self.selected = Some(row_config.id);
         }
         if self.is_selected(&row_config.id) {
-            *self.background_shape = Some(
+            self.ui.painter().set(
+                self.background_idx,
                 epaint::RectShape::new(
                     row_response.visual.rect,
                     self.ui.visuals().widgets.active.rounding,
                     self.ui.visuals().selection.bg_fill,
                     Stroke::NONE,
-                )
-                .into(),
+                ),
             );
         }
         if row_response.was_dragged {
@@ -146,7 +132,8 @@ impl<'a> TreeViewBuilder<'a> {
                 *self.drop = self.get_drop_position(&row_config, drop_quarter);
             }
 
-            *self.drop_marker_shape = Some(self.drop_marker_shape(&row_response.interaction));
+            let shape = self.drop_marker_shape(&row_response.interaction);
+            self.ui.painter().set(self.drop_marker_idx, shape);
         }
         row_response
     }
@@ -232,24 +219,24 @@ impl<'a> TreeViewBuilder<'a> {
     }
 
     pub fn close_dir(&mut self) {
-        // if let Some(current_dir) = self.parent_dir() {
-        //     if let Some((drop_parent, DropPosition::Last)) = &self.drop {
-        //         if drop_parent == &current_dir.id {
-        //             let mut rect = current_dir.row_rect;
-        //             *rect.bottom_mut() =
-        //                 self.ui.cursor().top() - self.ui.spacing().item_spacing.y * 0.5;
-        //             self.ui.painter().set(
-        //                 current_dir.drop_marker_idx,
-        //                 RectShape::new(
-        //                     rect,
-        //                     self.ui.visuals().widgets.active.rounding,
-        //                     self.ui.visuals().selection.bg_fill.linear_multiply(0.6),
-        //                     Stroke::NONE,
-        //                 ),
-        //             );
-        //         }
-        //     }
-        // }
+        if let Some(current_dir) = self.parent_dir() {
+            if let Some((drop_parent, DropPosition::Last)) = &self.drop {
+                if drop_parent == &current_dir.id {
+                    let mut rect = current_dir.row_rect;
+                    *rect.bottom_mut() =
+                        self.ui.cursor().top() - self.ui.spacing().item_spacing.y * 0.5;
+                    self.ui.painter().set(
+                        self.drop_marker_idx,
+                        RectShape::new(
+                            rect,
+                            self.ui.visuals().widgets.active.rounding,
+                            self.ui.visuals().selection.bg_fill.linear_multiply(0.5),
+                            Stroke::NONE,
+                        ),
+                    );
+                }
+            }
+        }
 
         if let Some(current_dir) = self.parent_dir() {
             if current_dir.is_open {

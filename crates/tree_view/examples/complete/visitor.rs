@@ -1,8 +1,9 @@
 use std::ops::ControlFlow;
 
 use tree_view::v2::TreeViewBuilder;
+use uuid::Uuid;
 
-use crate::data::{Directory, File, NodeVisitor};
+use crate::data::{Directory, File, Node, NodeVisitor, NodeVisitorMut};
 
 pub struct TreeViewVisitor<'a> {
     pub builder: TreeViewBuilder<'a>,
@@ -34,6 +35,26 @@ impl NodeVisitor for TreeViewVisitor<'_> {
                 ui.label("Contex menu of a leaf");
             });
         }
+        ControlFlow::Continue(())
+    }
+}
+
+pub struct RemoveNodeVisitor {
+    pub id: Uuid,
+    pub removed_node: Option<Node>,
+}
+impl NodeVisitorMut for RemoveNodeVisitor {
+    fn visit_dir(&mut self, dir: &mut Directory) -> ControlFlow<()> {
+        println!("visiting: {}", dir.name);
+        if let Some(index) = dir.nodes.iter().position(|n| &self.id == n.id()) {
+            self.removed_node = Some(dir.nodes.remove(index));
+            ControlFlow::Break(())
+        } else {
+            ControlFlow::Continue(())
+        }
+    }
+    fn visit_file(&mut self, file: &mut File) -> ControlFlow<()> {
+        println!("visiting: {}", file.name);
         ControlFlow::Continue(())
     }
 }

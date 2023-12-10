@@ -8,8 +8,8 @@ use bevy_egui::{
     egui::{self},
     EguiContexts, EguiPlugin,
 };
-
 use tree_view::v2::TreeViewBuilder;
+use uuid::uuid;
 
 mod data;
 use data::*;

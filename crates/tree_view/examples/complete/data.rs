@@ -6,6 +6,9 @@ pub trait Visitable {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()>;
     fn enter(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()>;
     fn leave(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()>;
+    fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()>;
+    fn enter_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()>;
+    fn leave_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()>;
 }
 
 pub trait NodeVisitor {
@@ -23,6 +26,21 @@ pub trait NodeVisitor {
     }
 }
 
+pub trait NodeVisitorMut {
+    #[allow(unused_variables)]
+    fn visit_dir(&mut self, dir: &mut Directory) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+    #[allow(unused_variables)]
+    fn leave_dir(&mut self, dir: &mut Directory) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+    #[allow(unused_variables)]
+    fn visit_file(&mut self, file: &mut File) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+}
+
 pub enum Node {
     Directory(Directory),
     File(File),
@@ -34,18 +52,42 @@ impl Visitable for Node {
             Node::File(o) => o.walk(visitor),
         }
     }
-
     fn enter(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
         match self {
             Node::Directory(o) => o.enter(visitor),
             Node::File(o) => o.enter(visitor),
         }
     }
-
     fn leave(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
         match self {
             Node::Directory(o) => o.leave(visitor),
             Node::File(o) => o.leave(visitor),
+        }
+    }
+    fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
+        match self {
+            Node::Directory(o) => o.walk_mut(visitor),
+            Node::File(o) => o.walk_mut(visitor),
+        }
+    }
+    fn enter_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
+        match self {
+            Node::Directory(o) => o.enter_mut(visitor),
+            Node::File(o) => o.enter_mut(visitor),
+        }
+    }
+    fn leave_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
+        match self {
+            Node::Directory(o) => o.leave_mut(visitor),
+            Node::File(o) => o.leave_mut(visitor),
+        }
+    }
+}
+impl Node {
+    pub fn id(&self) -> &Uuid {
+        match self {
+            Node::Directory(o) => &o.id,
+            Node::File(o) => &o.id,
         }
     }
 }
@@ -67,6 +109,22 @@ impl Visitable for Directory {
     }
 
     fn leave(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
+        visitor.leave_dir(self)
+    }
+
+    fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
+        self.enter_mut(visitor)?;
+        self.nodes
+            .iter_mut()
+            .try_for_each(|n| n.walk_mut(visitor))?;
+        self.leave_mut(visitor)
+    }
+
+    fn enter_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
+        visitor.visit_dir(self)
+    }
+
+    fn leave_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
         visitor.leave_dir(self)
     }
 }
@@ -94,6 +152,18 @@ impl Visitable for File {
     }
 
     fn leave(&self, _visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+
+    fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
+        self.enter_mut(visitor)
+    }
+
+    fn enter_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
+        visitor.visit_file(self)
+    }
+
+    fn leave_mut(&mut self, _visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
 }

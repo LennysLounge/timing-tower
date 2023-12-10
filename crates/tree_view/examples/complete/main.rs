@@ -9,11 +9,10 @@ use bevy_egui::{
     EguiContexts, EguiPlugin,
 };
 use tree_view::v2::TreeViewBuilder;
-use uuid::uuid;
 
 mod data;
 use data::*;
-use visitor::TreeViewVisitor;
+use visitor::{InsertNodeVisitor, RemoveNodeVisitor, TreeViewVisitor};
 
 mod visitor;
 
@@ -44,10 +43,20 @@ fn egui(mut ctx: EguiContexts, tree: &mut Node) {
             tree.walk(&mut TreeViewVisitor { builder: root });
         });
 
-        if let Some(_drop_action) = res.drag_drop_action {
+        if let Some(drop_action) = res.drag_drop_action {
             // Test if drop is valid
 
             // remove dragged node
+            let mut remove_visitor = RemoveNodeVisitor::new(drop_action.drag_id);
+            tree.walk_mut(&mut remove_visitor);
+
+            if let Some(dragged_node) = remove_visitor.removed_node {
+                tree.walk_mut(&mut InsertNodeVisitor {
+                    target_id: drop_action.drop_id,
+                    position: drop_action.position,
+                    node: Some(dragged_node),
+                });
+            }
 
             // insert node
         }

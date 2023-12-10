@@ -189,7 +189,7 @@ pub fn make_tree() -> Node {
             Directory::new(
                 "Things",
                 vec![
-                    Directory::new("Other things", vec![File::new("GGGG")]),
+                    Directory::new("Not A's", vec![File::new("GGGG")]),
                     File::new("CCCC"),
                     File::new("DDDD"),
                 ],

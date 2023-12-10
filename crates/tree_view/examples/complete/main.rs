@@ -51,24 +51,18 @@ fn egui(mut ctx: EguiContexts, tree: &mut TreeNode) {
         if let Some(drop_action) = res.drag_drop_action {
             // Test if drop is valid
             let mut drop_allowed = false;
-            tree.walk(&mut SearchVisitor::new(
-                drop_action.drag_id,
-                &mut |dragged| {
-                    tree.walk(&mut SearchVisitor::new(
-                        drop_action.drop_id,
-                        &mut |dropped| {
-                            println!("Dragged {} onto {}", dragged.name(), dropped.name());
-                            let mut drop_allowed_visitor = DropAllowedVisitor {
-                                drag_node: dragged.as_any(),
-                                drop_allowed: false,
-                            };
-                            dropped.enter(&mut drop_allowed_visitor);
-                            println!("drop allowed: {}", drop_allowed_visitor.drop_allowed);
-                            drop_allowed = drop_allowed_visitor.drop_allowed;
-                        },
-                    ));
-                },
-            ));
+            tree.walk(&mut SearchVisitor::new(drop_action.drag_id, |dragged| {
+                tree.walk(&mut SearchVisitor::new(drop_action.drop_id, |dropped| {
+                    println!("Dragged {} onto {}", dragged.name(), dropped.name());
+                    let mut drop_allowed_visitor = DropAllowedVisitor {
+                        drag_node: dragged.as_any(),
+                        drop_allowed: false,
+                    };
+                    dropped.enter(&mut drop_allowed_visitor);
+                    println!("drop allowed: {}", drop_allowed_visitor.drop_allowed);
+                    drop_allowed = drop_allowed_visitor.drop_allowed;
+                }));
+            }));
 
             if drop_allowed {
                 // remove dragged node

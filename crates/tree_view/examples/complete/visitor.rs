@@ -157,11 +157,14 @@ impl<'a> NodeVisitor for DropAllowedVisitor<'a> {
 
 pub struct SearchVisitor<'a> {
     id: Uuid,
-    action: &'a mut dyn FnMut(&dyn VisitableNode),
+    action: Box<dyn FnMut(&dyn VisitableNode) + 'a>,
 }
 impl<'a> SearchVisitor<'a> {
-    pub fn new(id: Uuid, action: &'a mut impl FnMut(&dyn VisitableNode)) -> Self {
-        Self { id, action }
+    pub fn new(id: Uuid, action: impl FnMut(&dyn VisitableNode) + 'a) -> Self {
+        Self {
+            id,
+            action: Box::new(action),
+        }
     }
 }
 impl<'a> NodeVisitor for SearchVisitor<'a> {

@@ -58,6 +58,10 @@ pub trait NodeVisitorMut {
     }
 }
 
+pub trait VisitorOutput<T> {
+    fn get_output(&mut self) -> Option<T>;
+}
+
 pub enum TreeNode {
     Directory(Directory),
     File(File),

@@ -50,33 +50,32 @@ fn egui(mut ctx: EguiContexts, tree: &mut TreeNode) {
 
         if let Some(drop_action) = res.drag_drop_action {
             // Test if drop is valid
-            let mut drop_allowed = false;
-            tree.walk(&mut SearchVisitor::new(drop_action.drag_id, |dragged| {
-                tree.walk(&mut SearchVisitor::new(drop_action.drop_id, |dropped| {
-                    println!("Dragged {} onto {}", dragged.name(), dropped.name());
-                    let mut drop_allowed_visitor = DropAllowedVisitor {
-                        drag_node: dragged.as_any(),
-                        drop_allowed: false,
-                    };
-                    dropped.enter(&mut drop_allowed_visitor);
-                    println!("drop allowed: {}", drop_allowed_visitor.drop_allowed);
-                    drop_allowed = drop_allowed_visitor.drop_allowed;
-                }));
-            }));
+            let drop_allowed = {
+                SearchVisitor::new(drop_action.drag_id, |dragged| {
+                    SearchVisitor::new(drop_action.drop_id, |dropped| {
+                        DropAllowedVisitor::new(dragged.as_any()).test(dropped)
+                    })
+                    .search_in(tree)
+                })
+                .search_in(tree)
+                .flatten()
+                .unwrap_or(false)
+            };
 
             if drop_allowed {
                 // remove dragged node
-                let mut remove_visitor = RemoveNodeVisitor::new(drop_action.drag_id);
-                tree.walk_mut(&mut remove_visitor);
+                let removed_node = RemoveNodeVisitor::new(drop_action.drag_id).remove_from(tree);
 
                 // insert node
-                if let Some(dragged_node) = remove_visitor.removed_node {
+                if let Some(dragged_node) = removed_node {
                     tree.walk_mut(&mut InsertNodeVisitor {
                         target_id: drop_action.drop_id,
                         position: drop_action.position,
                         node: Some(dragged_node),
                     });
                 }
+            } else {
+                // Render the dissallowed drop
             }
         }
     });

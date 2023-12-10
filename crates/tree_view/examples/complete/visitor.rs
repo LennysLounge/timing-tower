@@ -3,7 +3,9 @@ use std::{any::Any, ops::ControlFlow};
 use tree_view::{v2::TreeViewBuilder, DropPosition};
 use uuid::Uuid;
 
-use crate::data::{Directory, File, NodeVisitor, NodeVisitorMut, TreeNode, VisitableNode};
+use crate::data::{
+    Directory, File, NodeVisitor, NodeVisitorMut, TreeNode, Visitable, VisitableNode,
+};
 
 pub struct PrintTreeListing {
     pub depth: usize,
@@ -83,6 +85,10 @@ impl RemoveNodeVisitor {
             removed_node: None,
         }
     }
+    pub fn remove_from<V: Visitable>(mut self, visitable: &mut V) -> Option<TreeNode> {
+        visitable.walk_mut(&mut self);
+        self.removed_node
+    }
 }
 impl NodeVisitorMut for RemoveNodeVisitor {
     fn visit_dir(&mut self, dir: &mut Directory) -> ControlFlow<()> {
@@ -130,6 +136,21 @@ pub struct DropAllowedVisitor<'a> {
     pub drag_node: &'a dyn Any,
     pub drop_allowed: bool,
 }
+impl<'a> DropAllowedVisitor<'a> {
+    pub fn new(drag_node: &'a dyn Any) -> Self {
+        Self {
+            drag_node,
+            drop_allowed: false,
+        }
+    }
+    pub fn test<V>(mut self, node: &V) -> bool
+    where
+        V: Visitable + ?Sized,
+    {
+        node.enter(&mut self);
+        self.drop_allowed
+    }
+}
 impl<'a> NodeVisitor for DropAllowedVisitor<'a> {
     fn visit_dir(&mut self, dir: &Directory) -> ControlFlow<()> {
         if let Some(dropped) = self.drag_node.downcast_ref::<Directory>() {
@@ -155,31 +176,40 @@ impl<'a> NodeVisitor for DropAllowedVisitor<'a> {
     }
 }
 
-pub struct SearchVisitor<'a> {
+pub struct SearchVisitor<'a, T> {
     id: Uuid,
-    action: Box<dyn FnMut(&dyn VisitableNode) + 'a>,
+    action: Box<dyn FnMut(&dyn VisitableNode) -> T + 'a>,
+    pub output: Option<T>,
 }
-impl<'a> SearchVisitor<'a> {
-    pub fn new(id: Uuid, action: impl FnMut(&dyn VisitableNode) + 'a) -> Self {
+impl<'a, T> SearchVisitor<'a, T> {
+    pub fn new(id: Uuid, action: impl FnMut(&dyn VisitableNode) -> T + 'a) -> Self {
         Self {
             id,
             action: Box::new(action),
+            output: None,
         }
     }
+    pub fn search_in<V>(mut self, node: &V) -> Option<T>
+    where
+        V: Visitable,
+    {
+        node.walk(&mut self);
+        self.output
+    }
 }
-impl<'a> NodeVisitor for SearchVisitor<'a> {
+impl<'a, T> NodeVisitor for SearchVisitor<'a, T> {
     fn leave_dir(&mut self, dir: &Directory) -> ControlFlow<()> {
         if dir.id != self.id {
             return ControlFlow::Continue(());
         }
-        (self.action)(dir);
+        self.output = Some((self.action)(dir));
         ControlFlow::Break(())
     }
     fn visit_file(&mut self, file: &File) -> ControlFlow<()> {
         if file.id != self.id {
             return ControlFlow::Continue(());
         }
-        (self.action)(file);
+        self.output = Some((self.action)(file));
         ControlFlow::Break(())
     }
 }

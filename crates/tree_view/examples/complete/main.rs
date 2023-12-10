@@ -12,12 +12,15 @@ use tree_view::v2::TreeViewBuilder;
 
 mod data;
 use data::*;
-use visitor::{InsertNodeVisitor, RemoveNodeVisitor, TreeViewVisitor};
+use visitor::{
+    DropAllowedVisitor, InsertNodeVisitor, PrintTreeListing, RemoveNodeVisitor, TreeViewVisitor,
+};
 
 mod visitor;
 
 fn main() {
     let mut tree = make_tree();
+    tree.walk(&mut PrintTreeListing { depth: 0 });
 
     App::new()
         .add_plugins(DefaultPlugins.set(WindowPlugin {
@@ -45,40 +48,24 @@ fn egui(mut ctx: EguiContexts, tree: &mut Node) {
 
         if let Some(drop_action) = res.drag_drop_action {
             // Test if drop is valid
+            let mut drop_allowed_visitor =
+                DropAllowedVisitor::new(drop_action.drag_id, drop_action.drop_id, &tree);
+            tree.walk(&mut drop_allowed_visitor);
 
-            // remove dragged node
-            let mut remove_visitor = RemoveNodeVisitor::new(drop_action.drag_id);
-            tree.walk_mut(&mut remove_visitor);
+            if drop_allowed_visitor.is_drop_allowed() {
+                // remove dragged node
+                let mut remove_visitor = RemoveNodeVisitor::new(drop_action.drag_id);
+                tree.walk_mut(&mut remove_visitor);
 
-            if let Some(dragged_node) = remove_visitor.removed_node {
-                tree.walk_mut(&mut InsertNodeVisitor {
-                    target_id: drop_action.drop_id,
-                    position: drop_action.position,
-                    node: Some(dragged_node),
-                });
+                // insert node
+                if let Some(dragged_node) = remove_visitor.removed_node {
+                    tree.walk_mut(&mut InsertNodeVisitor {
+                        target_id: drop_action.drop_id,
+                        position: drop_action.position,
+                        node: Some(dragged_node),
+                    });
+                }
             }
-
-            // insert node
         }
-
-        // for action in res.inner.into_iter() {
-        //     match action {
-        //         tree_view::v2::TreeViewAction::Drop {
-        //             node_to_remove,
-        //             receiver_node,
-        //             position,
-        //         } => {
-        //             // let mut remove_visitor = RemoveNodeVisitor::new(node_to_remove);
-        //             // tree.accept(&mut remove_visitor);
-        //             // if let Some(node) = remove_visitor.removed_node {
-        //             //     tree.accept(&mut InsertNodeVisitor {
-        //             //         receiver_node,
-        //             //         position,
-        //             //         node: Some(node),
-        //             //     });
-        //             // }
-        //         }
-        //     }
-        // }
     });
 }

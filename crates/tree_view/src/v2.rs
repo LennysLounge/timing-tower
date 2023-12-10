@@ -12,6 +12,7 @@ use crate::DropPosition;
 
 /// Contains information about a drag and drop that the
 /// tree view produced.
+#[derive(Debug)]
 pub struct DragDropAction {
     /// Id of the dragged node.
     pub drag_id: Uuid,

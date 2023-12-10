@@ -96,6 +96,7 @@ pub struct Directory {
     pub id: Uuid,
     pub name: String,
     pub nodes: Vec<Node>,
+    pub a_allowed: bool,
 }
 impl Visitable for Directory {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
@@ -134,6 +135,15 @@ impl Directory {
             id: Uuid::new_v4(),
             name: name.to_string(),
             nodes,
+            a_allowed: true,
+        })
+    }
+    pub fn new_with_no_a(name: &str, nodes: Vec<Node>) -> Node {
+        Node::Directory(Self {
+            id: Uuid::new_v4(),
+            name: name.to_string(),
+            nodes,
+            a_allowed: false,
         })
     }
 }
@@ -189,7 +199,7 @@ pub fn make_tree() -> Node {
             Directory::new(
                 "Things",
                 vec![
-                    Directory::new("Not A's", vec![File::new("GGGG")]),
+                    Directory::new_with_no_a("Not A's", vec![File::new("GGGG")]),
                     File::new("CCCC"),
                     File::new("DDDD"),
                 ],

@@ -41,7 +41,7 @@ fn main() {
 fn egui(mut ctx: EguiContexts, tree: &mut Node) {
     egui::CentralPanel::default().show(ctx.ctx_mut(), |ui| {
         let res = TreeViewBuilder::new(ui, ui.make_persistent_id("tree view"), |root| {
-            TreeViewVisitor::run(tree, root);
+            tree.walk(&mut TreeViewVisitor { builder: root });
         });
 
         if let Some(_drop_action) = res.drag_drop_action {

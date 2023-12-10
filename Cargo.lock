@@ -2150,6 +2150,7 @@ dependencies = [
  "common",
  "dear_egui",
  "egui_dock",
+ "egui_ltreeview",
  "serde",
  "serde_json",
  "tracing",
@@ -2269,6 +2270,15 @@ dependencies = [
  "memoffset 0.6.5",
  "wasm-bindgen",
  "web-sys",
+]
+
+[[package]]
+name = "egui_ltreeview"
+version = "0.1.0"
+source = "git+https://github.com/LennysLounge/egui_ltreeview.git#659e5a31cdb25a6c7a945c80d06acc7114fa4d4c"
+dependencies = [
+ "egui",
+ "uuid",
 ]
 
 [[package]]

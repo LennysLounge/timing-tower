@@ -237,7 +237,7 @@ fn save_style(style: &StyleDefinition) {
 
 fn tree_view_elements(ui: &mut Ui, _selected_node: &mut Option<Uuid>, style: &mut StyleModel) {
     ScrollArea::vertical().show(ui, |ui| {
-        tree_view::v2::TreeViewBuilder::new(
+        egui_ltreeview::TreeViewBuilder::new(
             ui,
             ui.make_persistent_id("element_tree_view"),
             |root| {

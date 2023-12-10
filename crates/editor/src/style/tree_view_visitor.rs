@@ -4,7 +4,7 @@ use backend::style::{
     variables::VariableDefinition,
     StyleDefinition,
 };
-use tree_view::v2::TreeViewBuilder;
+use egui_ltreeview::TreeViewBuilder;
 
 use super::visitor::{AnyFolder, StyleVisitor};
 

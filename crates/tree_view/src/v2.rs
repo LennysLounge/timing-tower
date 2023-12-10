@@ -10,13 +10,17 @@ use uuid::Uuid;
 
 use crate::DropPosition;
 
-pub enum TreeViewAction {
-    Drop {
-        node_to_remove: Uuid,
-        receiver_node: Uuid,
-        position: DropPosition,
-    },
+/// Contains information about a drag and drop that the
+/// tree view produced.
+pub struct DragDropAction {
+    /// Id of the dragged node.
+    pub drag_id: Uuid,
+    /// Id of the drop node where the dragged node is added to.
+    pub drop_id: Uuid,
+    /// Position of the dragged node in the drop node.
+    pub position: DropPosition,
 }
+
 #[derive(Clone, Default)]
 struct TreeViewBuilderState {
     // Id of the node that was selected last frame.
@@ -54,7 +58,7 @@ impl<'a> TreeViewBuilder<'a> {
         ui: &mut Ui,
         base_id: Id,
         mut add_content: impl FnMut(TreeViewBuilder<'_>),
-    ) -> InnerResponse<Vec<TreeViewAction>> {
+    ) -> TreeViewResponse {
         let mut state = load(ui, base_id).unwrap_or(TreeViewBuilderState::default());
         let mut drag = None;
         let mut drop = None;
@@ -85,18 +89,21 @@ impl<'a> TreeViewBuilder<'a> {
         state.was_dragged_last_frame = drag.is_some();
         store(ui, base_id, state);
 
-        let mut actions = Vec::new();
-        if ui.ctx().input(|i| i.pointer.any_released()) {
-            if let (Some(node_to_remove), Some((receiver_node, position))) = (drag, drop) {
-                actions.push(TreeViewAction::Drop {
-                    node_to_remove,
-                    receiver_node,
-                    position,
-                });
-            }
-        }
+        let drag_drop_action = ui
+            .ctx()
+            .input(|i| i.pointer.any_released())
+            .then_some(())
+            .and_then(|_| drag.zip(drop))
+            .map(|(drag_id, (drop_id, position))| DragDropAction {
+                drag_id,
+                drop_id,
+                position,
+            });
 
-        InnerResponse::new(actions, res.response)
+        TreeViewResponse {
+            response: res.response,
+            drag_drop_action,
+        }
     }
 
     pub fn leaf(&mut self, id: &Uuid, mut add_content: impl FnMut(&mut Ui)) -> Option<Response> {
@@ -383,6 +390,11 @@ impl<'a> TreeViewBuilder<'a> {
     fn is_dragged(&self, id: &Uuid) -> bool {
         self.drag.as_ref().is_some_and(|drag_id| drag_id == id)
     }
+}
+
+pub struct TreeViewResponse {
+    pub response: Response,
+    pub drag_drop_action: Option<DragDropAction>,
 }
 
 struct Row<'a> {

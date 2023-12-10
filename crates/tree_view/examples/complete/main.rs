@@ -40,9 +40,17 @@ fn main() {
 
 fn egui(mut ctx: EguiContexts, tree: &mut Node) {
     egui::CentralPanel::default().show(ctx.ctx_mut(), |ui| {
-        let _res = TreeViewBuilder::new(ui, ui.make_persistent_id("tree view"), |root| {
+        let res = TreeViewBuilder::new(ui, ui.make_persistent_id("tree view"), |root| {
             TreeViewVisitor::run(tree, root);
         });
+
+        if let Some(_drop_action) = res.drag_drop_action {
+            // Test if drop is valid
+
+            // remove dragged node
+
+            // insert node
+        }
 
         // for action in res.inner.into_iter() {
         //     match action {

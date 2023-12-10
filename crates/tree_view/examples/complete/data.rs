@@ -1,6 +1,11 @@
-use std::ops::ControlFlow;
+use std::{any::Any, ops::ControlFlow};
 
 use uuid::{uuid, Uuid};
+
+pub trait Node {
+    fn id(&self) -> &Uuid;
+    fn name(&self) -> &str;
+}
 
 pub trait Visitable {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()>;
@@ -9,6 +14,18 @@ pub trait Visitable {
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()>;
     fn enter_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()>;
     fn leave_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()>;
+}
+
+pub trait VisitableNode: Node + Visitable {
+    fn as_any(&self) -> &dyn Any;
+}
+impl<T> VisitableNode for T
+where
+    T: Node + Visitable + 'static,
+{
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
 }
 
 pub trait NodeVisitor {
@@ -41,53 +58,68 @@ pub trait NodeVisitorMut {
     }
 }
 
-pub enum Node {
+pub enum TreeNode {
     Directory(Directory),
     File(File),
 }
-impl Visitable for Node {
+impl Node for TreeNode {
+    fn id(&self) -> &Uuid {
+        match self {
+            TreeNode::Directory(o) => o.id(),
+            TreeNode::File(o) => o.id(),
+        }
+    }
+
+    fn name(&self) -> &str {
+        match self {
+            TreeNode::Directory(o) => o.name(),
+            TreeNode::File(o) => o.name(),
+        }
+    }
+}
+impl Visitable for TreeNode {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
         match self {
-            Node::Directory(o) => o.walk(visitor),
-            Node::File(o) => o.walk(visitor),
+            TreeNode::Directory(o) => o.walk(visitor),
+            TreeNode::File(o) => o.walk(visitor),
         }
     }
     fn enter(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
         match self {
-            Node::Directory(o) => o.enter(visitor),
-            Node::File(o) => o.enter(visitor),
+            TreeNode::Directory(o) => o.enter(visitor),
+            TreeNode::File(o) => o.enter(visitor),
         }
     }
     fn leave(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
         match self {
-            Node::Directory(o) => o.leave(visitor),
-            Node::File(o) => o.leave(visitor),
+            TreeNode::Directory(o) => o.leave(visitor),
+            TreeNode::File(o) => o.leave(visitor),
         }
     }
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
         match self {
-            Node::Directory(o) => o.walk_mut(visitor),
-            Node::File(o) => o.walk_mut(visitor),
+            TreeNode::Directory(o) => o.walk_mut(visitor),
+            TreeNode::File(o) => o.walk_mut(visitor),
         }
     }
     fn enter_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
         match self {
-            Node::Directory(o) => o.enter_mut(visitor),
-            Node::File(o) => o.enter_mut(visitor),
+            TreeNode::Directory(o) => o.enter_mut(visitor),
+            TreeNode::File(o) => o.enter_mut(visitor),
         }
     }
     fn leave_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
         match self {
-            Node::Directory(o) => o.leave_mut(visitor),
-            Node::File(o) => o.leave_mut(visitor),
+            TreeNode::Directory(o) => o.leave_mut(visitor),
+            TreeNode::File(o) => o.leave_mut(visitor),
         }
     }
 }
-impl Node {
+impl TreeNode {
     pub fn id(&self) -> &Uuid {
         match self {
-            Node::Directory(o) => &o.id,
-            Node::File(o) => &o.id,
+            TreeNode::Directory(o) => &o.id,
+            TreeNode::File(o) => &o.id,
         }
     }
 }
@@ -95,8 +127,17 @@ impl Node {
 pub struct Directory {
     pub id: Uuid,
     pub name: String,
-    pub nodes: Vec<Node>,
+    pub nodes: Vec<TreeNode>,
     pub a_allowed: bool,
+}
+impl Node for Directory {
+    fn id(&self) -> &Uuid {
+        &self.id
+    }
+
+    fn name(&self) -> &str {
+        &self.name
+    }
 }
 impl Visitable for Directory {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
@@ -130,16 +171,16 @@ impl Visitable for Directory {
     }
 }
 impl Directory {
-    pub fn new(name: &str, nodes: Vec<Node>) -> Node {
-        Node::Directory(Self {
+    pub fn new(name: &str, nodes: Vec<TreeNode>) -> TreeNode {
+        TreeNode::Directory(Self {
             id: Uuid::new_v4(),
             name: name.to_string(),
             nodes,
             a_allowed: true,
         })
     }
-    pub fn new_with_no_a(name: &str, nodes: Vec<Node>) -> Node {
-        Node::Directory(Self {
+    pub fn new_with_no_a(name: &str, nodes: Vec<TreeNode>) -> TreeNode {
+        TreeNode::Directory(Self {
             id: Uuid::new_v4(),
             name: name.to_string(),
             nodes,
@@ -151,6 +192,15 @@ impl Directory {
 pub struct File {
     pub id: Uuid,
     pub name: String,
+}
+impl Node for File {
+    fn id(&self) -> &Uuid {
+        &self.id
+    }
+
+    fn name(&self) -> &str {
+        &self.name
+    }
 }
 impl Visitable for File {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
@@ -178,21 +228,21 @@ impl Visitable for File {
     }
 }
 impl File {
-    pub fn new(name: &str) -> Node {
-        Node::File(Self {
+    pub fn new(name: &str) -> TreeNode {
+        TreeNode::File(Self {
             id: Uuid::new_v4(),
             name: name.to_string(),
         })
     }
-    pub fn new_with_id(name: &str, id: Uuid) -> Node {
-        Node::File(Self {
+    pub fn new_with_id(name: &str, id: Uuid) -> TreeNode {
+        TreeNode::File(Self {
             id,
             name: name.to_string(),
         })
     }
 }
 
-pub fn make_tree() -> Node {
+pub fn make_tree() -> TreeNode {
     Directory::new(
         "Root",
         vec![

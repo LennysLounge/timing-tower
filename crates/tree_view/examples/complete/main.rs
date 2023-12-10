@@ -13,7 +13,8 @@ use tree_view::v2::TreeViewBuilder;
 mod data;
 use data::*;
 use visitor::{
-    DropAllowedVisitor, InsertNodeVisitor, PrintTreeListing, RemoveNodeVisitor, TreeViewVisitor,
+    DropAllowedVisitor, InsertNodeVisitor, PrintTreeListing, RemoveNodeVisitor, SearchVisitor,
+    TreeViewVisitor,
 };
 
 mod visitor;
@@ -40,13 +41,25 @@ fn main() {
         .run();
 }
 
-fn egui(mut ctx: EguiContexts, tree: &mut Node) {
+fn egui(mut ctx: EguiContexts, tree: &mut TreeNode) {
     egui::CentralPanel::default().show(ctx.ctx_mut(), |ui| {
         let res = TreeViewBuilder::new(ui, ui.make_persistent_id("tree view"), |root| {
             tree.walk(&mut TreeViewVisitor { builder: root });
         });
 
         if let Some(drop_action) = res.drag_drop_action {
+            tree.walk(&mut SearchVisitor::new(
+                drop_action.drag_id,
+                &mut |dragged| {
+                    tree.walk(&mut SearchVisitor::new(
+                        drop_action.drop_id,
+                        &mut |dropped| {
+                            println!("Dragged {} onto {}", dragged.name(), dropped.name());
+                        },
+                    ));
+                },
+            ));
+
             // Test if drop is valid
             let mut drop_allowed_visitor =
                 DropAllowedVisitor::new(drop_action.drag_id, drop_action.drop_id, &tree);

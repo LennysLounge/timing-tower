@@ -3,7 +3,9 @@ use std::{any::Any, ops::ControlFlow};
 use tree_view::{v2::TreeViewBuilder, DropPosition};
 use uuid::Uuid;
 
-use crate::data::{Directory, File, Node, NodeVisitor, NodeVisitorMut, Visitable};
+use crate::data::{
+    Directory, File, NodeVisitor, NodeVisitorMut, TreeNode, Visitable, VisitableNode,
+};
 
 pub struct PrintTreeListing {
     pub depth: usize,
@@ -74,7 +76,7 @@ impl NodeVisitor for TreeViewVisitor<'_> {
 
 pub struct RemoveNodeVisitor {
     pub id: Uuid,
-    pub removed_node: Option<Node>,
+    pub removed_node: Option<TreeNode>,
 }
 impl RemoveNodeVisitor {
     pub fn new(id: Uuid) -> Self {
@@ -99,7 +101,7 @@ pub struct InsertNodeVisitor {
     pub target_id: Uuid,
     pub position: DropPosition,
     // Option so we can leave an empty spot without moving any part of the parent struct.
-    pub node: Option<Node>,
+    pub node: Option<TreeNode>,
 }
 impl NodeVisitorMut for InsertNodeVisitor {
     fn visit_dir(&mut self, dir: &mut Directory) -> ControlFlow<()> {
@@ -129,11 +131,11 @@ impl NodeVisitorMut for InsertNodeVisitor {
 pub struct DropAllowedVisitor<'a> {
     pub drag_id: Uuid,
     pub drop_id: Uuid,
-    pub tree: &'a Node,
+    pub tree: &'a TreeNode,
     drop_allowed: bool,
 }
 impl<'a> DropAllowedVisitor<'a> {
-    pub fn new(drag_id: Uuid, drop_id: Uuid, tree: &'a Node) -> Self {
+    pub fn new(drag_id: Uuid, drop_id: Uuid, tree: &'a TreeNode) -> Self {
         Self {
             drag_id,
             drop_id,
@@ -208,6 +210,32 @@ impl<'a> NodeVisitor for DropAllowedVisitor3<'a> {
 
     fn visit_file(&mut self, _file: &File) -> ControlFlow<()> {
         self.drop_allowed = false;
+        ControlFlow::Break(())
+    }
+}
+
+pub struct SearchVisitor<'a> {
+    id: Uuid,
+    action: &'a mut dyn FnMut(&dyn VisitableNode),
+}
+impl<'a> SearchVisitor<'a> {
+    pub fn new(id: Uuid, action: &'a mut impl FnMut(&dyn VisitableNode)) -> Self {
+        Self { id, action }
+    }
+}
+impl<'a> NodeVisitor for SearchVisitor<'a> {
+    fn leave_dir(&mut self, dir: &Directory) -> ControlFlow<()> {
+        if dir.id != self.id {
+            return ControlFlow::Continue(());
+        }
+        (self.action)(dir);
+        ControlFlow::Break(())
+    }
+    fn visit_file(&mut self, file: &File) -> ControlFlow<()> {
+        if file.id != self.id {
+            return ControlFlow::Continue(());
+        }
+        (self.action)(file);
         ControlFlow::Break(())
     }
 }

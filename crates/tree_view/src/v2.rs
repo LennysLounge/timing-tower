@@ -14,8 +14,8 @@ use crate::DropPosition;
 /// tree view produced.
 #[derive(Debug)]
 pub struct DragDropAction {
-    /// Id of the dragged node.
     pub drag_id: Uuid,
+    /// Id of the dragged node.
     /// Id of the drop node where the dragged node is added to.
     pub drop_id: Uuid,
     /// Position of the dragged node in the drop node.
@@ -63,14 +63,14 @@ impl<'a> TreeViewBuilder<'a> {
         let mut state = load(ui, base_id).unwrap_or(TreeViewBuilderState::default());
         let mut drag = None;
         let mut drop = None;
+        let background_idx = ui.painter().add(Shape::Noop);
+        let drop_marker_idx = ui.painter().add(Shape::Noop);
 
         let res = ui.allocate_ui_with_layout(
             ui.available_size_before_wrap(),
             Layout::top_down(egui::Align::Min),
             |ui| {
                 ui.add_space(ui.spacing().item_spacing.y * 0.5);
-                let background_idx = ui.painter().add(Shape::Noop);
-                let drop_marker_idx = ui.painter().add(Shape::Noop);
                 add_content(TreeViewBuilder {
                     ui,
                     selected: &mut state.selected,
@@ -90,20 +90,21 @@ impl<'a> TreeViewBuilder<'a> {
         state.was_dragged_last_frame = drag.is_some();
         store(ui, base_id, state);
 
-        let drag_drop_action = ui
-            .ctx()
-            .input(|i| i.pointer.any_released())
-            .then_some(())
-            .and_then(|_| drag.zip(drop))
-            .map(|(drag_id, (drop_id, position))| DragDropAction {
-                drag_id,
-                drop_id,
-                position,
-            });
+        let drag_drop_action =
+            drag.zip(drop)
+                .map(|(drag_id, (drop_id, position))| DragDropAction {
+                    drag_id,
+                    drop_id,
+                    position,
+                });
+        let dropped = ui.ctx().input(|i| i.pointer.any_released()) && drag_drop_action.is_some();
 
         TreeViewResponse {
             response: res.response,
+            dropped,
             drag_drop_action,
+            _id: base_id,
+            drop_marker_idx,
         }
     }
 
@@ -395,7 +396,19 @@ impl<'a> TreeViewBuilder<'a> {
 
 pub struct TreeViewResponse {
     pub response: Response,
+    /// If a row was dragged in the tree this will contain information about
+    /// who was dragged to who and at what position.
     pub drag_drop_action: Option<DragDropAction>,
+    /// `true` if a drag and drop was performed
+    pub dropped: bool,
+    _id: Id,
+    drop_marker_idx: ShapeIdx,
+}
+impl TreeViewResponse {
+    /// Remove the drop marker from the tree view.
+    pub fn remove_drop_marker(&self, ui: &mut Ui) {
+        ui.painter().set(self.drop_marker_idx, Shape::Noop);
+    }
 }
 
 struct Row<'a> {

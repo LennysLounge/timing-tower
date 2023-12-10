@@ -44,11 +44,11 @@ fn main() {
 
 fn egui(mut ctx: EguiContexts, tree: &mut TreeNode) {
     egui::CentralPanel::default().show(ctx.ctx_mut(), |ui| {
-        let res = TreeViewBuilder::new(ui, ui.make_persistent_id("tree view"), |root| {
+        let tree_res = TreeViewBuilder::new(ui, ui.make_persistent_id("tree view"), |root| {
             tree.walk(&mut TreeViewVisitor { builder: root });
         });
 
-        if let Some(drop_action) = res.drag_drop_action {
+        if let Some(drop_action) = &tree_res.drag_drop_action {
             // Test if drop is valid
             let drop_allowed = {
                 SearchVisitor::new(drop_action.drag_id, |dragged| {
@@ -63,19 +63,23 @@ fn egui(mut ctx: EguiContexts, tree: &mut TreeNode) {
             };
 
             if drop_allowed {
-                // remove dragged node
-                let removed_node = RemoveNodeVisitor::new(drop_action.drag_id).remove_from(tree);
+                if tree_res.dropped {
+                    // remove dragged node
+                    let removed_node =
+                        RemoveNodeVisitor::new(drop_action.drag_id).remove_from(tree);
 
-                // insert node
-                if let Some(dragged_node) = removed_node {
-                    tree.walk_mut(&mut InsertNodeVisitor {
-                        target_id: drop_action.drop_id,
-                        position: drop_action.position,
-                        node: Some(dragged_node),
-                    });
+                    // insert node
+                    if let Some(dragged_node) = removed_node {
+                        tree.walk_mut(&mut InsertNodeVisitor {
+                            target_id: drop_action.drop_id,
+                            position: drop_action.position,
+                            node: Some(dragged_node),
+                        });
+                    }
                 }
             } else {
                 // Render the dissallowed drop
+                tree_res.remove_drop_marker(ui);
             }
         }
     });

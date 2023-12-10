@@ -21,7 +21,7 @@ pub struct TreeUi<'a> {
     context: &'a mut TreeContext,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DropPosition {
     First,
     Last,

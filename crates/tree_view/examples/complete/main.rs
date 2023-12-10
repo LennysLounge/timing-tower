@@ -13,9 +13,10 @@ use tree_view::v2::TreeViewBuilder;
 mod data;
 use data::*;
 use visitor::{
-    DropAllowedVisitor, InsertNodeVisitor, PrintTreeListing, RemoveNodeVisitor, SearchVisitor,
-    TreeViewVisitor,
+    InsertNodeVisitor, PrintTreeListing, RemoveNodeVisitor, SearchVisitor, TreeViewVisitor,
 };
+
+use crate::visitor::DropAllowedVisitor;
 
 mod visitor;
 
@@ -48,6 +49,8 @@ fn egui(mut ctx: EguiContexts, tree: &mut TreeNode) {
         });
 
         if let Some(drop_action) = res.drag_drop_action {
+            // Test if drop is valid
+            let mut drop_allowed = false;
             tree.walk(&mut SearchVisitor::new(
                 drop_action.drag_id,
                 &mut |dragged| {
@@ -55,17 +58,19 @@ fn egui(mut ctx: EguiContexts, tree: &mut TreeNode) {
                         drop_action.drop_id,
                         &mut |dropped| {
                             println!("Dragged {} onto {}", dragged.name(), dropped.name());
+                            let mut drop_allowed_visitor = DropAllowedVisitor {
+                                drag_node: dragged.as_any(),
+                                drop_allowed: false,
+                            };
+                            dropped.enter(&mut drop_allowed_visitor);
+                            println!("drop allowed: {}", drop_allowed_visitor.drop_allowed);
+                            drop_allowed = drop_allowed_visitor.drop_allowed;
                         },
                     ));
                 },
             ));
 
-            // Test if drop is valid
-            let mut drop_allowed_visitor =
-                DropAllowedVisitor::new(drop_action.drag_id, drop_action.drop_id, &tree);
-            tree.walk(&mut drop_allowed_visitor);
-
-            if drop_allowed_visitor.is_drop_allowed() {
+            if drop_allowed {
                 // remove dragged node
                 let mut remove_visitor = RemoveNodeVisitor::new(drop_action.drag_id);
                 tree.walk_mut(&mut remove_visitor);

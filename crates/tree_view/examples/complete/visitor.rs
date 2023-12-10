@@ -3,9 +3,7 @@ use std::{any::Any, ops::ControlFlow};
 use tree_view::{v2::TreeViewBuilder, DropPosition};
 use uuid::Uuid;
 
-use crate::data::{
-    Directory, File, NodeVisitor, NodeVisitorMut, TreeNode, Visitable, VisitableNode,
-};
+use crate::data::{Directory, File, NodeVisitor, NodeVisitorMut, TreeNode, VisitableNode};
 
 pub struct PrintTreeListing {
     pub depth: usize,
@@ -129,67 +127,10 @@ impl NodeVisitorMut for InsertNodeVisitor {
 }
 
 pub struct DropAllowedVisitor<'a> {
-    pub drag_id: Uuid,
-    pub drop_id: Uuid,
-    pub tree: &'a TreeNode,
-    drop_allowed: bool,
-}
-impl<'a> DropAllowedVisitor<'a> {
-    pub fn new(drag_id: Uuid, drop_id: Uuid, tree: &'a TreeNode) -> Self {
-        Self {
-            drag_id,
-            drop_id,
-            tree,
-            drop_allowed: false,
-        }
-    }
-    pub fn is_drop_allowed(&self) -> bool {
-        self.drop_allowed
-    }
+    pub drag_node: &'a dyn Any,
+    pub drop_allowed: bool,
 }
 impl<'a> NodeVisitor for DropAllowedVisitor<'a> {
-    fn visit_file(&mut self, file: &File) -> ControlFlow<()> {
-        if file.id != self.drag_id {
-            return ControlFlow::Continue(());
-        }
-        let mut drop_allowed_visitor = DropAllowedVisitor2 {
-            drop_id: self.drop_id,
-            drag_node: file,
-            drop_allowed: false,
-        };
-        self.tree.walk(&mut drop_allowed_visitor);
-        self.drop_allowed = drop_allowed_visitor.drop_allowed;
-        ControlFlow::Break(())
-    }
-}
-
-struct DropAllowedVisitor2<'a> {
-    drop_id: Uuid,
-    drag_node: &'a dyn Any,
-    drop_allowed: bool,
-}
-impl<'a> NodeVisitor for DropAllowedVisitor2<'a> {
-    fn visit_dir(&mut self, dir: &Directory) -> ControlFlow<()> {
-        if dir.id != self.drop_id {
-            return ControlFlow::Continue(());
-        }
-
-        let mut drop_allowed_visitor = DropAllowedVisitor3 {
-            drag_node: self.drag_node,
-            drop_allowed: false,
-        };
-        dir.enter(&mut drop_allowed_visitor);
-        self.drop_allowed = drop_allowed_visitor.drop_allowed;
-
-        ControlFlow::Break(())
-    }
-}
-
-struct DropAllowedVisitor3<'a> {
-    drag_node: &'a dyn Any,
-    drop_allowed: bool,
-}
-impl<'a> NodeVisitor for DropAllowedVisitor3<'a> {
     fn visit_dir(&mut self, dir: &Directory) -> ControlFlow<()> {
         if let Some(dropped) = self.drag_node.downcast_ref::<Directory>() {
             if dir.a_allowed {

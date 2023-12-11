@@ -1,7 +1,7 @@
 use std::any::Any;
 
 use bevy_egui::egui::Ui;
-use tree_view::{DropPosition, TreeUi};
+use tree_view::DropPosition;
 use uuid::Uuid;
 
 use crate::reference_store::ReferenceStore;
@@ -28,8 +28,6 @@ pub trait StyleTreeUi {
     fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
         false
     }
-    /// Display the tree view node of this node.
-    fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>);
 }
 
 /// Trait to upcast or change the trait object type.

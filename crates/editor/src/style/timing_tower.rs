@@ -5,31 +5,16 @@ use backend::style::{
     timing_tower::{TimingTower, TimingTowerColumn, TimingTowerRow, TimingTowerTable},
 };
 use bevy_egui::egui::Ui;
-use tree_view::{DropPosition, TreeUi, TreeViewBuilder};
+use tree_view::DropPosition;
 use uuid::Uuid;
 
 use crate::{properties::PropertyEditor, reference_store::ReferenceStore};
 
-use super::{
-    folder::{FolderActions, FolderActionsExtended},
-    AttributeEditor, StyleTreeNode, StyleTreeUi, TreeViewAction,
-};
+use super::{folder::FolderActions, AttributeEditor, StyleTreeNode, StyleTreeUi, TreeViewAction};
 
 impl StyleTreeUi for TimingTower {
     fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
         self.cell.property_editor(ui, asset_repo)
-    }
-
-    fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
-        TreeViewBuilder::dir(self.id).default_open(true).show(
-            ui,
-            |ui| {
-                ui.label("Timing Tower");
-            },
-            |ui| {
-                self.table.tree_view(ui, actions);
-            },
-        );
     }
 }
 
@@ -78,18 +63,6 @@ impl StyleTreeUi for TimingTowerTable {
         changed |= self.cell.property_editor(ui, asset_repo);
         changed
     }
-
-    fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
-        TreeViewBuilder::dir(self.id).default_open(true).show(
-            ui,
-            |ui| {
-                ui.label("Table");
-            },
-            |ui| {
-                self.row.tree_view(ui, actions);
-            },
-        );
-    }
 }
 
 impl StyleTreeNode for TimingTowerTable {
@@ -119,41 +92,6 @@ impl StyleTreeNode for TimingTowerTable {
 impl StyleTreeUi for TimingTowerRow {
     fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
         self.cell.property_editor(ui, asset_repo)
-    }
-
-    fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
-        let (header, _) = TreeViewBuilder::dir(self.id).default_open(true).show(
-            ui,
-            |ui| {
-                ui.label("Row");
-            },
-            |ui| {
-                self.columns.tree_view_flat(ui, actions);
-            },
-        );
-        header.response.context_menu(|ui| {
-            if ui.button("add column").clicked() {
-                let column = TimingTowerColumn::new();
-                actions.push(TreeViewAction::Select { node: column.id });
-                actions.push(TreeViewAction::Insert {
-                    target: self.id,
-                    node: Box::new(column),
-                    position: DropPosition::Last,
-                });
-
-                ui.close_menu();
-            }
-            if ui.button("add group").clicked() {
-                let folder = Folder::<TimingTowerColumn>::new();
-                actions.push(TreeViewAction::Select { node: folder.id });
-                actions.push(TreeViewAction::Insert {
-                    target: self.id,
-                    node: Box::new(folder),
-                    position: DropPosition::First,
-                });
-                ui.close_menu();
-            }
-        });
     }
 }
 
@@ -191,35 +129,6 @@ impl StyleTreeUi for TimingTowerColumn {
         ui.separator();
         changed |= self.cell.property_editor(ui, asset_repo);
         changed
-    }
-
-    fn tree_view(&mut self, tree_ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
-        let res = TreeViewBuilder::leaf(self.id).show(tree_ui, |ui| {
-            ui.label(&self.name);
-        });
-
-        res.response.context_menu(|ui| {
-            if ui.button("add column").clicked() {
-                actions.push(TreeViewAction::Insert {
-                    target: tree_ui.parent_id.unwrap(),
-                    node: Box::new(TimingTowerColumn::new()),
-                    position: DropPosition::After(self.id),
-                });
-                ui.close_menu();
-            }
-            if ui.button("add group").clicked() {
-                actions.push(TreeViewAction::Insert {
-                    target: tree_ui.parent_id.unwrap(),
-                    node: Box::new(Folder::<TimingTowerColumn>::new()),
-                    position: DropPosition::After(self.id),
-                });
-                ui.close_menu();
-            }
-            if ui.button("delete").clicked() {
-                actions.push(TreeViewAction::Remove { node: self.id });
-                ui.close_menu();
-            }
-        });
     }
 }
 

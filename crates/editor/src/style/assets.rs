@@ -1,5 +1,4 @@
 use bevy_egui::egui::Ui;
-use tree_view::{TreeUi, TreeViewBuilder};
 use uuid::Uuid;
 
 use crate::reference_store::{IntoProducerData, ProducerData, ReferenceStore};
@@ -63,43 +62,6 @@ impl IntoProducerData for AssetDefinition {
 }
 
 impl StyleTreeUi for AssetDefinition {
-    fn tree_view(&mut self, tree_ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
-        let res = TreeViewBuilder::leaf(self.id).show(tree_ui, |ui| {
-            ui.label(&self.name);
-        });
-        res.response.context_menu(|ui| {
-            if ui.button("add image").clicked() {
-                let image = AssetDefinition {
-                    id: Uuid::new_v4(),
-                    name: String::from("Image"),
-                    value_type: ValueType::Texture,
-                    path: String::new(),
-                };
-                actions.push(TreeViewAction::Select { node: *image.id() });
-                actions.push(TreeViewAction::Insert {
-                    target: tree_ui.parent_id.unwrap(),
-                    node: Box::new(image),
-                    position: tree_view::DropPosition::After(self.id),
-                });
-                ui.close_menu();
-            }
-            if ui.button("add group").clicked() {
-                let folder = Folder::<AssetDefinition>::new();
-                actions.push(TreeViewAction::Select { node: *folder.id() });
-                actions.push(TreeViewAction::Insert {
-                    target: tree_ui.parent_id.unwrap(),
-                    node: Box::new(folder),
-                    position: tree_view::DropPosition::After(self.id),
-                });
-                ui.close_menu();
-            }
-            if ui.button("delete").clicked() {
-                actions.push(TreeViewAction::Remove { node: self.id });
-                ui.close_menu();
-            }
-        });
-    }
-
     fn property_editor(&mut self, ui: &mut Ui, _asset_repo: &ReferenceStore) -> bool {
         let mut changed = false;
 

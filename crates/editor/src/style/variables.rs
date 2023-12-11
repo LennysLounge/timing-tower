@@ -1,7 +1,7 @@
 use std::mem::discriminant;
 
 use bevy_egui::egui::{ComboBox, Response, Ui};
-use tree_view::{DropPosition, TreeUi, TreeViewBuilder};
+use tree_view::DropPosition;
 use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
@@ -85,38 +85,6 @@ impl StyleTreeUi for VariableDefinition {
             VariableBehavior::Map(o) => o.property_editor(ui, asset_repo),
         };
         changed
-    }
-
-    fn tree_view(&mut self, tree_ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
-        let res = TreeViewBuilder::leaf(self.producer_data().id).show(tree_ui, |ui| {
-            ui.label(&self.producer_data().name);
-        });
-        res.response.context_menu(|ui| {
-            if ui.button("add variable").clicked() {
-                let var = VariableDefinition::new();
-                actions.push(TreeViewAction::Select { node: *var.id() });
-                actions.push(TreeViewAction::Insert {
-                    target: tree_ui.parent_id.unwrap(),
-                    node: Box::new(var),
-                    position: DropPosition::After(*self.id()),
-                });
-                ui.close_menu();
-            }
-            if ui.button("add group").clicked() {
-                let folder = Folder::<VariableDefinition>::new();
-                actions.push(TreeViewAction::Select { node: folder.id });
-                actions.push(TreeViewAction::Insert {
-                    target: tree_ui.parent_id.unwrap(),
-                    node: Box::new(folder),
-                    position: DropPosition::After(*self.id()),
-                });
-                ui.close_menu();
-            }
-            if ui.button("delete").clicked() {
-                actions.push(TreeViewAction::Remove { node: *self.id() });
-                ui.close_menu();
-            }
-        });
     }
 }
 

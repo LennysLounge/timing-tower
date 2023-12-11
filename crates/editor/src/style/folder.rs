@@ -2,7 +2,7 @@ use std::any::{Any, TypeId};
 
 use backend::style::folder::{Folder, FolderOrT};
 use bevy_egui::egui::Ui;
-use tree_view::{DropPosition, TreeUi, TreeViewBuilder};
+use tree_view::{DropPosition, TreeUi};
 use uuid::Uuid;
 
 use crate::reference_store::ReferenceStore;
@@ -21,23 +21,6 @@ pub trait FolderActions {
 }
 
 impl<T: StyleTreeNode + FolderActions<FolderType = T>> StyleTreeUi for Folder<T> {
-    fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
-        let (header, _) = TreeViewBuilder::dir(self.id).show(
-            ui,
-            |ui| {
-                ui.label(format!("🗀  {}", &self.name));
-            },
-            |ui| {
-                for c in self.content.iter_mut() {
-                    c.tree_view(ui, actions);
-                }
-            },
-        );
-        header.response.context_menu(|ui| {
-            T::context_menu(ui, &*self, actions);
-        });
-    }
-
     fn property_editor(&mut self, ui: &mut Ui, _asset_repo: &ReferenceStore) -> bool {
         let mut changed = false;
         if self.renameable {
@@ -110,13 +93,7 @@ where
     T: StyleTreeNode + FolderActions<FolderType = T>,
 {
     /// Show the contents of this folder without a collapsing header.
-    fn tree_view_flat(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
-        TreeViewBuilder::dir(self.id).headless().show(ui, |ui| {
-            for c in self.content.iter_mut() {
-                c.tree_view(ui, actions);
-            }
-        });
-    }
+    fn tree_view_flat(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {}
 
     fn insert_at(&mut self, node: FolderOrT<T>, position: &DropPosition) {
         match position {
@@ -143,13 +120,6 @@ where
 }
 
 impl<T: StyleTreeNode + FolderActions<FolderType = T>> StyleTreeUi for FolderOrT<T> {
-    fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
-        match self {
-            FolderOrT::T(o) => o.tree_view(ui, actions),
-            FolderOrT::Folder(o) => o.tree_view(ui, actions),
-        }
-    }
-
     fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
         match self {
             FolderOrT::T(o) => o.property_editor(ui, asset_repo),

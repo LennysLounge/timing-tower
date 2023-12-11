@@ -2,7 +2,7 @@ use std::any::Any;
 
 use backend::style::StyleDefinition;
 use bevy_egui::egui::Ui;
-use tree_view::{DropAction, DropPosition, TreeUi, TreeViewBuilder};
+use tree_view::{DropAction, DropPosition};
 use uuid::Uuid;
 
 use crate::reference_store::ReferenceStore;
@@ -38,18 +38,7 @@ trait AttributeEditor {
     fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool;
 }
 
-impl StyleTreeUi for StyleModel {
-    fn tree_view(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
-        TreeViewBuilder::dir(self.def.id).headless().show(ui, |ui| {
-            self.def.assets.tree_view(ui, actions);
-            ui.ui.separator();
-            self.def.vars.tree_view(ui, actions);
-            ui.ui.separator();
-            self.def.timing_tower.tree_view(ui, actions);
-            ui.ui.separator();
-        });
-    }
-}
+impl StyleTreeUi for StyleModel {}
 
 impl StyleTreeNode for StyleModel {
     fn id(&self) -> &Uuid {
@@ -80,31 +69,12 @@ impl StyleTreeNode for StyleModel {
 }
 
 pub trait StyleDefinitionUiThings {
-    fn tree_view_elements(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>);
-    fn tree_view_variables(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>);
-    fn tree_view_assets(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>);
     fn can_drop(&self, drop_action: &DropAction) -> bool;
     fn perform_drop(&mut self, drop_action: &DropAction);
     fn insert(&mut self, target: &Uuid, node: Box<dyn Any>, position: DropPosition);
     fn remove(&mut self, node: &Uuid);
 }
 impl StyleDefinitionUiThings for StyleModel {
-    fn tree_view_elements(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
-        TreeViewBuilder::dir(self.def.id).headless().show(ui, |ui| {
-            self.def.timing_tower.tree_view(ui, actions);
-        });
-    }
-    fn tree_view_variables(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
-        TreeViewBuilder::dir(self.def.id).headless().show(ui, |ui| {
-            self.def.vars.tree_view(ui, actions);
-        });
-    }
-    fn tree_view_assets(&mut self, ui: &mut TreeUi, actions: &mut Vec<TreeViewAction>) {
-        TreeViewBuilder::dir(self.def.id).headless().show(ui, |ui| {
-            self.def.assets.tree_view(ui, actions);
-        });
-    }
-
     fn can_drop(&self, drop_action: &DropAction) -> bool {
         let dragged = self.find(&drop_action.dragged_node);
         let target = self.find(&drop_action.target_node);

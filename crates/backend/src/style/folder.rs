@@ -3,12 +3,12 @@ use std::ops::ControlFlow;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::visitor::{NodeVisitor, NodeVisitorMut, Visitable};
+use super::visitor::{NodeVisitor, NodeVisitorMut, StyleNode, Visitable};
 
-pub trait FolderInfo: Visitable {
+pub trait FolderInfo: StyleNode {
     fn id(&self) -> &Uuid;
     fn name(&self) -> &str;
-    fn as_visitable(&self) -> &dyn Visitable;
+    fn as_style_node(&self) -> &dyn StyleNode;
 }
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Folder<T> {
@@ -53,7 +53,7 @@ impl<T> Folder<T> {
 }
 impl<T> FolderInfo for Folder<T>
 where
-    T: Visitable,
+    T: Visitable + 'static,
 {
     fn id(&self) -> &Uuid {
         &self.id
@@ -63,13 +63,13 @@ where
         &self.name
     }
 
-    fn as_visitable(&self) -> &dyn Visitable {
+    fn as_style_node(&self) -> &dyn StyleNode {
         self
     }
 }
 impl<T> Visitable for Folder<T>
 where
-    T: Visitable,
+    T: Visitable + 'static,
 {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
         self.enter(visitor)?;

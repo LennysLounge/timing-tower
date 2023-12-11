@@ -2,17 +2,17 @@ use std::ops::ControlFlow;
 
 use backend::style::{
     definitions::*,
-    visitor::{NodeVisitor, Visitable},
+    visitor::{NodeVisitor, StyleNode},
 };
 use uuid::Uuid;
 
 pub struct SearchVisitor<'a, T> {
     id: Uuid,
-    action: Box<dyn FnMut(&dyn Visitable) -> T + 'a>,
+    action: Box<dyn FnMut(&dyn StyleNode) -> T + 'a>,
     output: Option<T>,
 }
 impl<'a, T> SearchVisitor<'a, T> {
-    pub fn new(id: Uuid, action: impl FnMut(&dyn Visitable) -> T + 'a) -> Self {
+    pub fn new(id: Uuid, action: impl FnMut(&dyn StyleNode) -> T + 'a) -> Self {
         Self {
             id,
             action: Box::new(action),
@@ -21,12 +21,12 @@ impl<'a, T> SearchVisitor<'a, T> {
     }
     pub fn search_in<V>(mut self, node: &V) -> Option<T>
     where
-        V: Visitable,
+        V: StyleNode,
     {
         node.walk(&mut self);
         self.output
     }
-    fn test(&mut self, id: &Uuid, visitable: &dyn Visitable) -> ControlFlow<()> {
+    fn test(&mut self, id: &Uuid, visitable: &dyn StyleNode) -> ControlFlow<()> {
         if &self.id == id {
             (self.action)(visitable);
             ControlFlow::Break(())
@@ -41,7 +41,7 @@ impl<'a, T> NodeVisitor for SearchVisitor<'a, T> {
     }
 
     fn visit_folder(&mut self, folder: &dyn FolderInfo) -> ControlFlow<()> {
-        self.test(&folder.id(), folder.as_visitable())
+        self.test(&folder.id(), folder.as_style_node())
     }
 
     fn visit_timing_tower(&mut self, tower: &TimingTower) -> ControlFlow<()> {

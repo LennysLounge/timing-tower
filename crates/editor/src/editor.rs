@@ -249,10 +249,16 @@ fn tree_view_elements(ui: &mut Ui, _selected_node: &mut Option<Uuid>, style: &mu
 
     if let Some(drop_action) = tree_res.drag_drop_action {
         if tree_res.dropped {
-            SearchVisitor::new(drop_action.drag_id, |_| {
-                println!("found the damn thing");
+            let _drop_allowed = SearchVisitor::new(drop_action.drag_id, |dragged| {
+                SearchVisitor::new(drop_action.drop_id, |dropped| {
+                    let x = dropped.as_any();
+                    return true;
+                })
+                .search_in(&style.def)
             })
-            .search_in(&style.def);
+            .search_in(&style.def)
+            .flatten()
+            .unwrap_or(false);
         }
     }
 

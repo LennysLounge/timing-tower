@@ -1,4 +1,4 @@
-use std::ops::ControlFlow;
+use std::{any::Any, ops::ControlFlow};
 
 use super::{
     assets::AssetDefinition,
@@ -7,6 +7,20 @@ use super::{
     variables::VariableDefinition,
     StyleDefinition,
 };
+pub trait StyleNode: ToAny + Visitable {}
+impl<T> StyleNode for T where T: ToAny + Visitable {}
+
+pub trait ToAny {
+    fn as_any(&self) -> &dyn Any;
+}
+impl<T> ToAny for T
+where
+    T: Visitable + 'static,
+{
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+}
 
 pub trait Visitable {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()>;

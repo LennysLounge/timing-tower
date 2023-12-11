@@ -7,7 +7,11 @@ use backend::{
     style::{visitor::StyleNode, StyleDefinition},
 };
 use bevy::{
-    ecs::{event::EventWriter, system::Res},
+    app::First,
+    ecs::{
+        event::{EventReader, EventWriter},
+        system::Res,
+    },
     math::vec3,
     prelude::{
         resource_exists, IntoSystemConfigs, Plugin, Query, ResMut, Resource, Startup, Update, With,
@@ -24,16 +28,13 @@ use uuid::Uuid;
 
 use crate::{
     reference_store::{ReferenceStore, ReferenceStorePlugin},
-    style::{
-        visitors::{
-            drop_allowed::DropAllowedVisitor,
-            insert::InsertNodeVisitor,
-            property_editor::PropertyEditorVisitor,
-            remove::RemoveNodeVisitor,
-            search::{SearchVisitor, SearchVisitorMut},
-            tree_view::TreeViewVisitor,
-        },
-        StyleModel,
+    style::visitors::{
+        drop_allowed::DropAllowedVisitor,
+        insert::InsertNodeVisitor,
+        property_editor::PropertyEditorVisitor,
+        remove::RemoveNodeVisitor,
+        search::{SearchVisitor, SearchVisitorMut},
+        tree_view::TreeViewVisitor,
     },
     MainCamera,
 };
@@ -51,7 +52,8 @@ impl Plugin for EditorPlugin {
                 Update,
                 ui.run_if(resource_exists::<EditorState>())
                     .before(camera::set_camera_viewport),
-            );
+            )
+            .add_systems(First, savefile_changed);
     }
 }
 
@@ -63,6 +65,7 @@ fn setup(mut ctx: EguiContexts) {
 pub struct EditorState {
     dock_state: DockState<Tab>,
     selected_node: Option<Uuid>,
+    style: StyleDefinition,
 }
 impl EditorState {
     pub fn new() -> Self {
@@ -78,8 +81,21 @@ impl EditorState {
         Self {
             selected_node: None,
             dock_state: state,
+            style: StyleDefinition::default(),
         }
     }
+}
+
+fn savefile_changed(
+    savefile: Res<Savefile>,
+    mut editor_state: ResMut<EditorState>,
+    mut savefile_changed_event: EventReader<SavefileChanged>,
+) {
+    if savefile_changed_event.is_empty() {
+        return;
+    }
+    savefile_changed_event.clear();
+    editor_state.style = savefile.style().clone();
 }
 
 enum Tab {
@@ -93,7 +109,7 @@ enum Tab {
 struct EditorTabViewer<'a> {
     viewport: &'a mut Rect,
     selected_node: &'a mut Option<Uuid>,
-    style: &'a mut StyleModel,
+    style: &'a mut StyleDefinition,
     style_changed: &'a mut bool,
     reference_store: &'a ReferenceStore,
 }
@@ -117,7 +133,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
             }
             Tab::Elements => {
                 *self.style_changed |=
-                    tree_view(ui, self.selected_node, &mut self.style.def.timing_tower);
+                    tree_view(ui, self.selected_node, &mut self.style.timing_tower);
             }
             Tab::PropertyEditor => {
                 property_editor(
@@ -129,11 +145,10 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 );
             }
             Tab::Variables => {
-                *self.style_changed |= tree_view(ui, self.selected_node, &mut self.style.def.vars);
+                *self.style_changed |= tree_view(ui, self.selected_node, &mut self.style.vars);
             }
             Tab::Assets => {
-                *self.style_changed |=
-                    tree_view(ui, self.selected_node, &mut self.style.def.assets);
+                *self.style_changed |= tree_view(ui, self.selected_node, &mut self.style.assets);
             }
         }
     }
@@ -197,10 +212,10 @@ fn ui(
     let EditorState {
         dock_state,
         selected_node,
+        style,
     } = &mut *state;
     let viewport = &mut editor_camera.single_mut().0.raw_viewport;
     let mut style_changed = false;
-    let mut style_model = StyleModel::new(savefile.style());
     DockArea::new(dock_state)
         .style(egui_dock::Style::from_egui(ctx.ctx_mut().style().as_ref()))
         .show(
@@ -208,15 +223,14 @@ fn ui(
             &mut EditorTabViewer {
                 viewport,
                 selected_node,
-                style: &mut style_model,
+                style: style,
                 style_changed: &mut style_changed,
                 reference_store: &reference_store,
             },
         );
 
     if style_changed {
-        println!("style was changed.");
-        savefile.set(&style_model.def, &mut save_file_changed);
+        savefile.set(style.clone(), &mut save_file_changed);
     }
 }
 
@@ -291,7 +305,7 @@ fn tree_view(ui: &mut Ui, _selected_node: &mut Option<Uuid>, node: &mut impl Sty
 fn property_editor(
     ui: &mut Ui,
     selected_id: &mut Option<Uuid>,
-    style: &mut StyleModel,
+    style: &mut StyleDefinition,
     changed: &mut bool,
     reference_store: &ReferenceStore,
 ) {
@@ -305,11 +319,7 @@ fn property_editor(
             *changed |= SearchVisitorMut::new(*selected_id, |selected_node| {
                 PropertyEditorVisitor::new(ui, reference_store).apply_to(selected_node)
             })
-            .search_in(&mut style.def)
+            .search_in(style)
             .unwrap_or(false);
-
-            // if let Some(selected_node) = selected_node.as_ref().and_then(|id| style.find_mut(id)) {
-            //     *changed |= selected_node.property_editor(ui, &reference_store);
-            // }
         });
 }

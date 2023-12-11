@@ -28,7 +28,7 @@ impl<'a, T> SearchVisitor<'a, T> {
     }
     fn test(&mut self, id: &Uuid, visitable: &dyn StyleNode) -> ControlFlow<()> {
         if &self.id == id {
-            (self.action)(visitable);
+            self.output = Some((self.action)(visitable));
             ControlFlow::Break(())
         } else {
             ControlFlow::Continue(())

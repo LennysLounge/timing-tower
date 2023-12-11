@@ -1,4 +1,4 @@
-use std::ops::ControlFlow;
+use std::{any::TypeId, ops::ControlFlow};
 
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -9,6 +9,8 @@ pub trait FolderInfo: StyleNode {
     fn id(&self) -> &Uuid;
     fn name(&self) -> &str;
     fn as_style_node(&self) -> &dyn StyleNode;
+    fn content_type_id(&self) -> TypeId;
+    fn own_type_id(&self) -> TypeId;
 }
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Folder<T> {
@@ -65,6 +67,14 @@ where
 
     fn as_style_node(&self) -> &dyn StyleNode {
         self
+    }
+
+    fn content_type_id(&self) -> TypeId {
+        TypeId::of::<T>()
+    }
+
+    fn own_type_id(&self) -> TypeId {
+        TypeId::of::<Self>()
     }
 }
 impl<T> Visitable for Folder<T>

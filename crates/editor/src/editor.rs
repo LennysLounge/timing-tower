@@ -4,7 +4,7 @@ use std::{fs::File, io::Write};
 
 use backend::{
     savefile::{Savefile, SavefileChanged},
-    style::{visitor::Visitable, StyleDefinition},
+    style::{visitor::StyleNode, StyleDefinition},
 };
 use bevy::{
     ecs::{event::EventWriter, system::Res},
@@ -20,18 +20,17 @@ use bevy_egui::{
 };
 use egui_dock::{DockArea, DockState, NodeIndex, TabViewer};
 use tracing::error;
-use tree_view::TreeViewBuilder;
 use uuid::Uuid;
 
 use crate::{
     reference_store::{ReferenceStore, ReferenceStorePlugin},
     style::{
-        tree::{StyleTreeNode, TreeViewAction},
+        tree::StyleTreeNode,
         visitors::{
             drop_allowed::DropAllowedVisitor, insert::InsertNodeVisitor, remove::RemoveNodeVisitor,
             search::SearchVisitor, tree_view::TreeViewVisitor,
         },
-        StyleDefinitionUiThings, StyleModel,
+        StyleModel,
     },
     MainCamera,
 };
@@ -114,7 +113,8 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 *self.viewport = ui.clip_rect();
             }
             Tab::Elements => {
-                *self.style_changed |= tree_view_elements(ui, self.selected_node, self.style);
+                *self.style_changed |=
+                    tree_view(ui, self.selected_node, &mut self.style.def.timing_tower);
             }
             Tab::PropertyEditor => {
                 property_editor(
@@ -126,10 +126,11 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 );
             }
             Tab::Variables => {
-                tree_view_vars(ui, self.selected_node, self.style);
+                *self.style_changed |= tree_view(ui, self.selected_node, &mut self.style.def.vars);
             }
             Tab::Assets => {
-                tree_view_assets(ui, self.selected_node, self.style);
+                *self.style_changed |=
+                    tree_view(ui, self.selected_node, &mut self.style.def.assets);
             }
         }
     }
@@ -237,11 +238,7 @@ fn save_style(style: &StyleDefinition) {
     }
 }
 
-fn tree_view_elements(
-    ui: &mut Ui,
-    _selected_node: &mut Option<Uuid>,
-    style: &mut StyleModel,
-) -> bool {
+fn tree_view(ui: &mut Ui, _selected_node: &mut Option<Uuid>, node: &mut impl StyleNode) -> bool {
     let mut changed = false;
     let tree_res = ScrollArea::vertical()
         .show(ui, |ui| {
@@ -249,7 +246,7 @@ fn tree_view_elements(
                 ui,
                 ui.make_persistent_id("element_tree_view"),
                 |root| {
-                    style.def.walk(&mut TreeViewVisitor { builder: root });
+                    node.walk(&mut TreeViewVisitor { builder: root });
                 },
             )
         })
@@ -260,9 +257,9 @@ fn tree_view_elements(
             SearchVisitor::new(drop_action.drop_id, |dropped| {
                 DropAllowedVisitor::new(dragged.as_any()).test(dropped)
             })
-            .search_in(&style.def)
+            .search_in(node)
         })
-        .search_in(&style.def)
+        .search_in(node)
         .flatten()
         .unwrap_or(false);
 
@@ -272,116 +269,16 @@ fn tree_view_elements(
 
         if tree_res.dropped && drop_allowed {
             if let Some(removed_node) =
-                RemoveNodeVisitor::new(drop_action.drag_id).remove_from(&mut style.def)
+                RemoveNodeVisitor::new(drop_action.drag_id).remove_from(node)
             {
                 InsertNodeVisitor::new(drop_action.drop_id, drop_action.position, removed_node)
-                    .insert_into(&mut style.def);
+                    .insert_into(node);
             }
 
             changed = true;
         }
     }
     changed
-
-    // let mut actions = Vec::new();
-    // let res = TreeViewBuilder::new()
-    //     .selected(*selected_node)
-    //     .show(ui, |ui| {
-    //         style.tree_view_elements(ui, &mut actions);
-    //     });
-    // *selected_node = res.selected;
-
-    // // Set the curso to no drop to show if the drop is not allowed
-    // if let Some(hovered_action) = &res.hovered {
-    //     if !style.can_drop(hovered_action) {
-    //         ui.ctx().set_cursor_icon(egui::CursorIcon::NoDrop);
-    //     }
-    // }
-
-    // // perform the drop action.
-    // if let Some(drop_action) = &res.dropped {
-    //     style.perform_drop(drop_action);
-    // }
-
-    // for action in actions {
-    //     match action {
-    //         TreeViewAction::Insert {
-    //             target,
-    //             node,
-    //             position,
-    //         } => StyleDefinitionUiThings::insert(style, &target, node, position),
-    //         TreeViewAction::Remove { node } => StyleDefinitionUiThings::remove(style, &node),
-    //         TreeViewAction::Select { node } => *selected_node = Some(node),
-    //     }
-    // }
-}
-
-fn tree_view_vars(ui: &mut Ui, selected_node: &mut Option<Uuid>, style: &mut StyleModel) {
-    let mut actions = Vec::new();
-    let res = TreeViewBuilder::new()
-        .selected(*selected_node)
-        .show(ui, |ui| {
-            style.tree_view_variables(ui, &mut actions);
-        });
-    *selected_node = res.selected;
-
-    // Set the curso to no drop to show if the drop is not allowed
-    if let Some(hovered_action) = &res.hovered {
-        if !style.can_drop(hovered_action) {
-            ui.ctx().set_cursor_icon(egui::CursorIcon::NoDrop);
-        }
-    }
-
-    // perform the drop action.
-    if let Some(drop_action) = &res.dropped {
-        style.perform_drop(drop_action);
-    }
-
-    for action in actions {
-        match action {
-            TreeViewAction::Insert {
-                target,
-                node,
-                position,
-            } => StyleDefinitionUiThings::insert(style, &target, node, position),
-            TreeViewAction::Remove { node } => StyleDefinitionUiThings::remove(style, &node),
-            TreeViewAction::Select { node } => *selected_node = Some(node),
-        }
-    }
-}
-
-fn tree_view_assets(ui: &mut Ui, selected_node: &mut Option<Uuid>, style: &mut StyleModel) {
-    let mut actions = Vec::new();
-    let res = TreeViewBuilder::new()
-        .selected(*selected_node)
-        .show(ui, |ui| {
-            style.tree_view_assets(ui, &mut actions);
-        });
-    *selected_node = res.selected;
-
-    // Set the curso to no drop to show if the drop is not allowed
-    if let Some(hovered_action) = &res.hovered {
-        if !style.can_drop(hovered_action) {
-            ui.ctx().set_cursor_icon(egui::CursorIcon::NoDrop);
-        }
-    }
-
-    // perform the drop action.
-    if let Some(drop_action) = &res.dropped {
-        style.perform_drop(drop_action);
-    }
-
-    for action in actions {
-        match action {
-            TreeViewAction::Insert {
-                target,
-                node,
-                position,
-            } => StyleDefinitionUiThings::insert(style, &target, node, position),
-            TreeViewAction::Remove { node } => StyleDefinitionUiThings::remove(style, &node),
-            TreeViewAction::Select { node } => *selected_node = Some(node),
-        }
-    }
 }
 
 fn property_editor(

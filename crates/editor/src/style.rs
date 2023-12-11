@@ -21,6 +21,7 @@ pub mod visitors {
     pub mod remove;
     pub mod search;
     pub mod tree_view;
+    pub mod property_editor;
 }
 
 pub struct StyleModel {

@@ -7,7 +7,10 @@ use super::visitor::{NodeVisitor, NodeVisitorMut, StyleNode, Visitable};
 
 pub trait FolderInfo: StyleNode {
     fn name(&self) -> &str;
+    fn name_mut(&mut self) -> &mut String;
+    fn renameable(&self) -> bool;
     fn as_style_node(&self) -> &dyn StyleNode;
+    fn as_style_node_mut(&mut self) -> &mut dyn StyleNode;
     fn content_type_id(&self) -> TypeId;
     fn own_type_id(&self) -> TypeId;
     fn content(&self) -> Vec<&dyn StyleNode>;
@@ -63,7 +66,19 @@ where
         &self.name
     }
 
+    fn name_mut(&mut self) -> &mut String {
+        &mut self.name
+    }
+
+    fn renameable(&self) -> bool {
+        self.renameable
+    }
+
     fn as_style_node(&self) -> &dyn StyleNode {
+        self
+    }
+
+    fn as_style_node_mut(&mut self) -> &mut dyn StyleNode {
         self
     }
 

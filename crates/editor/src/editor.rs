@@ -25,10 +25,13 @@ use uuid::Uuid;
 use crate::{
     reference_store::{ReferenceStore, ReferenceStorePlugin},
     style::{
-        tree::StyleTreeNode,
         visitors::{
-            drop_allowed::DropAllowedVisitor, insert::InsertNodeVisitor, remove::RemoveNodeVisitor,
-            search::SearchVisitor, tree_view::TreeViewVisitor,
+            drop_allowed::DropAllowedVisitor,
+            insert::InsertNodeVisitor,
+            property_editor::PropertyEditorVisitor,
+            remove::RemoveNodeVisitor,
+            search::{SearchVisitor, SearchVisitorMut},
+            tree_view::TreeViewVisitor,
         },
         StyleModel,
     },
@@ -287,16 +290,26 @@ fn tree_view(ui: &mut Ui, _selected_node: &mut Option<Uuid>, node: &mut impl Sty
 
 fn property_editor(
     ui: &mut Ui,
-    selected_node: &mut Option<Uuid>,
+    selected_id: &mut Option<Uuid>,
     style: &mut StyleModel,
     changed: &mut bool,
     reference_store: &ReferenceStore,
 ) {
+    let Some(selected_id) = selected_id else {
+        return;
+    };
+
     ScrollArea::vertical()
         .auto_shrink([false, false])
         .show(ui, |ui| {
-            if let Some(selected_node) = selected_node.as_ref().and_then(|id| style.find_mut(id)) {
-                *changed |= selected_node.property_editor(ui, &reference_store);
-            }
+            *changed |= SearchVisitorMut::new(*selected_id, |selected_node| {
+                PropertyEditorVisitor::new(ui, reference_store).apply_to(selected_node)
+            })
+            .search_in(&mut style.def)
+            .unwrap_or(false);
+
+            // if let Some(selected_node) = selected_node.as_ref().and_then(|id| style.find_mut(id)) {
+            //     *changed |= selected_node.property_editor(ui, &reference_store);
+            // }
         });
 }

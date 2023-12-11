@@ -3,7 +3,6 @@ use bevy_egui::egui::{vec2, ComboBox, InnerResponse, Response, Ui};
 use crate::{
     properties::{PropertyEditor, ValueTypeEditor},
     reference_store::ReferenceStore,
-    style::AttributeEditor,
 };
 use backend::{
     style::variables::map::{Input, Map, NumberComparator, Output, TextComparator, UntypedOutput},
@@ -12,115 +11,113 @@ use backend::{
 
 use super::EguiComboBoxExtension;
 
-impl AttributeEditor for Map {
-    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
-        let mut changed = false;
+pub fn property_editor(ui: &mut Ui, value: &mut Map, asset_repo: &ReferenceStore) -> bool {
+    let mut changed = false;
 
-        ui.horizontal(|ui| {
-            ui.label("Map input: ");
+    ui.horizontal(|ui| {
+        ui.label("Map input: ");
 
-            let InnerResponse {
-                inner: new_untyped_ref,
-                response: _,
-            } = asset_repo.untyped_editor(ui, &self.input.input_id(), |v| match v.value_type {
-                ValueType::Number => true,
-                ValueType::Text => true,
-                _ => false,
-            });
+        let InnerResponse {
+            inner: new_untyped_ref,
+            response: _,
+        } = asset_repo.untyped_editor(ui, &value.input.input_id(), |v| match v.value_type {
+            ValueType::Number => true,
+            ValueType::Text => true,
+            _ => false,
+        });
 
-            if let Some(new_untyped_ref) = new_untyped_ref {
-                // Only update the actual input reference
-                if new_untyped_ref.value_type == self.input.value_type() {
-                    match &mut self.input {
-                        Input::Number { input, .. } => *input = new_untyped_ref.typed(),
-                        Input::Text { input, .. } => *input = new_untyped_ref.typed(),
-                    }
-                } else {
-                    // Change the entire type of the input to match the new reference.
-                    self.input = match new_untyped_ref.value_type {
-                        ValueType::Number => Input::Number {
-                            input: new_untyped_ref.typed(),
-                            cases: Vec::new(),
-                        },
-                        ValueType::Text => Input::Text {
-                            input: new_untyped_ref.typed(),
-                            cases: Vec::new(),
-                        },
-                        ValueType::Tint => unreachable!("Type Color not allowed in comparison"),
-                        ValueType::Boolean => {
-                            unreachable!("Type Boolean not allowed in comparison")
-                        }
-                        ValueType::Texture => unreachable!("Type Image not allowed in comparison"),
-                    };
-                    self.output.clear();
+        if let Some(new_untyped_ref) = new_untyped_ref {
+            // Only update the actual input reference
+            if new_untyped_ref.value_type == value.input.value_type() {
+                match &mut value.input {
+                    Input::Number { input, .. } => *input = new_untyped_ref.typed(),
+                    Input::Text { input, .. } => *input = new_untyped_ref.typed(),
                 }
-                changed |= true;
-            };
-        });
-        ui.horizontal(|ui| {
-            ui.label("to type: ");
-
-            let count = self.input.case_count();
-            changed |= ComboBox::from_id_source(ui.next_auto_id())
-                .choose(
-                    ui,
-                    &mut self.output,
-                    vec![
-                        (UntypedOutput::Number(Output::with_count(count)), "Number"),
-                        (UntypedOutput::Text(Output::with_count(count)), "Text"),
-                        (UntypedOutput::Tint(Output::with_count(count)), "Color"),
-                        (UntypedOutput::Boolean(Output::with_count(count)), "Yes/No"),
-                        (UntypedOutput::Texture(Output::with_count(count)), "Image"),
-                    ],
-                )
-                .changed();
-        });
-        ui.separator();
-
-        let mut remove_case = None;
-        for index in 0..self.input.case_count() {
-            ui.horizontal(|ui| {
-                changed |= input_edit_case(&mut self.input, ui, asset_repo, index);
-                ui.allocate_space(vec2(10.0, 0.0));
-                ui.label("then");
-                ui.allocate_space(vec2(10.0, 0.0));
-                ui.horizontal(|ui| {
-                    changed |=
-                        untyped_output_edit_case(&mut self.output, ui, asset_repo, index).changed();
-                });
-            });
-            if ui.small_button("remove").clicked() {
-                remove_case = Some(index);
+            } else {
+                // Change the entire type of the input to match the new reference.
+                value.input = match new_untyped_ref.value_type {
+                    ValueType::Number => Input::Number {
+                        input: new_untyped_ref.typed(),
+                        cases: Vec::new(),
+                    },
+                    ValueType::Text => Input::Text {
+                        input: new_untyped_ref.typed(),
+                        cases: Vec::new(),
+                    },
+                    ValueType::Tint => unreachable!("Type Color not allowed in comparison"),
+                    ValueType::Boolean => {
+                        unreachable!("Type Boolean not allowed in comparison")
+                    }
+                    ValueType::Texture => unreachable!("Type Image not allowed in comparison"),
+                };
+                value.output.clear();
             }
-            ui.separator();
-        }
+            changed |= true;
+        };
+    });
+    ui.horizontal(|ui| {
+        ui.label("to type: ");
 
-        if let Some(index) = remove_case {
-            self.input.remove(index);
-            self.output.remove(index);
-        }
+        let count = value.input.case_count();
+        changed |= ComboBox::from_id_source(ui.next_auto_id())
+            .choose(
+                ui,
+                &mut value.output,
+                vec![
+                    (UntypedOutput::Number(Output::with_count(count)), "Number"),
+                    (UntypedOutput::Text(Output::with_count(count)), "Text"),
+                    (UntypedOutput::Tint(Output::with_count(count)), "Color"),
+                    (UntypedOutput::Boolean(Output::with_count(count)), "Yes/No"),
+                    (UntypedOutput::Texture(Output::with_count(count)), "Image"),
+                ],
+            )
+            .changed();
+    });
+    ui.separator();
 
+    let mut remove_case = None;
+    for index in 0..value.input.case_count() {
         ui.horizontal(|ui| {
-            ui.label("Default:");
-            changed |= untyped_output_edit_default(&mut self.output, ui, asset_repo).changed();
+            changed |= input_edit_case(&mut value.input, ui, asset_repo, index);
+            ui.allocate_space(vec2(10.0, 0.0));
+            ui.label("then");
+            ui.allocate_space(vec2(10.0, 0.0));
+            ui.horizontal(|ui| {
+                changed |=
+                    untyped_output_edit_case(&mut value.output, ui, asset_repo, index).changed();
+            });
         });
+        if ui.small_button("remove").clicked() {
+            remove_case = Some(index);
+        }
         ui.separator();
-
-        if ui.button("add case").clicked() {
-            self.input.push();
-            self.output.push();
-        }
-
-        if self.input.case_count() != self.output.case_count() {
-            panic!(
-                "Case counts in map are different. This should never happen. inputs: {}, outputs:{}",
-                self.input.case_count(),
-                self.output.case_count()
-            );
-        }
-
-        changed
     }
+
+    if let Some(index) = remove_case {
+        value.input.remove(index);
+        value.output.remove(index);
+    }
+
+    ui.horizontal(|ui| {
+        ui.label("Default:");
+        changed |= untyped_output_edit_default(&mut value.output, ui, asset_repo).changed();
+    });
+    ui.separator();
+
+    if ui.button("add case").clicked() {
+        value.input.push();
+        value.output.push();
+    }
+
+    if value.input.case_count() != value.output.case_count() {
+        panic!(
+            "Case counts in map are different. This should never happen. inputs: {}, outputs:{}",
+            value.input.case_count(),
+            value.output.case_count()
+        );
+    }
+
+    changed
 }
 
 fn input_edit_case(

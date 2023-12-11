@@ -79,11 +79,11 @@ impl StyleTreeUi for VariableDefinition {
         });
 
         ui.separator();
-        changed |= match &mut self.behavior {
-            VariableBehavior::FixedValue(o) => o.property_editor(ui, asset_repo),
-            VariableBehavior::Condition(o) => o.property_editor(ui, asset_repo),
-            VariableBehavior::Map(o) => o.property_editor(ui, asset_repo),
-        };
+        // changed |= match &mut self.behavior {
+        //     VariableBehavior::FixedValue(o) => o.property_editor(ui, asset_repo),
+        //     VariableBehavior::Condition(o) => o.property_editor(ui, asset_repo),
+        //     VariableBehavior::Map(o) => o.property_editor(ui, asset_repo),
+        // };
         changed
     }
 }

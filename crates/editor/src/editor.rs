@@ -27,7 +27,7 @@ use crate::{
     reference_store::{ReferenceStore, ReferenceStorePlugin},
     style::{
         tree::{StyleTreeNode, TreeViewAction},
-        visitors::tree_view::TreeViewVisitor,
+        visitors::{search::SearchVisitor, tree_view::TreeViewVisitor},
         StyleDefinitionUiThings, StyleModel,
     },
     MainCamera,
@@ -235,7 +235,7 @@ fn save_style(style: &StyleDefinition) {
 }
 
 fn tree_view_elements(ui: &mut Ui, _selected_node: &mut Option<Uuid>, style: &mut StyleModel) {
-    let _tree_res = ScrollArea::vertical()
+    let tree_res = ScrollArea::vertical()
         .show(ui, |ui| {
             egui_ltreeview::TreeViewBuilder::new(
                 ui,
@@ -246,6 +246,15 @@ fn tree_view_elements(ui: &mut Ui, _selected_node: &mut Option<Uuid>, style: &mu
             )
         })
         .inner;
+
+    if let Some(drop_action) = tree_res.drag_drop_action {
+        if tree_res.dropped {
+            SearchVisitor::new(drop_action.drag_id, |_| {
+                println!("found the damn thing");
+            })
+            .search_in(&style.def);
+        }
+    }
 
     // let mut actions = Vec::new();
     // let res = TreeViewBuilder::new()

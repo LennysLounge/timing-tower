@@ -5,9 +5,10 @@ use uuid::Uuid;
 
 use super::visitor::{NodeVisitor, NodeVisitorMut, Visitable};
 
-pub trait FolderInfo {
+pub trait FolderInfo: Visitable {
     fn id(&self) -> &Uuid;
     fn name(&self) -> &str;
+    fn as_visitable(&self) -> &dyn Visitable;
 }
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Folder<T> {
@@ -50,13 +51,20 @@ impl<T> Folder<T> {
             .collect()
     }
 }
-impl<T> FolderInfo for Folder<T> {
+impl<T> FolderInfo for Folder<T>
+where
+    T: Visitable,
+{
     fn id(&self) -> &Uuid {
         &self.id
     }
 
     fn name(&self) -> &str {
         &self.name
+    }
+
+    fn as_visitable(&self) -> &dyn Visitable {
+        self
     }
 }
 impl<T> Visitable for Folder<T>

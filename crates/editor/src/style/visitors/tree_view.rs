@@ -1,13 +1,6 @@
 use std::ops::ControlFlow;
 
-use backend::style::{
-    assets::AssetDefinition,
-    folder::FolderInfo,
-    timing_tower::{TimingTower, TimingTowerColumn, TimingTowerRow, TimingTowerTable},
-    variables::VariableDefinition,
-    visitor::NodeVisitor,
-    StyleDefinition,
-};
+use backend::style::{definitions::*, visitor::NodeVisitor};
 use egui_ltreeview::TreeViewBuilder;
 
 pub struct TreeViewVisitor<'a> {

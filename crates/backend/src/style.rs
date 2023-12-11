@@ -4,10 +4,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use self::{
-    assets::AssetDefinition,
-    folder::Folder,
-    timing_tower::TimingTower,
-    variables::VariableDefinition,
+    definitions::*,
     visitor::{NodeVisitor, NodeVisitorMut, Visitable},
 };
 
@@ -17,6 +14,16 @@ pub mod folder;
 pub mod timing_tower;
 pub mod variables;
 pub mod visitor;
+
+pub mod definitions {
+    pub use self::super::{
+        assets::AssetDefinition,
+        folder::{Folder, FolderInfo},
+        timing_tower::{TimingTower, TimingTowerColumn, TimingTowerRow, TimingTowerTable},
+        variables::VariableDefinition,
+        StyleDefinition,
+    };
+}
 
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct StyleDefinition {

@@ -3,555 +3,521 @@
   "assets": {
     "id": "b97dba75-b71c-4cce-b761-c1689ea33585",
     "name": "Assets",
+    "renameable": false,
     "content": [
       {
-        "Folder": {
-          "id": "bd6a3f41-6897-41d6-94ed-b02beaca3762",
-          "name": "Constructors",
-          "content": [
-            {
-              "T": {
-                "id": "b7ba5250-cf78-4146-a7c8-f2b85adc4c5f",
-                "name": "Alpine",
-                "value_type": "Texture",
-                "path": "constructors/Alpine.png"
-              }
-            },
-            {
-              "T": {
-                "id": "3eee3a38-140e-453e-8830-4f256ee83e07",
-                "name": "Aston-Martin",
-                "value_type": "Texture",
-                "path": "constructors/Aston-Martin.png"
-              }
-            },
-            {
-              "T": {
-                "id": "1e8814f4-16dd-4ad9-be24-2ea075bcff6a",
-                "name": "Audi",
-                "value_type": "Texture",
-                "path": "constructors/Audi.png"
-              }
-            },
-            {
-              "T": {
-                "id": "ecfb2bad-459a-4b64-b8ed-5d5147053ea2",
-                "name": "Bentley",
-                "value_type": "Texture",
-                "path": "constructors/Bentley.png"
-              }
-            },
-            {
-              "T": {
-                "id": "ecd425a6-2490-484b-9979-a19933de1193",
-                "name": "BMW",
-                "value_type": "Texture",
-                "path": "constructors/BMW.png"
-              }
-            },
-            {
-              "T": {
-                "id": "48368915-4dcb-443b-8f6e-d6ace044ced9",
-                "name": "Chevrolet",
-                "value_type": "Texture",
-                "path": "constructors/Chevrolet.png"
-              }
-            },
-            {
-              "T": {
-                "id": "62823f7e-db28-4087-a148-79d943b6ecfc",
-                "name": "Error",
-                "value_type": "Texture",
-                "path": "constructors/Error.png"
-              }
-            },
-            {
-              "T": {
-                "id": "afcae1d6-f887-4417-bdfb-c09e91116adb",
-                "name": "Ferrari",
-                "value_type": "Texture",
-                "path": "constructors/Ferrari.png"
-              }
-            },
-            {
-              "T": {
-                "id": "77133dec-724a-491a-b2ce-fd2888a78ab1",
-                "name": "Ginetta",
-                "value_type": "Texture",
-                "path": "constructors/Ginetta.png"
-              }
-            },
-            {
-              "T": {
-                "id": "c0432571-650f-4fdc-a708-aa9a01117590",
-                "name": "Honda",
-                "value_type": "Texture",
-                "path": "constructors/Honda.png"
-              }
-            },
-            {
-              "T": {
-                "id": "95dc96a9-97ce-436b-bf78-8465e0929ce9",
-                "name": "Jaguar",
-                "value_type": "Texture",
-                "path": "constructors/Jaguar.png"
-              }
-            },
-            {
-              "T": {
-                "id": "922570d9-792b-4555-aa52-65f1d890996b",
-                "name": "KTM",
-                "value_type": "Texture",
-                "path": "constructors/KTM.png"
-              }
-            },
-            {
-              "T": {
-                "id": "fc0aba26-4d09-41a8-982a-d2534c9fdb8c",
-                "name": "Lamborghini",
-                "value_type": "Texture",
-                "path": "constructors/Lamborghini.png"
-              }
-            },
-            {
-              "T": {
-                "id": "66146a86-cb01-437f-814d-5c86efd5a777",
-                "name": "Lexus",
-                "value_type": "Texture",
-                "path": "constructors/Lexus.png"
-              }
-            },
-            {
-              "T": {
-                "id": "230297a5-ff60-494e-acba-5af35c4f7e99",
-                "name": "Maserati",
-                "value_type": "Texture",
-                "path": "constructors/Maserati.png"
-              }
-            },
-            {
-              "T": {
-                "id": "2295c661-0609-483d-b3df-248efa705f9d",
-                "name": "McLaren",
-                "value_type": "Texture",
-                "path": "constructors/McLaren.png"
-              }
-            },
-            {
-              "T": {
-                "id": "d0edeef4-f187-44df-9c65-d81d405d8062",
-                "name": "Mercedes-AMG",
-                "value_type": "Texture",
-                "path": "constructors/Mercedes-AMG.png"
-              }
-            },
-            {
-              "T": {
-                "id": "1f2524af-9c72-495e-89e2-fda763f2ee18",
-                "name": "Nissan",
-                "value_type": "Texture",
-                "path": "constructors/Nissan.png"
-              }
-            },
-            {
-              "T": {
-                "id": "4971fafb-479d-470f-8afd-b85e6820a396",
-                "name": "Porsche",
-                "value_type": "Texture",
-                "path": "constructors/Porsche.png"
-              }
-            },
-            {
-              "T": {
-                "id": "109ecca7-9500-4c6a-b496-95a8da13d299",
-                "name": "Reiter-Engineering",
-                "value_type": "Texture",
-                "path": "constructors/Reiter-Engineering.png"
-              }
-            }
-          ],
-          "renameable": true
-        }
+        "folder_type": "Folder",
+        "id": "bd6a3f41-6897-41d6-94ed-b02beaca3762",
+        "name": "Constructors",
+        "renameable": true,
+        "content": [
+          {
+            "folder_type": "T",
+            "id": "b7ba5250-cf78-4146-a7c8-f2b85adc4c5f",
+            "name": "Alpine",
+            "value_type": "Texture",
+            "path": "constructors/Alpine.png"
+          },
+          {
+            "folder_type": "T",
+            "id": "3eee3a38-140e-453e-8830-4f256ee83e07",
+            "name": "Aston-Martin",
+            "value_type": "Texture",
+            "path": "constructors/Aston-Martin.png"
+          },
+          {
+            "folder_type": "T",
+            "id": "1e8814f4-16dd-4ad9-be24-2ea075bcff6a",
+            "name": "Audi",
+            "value_type": "Texture",
+            "path": "constructors/Audi.png"
+          },
+          {
+            "folder_type": "T",
+            "id": "ecfb2bad-459a-4b64-b8ed-5d5147053ea2",
+            "name": "Bentley",
+            "value_type": "Texture",
+            "path": "constructors/Bentley.png"
+          },
+          {
+            "folder_type": "T",
+            "id": "ecd425a6-2490-484b-9979-a19933de1193",
+            "name": "BMW",
+            "value_type": "Texture",
+            "path": "constructors/BMW.png"
+          },
+          {
+            "folder_type": "T",
+            "id": "48368915-4dcb-443b-8f6e-d6ace044ced9",
+            "name": "Chevrolet",
+            "value_type": "Texture",
+            "path": "constructors/Chevrolet.png"
+          },
+          {
+            "folder_type": "T",
+            "id": "62823f7e-db28-4087-a148-79d943b6ecfc",
+            "name": "Error",
+            "value_type": "Texture",
+            "path": "constructors/Error.png"
+          },
+          {
+            "folder_type": "T",
+            "id": "afcae1d6-f887-4417-bdfb-c09e91116adb",
+            "name": "Ferrari",
+            "value_type": "Texture",
+            "path": "constructors/Ferrari.png"
+          },
+          {
+            "folder_type": "T",
+            "id": "77133dec-724a-491a-b2ce-fd2888a78ab1",
+            "name": "Ginetta",
+            "value_type": "Texture",
+            "path": "constructors/Ginetta.png"
+          },
+          {
+            "folder_type": "T",
+            "id": "c0432571-650f-4fdc-a708-aa9a01117590",
+            "name": "Honda",
+            "value_type": "Texture",
+            "path": "constructors/Honda.png"
+          },
+          {
+            "folder_type": "T",
+            "id": "95dc96a9-97ce-436b-bf78-8465e0929ce9",
+            "name": "Jaguar",
+            "value_type": "Texture",
+            "path": "constructors/Jaguar.png"
+          },
+          {
+            "folder_type": "T",
+            "id": "922570d9-792b-4555-aa52-65f1d890996b",
+            "name": "KTM",
+            "value_type": "Texture",
+            "path": "constructors/KTM.png"
+          },
+          {
+            "folder_type": "T",
+            "id": "fc0aba26-4d09-41a8-982a-d2534c9fdb8c",
+            "name": "Lamborghini",
+            "value_type": "Texture",
+            "path": "constructors/Lamborghini.png"
+          },
+          {
+            "folder_type": "T",
+            "id": "66146a86-cb01-437f-814d-5c86efd5a777",
+            "name": "Lexus",
+            "value_type": "Texture",
+            "path": "constructors/Lexus.png"
+          },
+          {
+            "folder_type": "T",
+            "id": "230297a5-ff60-494e-acba-5af35c4f7e99",
+            "name": "Maserati",
+            "value_type": "Texture",
+            "path": "constructors/Maserati.png"
+          },
+          {
+            "folder_type": "T",
+            "id": "2295c661-0609-483d-b3df-248efa705f9d",
+            "name": "McLaren",
+            "value_type": "Texture",
+            "path": "constructors/McLaren.png"
+          },
+          {
+            "folder_type": "T",
+            "id": "d0edeef4-f187-44df-9c65-d81d405d8062",
+            "name": "Mercedes-AMG",
+            "value_type": "Texture",
+            "path": "constructors/Mercedes-AMG.png"
+          },
+          {
+            "folder_type": "T",
+            "id": "1f2524af-9c72-495e-89e2-fda763f2ee18",
+            "name": "Nissan",
+            "value_type": "Texture",
+            "path": "constructors/Nissan.png"
+          },
+          {
+            "folder_type": "T",
+            "id": "4971fafb-479d-470f-8afd-b85e6820a396",
+            "name": "Porsche",
+            "value_type": "Texture",
+            "path": "constructors/Porsche.png"
+          },
+          {
+            "folder_type": "T",
+            "id": "109ecca7-9500-4c6a-b496-95a8da13d299",
+            "name": "Reiter-Engineering",
+            "value_type": "Texture",
+            "path": "constructors/Reiter-Engineering.png"
+          }
+        ]
       },
       {
-        "T": {
-          "id": "819d2f30-0d03-413a-8f09-9a0afa58b3ed",
-          "name": "background",
-          "value_type": "Texture",
-          "path": "acc6.PNG"
-        }
+        "folder_type": "T",
+        "id": "819d2f30-0d03-413a-8f09-9a0afa58b3ed",
+        "name": "background",
+        "value_type": "Texture",
+        "path": "acc6.PNG"
       }
-    ],
-    "renameable": false
+    ]
   },
   "vars": {
     "id": "934a2987-34c0-4b50-b463-f5e6c4e3c4ec",
     "name": "Variables",
     "content": [
       {
-        "Folder": {
-          "id": "a594010f-a612-402e-8bc7-6446c602e1bd",
-          "name": "Colors",
-          "content": [
-            {
-              "Folder": {
-                "id": "f0fab6a7-a6c3-4d46-b05c-f417c04c5be1",
-                "name": "Driver categories",
-                "content": [
-                  {
-                    "T": {
-                      "id": "5a657363-96fc-4329-a580-8ed41b85405e",
-                      "name": "Gold/Plat",
-                      "behavior": "FixedValue",
-                      "output_type": "Tint",
-                      "Rgba": {
-                        "red": 1.0,
-                        "green": 1.0,
-                        "blue": 1.0,
-                        "alpha": 1.0
-                      }
-                    }
-                  },
-                  {
-                    "T": {
-                      "id": "ecdfcaf2-d808-4fca-b118-88aee5d1b495",
-                      "name": "Silver",
-                      "behavior": "FixedValue",
-                      "output_type": "Tint",
-                      "Rgba": {
-                        "red": 0.40197778,
-                        "green": 0.40197778,
-                        "blue": 0.40197778,
-                        "alpha": 1.0
-                      }
-                    }
-                  },
-                  {
-                    "T": {
-                      "id": "7a126bfa-2fb7-464f-9ed1-1f92665d9460",
-                      "name": "Bronze",
-                      "behavior": "FixedValue",
-                      "output_type": "Tint",
-                      "Rgba": {
-                        "red": 0.8950744,
-                        "green": 0.0,
-                        "blue": 0.0,
-                        "alpha": 1.0
-                      }
-                    }
-                  }
-                ],
-                "renameable": true
-              }
-            },
-            {
-              "T": {
-                "id": "e41f142f-2026-4126-9dc4-bed03fecd31e",
-                "name": "Manufacturer",
+        "folder_type": "Folder",
+        "id": "a594010f-a612-402e-8bc7-6446c602e1bd",
+        "name": "Colors",
+        "content": [
+          {
+            "folder_type": "Folder",
+            "id": "f0fab6a7-a6c3-4d46-b05c-f417c04c5be1",
+            "name": "Driver categories",
+            "content": [
+              {
+                "folder_type": "T",
+                "id": "5a657363-96fc-4329-a580-8ed41b85405e",
+                "name": "Gold/Plat",
                 "behavior": "FixedValue",
                 "output_type": "Tint",
                 "Rgba": {
-                  "red": 0.8549927,
-                  "green": 0.8549927,
-                  "blue": 0.8549927,
+                  "red": 1.0,
+                  "green": 1.0,
+                  "blue": 1.0,
                   "alpha": 1.0
                 }
-              }
-            },
-            {
-              "T": {
-                "id": "e63c62b8-900a-476d-973b-2b0f12fb7b26",
-                "name": "Position",
+              },
+              {
+                "folder_type": "T",
+                "id": "ecdfcaf2-d808-4fca-b118-88aee5d1b495",
+                "name": "Silver",
                 "behavior": "FixedValue",
                 "output_type": "Tint",
                 "Rgba": {
-                  "red": 0.0,
+                  "red": 0.40197778,
+                  "green": 0.40197778,
+                  "blue": 0.40197778,
+                  "alpha": 1.0
+                }
+              },
+              {
+                "folder_type": "T",
+                "id": "7a126bfa-2fb7-464f-9ed1-1f92665d9460",
+                "name": "Bronze",
+                "behavior": "FixedValue",
+                "output_type": "Tint",
+                "Rgba": {
+                  "red": 0.8950744,
                   "green": 0.0,
                   "blue": 0.0,
                   "alpha": 1.0
                 }
               }
-            },
-            {
-              "T": {
-                "id": "3b9c1864-f07f-46ca-aa86-01cba7629860",
-                "name": "Position selected",
-                "behavior": "FixedValue",
-                "output_type": "Tint",
-                "Rgba": {
-                  "red": 0.8649127,
-                  "green": 0.0,
-                  "blue": 0.0,
-                  "alpha": 1.0
-                }
-              }
-            }
-          ],
-          "renameable": true
-        }
-      },
-      {
-        "T": {
-          "id": "e86a2ae3-6486-4941-bee9-b063f3ff0152",
-          "name": "position color",
-          "behavior": "Condition",
-          "comparison_type": "Boolean",
-          "left": "de909160-f54b-40cf-a987-6a8453df0914",
-          "comparator": "Is",
-          "right": true,
-          "output_type": "Color",
-          "truee": {
-            "ValueRef": "3b9c1864-f07f-46ca-aa86-01cba7629860"
+            ],
+            "renameable": true
           },
-          "falsee": {
-            "ValueRef": "e63c62b8-900a-476d-973b-2b0f12fb7b26"
-          }
-        }
-      },
-      {
-        "T": {
-          "id": "8536ebf5-82e1-41e3-bc37-b713534a7780",
-          "name": "Cup category background",
-          "behavior": "Map",
-          "input_type": "Number",
-          "input_ref": "4d519d42-52e9-435c-b614-8d70b42ed3b0",
-          "input_cases": [
-            {
-              "right": 0.0,
-              "comparator": "Equal"
-            },
-            {
-              "right": 3.0,
-              "comparator": "Equal"
-            },
-            {
-              "right": 2.0,
-              "comparator": "Equal"
+          {
+            "folder_type": "T",
+            "id": "e41f142f-2026-4126-9dc4-bed03fecd31e",
+            "name": "Manufacturer",
+            "behavior": "FixedValue",
+            "output_type": "Tint",
+            "Rgba": {
+              "red": 0.8549927,
+              "green": 0.8549927,
+              "blue": 0.8549927,
+              "alpha": 1.0
             }
-          ],
-          "output_type": "Tint",
-          "output_cases": [
-            {
-              "ValueRef": "5a657363-96fc-4329-a580-8ed41b85405e"
-            },
-            {
-              "ValueRef": "ecdfcaf2-d808-4fca-b118-88aee5d1b495"
-            },
-            {
-              "ValueRef": "7a126bfa-2fb7-464f-9ed1-1f92665d9460"
-            }
-          ],
-          "default": {
-            "ValueRef": "5a657363-96fc-4329-a580-8ed41b85405e"
-          }
-        }
-      },
-      {
-        "T": {
-          "id": "925dacee-265f-45ee-baf8-668e3005a03d",
-          "name": "Cup Category text color",
-          "behavior": "Map",
-          "input_type": "Number",
-          "input_ref": "4d519d42-52e9-435c-b614-8d70b42ed3b0",
-          "input_cases": [
-            {
-              "right": 0.0,
-              "comparator": "Equal"
-            },
-            {
-              "right": 2.0,
-              "comparator": "Equal"
-            },
-            {
-              "right": 3.0,
-              "comparator": "Equal"
-            }
-          ],
-          "output_type": "Tint",
-          "output_cases": [
-            {
-              "Rgba": {
-                "red": 0.0,
-                "green": 0.0,
-                "blue": 0.0,
-                "alpha": 1.0
-              }
-            },
-            {
-              "Rgba": {
-                "red": 0.0,
-                "green": 0.0,
-                "blue": 0.0,
-                "alpha": 1.0
-              }
-            },
-            {
-              "Rgba": {
-                "red": 1.0,
-                "green": 1.0,
-                "blue": 1.0,
-                "alpha": 1.0
-              }
-            }
-          ],
-          "default": {
+          },
+          {
+            "folder_type": "T",
+            "id": "e63c62b8-900a-476d-973b-2b0f12fb7b26",
+            "name": "Position",
+            "behavior": "FixedValue",
+            "output_type": "Tint",
             "Rgba": {
               "red": 0.0,
               "green": 0.0,
               "blue": 0.0,
               "alpha": 1.0
             }
+          },
+          {
+            "folder_type": "T",
+            "id": "3b9c1864-f07f-46ca-aa86-01cba7629860",
+            "name": "Position selected",
+            "behavior": "FixedValue",
+            "output_type": "Tint",
+            "Rgba": {
+              "red": 0.8649127,
+              "green": 0.0,
+              "blue": 0.0,
+              "alpha": 1.0
+            }
+          }
+        ],
+        "renameable": true
+      },
+      {
+        "folder_type": "T",
+        "id": "e86a2ae3-6486-4941-bee9-b063f3ff0152",
+        "name": "position color",
+        "behavior": "Condition",
+        "comparison_type": "Boolean",
+        "left": "de909160-f54b-40cf-a987-6a8453df0914",
+        "comparator": "Is",
+        "right": true,
+        "output_type": "Color",
+        "truee": {
+          "ValueRef": "3b9c1864-f07f-46ca-aa86-01cba7629860"
+        },
+        "falsee": {
+          "ValueRef": "e63c62b8-900a-476d-973b-2b0f12fb7b26"
+        }
+      },
+      {
+        "folder_type": "T",
+        "id": "8536ebf5-82e1-41e3-bc37-b713534a7780",
+        "name": "Cup category background",
+        "behavior": "Map",
+        "input_type": "Number",
+        "input_ref": "4d519d42-52e9-435c-b614-8d70b42ed3b0",
+        "input_cases": [
+          {
+            "right": 0.0,
+            "comparator": "Equal"
+          },
+          {
+            "right": 3.0,
+            "comparator": "Equal"
+          },
+          {
+            "right": 2.0,
+            "comparator": "Equal"
+          }
+        ],
+        "output_type": "Tint",
+        "output_cases": [
+          {
+            "ValueRef": "5a657363-96fc-4329-a580-8ed41b85405e"
+          },
+          {
+            "ValueRef": "ecdfcaf2-d808-4fca-b118-88aee5d1b495"
+          },
+          {
+            "ValueRef": "7a126bfa-2fb7-464f-9ed1-1f92665d9460"
+          }
+        ],
+        "default": {
+          "ValueRef": "5a657363-96fc-4329-a580-8ed41b85405e"
+        }
+      },
+      {
+        "folder_type": "T",
+        "id": "925dacee-265f-45ee-baf8-668e3005a03d",
+        "name": "Cup Category text color",
+        "behavior": "Map",
+        "input_type": "Number",
+        "input_ref": "4d519d42-52e9-435c-b614-8d70b42ed3b0",
+        "input_cases": [
+          {
+            "right": 0.0,
+            "comparator": "Equal"
+          },
+          {
+            "right": 2.0,
+            "comparator": "Equal"
+          },
+          {
+            "right": 3.0,
+            "comparator": "Equal"
+          }
+        ],
+        "output_type": "Tint",
+        "output_cases": [
+          {
+            "Rgba": {
+              "red": 0.0,
+              "green": 0.0,
+              "blue": 0.0,
+              "alpha": 1.0
+            }
+          },
+          {
+            "Rgba": {
+              "red": 0.0,
+              "green": 0.0,
+              "blue": 0.0,
+              "alpha": 1.0
+            }
+          },
+          {
+            "Rgba": {
+              "red": 1.0,
+              "green": 1.0,
+              "blue": 1.0,
+              "alpha": 1.0
+            }
+          }
+        ],
+        "default": {
+          "Rgba": {
+            "red": 0.0,
+            "green": 0.0,
+            "blue": 0.0,
+            "alpha": 1.0
           }
         }
       },
       {
-        "T": {
-          "id": "94d9d538-676d-4ea9-a72c-923b054a2b6d",
-          "name": "Manufacturer icons",
-          "behavior": "Map",
-          "input_type": "Text",
-          "input_ref": "d1a60628-1ac7-4ad4-a502-95bc649edf07",
-          "input_cases": [
-            {
-              "right": "Alpine",
-              "comparator": "Like"
-            },
-            {
-              "right": "Aston-Martin",
-              "comparator": "Like"
-            },
-            {
-              "right": "Audi",
-              "comparator": "Like"
-            },
-            {
-              "right": "Bentley",
-              "comparator": "Like"
-            },
-            {
-              "right": "BMW",
-              "comparator": "Like"
-            },
-            {
-              "right": "Chevrolet",
-              "comparator": "Like"
-            },
-            {
-              "right": "Ferrari",
-              "comparator": "Like"
-            },
-            {
-              "right": "Ginetta",
-              "comparator": "Like"
-            },
-            {
-              "right": "Honda",
-              "comparator": "Like"
-            },
-            {
-              "right": "Jaguar",
-              "comparator": "Like"
-            },
-            {
-              "right": "KTM",
-              "comparator": "Like"
-            },
-            {
-              "right": "Lamborghini",
-              "comparator": "Like"
-            },
-            {
-              "right": "Lexus",
-              "comparator": "Like"
-            },
-            {
-              "right": "Maserati",
-              "comparator": "Like"
-            },
-            {
-              "right": "McLaren",
-              "comparator": "Like"
-            },
-            {
-              "right": "Mercedes-AMG",
-              "comparator": "Like"
-            },
-            {
-              "right": "Nissan",
-              "comparator": "Like"
-            },
-            {
-              "right": "Porsche",
-              "comparator": "Like"
-            },
-            {
-              "right": "Reiter-Engineering",
-              "comparator": "Like"
-            }
-          ],
-          "output_type": "Texture",
-          "output_cases": [
-            {
-              "ValueRef": "b7ba5250-cf78-4146-a7c8-f2b85adc4c5f"
-            },
-            {
-              "ValueRef": "3eee3a38-140e-453e-8830-4f256ee83e07"
-            },
-            {
-              "ValueRef": "1e8814f4-16dd-4ad9-be24-2ea075bcff6a"
-            },
-            {
-              "ValueRef": "ecfb2bad-459a-4b64-b8ed-5d5147053ea2"
-            },
-            {
-              "ValueRef": "ecd425a6-2490-484b-9979-a19933de1193"
-            },
-            {
-              "ValueRef": "48368915-4dcb-443b-8f6e-d6ace044ced9"
-            },
-            {
-              "ValueRef": "afcae1d6-f887-4417-bdfb-c09e91116adb"
-            },
-            {
-              "ValueRef": "77133dec-724a-491a-b2ce-fd2888a78ab1"
-            },
-            {
-              "ValueRef": "c0432571-650f-4fdc-a708-aa9a01117590"
-            },
-            {
-              "ValueRef": "95dc96a9-97ce-436b-bf78-8465e0929ce9"
-            },
-            {
-              "ValueRef": "922570d9-792b-4555-aa52-65f1d890996b"
-            },
-            {
-              "ValueRef": "fc0aba26-4d09-41a8-982a-d2534c9fdb8c"
-            },
-            {
-              "ValueRef": "66146a86-cb01-437f-814d-5c86efd5a777"
-            },
-            {
-              "ValueRef": "230297a5-ff60-494e-acba-5af35c4f7e99"
-            },
-            {
-              "ValueRef": "2295c661-0609-483d-b3df-248efa705f9d"
-            },
-            {
-              "ValueRef": "d0edeef4-f187-44df-9c65-d81d405d8062"
-            },
-            {
-              "ValueRef": "1f2524af-9c72-495e-89e2-fda763f2ee18"
-            },
-            {
-              "ValueRef": "4971fafb-479d-470f-8afd-b85e6820a396"
-            },
-            {
-              "ValueRef": "109ecca7-9500-4c6a-b496-95a8da13d299"
-            }
-          ],
-          "default": {
-            "ValueRef": "62823f7e-db28-4087-a148-79d943b6ecfc"
+        "folder_type": "T",
+        "id": "94d9d538-676d-4ea9-a72c-923b054a2b6d",
+        "name": "Manufacturer icons",
+        "behavior": "Map",
+        "input_type": "Text",
+        "input_ref": "d1a60628-1ac7-4ad4-a502-95bc649edf07",
+        "input_cases": [
+          {
+            "right": "Alpine",
+            "comparator": "Like"
+          },
+          {
+            "right": "Aston-Martin",
+            "comparator": "Like"
+          },
+          {
+            "right": "Audi",
+            "comparator": "Like"
+          },
+          {
+            "right": "Bentley",
+            "comparator": "Like"
+          },
+          {
+            "right": "BMW",
+            "comparator": "Like"
+          },
+          {
+            "right": "Chevrolet",
+            "comparator": "Like"
+          },
+          {
+            "right": "Ferrari",
+            "comparator": "Like"
+          },
+          {
+            "right": "Ginetta",
+            "comparator": "Like"
+          },
+          {
+            "right": "Honda",
+            "comparator": "Like"
+          },
+          {
+            "right": "Jaguar",
+            "comparator": "Like"
+          },
+          {
+            "right": "KTM",
+            "comparator": "Like"
+          },
+          {
+            "right": "Lamborghini",
+            "comparator": "Like"
+          },
+          {
+            "right": "Lexus",
+            "comparator": "Like"
+          },
+          {
+            "right": "Maserati",
+            "comparator": "Like"
+          },
+          {
+            "right": "McLaren",
+            "comparator": "Like"
+          },
+          {
+            "right": "Mercedes-AMG",
+            "comparator": "Like"
+          },
+          {
+            "right": "Nissan",
+            "comparator": "Like"
+          },
+          {
+            "right": "Porsche",
+            "comparator": "Like"
+          },
+          {
+            "right": "Reiter-Engineering",
+            "comparator": "Like"
           }
+        ],
+        "output_type": "Texture",
+        "output_cases": [
+          {
+            "ValueRef": "b7ba5250-cf78-4146-a7c8-f2b85adc4c5f"
+          },
+          {
+            "ValueRef": "3eee3a38-140e-453e-8830-4f256ee83e07"
+          },
+          {
+            "ValueRef": "1e8814f4-16dd-4ad9-be24-2ea075bcff6a"
+          },
+          {
+            "ValueRef": "ecfb2bad-459a-4b64-b8ed-5d5147053ea2"
+          },
+          {
+            "ValueRef": "ecd425a6-2490-484b-9979-a19933de1193"
+          },
+          {
+            "ValueRef": "48368915-4dcb-443b-8f6e-d6ace044ced9"
+          },
+          {
+            "ValueRef": "afcae1d6-f887-4417-bdfb-c09e91116adb"
+          },
+          {
+            "ValueRef": "77133dec-724a-491a-b2ce-fd2888a78ab1"
+          },
+          {
+            "ValueRef": "c0432571-650f-4fdc-a708-aa9a01117590"
+          },
+          {
+            "ValueRef": "95dc96a9-97ce-436b-bf78-8465e0929ce9"
+          },
+          {
+            "ValueRef": "922570d9-792b-4555-aa52-65f1d890996b"
+          },
+          {
+            "ValueRef": "fc0aba26-4d09-41a8-982a-d2534c9fdb8c"
+          },
+          {
+            "ValueRef": "66146a86-cb01-437f-814d-5c86efd5a777"
+          },
+          {
+            "ValueRef": "230297a5-ff60-494e-acba-5af35c4f7e99"
+          },
+          {
+            "ValueRef": "2295c661-0609-483d-b3df-248efa705f9d"
+          },
+          {
+            "ValueRef": "d0edeef4-f187-44df-9c65-d81d405d8062"
+          },
+          {
+            "ValueRef": "1f2524af-9c72-495e-89e2-fda763f2ee18"
+          },
+          {
+            "ValueRef": "4971fafb-479d-470f-8afd-b85e6820a396"
+          },
+          {
+            "ValueRef": "109ecca7-9500-4c6a-b496-95a8da13d299"
+          }
+        ],
+        "default": {
+          "ValueRef": "62823f7e-db28-4087-a148-79d943b6ecfc"
         }
       }
     ],
@@ -698,283 +664,277 @@
         },
         "columns": [
           {
-            "T": {
-              "id": "7d96c8c6-c978-4258-83c4-9504bccf7256",
-              "cell": {
-                "text": {
-                  "ValueRef": "6330a6bb-51d1-4af7-9bd0-efeb00b1ff52"
-                },
-                "text_color": {
-                  "Rgba": {
-                    "red": 1.0,
-                    "green": 1.0,
-                    "blue": 1.0,
-                    "alpha": 1.0
-                  }
-                },
-                "text_size": 19.5,
-                "color": {
-                  "ValueRef": "e86a2ae3-6486-4941-bee9-b063f3ff0152"
-                },
-                "image": "None",
-                "pos": {
-                  "x": 0.0,
-                  "y": 0.0,
-                  "z": 3.0
-                },
-                "size": {
-                  "x": 36.0,
-                  "y": 36.0
-                },
-                "skew": 12.0,
-                "visible": true,
-                "rounding": {
-                  "top_left": 12.0,
-                  "top_right": 0.0,
-                  "bot_left": 3.0,
-                  "bot_right": 0.0
-                },
-                "text_alginment": "Center",
-                "text_position": {
-                  "x": 24.5,
-                  "y": 18.0
+            "folder_type": "T",
+            "id": "7d96c8c6-c978-4258-83c4-9504bccf7256",
+            "cell": {
+              "text": {
+                "ValueRef": "6330a6bb-51d1-4af7-9bd0-efeb00b1ff52"
+              },
+              "text_color": {
+                "Rgba": {
+                  "red": 1.0,
+                  "green": 1.0,
+                  "blue": 1.0,
+                  "alpha": 1.0
                 }
               },
-              "name": "position"
-            }
+              "text_size": 19.5,
+              "color": {
+                "ValueRef": "e86a2ae3-6486-4941-bee9-b063f3ff0152"
+              },
+              "image": "None",
+              "pos": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 3.0
+              },
+              "size": {
+                "x": 36.0,
+                "y": 36.0
+              },
+              "skew": 12.0,
+              "visible": true,
+              "rounding": {
+                "top_left": 12.0,
+                "top_right": 0.0,
+                "bot_left": 3.0,
+                "bot_right": 0.0
+              },
+              "text_alginment": "Center",
+              "text_position": {
+                "x": 24.5,
+                "y": 18.0
+              }
+            },
+            "name": "position"
           },
           {
-            "T": {
-              "id": "95ab724b-b056-4e76-8153-2f9265aac3cb",
-              "cell": {
-                "text": {
-                  "ValueRef": "8abcf9d5-60f7-4886-a716-139d62ad83ac"
-                },
-                "text_color": {
-                  "Rgba": {
-                    "red": 1.0,
-                    "green": 1.0,
-                    "blue": 1.0,
-                    "alpha": 1.0
-                  }
-                },
-                "text_size": 19.5,
-                "color": {
-                  "Rgba": {
-                    "red": 0.0,
-                    "green": 0.0,
-                    "blue": 0.0,
-                    "alpha": 0.6904762
-                  }
-                },
-                "image": "None",
-                "pos": {
-                  "x": 32.0,
-                  "y": 0.0,
-                  "z": 0.0
-                },
-                "size": {
-                  "x": 250.0,
-                  "y": 36.0
-                },
-                "skew": 0.0,
-                "visible": true,
-                "rounding": {
-                  "top_left": 0.0,
-                  "top_right": 0.0,
-                  "bot_left": 0.0,
-                  "bot_right": 0.0
-                },
-                "text_alginment": "Left",
-                "text_position": {
-                  "x": 21.0,
-                  "y": 18.0
+            "folder_type": "T",
+            "id": "95ab724b-b056-4e76-8153-2f9265aac3cb",
+            "cell": {
+              "text": {
+                "ValueRef": "8abcf9d5-60f7-4886-a716-139d62ad83ac"
+              },
+              "text_color": {
+                "Rgba": {
+                  "red": 1.0,
+                  "green": 1.0,
+                  "blue": 1.0,
+                  "alpha": 1.0
                 }
               },
-              "name": "driver name"
-            }
+              "text_size": 19.5,
+              "color": {
+                "Rgba": {
+                  "red": 0.0,
+                  "green": 0.0,
+                  "blue": 0.0,
+                  "alpha": 0.6904762
+                }
+              },
+              "image": "None",
+              "pos": {
+                "x": 32.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "size": {
+                "x": 250.0,
+                "y": 36.0
+              },
+              "skew": 0.0,
+              "visible": true,
+              "rounding": {
+                "top_left": 0.0,
+                "top_right": 0.0,
+                "bot_left": 0.0,
+                "bot_right": 0.0
+              },
+              "text_alginment": "Left",
+              "text_position": {
+                "x": 21.0,
+                "y": 18.0
+              }
+            },
+            "name": "driver name"
           },
           {
-            "T": {
-              "id": "f7b469e0-7ee6-4553-bba5-1d6b361cb949",
-              "cell": {
-                "text": "",
-                "text_color": {
-                  "Rgba": {
-                    "red": 0.0,
-                    "green": 0.0,
-                    "blue": 0.0,
-                    "alpha": 1.0
-                  }
-                },
-                "text_size": 20.0,
-                "color": {
-                  "ValueRef": "e41f142f-2026-4126-9dc4-bed03fecd31e"
-                },
-                "image": "None",
-                "pos": {
-                  "x": 189.0,
-                  "y": 0.0,
-                  "z": 0.5
-                },
-                "size": {
-                  "x": 36.0,
-                  "y": 36.0
-                },
-                "skew": 0.0,
-                "visible": true,
-                "rounding": {
-                  "top_left": 0.0,
-                  "top_right": 0.0,
-                  "bot_left": 0.0,
-                  "bot_right": 0.0
-                },
-                "text_alginment": "Left",
-                "text_position": {
-                  "x": 5.0,
-                  "y": 15.0
+            "folder_type": "T",
+            "id": "f7b469e0-7ee6-4553-bba5-1d6b361cb949",
+            "cell": {
+              "text": "",
+              "text_color": {
+                "Rgba": {
+                  "red": 0.0,
+                  "green": 0.0,
+                  "blue": 0.0,
+                  "alpha": 1.0
                 }
               },
-              "name": "manufacturer bg"
-            }
+              "text_size": 20.0,
+              "color": {
+                "ValueRef": "e41f142f-2026-4126-9dc4-bed03fecd31e"
+              },
+              "image": "None",
+              "pos": {
+                "x": 189.0,
+                "y": 0.0,
+                "z": 0.5
+              },
+              "size": {
+                "x": 36.0,
+                "y": 36.0
+              },
+              "skew": 0.0,
+              "visible": true,
+              "rounding": {
+                "top_left": 0.0,
+                "top_right": 0.0,
+                "bot_left": 0.0,
+                "bot_right": 0.0
+              },
+              "text_alginment": "Left",
+              "text_position": {
+                "x": 5.0,
+                "y": 15.0
+              }
+            },
+            "name": "manufacturer bg"
           },
           {
-            "T": {
-              "id": "408863e5-c4d7-4721-bb58-2a3887551ea5",
-              "cell": {
-                "text": "",
-                "text_color": {
-                  "Rgba": {
-                    "red": 1.0,
-                    "green": 1.0,
-                    "blue": 1.0,
-                    "alpha": 1.0
-                  }
-                },
-                "text_size": 20.0,
-                "color": {
-                  "ValueRef": "e41f142f-2026-4126-9dc4-bed03fecd31e"
-                },
-                "image": {
-                  "ValueRef": "94d9d538-676d-4ea9-a72c-923b054a2b6d"
-                },
-                "pos": {
-                  "x": 191.0,
-                  "y": 2.0,
-                  "z": 1.0
-                },
-                "size": {
-                  "x": 32.0,
-                  "y": 32.0
-                },
-                "skew": 0.0,
-                "visible": true,
-                "rounding": {
-                  "top_left": 0.0,
-                  "top_right": 0.0,
-                  "bot_left": 0.0,
-                  "bot_right": 0.0
-                },
-                "text_alginment": "Center",
-                "text_position": {
-                  "x": 18.0,
-                  "y": 18.0
+            "folder_type": "T",
+            "id": "408863e5-c4d7-4721-bb58-2a3887551ea5",
+            "cell": {
+              "text": "",
+              "text_color": {
+                "Rgba": {
+                  "red": 1.0,
+                  "green": 1.0,
+                  "blue": 1.0,
+                  "alpha": 1.0
                 }
               },
-              "name": "manufacturer"
-            }
+              "text_size": 20.0,
+              "color": {
+                "ValueRef": "e41f142f-2026-4126-9dc4-bed03fecd31e"
+              },
+              "image": {
+                "ValueRef": "94d9d538-676d-4ea9-a72c-923b054a2b6d"
+              },
+              "pos": {
+                "x": 191.0,
+                "y": 2.0,
+                "z": 1.0
+              },
+              "size": {
+                "x": 32.0,
+                "y": 32.0
+              },
+              "skew": 0.0,
+              "visible": true,
+              "rounding": {
+                "top_left": 0.0,
+                "top_right": 0.0,
+                "bot_left": 0.0,
+                "bot_right": 0.0
+              },
+              "text_alginment": "Center",
+              "text_position": {
+                "x": 18.0,
+                "y": 18.0
+              }
+            },
+            "name": "manufacturer"
           },
           {
-            "T": {
-              "id": "a275bdc4-ed4a-4dcb-a964-d0646598d64e",
-              "cell": {
-                "text": {
-                  "ValueRef": "171d7438-3179-4c70-b818-811cf86d514e"
-                },
-                "text_color": {
-                  "ValueRef": "925dacee-265f-45ee-baf8-668e3005a03d"
-                },
-                "text_size": 20.0,
-                "color": {
-                  "ValueRef": "8536ebf5-82e1-41e3-bc37-b713534a7780"
-                },
-                "image": "None",
-                "pos": {
-                  "x": 225.0,
-                  "y": 0.0,
-                  "z": 1.0
-                },
-                "size": {
-                  "x": 46.0,
-                  "y": 36.0
-                },
-                "skew": 0.0,
-                "visible": true,
-                "rounding": {
-                  "top_left": 0.0,
-                  "top_right": 0.0,
-                  "bot_left": 0.0,
-                  "bot_right": 0.0
-                },
-                "text_alginment": "Center",
-                "text_position": {
-                  "x": 23.0,
-                  "y": 18.0
-                }
+            "folder_type": "T",
+            "id": "a275bdc4-ed4a-4dcb-a964-d0646598d64e",
+            "cell": {
+              "text": {
+                "ValueRef": "171d7438-3179-4c70-b818-811cf86d514e"
               },
-              "name": "car number"
-            }
+              "text_color": {
+                "ValueRef": "925dacee-265f-45ee-baf8-668e3005a03d"
+              },
+              "text_size": 20.0,
+              "color": {
+                "ValueRef": "8536ebf5-82e1-41e3-bc37-b713534a7780"
+              },
+              "image": "None",
+              "pos": {
+                "x": 225.0,
+                "y": 0.0,
+                "z": 1.0
+              },
+              "size": {
+                "x": 46.0,
+                "y": 36.0
+              },
+              "skew": 0.0,
+              "visible": true,
+              "rounding": {
+                "top_left": 0.0,
+                "top_right": 0.0,
+                "bot_left": 0.0,
+                "bot_right": 0.0
+              },
+              "text_alginment": "Center",
+              "text_position": {
+                "x": 23.0,
+                "y": 18.0
+              }
+            },
+            "name": "car number"
           },
           {
-            "T": {
-              "id": "12b0a701-6b31-4027-8bbb-0c3011998f4c",
-              "cell": {
-                "text": "P",
-                "text_color": {
-                  "Rgba": {
-                    "red": 0.0,
-                    "green": 0.0,
-                    "blue": 0.0,
-                    "alpha": 1.0
-                  }
-                },
-                "text_size": 12.0,
-                "color": {
-                  "Rgba": {
-                    "red": 1.0,
-                    "green": 1.0,
-                    "blue": 1.0,
-                    "alpha": 1.0
-                  }
-                },
-                "image": "None",
-                "pos": {
-                  "x": 271.0,
-                  "y": 0.0,
-                  "z": 5.0
-                },
-                "size": {
-                  "x": 11.0,
-                  "y": 36.0
-                },
-                "skew": 0.0,
-                "visible": {
-                  "ValueRef": "c16f71b9-dcc9-4f04-9579-ea5211fa99be"
-                },
-                "rounding": {
-                  "top_left": 0.0,
-                  "top_right": 0.0,
-                  "bot_left": 0.0,
-                  "bot_right": 0.0
-                },
-                "text_alginment": "Center",
-                "text_position": {
-                  "x": 5.5,
-                  "y": 18.0
+            "folder_type": "T",
+            "id": "12b0a701-6b31-4027-8bbb-0c3011998f4c",
+            "cell": {
+              "text": "P",
+              "text_color": {
+                "Rgba": {
+                  "red": 0.0,
+                  "green": 0.0,
+                  "blue": 0.0,
+                  "alpha": 1.0
                 }
               },
-              "name": "pit indicator"
-            }
+              "text_size": 12.0,
+              "color": {
+                "Rgba": {
+                  "red": 1.0,
+                  "green": 1.0,
+                  "blue": 1.0,
+                  "alpha": 1.0
+                }
+              },
+              "image": "None",
+              "pos": {
+                "x": 271.0,
+                "y": 0.0,
+                "z": 5.0
+              },
+              "size": {
+                "x": 11.0,
+                "y": 36.0
+              },
+              "skew": 0.0,
+              "visible": {
+                "ValueRef": "c16f71b9-dcc9-4f04-9579-ea5211fa99be"
+              },
+              "rounding": {
+                "top_left": 0.0,
+                "top_right": 0.0,
+                "bot_left": 0.0,
+                "bot_right": 0.0
+              },
+              "text_alginment": "Center",
+              "text_position": {
+                "x": 5.5,
+                "y": 18.0
+              }
+            },
+            "name": "pit indicator"
           }
         ]
       }

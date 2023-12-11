@@ -22,8 +22,10 @@ pub trait FolderInfo: StyleNode {
 pub struct Folder<T> {
     pub id: Uuid,
     pub name: String,
-    pub content: Vec<FolderOrT<T>>,
+    #[serde(skip)]
+    #[serde(default)]
     pub renameable: bool,
+    pub content: Vec<FolderOrT<T>>,
 }
 
 impl<T> Default for Folder<T> {
@@ -172,6 +174,7 @@ where
 }
 
 #[derive(Serialize, Deserialize, Clone)]
+#[serde(tag = "folder_type")]
 pub enum FolderOrT<T> {
     T(T),
     Folder(Folder<T>),

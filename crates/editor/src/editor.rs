@@ -27,7 +27,7 @@ use crate::{
     reference_store::{ReferenceStore, ReferenceStorePlugin},
     style::{
         tree::{StyleTreeNode, TreeViewAction},
-        tree_view_visitor::TreeViewVisitor,
+        visitors::tree_view::TreeViewVisitor,
         StyleDefinitionUiThings, StyleModel,
     },
     MainCamera,
@@ -235,15 +235,17 @@ fn save_style(style: &StyleDefinition) {
 }
 
 fn tree_view_elements(ui: &mut Ui, _selected_node: &mut Option<Uuid>, style: &mut StyleModel) {
-    ScrollArea::vertical().show(ui, |ui| {
-        egui_ltreeview::TreeViewBuilder::new(
-            ui,
-            ui.make_persistent_id("element_tree_view"),
-            |root| {
-                style.def.walk(&mut TreeViewVisitor { builder: root });
-            },
-        );
-    });
+    let _tree_res = ScrollArea::vertical()
+        .show(ui, |ui| {
+            egui_ltreeview::TreeViewBuilder::new(
+                ui,
+                ui.make_persistent_id("element_tree_view"),
+                |root| {
+                    style.def.walk(&mut TreeViewVisitor { builder: root });
+                },
+            )
+        })
+        .inner;
 
     // let mut actions = Vec::new();
     // let res = TreeViewBuilder::new()

@@ -2,7 +2,7 @@ use std::any::Any;
 
 use backend::style::StyleDefinition;
 use bevy_egui::egui::Ui;
-use tree_view::{DropAction, DropPosition};
+use tree_view::DropPosition;
 use uuid::Uuid;
 
 use crate::reference_store::ReferenceStore;
@@ -66,49 +66,4 @@ impl StyleTreeNode for StyleModel {
     }
 
     fn insert(&mut self, _node: Box<dyn Any>, _position: &DropPosition) {}
-}
-
-pub trait StyleDefinitionUiThings {
-    fn can_drop(&self, drop_action: &DropAction) -> bool;
-    fn perform_drop(&mut self, drop_action: &DropAction);
-    fn insert(&mut self, target: &Uuid, node: Box<dyn Any>, position: DropPosition);
-    fn remove(&mut self, node: &Uuid);
-}
-impl StyleDefinitionUiThings for StyleModel {
-    fn can_drop(&self, drop_action: &DropAction) -> bool {
-        let dragged = self.find(&drop_action.dragged_node);
-        let target = self.find(&drop_action.target_node);
-        if let (Some(dragged), Some(target)) = (dragged, target) {
-            target.can_insert(dragged.as_any())
-        } else {
-            false
-        }
-    }
-
-    fn perform_drop(&mut self, drop_action: &DropAction) {
-        if !self.can_drop(drop_action) {
-            return;
-        };
-
-        let dragged = self
-            .find_parent_of(&drop_action.dragged_node)
-            .and_then(|parent| parent.remove(&drop_action.dragged_node));
-        let target = self.find_mut(&drop_action.target_node);
-        if let (Some(dragged), Some(target)) = (dragged, target) {
-            target.insert(dragged, &drop_action.position);
-        }
-    }
-
-    fn insert(&mut self, target: &Uuid, node: Box<dyn Any>, position: DropPosition) {
-        if let Some(target) = self.find_mut(&target) {
-            target.insert(node, &position);
-        } else {
-            println!("parent not found id:{}", target);
-        }
-    }
-
-    fn remove(&mut self, node: &Uuid) {
-        self.find_parent_of(&node)
-            .map(|parent| parent.remove(&node));
-    }
 }

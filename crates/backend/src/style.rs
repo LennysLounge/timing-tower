@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use self::{
     definitions::*,
-    visitor::{NodeVisitor, NodeVisitorMut, Visitable},
+    visitor::{NodeVisitor, NodeVisitorMut, Visitable, StyleNode},
 };
 
 pub mod assets;
@@ -32,7 +32,11 @@ pub struct StyleDefinition {
     pub vars: Folder<VariableDefinition>,
     pub timing_tower: TimingTower,
 }
-
+impl StyleNode for StyleDefinition{
+    fn id(&self) -> &Uuid {
+        &self.id
+    }
+}
 impl Visitable for StyleDefinition {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
         self.enter(visitor)?;

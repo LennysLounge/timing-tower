@@ -8,7 +8,7 @@ use crate::value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, V
 
 use self::{condition::Condition, fixed_value::FixedValue, map::Map};
 
-use super::visitor::{NodeVisitor, NodeVisitorMut, Visitable};
+use super::visitor::{NodeVisitor, NodeVisitorMut, Visitable, StyleNode};
 
 pub mod condition;
 pub mod fixed_value;
@@ -47,6 +47,11 @@ impl IntoValueProducer for VariableDefinition {
             VariableBehavior::Map(o) => o.as_typed_producer(),
         };
         (self.id, producer)
+    }
+}
+impl StyleNode for VariableDefinition{
+    fn id(&self) -> &Uuid {
+        &self.id
     }
 }
 impl Visitable for VariableDefinition {

@@ -1,5 +1,7 @@
 use std::{any::Any, ops::ControlFlow};
 
+use uuid::Uuid;
+
 use super::{
     assets::AssetDefinition,
     folder::FolderInfo,
@@ -7,8 +9,9 @@ use super::{
     variables::VariableDefinition,
     StyleDefinition,
 };
-pub trait StyleNode: ToAny + Visitable {}
-impl<T> StyleNode for T where T: ToAny + Visitable {}
+pub trait StyleNode: ToAny + Visitable {
+    fn id(&self) -> &Uuid;
+}
 
 pub trait ToAny {
     fn as_any(&self) -> &dyn Any;

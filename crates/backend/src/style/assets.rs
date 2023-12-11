@@ -10,7 +10,7 @@ use crate::{
 
 use super::{
     variables::StaticValueProducer,
-    visitor::{NodeVisitor, NodeVisitorMut, Visitable},
+    visitor::{NodeVisitor, NodeVisitorMut, StyleNode, Visitable},
 };
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -30,6 +30,11 @@ impl IntoValueProducer for AssetDefinition {
             _ => unreachable!(),
         };
         (self.id, typed_value_producer)
+    }
+}
+impl StyleNode for AssetDefinition {
+    fn id(&self) -> &Uuid {
+        &self.id
     }
 }
 impl Visitable for AssetDefinition {

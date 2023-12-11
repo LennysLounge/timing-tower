@@ -6,11 +6,12 @@ use uuid::Uuid;
 use super::visitor::{NodeVisitor, NodeVisitorMut, StyleNode, Visitable};
 
 pub trait FolderInfo: StyleNode {
-    fn id(&self) -> &Uuid;
     fn name(&self) -> &str;
     fn as_style_node(&self) -> &dyn StyleNode;
     fn content_type_id(&self) -> TypeId;
     fn own_type_id(&self) -> TypeId;
+    fn content(&self) -> Vec<&dyn StyleNode>;
+    fn remove_index(&mut self, index: usize) -> Option<Box<dyn StyleNode>>;
 }
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Folder<T> {
@@ -40,12 +41,12 @@ impl<T> Folder<T> {
             renameable: true,
         }
     }
-    /// Get a reference to all contained things of this folder.
+    /// Get a reference to all contained things of this folder recursively.
     pub fn all_t(&self) -> Vec<&T> {
         self.content.iter().flat_map(|c| c.all_t()).collect()
     }
 
-    /// Get a reference to all contained things of this folder.
+    /// Get a reference to all contained things of this folder recursively.
     pub fn all_t_mut(&mut self) -> Vec<&mut T> {
         self.content
             .iter_mut()
@@ -55,12 +56,8 @@ impl<T> Folder<T> {
 }
 impl<T> FolderInfo for Folder<T>
 where
-    T: Visitable + 'static,
+    T: StyleNode + 'static,
 {
-    fn id(&self) -> &Uuid {
-        &self.id
-    }
-
     fn name(&self) -> &str {
         &self.name
     }
@@ -76,10 +73,35 @@ where
     fn own_type_id(&self) -> TypeId {
         TypeId::of::<Self>()
     }
+
+    fn content(&self) -> Vec<&dyn StyleNode> {
+        self.content
+            .iter()
+            .map(|x| match x {
+                FolderOrT::T(t) => t as &dyn StyleNode,
+                FolderOrT::Folder(f) => f,
+            })
+            .collect()
+    }
+
+    fn remove_index(&mut self, index: usize) -> Option<Box<dyn StyleNode>> {
+        Some(match self.content.remove(index) {
+            FolderOrT::T(t) => Box::new(t),
+            FolderOrT::Folder(f) => Box::new(f),
+        })
+    }
+}
+impl<T> StyleNode for Folder<T>
+where
+    T: StyleNode + 'static,
+{
+    fn id(&self) -> &Uuid {
+        &self.id
+    }
 }
 impl<T> Visitable for Folder<T>
 where
-    T: Visitable + 'static,
+    T: StyleNode + 'static,
 {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
         self.enter(visitor)?;

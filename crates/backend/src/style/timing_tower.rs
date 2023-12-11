@@ -8,7 +8,7 @@ use crate::value_types::Vec2Property;
 use super::{
     cell::Cell,
     folder::Folder,
-    visitor::{NodeVisitor, NodeVisitorMut, Visitable},
+    visitor::{NodeVisitor, NodeVisitorMut, StyleNode, Visitable},
 };
 
 #[derive(Serialize, Deserialize, Clone, Default)]
@@ -16,6 +16,11 @@ pub struct TimingTower {
     pub id: Uuid,
     pub cell: Cell,
     pub table: TimingTowerTable,
+}
+impl StyleNode for TimingTower {
+    fn id(&self) -> &Uuid {
+        &self.id
+    }
 }
 impl Visitable for TimingTower {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
@@ -54,6 +59,11 @@ pub struct TimingTowerTable {
     pub row_offset: Vec2Property,
     pub row: TimingTowerRow,
 }
+impl StyleNode for TimingTowerTable {
+    fn id(&self) -> &Uuid {
+        &self.id
+    }
+}
 impl Visitable for TimingTowerTable {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
         self.enter(visitor)?;
@@ -89,6 +99,11 @@ pub struct TimingTowerRow {
     pub id: Uuid,
     pub cell: Cell,
     pub columns: Folder<TimingTowerColumn>,
+}
+impl StyleNode for TimingTowerRow {
+    fn id(&self) -> &Uuid {
+        &self.id
+    }
 }
 impl Visitable for TimingTowerRow {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
@@ -134,6 +149,11 @@ impl TimingTowerColumn {
             cell: Cell::default(),
             name: "new column".to_string(),
         }
+    }
+}
+impl StyleNode for TimingTowerColumn {
+    fn id(&self) -> &Uuid {
+        &self.id
     }
 }
 impl Visitable for TimingTowerColumn {

@@ -15,7 +15,12 @@ pub mod folder;
 pub mod timing_tower;
 pub mod tree;
 pub mod variables;
-pub mod visitors;
+pub mod visitors {
+    pub mod drop_allowed;
+    pub mod remove;
+    pub mod search;
+    pub mod tree_view;
+}
 
 pub struct StyleModel {
     pub def: StyleDefinition,

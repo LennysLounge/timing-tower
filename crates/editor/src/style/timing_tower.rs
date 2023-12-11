@@ -8,15 +8,9 @@ use bevy_egui::egui::Ui;
 use tree_view::DropPosition;
 use uuid::Uuid;
 
-use crate::{properties::PropertyEditor, reference_store::ReferenceStore};
+use super::{folder::FolderActions, StyleTreeNode, StyleTreeUi, TreeViewAction};
 
-use super::{folder::FolderActions, AttributeEditor, StyleTreeNode, StyleTreeUi, TreeViewAction};
-
-impl StyleTreeUi for TimingTower {
-    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
-        self.cell.property_editor(ui, asset_repo)
-    }
-}
+impl StyleTreeUi for TimingTower {}
 
 impl StyleTreeNode for TimingTower {
     fn id(&self) -> &Uuid {
@@ -42,28 +36,7 @@ impl StyleTreeNode for TimingTower {
     fn insert(&mut self, _node: Box<dyn Any>, _position: &DropPosition) {}
 }
 
-impl StyleTreeUi for TimingTowerTable {
-    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
-        let mut changed = false;
-
-        ui.label("Row offset:");
-        ui.horizontal(|ui| {
-            ui.label("Offset x:");
-            changed |= ui
-                .add(PropertyEditor::new(&mut self.row_offset.x, asset_repo))
-                .changed();
-        });
-        ui.horizontal(|ui| {
-            ui.label("Offset y:");
-            changed |= ui
-                .add(PropertyEditor::new(&mut self.row_offset.y, asset_repo))
-                .changed();
-        });
-        ui.separator();
-        changed |= self.cell.property_editor(ui, asset_repo);
-        changed
-    }
-}
+impl StyleTreeUi for TimingTowerTable {}
 
 impl StyleTreeNode for TimingTowerTable {
     fn id(&self) -> &Uuid {
@@ -89,11 +62,7 @@ impl StyleTreeNode for TimingTowerTable {
     fn insert(&mut self, _node: Box<dyn Any>, _position: &DropPosition) {}
 }
 
-impl StyleTreeUi for TimingTowerRow {
-    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
-        self.cell.property_editor(ui, asset_repo)
-    }
-}
+impl StyleTreeUi for TimingTowerRow {}
 
 impl StyleTreeNode for TimingTowerRow {
     fn id(&self) -> &Uuid {
@@ -121,16 +90,7 @@ impl StyleTreeNode for TimingTowerRow {
     }
 }
 
-impl StyleTreeUi for TimingTowerColumn {
-    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
-        let mut changed = false;
-        ui.label("Name:");
-        changed |= ui.text_edit_singleline(&mut self.name).changed();
-        ui.separator();
-        changed |= self.cell.property_editor(ui, asset_repo);
-        changed
-    }
-}
+impl StyleTreeUi for TimingTowerColumn {}
 
 impl StyleTreeNode for TimingTowerColumn {
     fn id(&self) -> &Uuid {

@@ -5,8 +5,6 @@ use bevy_egui::egui::Ui;
 use tree_view::{DropPosition, TreeUi};
 use uuid::Uuid;
 
-use crate::reference_store::ReferenceStore;
-
 use super::{StyleTreeNode, StyleTreeUi, TreeViewAction};
 
 pub trait FolderActions {
@@ -20,16 +18,7 @@ pub trait FolderActions {
     }
 }
 
-impl<T: StyleTreeNode + FolderActions<FolderType = T>> StyleTreeUi for Folder<T> {
-    fn property_editor(&mut self, ui: &mut Ui, _asset_repo: &ReferenceStore) -> bool {
-        let mut changed = false;
-        if self.renameable {
-            ui.label("Name:");
-            changed |= ui.text_edit_singleline(&mut self.name).changed();
-        }
-        changed
-    }
-}
+impl<T: StyleTreeNode + FolderActions<FolderType = T>> StyleTreeUi for Folder<T> {}
 
 impl<T: StyleTreeNode + FolderActions<FolderType = T>> StyleTreeNode for Folder<T> {
     fn id(&self) -> &Uuid {
@@ -119,14 +108,7 @@ where
     }
 }
 
-impl<T: StyleTreeNode + FolderActions<FolderType = T>> StyleTreeUi for FolderOrT<T> {
-    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
-        match self {
-            FolderOrT::T(o) => o.property_editor(ui, asset_repo),
-            FolderOrT::Folder(o) => o.property_editor(ui, asset_repo),
-        }
-    }
-}
+impl<T: StyleTreeNode + FolderActions<FolderType = T>> StyleTreeUi for FolderOrT<T> {}
 
 impl<T: StyleTreeNode + FolderActions<FolderType = T>> StyleTreeNode for FolderOrT<T> {
     fn id(&self) -> &Uuid {

@@ -1,10 +1,7 @@
 use std::any::Any;
 
-use bevy_egui::egui::Ui;
 use tree_view::DropPosition;
 use uuid::Uuid;
-
-use crate::reference_store::ReferenceStore;
 
 /// Actions that a tree view can produce.
 pub enum TreeViewAction {
@@ -21,14 +18,7 @@ pub enum TreeViewAction {
     },
 }
 
-pub trait StyleTreeUi {
-    #[allow(unused)]
-    /// Display the property editor for this tree node and return true if any fields where changed
-    /// Returns falls if no changes were made to the node.
-    fn property_editor(&mut self, ui: &mut Ui, asset_repo: &ReferenceStore) -> bool {
-        false
-    }
-}
+pub trait StyleTreeUi {}
 
 /// Trait to upcast or change the trait object type.
 pub trait StyleTreeNodeConversions: Any {

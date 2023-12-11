@@ -1,7 +1,7 @@
 use bevy_egui::egui::Ui;
 use uuid::Uuid;
 
-use crate::reference_store::{IntoProducerData, ProducerData, ReferenceStore};
+use crate::reference_store::{IntoProducerData, ProducerData};
 use backend::{
     style::{assets::AssetDefinition, folder::Folder},
     value_types::ValueType,
@@ -61,27 +61,7 @@ impl IntoProducerData for AssetDefinition {
     }
 }
 
-impl StyleTreeUi for AssetDefinition {
-    fn property_editor(&mut self, ui: &mut Ui, _asset_repo: &ReferenceStore) -> bool {
-        let mut changed = false;
-
-        ui.label("Name");
-        changed |= ui.text_edit_singleline(&mut self.name).changed();
-        ui.separator();
-        ui.label("Path:");
-        changed |= ui.text_edit_singleline(&mut self.path).changed();
-        // Feature: Show load state of assets
-        // match self.load_state {
-        //     LoadState::NotLoaded => ui.label("Asset is not loaded"),
-        //     LoadState::Loading => ui.label("Asset is loading"),
-        //     LoadState::Loaded => ui.label("Asset loaded correctly"),
-        //     LoadState::Failed => ui.label(
-        //         "Failed to load the asset. Make sure the path is pointing to a valid image file.",
-        //     ),
-        // };
-        changed
-    }
-}
+impl StyleTreeUi for AssetDefinition {}
 
 impl StyleTreeNode for AssetDefinition {
     fn id(&self) -> &Uuid {

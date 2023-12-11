@@ -1,23 +1,20 @@
 use std::mem::discriminant;
 
-use bevy_egui::egui::{ComboBox, Response, Ui};
+use bevy_egui::egui::{Response, Ui};
 use tree_view::DropPosition;
 use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
-use crate::reference_store::{IntoProducerData, ProducerData, ReferenceStore};
+use crate::reference_store::{IntoProducerData, ProducerData};
 use backend::{
     style::{
         folder::Folder,
-        variables::{
-            condition::Condition, fixed_value::FixedValue, map::Map, VariableBehavior,
-            VariableDefinition,
-        },
+        variables::{VariableBehavior, VariableDefinition},
     },
     value_store::{ValueProducer, ValueStore},
 };
 
-use super::{folder::FolderActions, AttributeEditor, StyleTreeNode, StyleTreeUi, TreeViewAction};
+use super::{folder::FolderActions, StyleTreeNode, StyleTreeUi, TreeViewAction};
 
 pub mod condition;
 pub mod fixed_value;
@@ -37,56 +34,7 @@ impl IntoProducerData for VariableDefinition {
     }
 }
 
-impl StyleTreeUi for VariableDefinition {
-    fn property_editor(
-        &mut self,
-        ui: &mut bevy_egui::egui::Ui,
-        asset_repo: &ReferenceStore,
-    ) -> bool {
-        let mut changed = false;
-
-        ui.label("Name:");
-        changed |= ui.text_edit_singleline(&mut self.name).changed();
-
-        ui.horizontal(|ui| {
-            ui.label("Behavior:");
-            ComboBox::new(ui.next_auto_id(), "")
-                .selected_text(match self.behavior {
-                    VariableBehavior::FixedValue(_) => "Fixed value",
-                    VariableBehavior::Condition(_) => "Condition",
-                    VariableBehavior::Map(_) => "Map",
-                })
-                .show_ui(ui, |ui| {
-                    let is_fixed_value = matches!(self.behavior, VariableBehavior::FixedValue(_));
-                    if ui.selectable_label(is_fixed_value, "Fixed value").clicked()
-                        && !is_fixed_value
-                    {
-                        self.behavior = VariableBehavior::FixedValue(FixedValue::default());
-                        changed |= true;
-                    }
-
-                    let is_condition = matches!(self.behavior, VariableBehavior::Condition(_));
-                    if ui.selectable_label(is_condition, "Condition").clicked() && !is_condition {
-                        self.behavior = VariableBehavior::Condition(Condition::default());
-                        changed = true;
-                    }
-                    let is_map = matches!(self.behavior, VariableBehavior::Map(_));
-                    if ui.selectable_label(is_map, "Map").clicked() && !is_map {
-                        self.behavior = VariableBehavior::Map(Map::default());
-                        changed = true;
-                    }
-                });
-        });
-
-        ui.separator();
-        // changed |= match &mut self.behavior {
-        //     VariableBehavior::FixedValue(o) => o.property_editor(ui, asset_repo),
-        //     VariableBehavior::Condition(o) => o.property_editor(ui, asset_repo),
-        //     VariableBehavior::Map(o) => o.property_editor(ui, asset_repo),
-        // };
-        changed
-    }
-}
+impl StyleTreeUi for VariableDefinition {}
 
 impl StyleTreeNode for VariableDefinition {
     fn id(&self) -> &Uuid {

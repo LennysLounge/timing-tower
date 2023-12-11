@@ -2,6 +2,7 @@ use std::ops::ControlFlow;
 
 use backend::style::{
     definitions::*,
+    folder::FolderOrT,
     visitor::{NodeVisitorMut, StyleNode, Visitable},
 };
 use egui_ltreeview::DropPosition;
@@ -42,6 +43,44 @@ impl NodeVisitorMut for InsertNodeVisitor {
             DropPosition::Before(id) => {
                 if let Some(index) = folder.content().into_iter().position(|s| s.id() == id) {
                     folder.insert_index(index, node);
+                }
+            }
+        }
+        ControlFlow::Break(())
+    }
+
+    fn visit_timing_tower_row(&mut self, row: &mut TimingTowerRow) -> ControlFlow<()> {
+        println!("Hello");
+        if &self.id != row.id() {
+            return ControlFlow::Continue(());
+        }
+        let folder_or_t = {
+            let node = self.node.take().expect("Node should not be empty").to_any();
+            if node.is::<Folder<TimingTowerColumn>>() {
+                let folder = node
+                    .downcast::<Folder<TimingTowerColumn>>()
+                    .expect("Cannot downcast but should");
+                FolderOrT::Folder(*folder)
+            } else if node.is::<TimingTowerColumn>() {
+                let column = node
+                    .downcast::<TimingTowerColumn>()
+                    .expect("Cannot downcast but should");
+                FolderOrT::T(*column)
+            } else {
+                unreachable!("No other types should be inserted into a row");
+            }
+        };
+        match &self.position {
+            DropPosition::First => row.columns.insert(0, folder_or_t),
+            DropPosition::Last => row.columns.push(folder_or_t),
+            DropPosition::After(id) => {
+                if let Some(index) = row.columns.iter().position(|c| c.id() == id) {
+                    row.columns.insert(index + 1, folder_or_t);
+                }
+            }
+            DropPosition::Before(id) => {
+                if let Some(index) = row.columns.iter().position(|c| c.id() == id) {
+                    row.columns.insert(index, folder_or_t);
                 }
             }
         }

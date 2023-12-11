@@ -7,7 +7,7 @@ use crate::value_types::Vec2Property;
 
 use super::{
     cell::Cell,
-    folder::Folder,
+    folder::FolderOrT,
     visitor::{NodeVisitor, NodeVisitorMut, StyleNode, Visitable},
 };
 
@@ -98,7 +98,18 @@ impl Visitable for TimingTowerTable {
 pub struct TimingTowerRow {
     pub id: Uuid,
     pub cell: Cell,
-    pub columns: Folder<TimingTowerColumn>,
+    pub columns: Vec<FolderOrT<TimingTowerColumn>>,
+}
+impl TimingTowerRow {
+    pub fn all_columns(&self) -> Vec<&TimingTowerColumn> {
+        self.columns
+            .iter()
+            .flat_map(|c| match c {
+                FolderOrT::T(t) => vec![t],
+                FolderOrT::Folder(f) => f.all_t(),
+            })
+            .collect()
+    }
 }
 impl StyleNode for TimingTowerRow {
     fn id(&self) -> &Uuid {
@@ -108,7 +119,10 @@ impl StyleNode for TimingTowerRow {
 impl Visitable for TimingTowerRow {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
         self.enter(visitor)?;
-        self.columns.walk(visitor)?;
+        self.columns.iter().try_for_each(|c| match c {
+            FolderOrT::T(t) => t.walk(visitor),
+            FolderOrT::Folder(f) => f.walk(visitor),
+        })?;
         self.leave(visitor)
     }
 
@@ -122,7 +136,10 @@ impl Visitable for TimingTowerRow {
 
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
         self.enter_mut(visitor)?;
-        self.columns.walk_mut(visitor)?;
+        self.columns.iter_mut().try_for_each(|c| match c {
+            FolderOrT::T(t) => t.walk_mut(visitor),
+            FolderOrT::Folder(f) => f.walk_mut(visitor),
+        })?;
         self.leave_mut(visitor)
     }
 

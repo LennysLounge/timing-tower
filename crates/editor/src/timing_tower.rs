@@ -184,7 +184,7 @@ fn update_rows(
                 let row_id = commands.spawn_empty().add(init_cell).id();
                 // create all necessairy cells for rows.
                 let mut columns = HashMap::new();
-                for column in style.timing_tower.table.row.columns.all_t() {
+                for column in style.timing_tower.table.row.all_columns() {
                     let cell_id = commands.spawn_empty().add(init_cell).id();
                     columns.insert(column.name.clone(), cell_id);
                     commands.entity(row_id).add_child(cell_id);
@@ -269,7 +269,7 @@ fn update_columns(
             continue;
         };
 
-        for column in style.timing_tower.table.row.columns.all_t() {
+        for column in style.timing_tower.table.row.all_columns() {
             let Some(cell_id) = row.columns.get(&column.name) else {
                 continue;
             };

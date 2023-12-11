@@ -17,6 +17,7 @@ pub trait FolderInfo: StyleNode {
     fn remove_index(&mut self, index: usize) -> Option<Box<dyn StyleNode>>;
     fn insert_index(&mut self, index: usize, node: Box<dyn StyleNode>);
 }
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Folder<T> {
     pub id: Uuid,
@@ -36,7 +37,10 @@ impl<T> Default for Folder<T> {
     }
 }
 
-impl<T> Folder<T> {
+impl<T> Folder<T>
+where
+    T: StyleNode,
+{
     pub fn new() -> Self {
         Self {
             id: Uuid::new_v4(),
@@ -172,7 +176,10 @@ pub enum FolderOrT<T> {
     T(T),
     Folder(Folder<T>),
 }
-impl<T> FolderOrT<T> {
+impl<T> FolderOrT<T>
+where
+    T: StyleNode,
+{
     pub fn all_t(&self) -> Vec<&T> {
         match self {
             FolderOrT::T(t) => vec![t],
@@ -183,6 +190,12 @@ impl<T> FolderOrT<T> {
         match self {
             FolderOrT::T(t) => vec![t],
             FolderOrT::Folder(f) => f.all_t_mut(),
+        }
+    }
+    pub fn id(&self) -> &Uuid {
+        match self {
+            FolderOrT::T(t) => &t.id(),
+            FolderOrT::Folder(f) => &f.id,
         }
     }
 }

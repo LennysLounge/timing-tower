@@ -23,7 +23,7 @@ use bevy_egui::{
     EguiContexts,
 };
 use egui_dock::{DockArea, DockState, NodeIndex, TabViewer};
-use tracing::error;
+use tracing::{error, info};
 use uuid::Uuid;
 
 use crate::{
@@ -294,6 +294,8 @@ fn tree_view(ui: &mut Ui, _selected_node: &mut Option<Uuid>, node: &mut impl Sty
             {
                 InsertNodeVisitor::new(drop_action.drop_id, drop_action.position, removed_node)
                     .insert_into(node);
+            } else {
+                info!("No node was removed from the tree");
             }
 
             changed = true;

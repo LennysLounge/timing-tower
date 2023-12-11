@@ -258,15 +258,7 @@ fn save_style(style: &StyleDefinition) {
 fn tree_view(ui: &mut Ui, _selected_node: &mut Option<Uuid>, node: &mut impl StyleNode) -> bool {
     let mut changed = false;
     let tree_res = ScrollArea::vertical()
-        .show(ui, |ui| {
-            egui_ltreeview::TreeViewBuilder::new(
-                ui,
-                ui.make_persistent_id("element_tree_view"),
-                |root| {
-                    node.walk(&mut TreeViewVisitor { builder: root });
-                },
-            )
-        })
+        .show(ui, |ui| TreeViewVisitor::show(ui, node))
         .inner;
 
     if tree_res.selected_node.is_some() {

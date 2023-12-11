@@ -1,96 +1,103 @@
 use std::ops::ControlFlow;
 
-use backend::style::{definitions::*, visitor::NodeVisitor};
-use egui_ltreeview::TreeViewBuilder;
+use backend::style::{
+    definitions::*,
+    folder::FolderOrT,
+    visitor::{NodeVisitorMut, StyleNode},
+};
+use bevy_egui::egui::Ui;
+use egui_ltreeview::{TreeViewBuilder, TreeViewResponse};
 
 pub struct TreeViewVisitor<'a> {
-    pub builder: TreeViewBuilder<'a>,
+    builder: TreeViewBuilder<'a>,
 }
-impl NodeVisitor for TreeViewVisitor<'_> {
-    fn visit_style(&mut self, style: &StyleDefinition) -> ControlFlow<()> {
+impl TreeViewVisitor<'_> {
+    pub fn show(ui: &mut Ui, style_node: &mut dyn StyleNode) -> TreeViewResponse {
+        egui_ltreeview::TreeViewBuilder::new(
+            ui,
+            ui.make_persistent_id("element_tree_view"),
+            |root| {
+                style_node.walk_mut(&mut TreeViewVisitor { builder: root });
+            },
+        )
+    }
+}
+impl NodeVisitorMut for TreeViewVisitor<'_> {
+    fn visit_style(&mut self, style: &mut StyleDefinition) -> ControlFlow<()> {
         self.builder.dir(&style.id, |ui| {
             ui.label("Style");
         });
         ControlFlow::Continue(())
     }
 
-    fn leave_style(&mut self, _style: &StyleDefinition) -> ControlFlow<()> {
+    fn leave_style(&mut self, _style: &mut StyleDefinition) -> ControlFlow<()> {
         self.builder.close_dir();
         ControlFlow::Continue(())
     }
 
-    fn visit_folder(&mut self, folder: &dyn FolderInfo) -> ControlFlow<()> {
+    fn visit_folder(&mut self, folder: &mut dyn FolderInfo) -> ControlFlow<()> {
         self.builder.dir(&folder.id(), |ui| {
             ui.label(folder.name());
         });
         ControlFlow::Continue(())
     }
 
-    fn leave_folder(&mut self, _folder: &dyn FolderInfo) -> ControlFlow<()> {
+    fn leave_folder(&mut self, _folder: &mut dyn FolderInfo) -> ControlFlow<()> {
         self.builder.close_dir();
         ControlFlow::Continue(())
     }
 
-    fn visit_timing_tower(&mut self, tower: &TimingTower) -> ControlFlow<()> {
+    fn visit_timing_tower(&mut self, tower: &mut TimingTower) -> ControlFlow<()> {
         self.builder.dir(&tower.id, |ui| {
             ui.label("Timing tower");
         });
         ControlFlow::Continue(())
     }
 
-    fn leave_timing_tower(&mut self, _tower: &TimingTower) -> ControlFlow<()> {
+    fn leave_timing_tower(&mut self, _tower: &mut TimingTower) -> ControlFlow<()> {
         self.builder.close_dir();
         ControlFlow::Continue(())
     }
 
-    fn visit_timing_tower_table(&mut self, table: &TimingTowerTable) -> ControlFlow<()> {
+    fn visit_timing_tower_table(&mut self, table: &mut TimingTowerTable) -> ControlFlow<()> {
         self.builder.dir(&table.id, |ui| {
             ui.label("Table");
         });
         ControlFlow::Continue(())
     }
 
-    fn leave_timing_tower_table(&mut self, _table: &TimingTowerTable) -> ControlFlow<()> {
+    fn leave_timing_tower_table(&mut self, _table: &mut TimingTowerTable) -> ControlFlow<()> {
         self.builder.close_dir();
         ControlFlow::Continue(())
     }
 
-    fn visit_timing_tower_row(&mut self, row: &TimingTowerRow) -> ControlFlow<()> {
-        self.builder.dir(&row.id, |ui| {
+    fn visit_timing_tower_row(&mut self, row: &mut TimingTowerRow) -> ControlFlow<()> {
+        let res = self.builder.dir(&row.id, |ui| {
             ui.label("Row");
         });
-        // header.response.context_menu(|ui| {
-        //     if ui.button("add column").clicked() {
-        //         let column = TimingTowerColumn::new();
-        //         actions.push(TreeViewAction::Select { node: column.id });
-        //         actions.push(TreeViewAction::Insert {
-        //             target: self.id,
-        //             node: Box::new(column),
-        //             position: DropPosition::Last,
-        //         });
 
-        //         ui.close_menu();
-        //     }
-        //     if ui.button("add group").clicked() {
-        //         let folder = Folder::<TimingTowerColumn>::new();
-        //         actions.push(TreeViewAction::Select { node: folder.id });
-        //         actions.push(TreeViewAction::Insert {
-        //             target: self.id,
-        //             node: Box::new(folder),
-        //             position: DropPosition::First,
-        //         });
-        //         ui.close_menu();
-        //     }
-        // });
+        if let Some(res) = res {
+            res.context_menu(|ui| {
+                if ui.button("add column").clicked() {
+                    row.columns.push(FolderOrT::T(TimingTowerColumn::new()));
+                    ui.close_menu();
+                }
+                if ui.button("add group").clicked() {
+                    row.columns.push(FolderOrT::Folder(Folder::new()));
+                    ui.close_menu();
+                }
+            });
+        }
+
         ControlFlow::Continue(())
     }
 
-    fn leave_timing_tower_row(&mut self, _row: &TimingTowerRow) -> ControlFlow<()> {
+    fn leave_timing_tower_row(&mut self, _row: &mut TimingTowerRow) -> ControlFlow<()> {
         self.builder.close_dir();
         ControlFlow::Continue(())
     }
 
-    fn visit_timing_tower_column(&mut self, column: &TimingTowerColumn) -> ControlFlow<()> {
+    fn visit_timing_tower_column(&mut self, column: &mut TimingTowerColumn) -> ControlFlow<()> {
         self.builder.leaf(&column.id, |ui| {
             ui.label(&column.name);
         });
@@ -119,7 +126,7 @@ impl NodeVisitor for TreeViewVisitor<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_asset(&mut self, asset: &AssetDefinition) -> ControlFlow<()> {
+    fn visit_asset(&mut self, asset: &mut AssetDefinition) -> ControlFlow<()> {
         self.builder.leaf(&asset.id, |ui| {
             ui.label(&asset.name);
         });
@@ -157,7 +164,7 @@ impl NodeVisitor for TreeViewVisitor<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_variable(&mut self, variable: &VariableDefinition) -> ControlFlow<()> {
+    fn visit_variable(&mut self, variable: &mut VariableDefinition) -> ControlFlow<()> {
         self.builder.leaf(&variable.id, |ui| {
             ui.label(&variable.name);
         });

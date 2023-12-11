@@ -4,7 +4,7 @@ use std::{fs::File, io::Write};
 
 use backend::{
     savefile::{Savefile, SavefileChanged},
-    style::StyleDefinition,
+    style::{visitor::Visitable, StyleDefinition},
 };
 use bevy::{
     ecs::{event::EventWriter, system::Res},
@@ -28,7 +28,6 @@ use crate::{
     style::{
         tree::{StyleTreeNode, TreeViewAction},
         tree_view_visitor::TreeViewVisitor,
-        visitor::VisitableStyle,
         StyleDefinitionUiThings, StyleModel,
     },
     MainCamera,
@@ -241,8 +240,7 @@ fn tree_view_elements(ui: &mut Ui, _selected_node: &mut Option<Uuid>, style: &mu
             ui,
             ui.make_persistent_id("element_tree_view"),
             |root| {
-                let mut visitor = TreeViewVisitor { builder: root };
-                style.def.accept(&mut visitor);
+                style.def.walk(&mut TreeViewVisitor { builder: root });
             },
         );
     });

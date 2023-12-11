@@ -1,83 +1,97 @@
+use std::ops::ControlFlow;
+
 use backend::style::{
     assets::AssetDefinition,
+    folder::FolderInfo,
     timing_tower::{TimingTower, TimingTowerColumn, TimingTowerRow, TimingTowerTable},
     variables::VariableDefinition,
+    visitor::NodeVisitor,
     StyleDefinition,
 };
 use egui_ltreeview::TreeViewBuilder;
 
-use super::visitor::{AnyFolder, StyleVisitor};
-
 pub struct TreeViewVisitor<'a> {
     pub builder: TreeViewBuilder<'a>,
 }
-impl StyleVisitor for TreeViewVisitor<'_> {
-    fn visit_style(&mut self, style: &mut StyleDefinition) -> bool {
+impl NodeVisitor for TreeViewVisitor<'_> {
+    fn visit_style(&mut self, style: &StyleDefinition) -> ControlFlow<()> {
         self.builder.dir(&style.id, |ui| {
             ui.label("Style");
         });
-        true
+        ControlFlow::Continue(())
     }
-    fn leave_style(&mut self, _style: &mut StyleDefinition) -> bool {
+
+    fn leave_style(&mut self, _style: &StyleDefinition) -> ControlFlow<()> {
         self.builder.close_dir();
-        true
+        ControlFlow::Continue(())
     }
-    fn visit_folder(&mut self, folder: AnyFolder) -> bool {
+
+    fn visit_folder(&mut self, folder: &dyn FolderInfo) -> ControlFlow<()> {
         self.builder.dir(&folder.id(), |ui| {
             ui.label(folder.name());
         });
-        true
+        ControlFlow::Continue(())
     }
-    fn leave_folder(&mut self, _folder: AnyFolder) -> bool {
+
+    fn leave_folder(&mut self, _folder: &dyn FolderInfo) -> ControlFlow<()> {
         self.builder.close_dir();
-        true
+        ControlFlow::Continue(())
     }
-    fn visit_variable(&mut self, variable: &mut VariableDefinition) -> bool {
-        self.builder.leaf(&variable.id, |ui| {
-            ui.label(&variable.name);
-        });
-        true
-    }
-    fn visit_asset(&mut self, asset: &mut AssetDefinition) -> bool {
-        self.builder.leaf(&asset.id, |ui| {
-            ui.label(&asset.name);
-        });
-        true
-    }
-    fn visit_timing_tower(&mut self, timing_tower: &mut TimingTower) -> bool {
-        self.builder.dir(&timing_tower.id, |ui| {
+
+    fn visit_timing_tower(&mut self, tower: &TimingTower) -> ControlFlow<()> {
+        self.builder.dir(&tower.id, |ui| {
             ui.label("Timing tower");
         });
-        true
+        ControlFlow::Continue(())
     }
-    fn leave_timing_tower(&mut self, _timing_tower: &mut TimingTower) -> bool {
+
+    fn leave_timing_tower(&mut self, _tower: &TimingTower) -> ControlFlow<()> {
         self.builder.close_dir();
-        true
+        ControlFlow::Continue(())
     }
-    fn visit_timing_tower_table(&mut self, table: &mut TimingTowerTable) -> bool {
+
+    fn visit_timing_tower_table(&mut self, table: &TimingTowerTable) -> ControlFlow<()> {
         self.builder.dir(&table.id, |ui| {
             ui.label("Table");
         });
-        true
+        ControlFlow::Continue(())
     }
-    fn leave_timing_tower_table(&mut self, _table: &mut TimingTowerTable) -> bool {
+
+    fn leave_timing_tower_table(&mut self, _table: &TimingTowerTable) -> ControlFlow<()> {
         self.builder.close_dir();
-        true
+        ControlFlow::Continue(())
     }
-    fn visit_timing_tower_row(&mut self, row: &mut TimingTowerRow) -> bool {
+
+    fn visit_timing_tower_row(&mut self, row: &TimingTowerRow) -> ControlFlow<()> {
         self.builder.dir(&row.id, |ui| {
             ui.label("Row");
         });
-        true
+        ControlFlow::Continue(())
     }
-    fn leave_timing_tower_row(&mut self, _row: &mut TimingTowerRow) -> bool {
+
+    fn leave_timing_tower_row(&mut self, _row: &TimingTowerRow) -> ControlFlow<()> {
         self.builder.close_dir();
-        true
+        ControlFlow::Continue(())
     }
-    fn visit_timing_tower_column(&mut self, column: &mut TimingTowerColumn) -> bool {
+
+    fn visit_timing_tower_column(&mut self, column: &TimingTowerColumn) -> ControlFlow<()> {
         self.builder.leaf(&column.id, |ui| {
             ui.label(&column.name);
         });
-        true
+        ControlFlow::Continue(())
+    }
+
+    fn visit_asset(&mut self, asset: &AssetDefinition) -> ControlFlow<()> {
+        self.builder.leaf(&asset.id, |ui| {
+            ui.label(&asset.name);
+        });
+        ControlFlow::Continue(())
+    }
+
+    fn visit_variable(&mut self, variable: &VariableDefinition) -> ControlFlow<()> {
+        self.builder.leaf(&variable.id, |ui| {
+            ui.label(&variable.name);
+        });
+        ControlFlow::Continue(())
     }
 }

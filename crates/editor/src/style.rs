@@ -16,7 +16,6 @@ pub mod timing_tower;
 pub mod tree;
 pub mod tree_view_visitor;
 pub mod variables;
-pub mod visitor;
 
 pub struct StyleModel {
     pub def: StyleDefinition,

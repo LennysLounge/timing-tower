@@ -28,8 +28,8 @@ use crate::{
     style::{
         tree::{StyleTreeNode, TreeViewAction},
         visitors::{
-            drop_allowed::DropAllowedVisitor, remove::RemoveNodeVisitor, search::SearchVisitor,
-            tree_view::TreeViewVisitor,
+            drop_allowed::DropAllowedVisitor, insert::InsertNodeVisitor, remove::RemoveNodeVisitor,
+            search::SearchVisitor, tree_view::TreeViewVisitor,
         },
         StyleDefinitionUiThings, StyleModel,
     },
@@ -267,7 +267,12 @@ fn tree_view_elements(
         .unwrap_or(false);
 
         if tree_res.dropped {
-            RemoveNodeVisitor::new(drop_action.drag_id).remove_from(&mut style.def);
+            if let Some(removed_node) =
+                RemoveNodeVisitor::new(drop_action.drag_id).remove_from(&mut style.def)
+            {
+                InsertNodeVisitor::new(drop_action.drop_id, drop_action.position, removed_node)
+                    .insert_into(&mut style.def);
+            }
 
             println!("drop allowed: {drop_allowed}");
             changed = true;

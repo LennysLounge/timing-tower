@@ -15,12 +15,17 @@ pub trait StyleNode: ToAny + Visitable {
 
 pub trait ToAny {
     fn as_any(&self) -> &dyn Any;
+    fn to_any(self: Box<Self>) -> Box<dyn Any>;
 }
 impl<T> ToAny for T
 where
     T: Visitable + 'static,
 {
     fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn to_any(self: Box<Self>) -> Box<dyn Any> {
         self
     }
 }

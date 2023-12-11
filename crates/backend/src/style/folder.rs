@@ -12,6 +12,7 @@ pub trait FolderInfo: StyleNode {
     fn own_type_id(&self) -> TypeId;
     fn content(&self) -> Vec<&dyn StyleNode>;
     fn remove_index(&mut self, index: usize) -> Option<Box<dyn StyleNode>>;
+    fn insert_index(&mut self, index: usize, node: Box<dyn StyleNode>);
 }
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Folder<T> {
@@ -89,6 +90,19 @@ where
             FolderOrT::T(t) => Box::new(t),
             FolderOrT::Folder(f) => Box::new(f),
         })
+    }
+
+    fn insert_index(&mut self, index: usize, node: Box<dyn StyleNode>) {
+        let any = node.to_any();
+        if any.is::<Folder<T>>() {
+            let folder = any
+                .downcast::<Folder<T>>()
+                .expect("Cannot downcast but should");
+            self.content.insert(index, FolderOrT::Folder(*folder));
+        } else if any.is::<T>() {
+            let tee = any.downcast::<T>().expect("Cannot downcast but should");
+            self.content.insert(index, FolderOrT::T(*tee));
+        }
     }
 }
 impl<T> StyleNode for Folder<T>

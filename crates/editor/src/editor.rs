@@ -255,7 +255,7 @@ fn tree_view_elements(
         })
         .inner;
 
-    if let Some(drop_action) = tree_res.drag_drop_action {
+    if let Some(drop_action) = &tree_res.drag_drop_action {
         let drop_allowed = SearchVisitor::new(drop_action.drag_id, |dragged| {
             SearchVisitor::new(drop_action.drop_id, |dropped| {
                 DropAllowedVisitor::new(dragged.as_any()).test(dropped)
@@ -266,7 +266,11 @@ fn tree_view_elements(
         .flatten()
         .unwrap_or(false);
 
-        if tree_res.dropped {
+        if !drop_allowed {
+            tree_res.remove_drop_marker(ui);
+        }
+
+        if tree_res.dropped && drop_allowed {
             if let Some(removed_node) =
                 RemoveNodeVisitor::new(drop_action.drag_id).remove_from(&mut style.def)
             {
@@ -274,7 +278,6 @@ fn tree_view_elements(
                     .insert_into(&mut style.def);
             }
 
-            println!("drop allowed: {drop_allowed}");
             changed = true;
         }
     }

@@ -1,6 +1,14 @@
+use std::ops::ControlFlow;
+
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use super::visitor::{NodeVisitor, NodeVisitorMut, Visitable};
+
+pub trait FolderInfo {
+    fn id(&self) -> &Uuid;
+    fn name(&self) -> &str;
+}
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Folder<T> {
     pub id: Uuid,
@@ -40,6 +48,53 @@ impl<T> Folder<T> {
             .iter_mut()
             .flat_map(|c| c.all_t_mut())
             .collect()
+    }
+}
+impl<T> FolderInfo for Folder<T> {
+    fn id(&self) -> &Uuid {
+        &self.id
+    }
+
+    fn name(&self) -> &str {
+        &self.name
+    }
+}
+impl<T> Visitable for Folder<T>
+where
+    T: Visitable,
+{
+    fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
+        self.enter(visitor)?;
+        self.content.iter().try_for_each(|f| match f {
+            FolderOrT::T(t) => t.walk(visitor),
+            FolderOrT::Folder(f) => f.walk(visitor),
+        })?;
+        self.leave(visitor)
+    }
+
+    fn enter(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
+        visitor.visit_folder(self)
+    }
+
+    fn leave(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
+        visitor.leave_folder(self)
+    }
+
+    fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
+        self.enter_mut(visitor)?;
+        self.content.iter_mut().try_for_each(|f| match f {
+            FolderOrT::T(t) => t.walk_mut(visitor),
+            FolderOrT::Folder(f) => f.walk_mut(visitor),
+        })?;
+        self.leave_mut(visitor)
+    }
+
+    fn enter_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
+        visitor.visit_folder(self)
+    }
+
+    fn leave_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
+        visitor.leave_folder(self)
     }
 }
 

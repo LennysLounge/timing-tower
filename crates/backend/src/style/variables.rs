@@ -1,3 +1,5 @@
+use std::ops::ControlFlow;
+
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 use uuid::Uuid;
@@ -5,6 +7,8 @@ use uuid::Uuid;
 use crate::value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore};
 
 use self::{condition::Condition, fixed_value::FixedValue, map::Map};
+
+use super::visitor::{NodeVisitor, NodeVisitorMut, Visitable};
 
 pub mod condition;
 pub mod fixed_value;
@@ -26,6 +30,15 @@ pub enum VariableBehavior {
     Map(Map),
 }
 
+impl VariableDefinition {
+    pub fn new() -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            name: "Variables".to_string(),
+            behavior: VariableBehavior::FixedValue(FixedValue::default()),
+        }
+    }
+}
 impl IntoValueProducer for VariableDefinition {
     fn get_value_producer(&self) -> (Uuid, TypedValueProducer) {
         let producer = match &self.behavior {
@@ -36,14 +49,29 @@ impl IntoValueProducer for VariableDefinition {
         (self.id, producer)
     }
 }
+impl Visitable for VariableDefinition {
+    fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
+        self.enter(visitor)
+    }
 
-impl VariableDefinition {
-    pub fn new() -> Self {
-        Self {
-            id: Uuid::new_v4(),
-            name: "Variables".to_string(),
-            behavior: VariableBehavior::FixedValue(FixedValue::default()),
-        }
+    fn enter(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
+        visitor.visit_variable(self)
+    }
+
+    fn leave(&self, _visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+
+    fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
+        self.enter_mut(visitor)
+    }
+
+    fn enter_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
+        visitor.visit_variable(self)
+    }
+
+    fn leave_mut(&mut self, _visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
+        ControlFlow::Continue(())
     }
 }
 

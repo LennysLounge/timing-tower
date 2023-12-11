@@ -1,3 +1,5 @@
+use std::ops::ControlFlow;
+
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -6,7 +8,10 @@ use crate::{
     value_types::{Texture, ValueType},
 };
 
-use super::variables::StaticValueProducer;
+use super::{
+    variables::StaticValueProducer,
+    visitor::{NodeVisitor, NodeVisitorMut, Visitable},
+};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct AssetDefinition {
@@ -25,5 +30,30 @@ impl IntoValueProducer for AssetDefinition {
             _ => unreachable!(),
         };
         (self.id, typed_value_producer)
+    }
+}
+impl Visitable for AssetDefinition {
+    fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
+        self.enter(visitor)
+    }
+
+    fn enter(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
+        visitor.visit_asset(self)
+    }
+
+    fn leave(&self, _visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+
+    fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
+        self.enter_mut(visitor)
+    }
+
+    fn enter_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
+        visitor.visit_asset(self)
+    }
+
+    fn leave_mut(&mut self, _visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
+        ControlFlow::Continue(())
     }
 }

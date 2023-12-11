@@ -252,6 +252,10 @@ fn tree_view(ui: &mut Ui, _selected_node: &mut Option<Uuid>, node: &mut impl Sty
         })
         .inner;
 
+    if tree_res.selected_node.is_some() {
+        *_selected_node = tree_res.selected_node;
+    }
+
     if let Some(drop_action) = &tree_res.drag_drop_action {
         let drop_allowed = SearchVisitor::new(drop_action.drag_id, |dragged| {
             SearchVisitor::new(drop_action.drop_id, |dropped| {

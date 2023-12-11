@@ -114,7 +114,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 *self.viewport = ui.clip_rect();
             }
             Tab::Elements => {
-                tree_view_elements(ui, self.selected_node, self.style);
+                *self.style_changed |= tree_view_elements(ui, self.selected_node, self.style);
             }
             Tab::PropertyEditor => {
                 property_editor(
@@ -237,7 +237,12 @@ fn save_style(style: &StyleDefinition) {
     }
 }
 
-fn tree_view_elements(ui: &mut Ui, _selected_node: &mut Option<Uuid>, style: &mut StyleModel) {
+fn tree_view_elements(
+    ui: &mut Ui,
+    _selected_node: &mut Option<Uuid>,
+    style: &mut StyleModel,
+) -> bool {
+    let mut changed = false;
     let tree_res = ScrollArea::vertical()
         .show(ui, |ui| {
             egui_ltreeview::TreeViewBuilder::new(
@@ -265,8 +270,10 @@ fn tree_view_elements(ui: &mut Ui, _selected_node: &mut Option<Uuid>, style: &mu
             RemoveNodeVisitor::new(drop_action.drag_id).remove_from(&mut style.def);
 
             println!("drop allowed: {drop_allowed}");
+            changed = true;
         }
     }
+    changed
 
     // let mut actions = Vec::new();
     // let res = TreeViewBuilder::new()

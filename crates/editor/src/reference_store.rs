@@ -7,6 +7,7 @@ use bevy::{
 };
 use bevy_egui::egui::{InnerResponse, Response, Ui};
 use serde::{Deserialize, Serialize};
+use tracing::info;
 use uuid::Uuid;
 
 use backend::{
@@ -303,6 +304,6 @@ fn savefile_changed(
     }
     savefile_changed_event.clear();
 
-    println!("Reload reference store");
+    info!("Reload reference store");
     reference_store.reload(&savefile.style().vars, &savefile.style().assets);
 }

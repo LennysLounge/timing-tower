@@ -13,6 +13,7 @@ use bevy::{
     },
     prelude::Resource,
 };
+use tracing::info;
 use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
@@ -147,7 +148,7 @@ fn savefile_changed(
     }
     savefile_changed_event.clear();
 
-    println!("Reload value store");
+    info!("Reload value store");
     value_store.reload_repo(
         savefile.style().vars.all_t(),
         savefile.style().assets.all_t(),

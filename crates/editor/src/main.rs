@@ -1,7 +1,6 @@
 use asset_path_store::EditorAssetPathStorePlugin;
 use backend::{
     savefile::{SaveFilePlugin, Savefile, SavefileChanged},
-    style::definitions::*,
     value_store::ValueStorePlugin,
 };
 use bevy::{
@@ -26,7 +25,7 @@ use frontend::{
     },
     gradient_material::CustomMaterialPlugin,
 };
-use std::{any::TypeId, env};
+use std::env;
 use uuid::uuid;
 
 use timing_tower::{init_timing_tower, TimingTowerPlugin};
@@ -41,20 +40,6 @@ mod timing_tower;
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
-
-    {
-        #[rustfmt::skip] println!("type_of:VariableDefinition         \t{:?}", TypeId::of::<VariableDefinition>());
-        #[rustfmt::skip] println!("type_of:AssetDefinition            \t{:?}", TypeId::of::<AssetDefinition>());
-        #[rustfmt::skip] println!("type_of:TimingTower                \t{:?}", TypeId::of::<TimingTower>());
-        #[rustfmt::skip] println!("type_of:TimingTowerTable           \t{:?}", TypeId::of::<TimingTowerTable>());
-        #[rustfmt::skip] println!("type_of:TimingTowerRow             \t{:?}", TypeId::of::<TimingTowerRow>());
-        #[rustfmt::skip] println!("type_of:TimingTowerColumn          \t{:?}", TypeId::of::<TimingTowerColumn>());
-        #[rustfmt::skip] println!("type_of:Folder<AssetDefinition>    \t{:?}", TypeId::of::<Folder<AssetDefinition>>());
-        #[rustfmt::skip] println!("type_of:Folder<VariableDefinition> \t{:?}", TypeId::of::<Folder<VariableDefinition>>());
-        #[rustfmt::skip] println!("type_of:Folder<TimingTowerColumn>  \t{:?}", TypeId::of::<Folder<TimingTowerColumn>>());
-        #[rustfmt::skip] println!("type_of:StyleDefinition            \t{:?}", TypeId::of::<StyleDefinition>());
-    }
-
     App::new()
         .insert_resource(ClearColor(Color::rgba(0.1, 0.1, 0.1, 0.0)))
         .insert_resource(SimpleTimer(Timer::from_seconds(1.0, TimerMode::Repeating)))

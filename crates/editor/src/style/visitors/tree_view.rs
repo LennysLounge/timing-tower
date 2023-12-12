@@ -1,29 +1,50 @@
-use std::ops::ControlFlow;
+use std::{any::TypeId, ops::ControlFlow};
 
 use backend::style::{
     definitions::*,
-    folder::FolderOrT,
     visitor::{NodeVisitorMut, StyleNode},
 };
 use bevy_egui::egui::Ui;
-use egui_ltreeview::{TreeViewBuilder, TreeViewResponse};
+use egui_ltreeview::{DropPosition, TreeViewBuilder, TreeViewResponse};
+use uuid::Uuid;
 
+pub struct TreeViewVisitorResult {
+    pub response: TreeViewResponse,
+    pub nodes_to_add: Vec<(Uuid, DropPosition, Box<dyn StyleNode>)>,
+    pub nodes_to_remove: Vec<Uuid>,
+}
 pub struct TreeViewVisitor<'a> {
     builder: TreeViewBuilder<'a>,
+    nodes_to_add: &'a mut Vec<(Uuid, DropPosition, Box<dyn StyleNode>)>,
+    nodes_to_remove: &'a mut Vec<Uuid>,
+    stack: Vec<Uuid>,
 }
 impl TreeViewVisitor<'_> {
-    pub fn show(ui: &mut Ui, style_node: &mut dyn StyleNode) -> TreeViewResponse {
-        egui_ltreeview::TreeViewBuilder::new(
+    pub fn show(ui: &mut Ui, style_node: &mut dyn StyleNode) -> TreeViewVisitorResult {
+        let mut nodes_to_add = Vec::new();
+        let mut nodes_to_remove = Vec::new();
+        let response = egui_ltreeview::TreeViewBuilder::new(
             ui,
             ui.make_persistent_id("element_tree_view"),
             |root| {
-                style_node.walk_mut(&mut TreeViewVisitor { builder: root });
+                style_node.walk_mut(&mut TreeViewVisitor {
+                    builder: root,
+                    nodes_to_add: &mut nodes_to_add,
+                    nodes_to_remove: &mut nodes_to_remove,
+                    stack: Vec::new(),
+                });
             },
-        )
+        );
+        TreeViewVisitorResult {
+            response,
+            nodes_to_add,
+            nodes_to_remove,
+        }
     }
 }
 impl NodeVisitorMut for TreeViewVisitor<'_> {
     fn visit_style(&mut self, style: &mut StyleDefinition) -> ControlFlow<()> {
+        self.stack.push(style.id);
         self.builder.dir(&style.id, |ui| {
             ui.label("Style");
         });
@@ -31,23 +52,90 @@ impl NodeVisitorMut for TreeViewVisitor<'_> {
     }
 
     fn leave_style(&mut self, _style: &mut StyleDefinition) -> ControlFlow<()> {
+        self.stack.pop();
         self.builder.close_dir();
         ControlFlow::Continue(())
     }
 
     fn visit_folder(&mut self, folder: &mut dyn FolderInfo) -> ControlFlow<()> {
-        self.builder.dir(&folder.id(), |ui| {
+        self.stack.push(*folder.id());
+        let res = self.builder.dir(&folder.id(), |ui| {
             ui.label(folder.name());
         });
+        if let Some(res) = res {
+            res.context_menu(|ui| {
+                let content_type = folder.content_type_id();
+                if content_type == TypeId::of::<TimingTowerColumn>() {
+                    if ui.button("add column").clicked() {
+                        self.nodes_to_add.push((
+                            *folder.id(),
+                            DropPosition::Last,
+                            Box::new(TimingTowerColumn::new()),
+                        ));
+                        ui.close_menu();
+                    }
+                    if ui.button("add group").clicked() {
+                        self.nodes_to_add.push((
+                            *folder.id(),
+                            DropPosition::Last,
+                            Box::new(Folder::<TimingTowerColumn>::new()),
+                        ));
+                        ui.close_menu();
+                    }
+                } else if content_type == TypeId::of::<AssetDefinition>() {
+                    if ui.button("add image").clicked() {
+                        self.nodes_to_add.push((
+                            *folder.id(),
+                            DropPosition::Last,
+                            Box::new(AssetDefinition::new()),
+                        ));
+                        ui.close_menu();
+                    }
+                    if ui.button("add group").clicked() {
+                        self.nodes_to_add.push((
+                            *folder.id(),
+                            DropPosition::Last,
+                            Box::new(Folder::<AssetDefinition>::new()),
+                        ));
+                        ui.close_menu();
+                    }
+                } else if content_type == TypeId::of::<VariableDefinition>() {
+                    if ui.button("add variable").clicked() {
+                        self.nodes_to_add.push((
+                            *folder.id(),
+                            DropPosition::Last,
+                            Box::new(VariableDefinition::new()),
+                        ));
+                        ui.close_menu();
+                    }
+                    if ui.button("add group").clicked() {
+                        self.nodes_to_add.push((
+                            *folder.id(),
+                            DropPosition::Last,
+                            Box::new(Folder::<VariableDefinition>::new()),
+                        ));
+                        ui.close_menu();
+                    }
+                }
+
+                if ui.button("delete").clicked() {
+                    self.nodes_to_remove.push(*folder.id());
+                    ui.close_menu();
+                }
+            });
+        }
+
         ControlFlow::Continue(())
     }
 
     fn leave_folder(&mut self, _folder: &mut dyn FolderInfo) -> ControlFlow<()> {
+        self.stack.pop();
         self.builder.close_dir();
         ControlFlow::Continue(())
     }
 
     fn visit_timing_tower(&mut self, tower: &mut TimingTower) -> ControlFlow<()> {
+        self.stack.push(tower.id);
         self.builder.dir(&tower.id, |ui| {
             ui.label("Timing tower");
         });
@@ -55,11 +143,13 @@ impl NodeVisitorMut for TreeViewVisitor<'_> {
     }
 
     fn leave_timing_tower(&mut self, _tower: &mut TimingTower) -> ControlFlow<()> {
+        self.stack.pop();
         self.builder.close_dir();
         ControlFlow::Continue(())
     }
 
     fn visit_timing_tower_table(&mut self, table: &mut TimingTowerTable) -> ControlFlow<()> {
+        self.stack.push(table.id);
         self.builder.dir(&table.id, |ui| {
             ui.label("Table");
         });
@@ -67,11 +157,13 @@ impl NodeVisitorMut for TreeViewVisitor<'_> {
     }
 
     fn leave_timing_tower_table(&mut self, _table: &mut TimingTowerTable) -> ControlFlow<()> {
+        self.stack.pop();
         self.builder.close_dir();
         ControlFlow::Continue(())
     }
 
     fn visit_timing_tower_row(&mut self, row: &mut TimingTowerRow) -> ControlFlow<()> {
+        self.stack.push(row.id);
         let res = self.builder.dir(&row.id, |ui| {
             ui.label("Row");
         });
@@ -79,11 +171,19 @@ impl NodeVisitorMut for TreeViewVisitor<'_> {
         if let Some(res) = res {
             res.context_menu(|ui| {
                 if ui.button("add column").clicked() {
-                    row.columns.push(FolderOrT::T(TimingTowerColumn::new()));
+                    self.nodes_to_add.push((
+                        row.id,
+                        DropPosition::Last,
+                        Box::new(TimingTowerColumn::new()),
+                    ));
                     ui.close_menu();
                 }
                 if ui.button("add group").clicked() {
-                    row.columns.push(FolderOrT::Folder(Folder::new()));
+                    self.nodes_to_add.push((
+                        row.id,
+                        DropPosition::Last,
+                        Box::new(Folder::<TimingTowerColumn>::new()),
+                    ));
                     ui.close_menu();
                 }
             });
@@ -93,107 +193,119 @@ impl NodeVisitorMut for TreeViewVisitor<'_> {
     }
 
     fn leave_timing_tower_row(&mut self, _row: &mut TimingTowerRow) -> ControlFlow<()> {
+        self.stack.pop();
         self.builder.close_dir();
         ControlFlow::Continue(())
     }
 
     fn visit_timing_tower_column(&mut self, column: &mut TimingTowerColumn) -> ControlFlow<()> {
-        self.builder.leaf(&column.id, |ui| {
+        let res = self.builder.leaf(&column.id, |ui| {
             ui.label(&column.name);
         });
-        // res.response.context_menu(|ui| {
-        //     if ui.button("add column").clicked() {
-        //         actions.push(TreeViewAction::Insert {
-        //             target: tree_ui.parent_id.unwrap(),
-        //             node: Box::new(TimingTowerColumn::new()),
-        //             position: DropPosition::After(self.id),
-        //         });
-        //         ui.close_menu();
-        //     }
-        //     if ui.button("add group").clicked() {
-        //         actions.push(TreeViewAction::Insert {
-        //             target: tree_ui.parent_id.unwrap(),
-        //             node: Box::new(Folder::<TimingTowerColumn>::new()),
-        //             position: DropPosition::After(self.id),
-        //         });
-        //         ui.close_menu();
-        //     }
-        //     if ui.button("delete").clicked() {
-        //         actions.push(TreeViewAction::Remove { node: self.id });
-        //         ui.close_menu();
-        //     }
-        // });
+        if let Some(res) = res {
+            res.context_menu(|ui| {
+                if ui.button("add column").clicked() {
+                    self.nodes_to_add.push((
+                        *self
+                            .stack
+                            .last()
+                            .expect("There should always be a parent node"),
+                        DropPosition::After(column.id),
+                        Box::new(TimingTowerColumn::new()),
+                    ));
+                    ui.close_menu();
+                }
+                if ui.button("add group").clicked() {
+                    self.nodes_to_add.push((
+                        *self
+                            .stack
+                            .last()
+                            .expect("There should always be a parent node"),
+                        DropPosition::Last,
+                        Box::new(Folder::<TimingTowerColumn>::new()),
+                    ));
+                    ui.close_menu();
+                }
+                if ui.button("delete").clicked() {
+                    self.nodes_to_remove.push(column.id);
+                    ui.close_menu();
+                }
+            });
+        }
         ControlFlow::Continue(())
     }
 
     fn visit_asset(&mut self, asset: &mut AssetDefinition) -> ControlFlow<()> {
-        self.builder.leaf(&asset.id, |ui| {
+        let res = self.builder.leaf(&asset.id, |ui| {
             ui.label(&asset.name);
         });
-        // res.response.context_menu(|ui| {
-        //     if ui.button("add image").clicked() {
-        //         let image = AssetDefinition {
-        //             id: Uuid::new_v4(),
-        //             name: String::from("Image"),
-        //             value_type: ValueType::Texture,
-        //             path: String::new(),
-        //         };
-        //         actions.push(TreeViewAction::Select { node: *image.id() });
-        //         actions.push(TreeViewAction::Insert {
-        //             target: tree_ui.parent_id.unwrap(),
-        //             node: Box::new(image),
-        //             position: tree_view::DropPosition::After(self.id),
-        //         });
-        //         ui.close_menu();
-        //     }
-        //     if ui.button("add group").clicked() {
-        //         let folder = Folder::<AssetDefinition>::new();
-        //         actions.push(TreeViewAction::Select { node: *folder.id() });
-        //         actions.push(TreeViewAction::Insert {
-        //             target: tree_ui.parent_id.unwrap(),
-        //             node: Box::new(folder),
-        //             position: tree_view::DropPosition::After(self.id),
-        //         });
-        //         ui.close_menu();
-        //     }
-        //     if ui.button("delete").clicked() {
-        //         actions.push(TreeViewAction::Remove { node: self.id });
-        //         ui.close_menu();
-        //     }
-        // });
+        if let Some(res) = res {
+            res.context_menu(|ui| {
+                if ui.button("add image").clicked() {
+                    self.nodes_to_add.push((
+                        *self
+                            .stack
+                            .last()
+                            .expect("There should always be a parent node"),
+                        DropPosition::After(asset.id),
+                        Box::new(AssetDefinition::new()),
+                    ));
+                    ui.close_menu();
+                }
+                if ui.button("add group").clicked() {
+                    self.nodes_to_add.push((
+                        *self
+                            .stack
+                            .last()
+                            .expect("There should always be a parent node"),
+                        DropPosition::Last,
+                        Box::new(Folder::<AssetDefinition>::new()),
+                    ));
+                    ui.close_menu();
+                }
+                if ui.button("delete").clicked() {
+                    self.nodes_to_remove.push(asset.id);
+                    ui.close_menu();
+                }
+            });
+        }
         ControlFlow::Continue(())
     }
 
     fn visit_variable(&mut self, variable: &mut VariableDefinition) -> ControlFlow<()> {
-        self.builder.leaf(&variable.id, |ui| {
+        let res = self.builder.leaf(&variable.id, |ui| {
             ui.label(&variable.name);
         });
-        // res.response.context_menu(|ui| {
-        //     if ui.button("add variable").clicked() {
-        //         let var = VariableDefinition::new();
-        //         actions.push(TreeViewAction::Select { node: *var.id() });
-        //         actions.push(TreeViewAction::Insert {
-        //             target: tree_ui.parent_id.unwrap(),
-        //             node: Box::new(var),
-        //             position: DropPosition::After(*self.id()),
-        //         });
-        //         ui.close_menu();
-        //     }
-        //     if ui.button("add group").clicked() {
-        //         let folder = Folder::<VariableDefinition>::new();
-        //         actions.push(TreeViewAction::Select { node: folder.id });
-        //         actions.push(TreeViewAction::Insert {
-        //             target: tree_ui.parent_id.unwrap(),
-        //             node: Box::new(folder),
-        //             position: DropPosition::After(*self.id()),
-        //         });
-        //         ui.close_menu();
-        //     }
-        //     if ui.button("delete").clicked() {
-        //         actions.push(TreeViewAction::Remove { node: *self.id() });
-        //         ui.close_menu();
-        //     }
-        // });
+        if let Some(res) = res {
+            res.context_menu(|ui| {
+                if ui.button("add variable").clicked() {
+                    self.nodes_to_add.push((
+                        *self
+                            .stack
+                            .last()
+                            .expect("There should always be a parent node"),
+                        DropPosition::After(variable.id),
+                        Box::new(VariableDefinition::new()),
+                    ));
+                    ui.close_menu();
+                }
+                if ui.button("add group").clicked() {
+                    self.nodes_to_add.push((
+                        *self
+                            .stack
+                            .last()
+                            .expect("There should always be a parent node"),
+                        DropPosition::Last,
+                        Box::new(Folder::<VariableDefinition>::new()),
+                    ));
+                    ui.close_menu();
+                }
+                if ui.button("delete").clicked() {
+                    self.nodes_to_remove.push(variable.id);
+                    ui.close_menu();
+                }
+            });
+        }
         ControlFlow::Continue(())
     }
 }

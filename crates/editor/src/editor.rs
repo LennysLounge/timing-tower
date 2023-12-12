@@ -34,7 +34,7 @@ use crate::{
         property_editor::PropertyEditorVisitor,
         remove::RemoveNodeVisitor,
         search::{SearchVisitor, SearchVisitorMut},
-        tree_view::TreeViewVisitor,
+        tree_view::{TreeViewVisitor, TreeViewVisitorResult},
     },
     MainCamera,
 };
@@ -255,37 +255,54 @@ fn save_style(style: &StyleDefinition) {
     }
 }
 
-fn tree_view(ui: &mut Ui, _selected_node: &mut Option<Uuid>, node: &mut impl StyleNode) -> bool {
+fn tree_view(
+    ui: &mut Ui,
+    _selected_node: &mut Option<Uuid>,
+    base_node: &mut impl StyleNode,
+) -> bool {
     let mut changed = false;
-    let tree_res = ScrollArea::vertical()
-        .show(ui, |ui| TreeViewVisitor::show(ui, node))
+    let TreeViewVisitorResult {
+        response,
+        nodes_to_add,
+        nodes_to_remove,
+    } = ScrollArea::vertical()
+        .show(ui, |ui| TreeViewVisitor::show(ui, base_node))
         .inner;
 
-    if tree_res.selected_node.is_some() {
-        *_selected_node = tree_res.selected_node;
+    // Add nodes
+    for (id, position, node) in nodes_to_add {
+        InsertNodeVisitor::new(id, position, node).insert_into(base_node);
+    }
+    // remove nodes
+    for id in nodes_to_remove {
+        RemoveNodeVisitor::new(id).remove_from(base_node);
     }
 
-    if let Some(drop_action) = &tree_res.drag_drop_action {
+    if response.selected_node.is_some() {
+        *_selected_node = response.selected_node;
+    }
+
+    if let Some(drop_action) = &response.drag_drop_action {
         let drop_allowed = SearchVisitor::new(drop_action.drag_id, |dragged| {
             SearchVisitor::new(drop_action.drop_id, |dropped| {
                 DropAllowedVisitor::new(dragged.as_any()).test(dropped)
             })
-            .search_in(node)
+            .search_in(base_node)
         })
-        .search_in(node)
+        .search_in(base_node)
         .flatten()
         .unwrap_or(false);
 
         if !drop_allowed {
-            tree_res.remove_drop_marker(ui);
+            response.remove_drop_marker(ui);
         }
 
-        if tree_res.dropped && drop_allowed {
+        if response.dropped && drop_allowed {
             if let Some(removed_node) =
-                RemoveNodeVisitor::new(drop_action.drag_id).remove_from(node)
+                RemoveNodeVisitor::new(drop_action.drag_id).remove_from(base_node)
             {
                 InsertNodeVisitor::new(drop_action.drop_id, drop_action.position, removed_node)
-                    .insert_into(node);
+                    .insert_into(base_node);
             } else {
                 info!("No node was removed from the tree");
             }

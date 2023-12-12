@@ -1,6 +1,8 @@
+mod asset_path_store;
 mod framerate;
 mod websocket;
 
+use asset_path_store::WebAssetPathStorePlugin;
 use bevy::{
     app::Update,
     ecs::{
@@ -22,10 +24,10 @@ use frontend::{
     cell::{
         init_cell,
         style::{CellStyle, SetStyle},
-        CellMarker, CellPlugin, CellSystem,
+        CellMarker, CellSystem,
     },
     communication::{ToControllerMessage, ToRendererMessage},
-    gradient_material::CustomMaterialPlugin,
+    FrontendPlugin,
 };
 use websocket::{ReceivedMessages, SendMessage, WebsocketPlugin};
 
@@ -33,7 +35,8 @@ fn main() {
     App::new()
         .insert_resource(ClearColor(Color::rgb(0.5, 0.5, 0.9)))
         .add_plugins(DefaultPlugins)
-        .add_plugins((CellPlugin, CustomMaterialPlugin))
+        .add_plugins(FrontendPlugin)
+        .add_plugins(WebAssetPathStorePlugin)
         .add_plugins((WebsocketPlugin, FrameratePlugin))
         .add_systems(Startup, setup_camera)
         //.add_systems(Startup, setup_cell)

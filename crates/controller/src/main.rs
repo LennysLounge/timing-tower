@@ -6,8 +6,8 @@ use bevy::{
     time::{Time, Timer, TimerMode},
     DefaultPlugins,
 };
-use common::{cell::style::CellStyle, communication::ToRendererMessage};
-use websocket::{WebsocketClient, WebsocketPlugin, ClientState};
+use frontend::{cell::style::CellStyle, communication::ToRendererMessage};
+use websocket::{ClientState, WebsocketClient, WebsocketPlugin};
 
 mod websocket;
 
@@ -51,7 +51,7 @@ fn get_cell_styles() -> Vec<CellStyle> {
             text: String::from("AABB"),
             text_color: Color::BLACK,
             text_size: 40.0,
-            text_alignment: common::cell::style::TextAlignment::Center,
+            text_alignment: frontend::cell::style::TextAlignment::Center,
             text_position: vec2(0.0, 0.0),
             color: Color::Hsla {
                 hue: rand::random::<f32>() * 360.0,

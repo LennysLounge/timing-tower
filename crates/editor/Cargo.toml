@@ -10,7 +10,7 @@ bevy = { workspace = true, features = ["dynamic_linking"] }
 bevy_egui = { workspace = true }
 egui_dock = { workspace = true }
 serde = { workspace = true, features = ["rc"] }
-common = { path = "../common" }
+frontend = { path = "../frontend" }
 backend = { path = "../backend" }
 unified_sim_model = { path = "../../../unified_sim_model/unified_sim_model" }
 dear_egui = { path = "../dear_egui" }

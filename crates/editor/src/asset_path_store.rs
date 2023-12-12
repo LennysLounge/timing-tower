@@ -8,7 +8,7 @@ use bevy::{
     },
     utils::HashMap,
 };
-use common::asset_path_store::{AssetPathProvider, AssetPathStore};
+use frontend::asset_path_store::{AssetPathProvider, AssetPathStore};
 use tracing::info;
 use uuid::Uuid;
 

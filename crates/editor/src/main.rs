@@ -16,7 +16,8 @@ use bevy::{
     DefaultPlugins,
 };
 use bevy_egui::EguiPlugin;
-use common::{
+use editor::EditorPlugin;
+use frontend::{
     asset_path_store::AssetPathStorePlugin,
     cell::{
         init_cell,
@@ -25,7 +26,6 @@ use common::{
     },
     gradient_material::CustomMaterialPlugin,
 };
-use editor::EditorPlugin;
 use std::{any::TypeId, env};
 use uuid::uuid;
 

@@ -17,7 +17,8 @@ use bevy::{
     window::{PrimaryWindow, Window},
     DefaultPlugins,
 };
-use common::{
+use framerate::{FrameCounter, FrameratePlugin};
+use frontend::{
     cell::{
         init_cell,
         style::{CellStyle, SetStyle},
@@ -26,7 +27,6 @@ use common::{
     communication::{ToControllerMessage, ToRendererMessage},
     gradient_material::CustomMaterialPlugin,
 };
-use framerate::{FrameCounter, FrameratePlugin};
 use websocket::{ReceivedMessages, SendMessage, WebsocketPlugin};
 
 fn main() {
@@ -53,7 +53,7 @@ fn setup_cell(mut commands: Commands, mut set_style: EventWriter<SetStyle>) {
             text: String::from(""),
             text_color: Color::BLACK,
             text_size: 40.0,
-            text_alignment: common::cell::style::TextAlignment::Center,
+            text_alignment: frontend::cell::style::TextAlignment::Center,
             text_position: vec2(0.0, 0.0),
             color: Color::BLUE,
             texture: None,

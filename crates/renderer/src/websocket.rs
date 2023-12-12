@@ -6,8 +6,8 @@ use bevy::{
         world::World,
     },
 };
-use common::communication::{ToControllerMessage, ToRendererMessage};
 use ewebsock::{WsMessage, WsReceiver, WsSender};
+use frontend::communication::{ToControllerMessage, ToRendererMessage};
 use tracing::info;
 
 pub struct WebsocketPlugin;

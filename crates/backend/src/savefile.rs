@@ -1,4 +1,7 @@
-use std::{fs, path::Path};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 use bevy::{
     asset::{
@@ -32,6 +35,7 @@ pub struct SavefileChanged;
 #[derive(Resource, Default)]
 pub struct Savefile {
     style: StyleDefinition,
+    base_path: PathBuf,
 }
 
 impl Savefile {
@@ -48,7 +52,7 @@ impl Savefile {
             }
             Ok(s) => s,
         };
-        let mut style = match serde_json::from_str::<StyleDefinition>(&s) {
+        let style = match serde_json::from_str::<StyleDefinition>(&s) {
             Ok(o) => o,
             Err(e) => {
                 println!("Error parsing json: {}", e);
@@ -61,17 +65,20 @@ impl Savefile {
         };
 
         // Update the paths of all assets.
-        style.assets.all_t_mut().into_iter().for_each(|asset| {
-            let asset_path = base_path.to_owned().join(asset.path.clone());
-            asset.path = format!(
-                "savefile://{}",
-                asset_path
-                    .into_os_string()
-                    .into_string()
-                    .expect("Path should be convertable into a string")
-            );
-        });
-        Savefile { style }
+        // style.assets.all_t_mut().into_iter().for_each(|asset| {
+        //     let asset_path = base_path.to_owned().join(asset.path.clone());
+        //     asset.path = format!(
+        //         "savefile://{}",
+        //         asset_path
+        //             .into_os_string()
+        //             .into_string()
+        //             .expect("Path should be convertable into a string")
+        //     );
+        // });
+        Savefile {
+            style,
+            base_path: base_path.to_owned(),
+        }
     }
 
     pub fn load<P>(&mut self, path: P, mut event: EventWriter<SavefileChanged>)
@@ -89,5 +96,9 @@ impl Savefile {
 
     pub fn style(&self) -> &StyleDefinition {
         &self.style
+    }
+
+    pub fn base_path(&self) -> &Path {
+        self.base_path.as_path()
     }
 }

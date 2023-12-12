@@ -31,7 +31,7 @@ impl AssetPathProvider for EditorAssetPathStore {
 }
 
 fn savefile_changed(
-    _savefile: Res<Savefile>,
+    savefile: Res<Savefile>,
     mut asset_path_store: ResMut<AssetPathStore>,
     mut savefile_changed_event: EventReader<SavefileChanged>,
 ) {
@@ -41,5 +41,17 @@ fn savefile_changed(
     savefile_changed_event.clear();
 
     info!("Reload asset path store");
-    *asset_path_store = AssetPathStore::new(EditorAssetPathStore::default());
+
+    let mut map = HashMap::new();
+    for asset in savefile.style().assets.all_t() {
+        let asset_path = savefile.base_path().join(&asset.path);
+        map.insert(
+            asset.id,
+            AssetPath::from_path(&asset_path)
+                .clone_owned()
+                .with_source("savefile"),
+        );
+    }
+
+    *asset_path_store = AssetPathStore::new(EditorAssetPathStore { map });
 }

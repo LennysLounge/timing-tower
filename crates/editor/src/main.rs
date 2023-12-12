@@ -1,5 +1,4 @@
-use std::{any::TypeId, env};
-
+use asset_path_store::EditorAssetPathStorePlugin;
 use backend::{
     savefile::{SaveFilePlugin, Savefile, SavefileChanged},
     style::definitions::*,
@@ -18,6 +17,7 @@ use bevy::{
 };
 use bevy_egui::EguiPlugin;
 use common::{
+    asset_path_store::AssetPathStorePlugin,
     cell::{
         init_cell,
         style::{CellStyle, SetStyle, TextAlignment},
@@ -26,10 +26,13 @@ use common::{
     gradient_material::CustomMaterialPlugin,
 };
 use editor::EditorPlugin;
+use std::{any::TypeId, env};
+use uuid::uuid;
 
 use timing_tower::{init_timing_tower, TimingTowerPlugin};
 use unified_sim_model::Adapter;
 
+mod asset_path_store;
 mod editor;
 mod properties;
 mod reference_store;
@@ -61,12 +64,14 @@ fn main() {
         .add_plugins(DefaultPlugins)
         .add_plugins(FrameTimeDiagnosticsPlugin)
         .add_plugins(EguiPlugin)
+        .add_plugins(EditorAssetPathStorePlugin)
         // Crate plugins
         .add_plugins(ValueStorePlugin)
         .add_plugins(CellPlugin)
         .add_plugins(CustomMaterialPlugin)
         .add_plugins(TimingTowerPlugin)
         .add_plugins(EditorPlugin)
+        .add_plugins(AssetPathStorePlugin)
         // Systems
         .add_systems(PreStartup, load)
         .add_systems(Startup, setup)
@@ -126,7 +131,7 @@ fn setup(
             text_alignment: TextAlignment::Center,
             text_position: Vec2::ZERO,
             color: Color::WHITE,
-            texture: Some(String::from("../savefile/acc6.PNG")),
+            texture: Some(uuid!("819d2f30-0d03-413a-8f09-9a0afa58b3ed")),
             pos: Vec3::new(0.0, 0.0, 0.0),
             size: Vec2::new(1920.0, 1080.0),
             skew: 0.0,

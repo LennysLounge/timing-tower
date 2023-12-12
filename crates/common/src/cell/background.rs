@@ -6,7 +6,10 @@ use bevy::{
     render::primitives::Aabb,
 };
 
-use crate::cell_material::CellMaterial;
+use crate::{
+    asset_path_store::{AssetPathProvider, AssetPathStore},
+    cell_material::CellMaterial,
+};
 
 use super::SetStyle;
 
@@ -19,6 +22,7 @@ pub fn update_style(
     cells: Query<&Background>,
     mut background: Query<(&Handle<CellMaterial>, &mut Aabb)>,
     asset_server: Res<AssetServer>,
+    asset_path_store: ResMut<AssetPathStore>,
 ) {
     for event in events.read() {
         let Ok(background_hadle) = cells.get(event.entity) else {
@@ -36,7 +40,8 @@ pub fn update_style(
             .style
             .texture
             .as_ref()
-            .and_then(|id| Some(asset_server.load(id)));
+            .and_then(|id| asset_path_store.get(id))
+            .and_then(|path| Some(asset_server.load(path)));
         material.size = event.style.size;
         material.skew = event.style.skew;
         material.rounding = event.style.rounding.into();

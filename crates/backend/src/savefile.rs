@@ -17,8 +17,8 @@ use bevy::{
 
 use crate::style::StyleDefinition;
 
-pub struct SaveFilePlugin;
-impl Plugin for SaveFilePlugin {
+pub struct SavefilePlugin;
+impl Plugin for SavefilePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.register_asset_source(
             "savefile",

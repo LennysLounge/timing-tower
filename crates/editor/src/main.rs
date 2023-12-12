@@ -1,7 +1,7 @@
 use asset_path_store::EditorAssetPathStorePlugin;
 use backend::{
-    savefile::{SaveFilePlugin, Savefile, SavefileChanged},
-    value_store::ValueStorePlugin,
+    savefile::{Savefile, SavefileChanged},
+    BackendPlugin,
 };
 use bevy::{
     diagnostic::FrameTimeDiagnosticsPlugin,
@@ -17,13 +17,11 @@ use bevy::{
 use bevy_egui::EguiPlugin;
 use editor::EditorPlugin;
 use frontend::{
-    asset_path_store::AssetPathStorePlugin,
     cell::{
         init_cell,
         style::{CellStyle, SetStyle, TextAlignment},
-        CellPlugin,
     },
-    gradient_material::CustomMaterialPlugin,
+    FrontendPlugin,
 };
 use std::env;
 use uuid::uuid;
@@ -43,20 +41,14 @@ fn main() {
     App::new()
         .insert_resource(ClearColor(Color::rgba(0.1, 0.1, 0.1, 0.0)))
         .insert_resource(SimpleTimer(Timer::from_seconds(1.0, TimerMode::Repeating)))
-        // Crate plugins
-        .add_plugins(SaveFilePlugin)
-        // Plugins
+        .add_plugins(BackendPlugin)
+        .add_plugins(EditorAssetPathStorePlugin)
+        .add_plugins(TimingTowerPlugin)
+        .add_plugins(EditorPlugin)
         .add_plugins(DefaultPlugins)
         .add_plugins(FrameTimeDiagnosticsPlugin)
         .add_plugins(EguiPlugin)
-        .add_plugins(EditorAssetPathStorePlugin)
-        // Crate plugins
-        .add_plugins(ValueStorePlugin)
-        .add_plugins(CellPlugin)
-        .add_plugins(CustomMaterialPlugin)
-        .add_plugins(TimingTowerPlugin)
-        .add_plugins(EditorPlugin)
-        .add_plugins(AssetPathStorePlugin)
+        .add_plugins(FrontendPlugin)
         // Systems
         .add_systems(PreStartup, load)
         .add_systems(Startup, setup)

@@ -50,7 +50,6 @@ impl NodeVisitorMut for InsertNodeVisitor {
     }
 
     fn visit_timing_tower_row(&mut self, row: &mut TimingTowerRow) -> ControlFlow<()> {
-        println!("Hello");
         if &self.id != row.id() {
             return ControlFlow::Continue(());
         }

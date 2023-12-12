@@ -3,10 +3,9 @@ use bevy::{
     sprite::Anchor,
     text::{Font, Text, TextStyle},
 };
+use common::communication::TextAlignment;
 
 use crate::cell::SetStyle;
-
-use super::style::TextAlignment;
 
 #[derive(Component)]
 pub struct Foreground(pub Entity);

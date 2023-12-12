@@ -1793,6 +1793,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "common"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "serde",
+ "uuid",
+]
+
+[[package]]
 name = "concurrent-queue"
 version = "2.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1843,7 +1852,7 @@ name = "controller"
 version = "0.1.0"
 dependencies = [
  "bevy",
- "frontend",
+ "common",
  "postcard",
  "rand 0.8.5",
  "rouille",
@@ -2138,6 +2147,7 @@ dependencies = [
  "backend",
  "bevy",
  "bevy_egui",
+ "common",
  "dear_egui",
  "egui_dock",
  "egui_ltreeview",
@@ -2615,6 +2625,7 @@ name = "frontend"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "common",
  "serde",
  "uuid",
 ]
@@ -4750,6 +4761,7 @@ name = "renderer"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "common",
  "ewebsock",
  "frontend",
  "postcard",

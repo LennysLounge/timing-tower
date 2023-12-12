@@ -12,6 +12,7 @@ egui_dock = { workspace = true }
 serde = { workspace = true, features = ["rc"] }
 frontend = { path = "../frontend" }
 backend = { path = "../backend" }
+common = { path = "../common" }
 unified_sim_model = { path = "../../../unified_sim_model/unified_sim_model" }
 dear_egui = { path = "../dear_egui" }
 egui_ltreeview = { git = "https://github.com/LennysLounge/egui_ltreeview.git" }

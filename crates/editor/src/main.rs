@@ -15,12 +15,10 @@ use bevy::{
     DefaultPlugins,
 };
 use bevy_egui::EguiPlugin;
+use common::communication::{CellStyle, TextAlignment};
 use editor::EditorPlugin;
 use frontend::{
-    cell::{
-        init_cell,
-        style::{CellStyle, SetStyle, TextAlignment},
-    },
+    cell::{init_cell, SetStyle},
     FrontendPlugin,
 };
 use std::env;

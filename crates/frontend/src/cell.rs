@@ -1,6 +1,8 @@
 use bevy::{
     app::PostUpdate,
     ecs::{
+        entity::Entity,
+        event::Event,
         schedule::{IntoSystemConfigs, SystemSet},
         system::Resource,
     },
@@ -14,13 +16,14 @@ use bevy::{
     text::{Font, Text, Text2dBundle, TextStyle},
 };
 
+use common::communication::CellStyle;
+
 use crate::cell_material::{CellMaterial, Gradient};
 
-use self::{background::Background, foreground::Foreground, style::SetStyle};
+use self::{background::Background, foreground::Foreground};
 
 pub mod background;
 pub mod foreground;
-pub mod style;
 
 #[derive(Debug, PartialEq, Eq, Clone, Hash, SystemSet)]
 pub struct CellSystem;
@@ -39,6 +42,12 @@ impl Plugin for CellPlugin {
                 .before(bevy::text::update_text2d_layout),
         );
     }
+}
+
+#[derive(Event)]
+pub struct SetStyle {
+    pub entity: Entity,
+    pub style: CellStyle,
 }
 
 #[derive(Component)]

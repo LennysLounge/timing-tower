@@ -13,10 +13,8 @@ use bevy::{
         EntityWorldMut, EventWriter, Plugin, Query, Res, SpatialBundle, Update, Vec2, Vec3, With,
     },
 };
-use frontend::cell::{
-    init_cell,
-    style::{CellStyle, SetStyle},
-};
+use common::communication::CellStyle;
+use frontend::cell::{init_cell, SetStyle};
 use unified_sim_model::{
     model::{Entry, EntryId},
     Adapter,
@@ -316,12 +314,12 @@ fn create_cell_style(cell: &Cell, vars: &ValueStore, entry: Option<&Entry>) -> C
             .unwrap_or(Number(20.0))
             .0,
         text_alignment: match cell.text_alginment {
-            backend::style::cell::TextAlignment::Left => frontend::cell::style::TextAlignment::Left,
+            backend::style::cell::TextAlignment::Left => common::communication::TextAlignment::Left,
             backend::style::cell::TextAlignment::Center => {
-                frontend::cell::style::TextAlignment::Center
+                common::communication::TextAlignment::Center
             }
             backend::style::cell::TextAlignment::Right => {
-                frontend::cell::style::TextAlignment::Right
+                common::communication::TextAlignment::Right
             }
         },
         text_position: Vec2::new(

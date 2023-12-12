@@ -12,7 +12,7 @@ use bevy::{
     },
     utils::synccell::SyncCell,
 };
-use frontend::communication::{ToControllerMessage, ToRendererMessage};
+use common::communication::{ToControllerMessage, ToRendererMessage};
 use tracing::{error, info};
 use websocket::{
     server::{InvalidConnection, NoTlsAcceptor, WsServer},

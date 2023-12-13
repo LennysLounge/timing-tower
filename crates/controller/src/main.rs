@@ -29,7 +29,7 @@ fn main() {
             TimerMode::Repeating,
         )))
         .add_systems(Startup, load_savefile)
-        .add_systems(Update, send_render_cell)
+        //        .add_systems(Update, send_render_cell)
         .run();
 }
 

@@ -124,7 +124,7 @@ fn spawn_cells(
                                 text_alignment: style.text_alignment.clone(),
                                 text_position: style.text_position,
                                 color: style.color,
-                                texture: None,
+                                texture: style.texture,
                                 pos: style.pos,
                                 size: style.size,
                                 skew: style.skew,

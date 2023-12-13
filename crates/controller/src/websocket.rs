@@ -2,17 +2,20 @@ use std::net::{TcpListener, TcpStream};
 
 use backend::savefile::{Savefile, SavefileChanged};
 use bevy::{
-    app::{Plugin, Update, First},
+    app::{First, Plugin, Update},
     ecs::{
         component::Component,
         entity::Entity,
         event::EventReader,
         system::{Commands, Query, Res, ResMut, Resource},
     },
+    math::{vec2, vec3},
+    render::color::Color,
     utils::synccell::SyncCell,
 };
-use common::communication::{ToControllerMessage, ToRendererMessage};
+use common::communication::{CellStyle, ToControllerMessage, ToRendererMessage};
 use tracing::{debug, error};
+use uuid::uuid;
 use websocket::{
     server::{InvalidConnection, NoTlsAcceptor, WsServer},
     sync::Client,
@@ -127,6 +130,20 @@ fn read_clients(
             }
             Some(ToControllerMessage::AssetsLoaded) => {
                 client.state = ClientState::Ready;
+                client.send_message(ToRendererMessage::CellStyle(vec![CellStyle {
+                    text: String::from(""),
+                    text_color: Color::BLACK,
+                    text_size: 20.0,
+                    text_alignment: common::communication::TextAlignment::Left,
+                    text_position: vec2(0.0, 0.0),
+                    color: Color::RED,
+                    texture: Some(uuid!("4971fafb-479d-470f-8afd-b85e6820a396")),
+                    pos: vec3(0.0, 500.0, 0.0),
+                    size: vec2(500.0, 500.0),
+                    skew: 0.0,
+                    visible: true,
+                    rounding: [0.0; 4],
+                }]));
             }
             Some(ToControllerMessage::Debug(m)) => debug!("Websocket message: {m}"),
             None => (),

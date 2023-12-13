@@ -12,6 +12,7 @@ backend = { path = "../backend" }
 bevy = { workspace = true }
 postcard = { workspace = true, features = ["alloc"] }
 tracing = { workspace = true }
+uuid = { workspace = true, features = ["v4"] }
 rouille = "3.6"
 websocket = "0.27"
 rand = "0.8.5"

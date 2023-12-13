@@ -90,7 +90,7 @@ fn setup(
         adapter: adapter.clone(),
     });
 
-    savefile.load("savefile/style.style.json", savefile_changed_event);
+    savefile.load("../../savefile/style.style.json", savefile_changed_event);
 
     let background_id = commands
         .spawn_empty()

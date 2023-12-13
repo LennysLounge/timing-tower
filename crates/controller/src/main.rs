@@ -40,10 +40,7 @@ fn load_savefile(
     mut savefile: ResMut<Savefile>,
     savefile_changed_event: EventWriter<SavefileChanged>,
 ) {
-    savefile.load(
-        "../editor/savefile/style.style.json",
-        savefile_changed_event,
-    );
+    savefile.load("../../savefile/style.style.json", savefile_changed_event);
 }
 
 fn send_render_cell(

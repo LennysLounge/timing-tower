@@ -10,7 +10,6 @@ use bevy::{
 };
 use rouille::{Response, Server};
 use tracing::{error, info, warn};
-use uuid::Uuid;
 
 pub struct WebserverPlugin;
 impl Plugin for WebserverPlugin {
@@ -60,11 +59,13 @@ fn savefile_changed(
 fn start_webserver(
     savefile: &Savefile,
 ) -> Result<(JoinHandle<()>, Sender<()>), Box<dyn Error + Sync + Send>> {
+    // Load all assets for this savefile.
     let mut assets = HashMap::new();
     for asset in savefile.style().assets.all_t().into_iter() {
+        let url = super::websocket::asset_to_uuid_asset_path(asset);
         let path = savefile.working_directory_path().join(&asset.path);
         match fs::read(&path) {
-            Ok(data) => _ = assets.insert(asset.id, data),
+            Ok(data) => _ = assets.insert(url, data),
             Err(e) => warn!("Cannot read asset for webserver: {path:?}, {e}"),
         }
     }
@@ -94,16 +95,8 @@ fn start_webserver(
                     .strip_prefix("/assets/")
                     .expect("String does not start with correct pattern but should");
 
-                let id = match Uuid::try_parse(uuid_str) {
-                    Ok(uuid) => uuid,
-                    Err(e) => {
-                        warn!("Request for unrecognizable uuid: {asset_id}, {e}");
-                        return Response::empty_400();
-                    }
-                };
-
-                let Some(asset_data) = assets.get(&id) else {
-                    warn!("Request for unknown asset: {id}");
+                let Some(asset_data) = assets.get(uuid_str) else {
+                    warn!("Request for unknown asset: {uuid_str}");
                     return Response::empty_404();
                 };
                 Response::from_data("application/octet-stream", asset_data.as_slice())

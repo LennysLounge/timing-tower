@@ -1,6 +1,9 @@
 use std::net::{TcpListener, TcpStream};
 
-use backend::savefile::{Savefile, SavefileChanged};
+use backend::{
+    savefile::{Savefile, SavefileChanged},
+    style::definitions::AssetDefinition,
+};
 use bevy::{
     app::{First, Plugin, Update},
     ecs::{
@@ -15,7 +18,7 @@ use bevy::{
 };
 use common::communication::{CellStyle, ToControllerMessage, ToRendererMessage};
 use tracing::{debug, error};
-use uuid::uuid;
+use uuid::{uuid, Uuid};
 use websocket::{
     server::{InvalidConnection, NoTlsAcceptor, WsServer},
     sync::Client,
@@ -160,17 +163,24 @@ fn make_assets_message(savefile: &Savefile) -> ToRendererMessage {
         .assets
         .all_t()
         .into_iter()
-        .map(|asset| {
-            let path = savefile.base_path().join(&asset.path);
-            (
-                asset.id,
-                path.into_os_string()
-                    .into_string()
-                    .expect("Cannot convert asset path to string"),
-            )
-        })
+        .map(|asset| (asset.id, asset_to_uuid_asset_path(asset).into()))
         .collect();
     ToRendererMessage::Assets { images }
+}
+
+/// Turn an asset into an String representing an `AssetPath`
+pub fn asset_to_uuid_asset_path(asset: &AssetDefinition) -> String {
+    let parts = asset.path.splitn(2, ".").collect::<Vec<_>>();
+    let extension = parts.get(1).expect("Asset paths must have an extension");
+
+    let mut uuid_string = asset
+        .id
+        .as_hyphenated()
+        .encode_lower(&mut Uuid::encode_buffer())
+        .to_owned();
+    uuid_string.push('.');
+    uuid_string.push_str(extension);
+    uuid_string
 }
 
 fn savefile_changed(

@@ -26,7 +26,6 @@ use frontend::{
     FrontendPlugin,
 };
 
-use tracing::info;
 use websocket::{ReceivedMessages, SendMessage, WebsocketPlugin};
 
 fn main() {
@@ -97,17 +96,10 @@ fn spawn_cells(
     mut received_messages: EventReader<ReceivedMessages>,
     mut set_style: EventWriter<SetStyle>,
     mut frame_counter: ResMut<FrameCounter>,
-    mut send_message: EventWriter<SendMessage>,
 ) {
     for messages in received_messages.read() {
         for message in messages.messages.iter() {
             match message {
-                ToRendererMessage::Assets { images } => {
-                    send_message.send(SendMessage {
-                        message: ToControllerMessage::AssetsLoaded,
-                    });
-                    info!("received assets: {images:?}");
-                }
                 ToRendererMessage::CellStyle(styles) => {
                     let cell_ids: Vec<Entity> = cells.iter().collect();
                     for (index, style) in styles.iter().enumerate() {
@@ -135,6 +127,7 @@ fn spawn_cells(
                     }
                     frame_counter.inc();
                 }
+                _ => (),
             }
         }
     }

@@ -3,13 +3,16 @@ use std::collections::HashMap;
 use bevy::{
     app::{Plugin, Update},
     asset::AssetPath,
-    ecs::{event::EventReader, system::ResMut},
+    ecs::{
+        event::{EventReader, EventWriter},
+        system::ResMut,
+    },
 };
-use common::communication::ToRendererMessage;
+use common::communication::{ToControllerMessage, ToRendererMessage};
 use frontend::asset_path_store::{AssetPathProvider, AssetPathStore};
 use uuid::Uuid;
 
-use crate::websocket::ReceivedMessages;
+use crate::websocket::{ReceivedMessages, SendMessage};
 
 pub struct WebAssetPathStorePlugin;
 impl Plugin for WebAssetPathStorePlugin {
@@ -32,6 +35,7 @@ impl AssetPathProvider for WebAssetPathStore {
 fn assets_received(
     mut asset_path_store: ResMut<AssetPathStore>,
     mut received_messages: EventReader<ReceivedMessages>,
+    mut send_message: EventWriter<SendMessage>,
 ) {
     let Some(images) = received_messages
         .read()
@@ -46,14 +50,13 @@ fn assets_received(
     };
 
     let mut map = HashMap::new();
-    for (id, _) in images.into_iter() {
-        let asset_path: AssetPath = id
-            .as_hyphenated()
-            .encode_lower(&mut Uuid::encode_buffer())
-            .to_owned()
-            .into();
-        map.insert(*id, asset_path);
+    for (id, path) in images.into_iter() {
+        map.insert(*id, AssetPath::from(path).clone_owned());
     }
 
     *asset_path_store = AssetPathStore::new(WebAssetPathStore { map });
+
+    send_message.send(SendMessage {
+        message: ToControllerMessage::AssetsLoaded,
+    });
 }

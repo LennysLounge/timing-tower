@@ -46,8 +46,12 @@ fn assets_received(
     };
 
     let mut map = HashMap::new();
-    for (id, path_str) in images.into_iter() {
-        let asset_path: AssetPath = path_str.clone().into();
+    for (id, _) in images.into_iter() {
+        let asset_path: AssetPath = id
+            .as_hyphenated()
+            .encode_lower(&mut Uuid::encode_buffer())
+            .to_owned()
+            .into();
         map.insert(*id, asset_path);
     }
 

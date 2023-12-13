@@ -36,6 +36,7 @@ pub struct SavefileChanged;
 pub struct Savefile {
     style: StyleDefinition,
     base_path: PathBuf,
+    working_directory_path: PathBuf,
 }
 
 impl Savefile {
@@ -43,9 +44,9 @@ impl Savefile {
     where
         P: AsRef<Path>,
     {
-        let root_path = FileAssetReader::get_base_path().join(&path);
+        let style_file = FileAssetReader::get_base_path().join(&path);
 
-        let s = match fs::read_to_string(&root_path) {
+        let s = match fs::read_to_string(&style_file) {
             Err(e) => {
                 eprintln!("Cannot read 'style.json': {}", e);
                 panic!();
@@ -63,6 +64,9 @@ impl Savefile {
         let Some(base_path) = path.as_ref().parent() else {
             panic!("Path has no parent");
         };
+        let Some(working_directory_path) = style_file.parent() else {
+            panic!("Path has no parent");
+        };
 
         // Update the paths of all assets.
         // style.assets.all_t_mut().into_iter().for_each(|asset| {
@@ -78,6 +82,7 @@ impl Savefile {
         Savefile {
             style,
             base_path: base_path.to_owned(),
+            working_directory_path: working_directory_path.to_owned(),
         }
     }
 
@@ -100,5 +105,9 @@ impl Savefile {
 
     pub fn base_path(&self) -> &Path {
         self.base_path.as_path()
+    }
+
+    pub fn working_directory_path(&self) -> &Path {
+        self.working_directory_path.as_path()
     }
 }

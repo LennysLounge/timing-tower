@@ -1,15 +1,16 @@
-use std::{error::Error, sync::mpsc::Sender, thread::JoinHandle};
+use std::{collections::HashMap, error::Error, fs, sync::mpsc::Sender, thread::JoinHandle};
 
-use backend::savefile::SavefileChanged;
+use backend::savefile::{Savefile, SavefileChanged};
 use bevy::{
     app::{First, Plugin},
     ecs::{
         event::EventReader,
-        system::{ResMut, Resource},
+        system::{Res, ResMut, Resource},
     },
 };
 use rouille::{Response, Server};
-use tracing::{error, info};
+use tracing::{error, info, warn};
+use uuid::Uuid;
 
 pub struct WebserverPlugin;
 impl Plugin for WebserverPlugin {
@@ -30,6 +31,7 @@ struct Webserver {
 }
 
 fn savefile_changed(
+    savefile: Res<Savefile>,
     mut server: ResMut<ServerResource>,
     mut savefile_changed_event: EventReader<SavefileChanged>,
 ) {
@@ -46,7 +48,7 @@ fn savefile_changed(
         }
     }
     info!("Starting webserver");
-    server.webserver = match start_webserver() {
+    server.webserver = match start_webserver(&*savefile) {
         Ok((handle, signal)) => Some(Webserver { signal, handle }),
         Err(e) => {
             error!("Cannot start server: {e}");
@@ -55,12 +57,24 @@ fn savefile_changed(
     };
 }
 
-fn start_webserver() -> Result<(JoinHandle<()>, Sender<()>), Box<dyn Error + Sync + Send>> {
+fn start_webserver(
+    savefile: &Savefile,
+) -> Result<(JoinHandle<()>, Sender<()>), Box<dyn Error + Sync + Send>> {
+    let mut assets = HashMap::new();
+    for asset in savefile.style().assets.all_t().into_iter() {
+        let path = savefile.working_directory_path().join(&asset.path);
+        match fs::read(&path) {
+            Ok(data) => _ = assets.insert(asset.id, data),
+            Err(e) => warn!("Cannot read asset for webserver: {path:?}, {e}"),
+        }
+    }
+
     let server = Server::new("0.0.0.0:8000", move |request| {
         println!("Requested: {}: {}", request.method(), request.url());
         if request.method() != "GET" {
             return Response::empty_404();
         }
+
         match request.url().as_str() {
             "/index.html" => Response::from_data("text/html", *include_bytes!("../web/index.html")),
             "/restart-audio-context.js" => Response::from_data(
@@ -75,6 +89,25 @@ fn start_webserver() -> Result<(JoinHandle<()>, Sender<()>), Box<dyn Error + Syn
                 "application/wasm",
                 *include_bytes!("../web/renderer/renderer_bg.wasm"),
             ),
+            asset_id if asset_id.starts_with("/assets/") => {
+                let uuid_str = asset_id
+                    .strip_prefix("/assets/")
+                    .expect("String does not start with correct pattern but should");
+
+                let id = match Uuid::try_parse(uuid_str) {
+                    Ok(uuid) => uuid,
+                    Err(e) => {
+                        warn!("Request for unrecognizable uuid: {asset_id}, {e}");
+                        return Response::empty_400();
+                    }
+                };
+
+                let Some(asset_data) = assets.get(&id) else {
+                    warn!("Request for unknown asset: {id}");
+                    return Response::empty_404();
+                };
+                Response::from_data("application/octet-stream", asset_data.as_slice())
+            }
             _ => Response::empty_404(),
         }
     })?;

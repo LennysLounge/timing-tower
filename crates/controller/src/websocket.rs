@@ -1,16 +1,18 @@
 use std::net::{TcpListener, TcpStream};
 
+use backend::savefile::{Savefile, SavefileChanged};
 use bevy::{
-    app::{Plugin, Startup, Update},
+    app::{Plugin, Update, First},
     ecs::{
         component::Component,
         entity::Entity,
-        system::{Commands, Query, ResMut, Resource},
+        event::EventReader,
+        system::{Commands, Query, Res, ResMut, Resource},
     },
     utils::synccell::SyncCell,
 };
 use common::communication::{ToControllerMessage, ToRendererMessage};
-use tracing::error;
+use tracing::{debug, error};
 use websocket::{
     server::{InvalidConnection, NoTlsAcceptor, WsServer},
     sync::Client,
@@ -20,21 +22,18 @@ use websocket::{
 pub struct WebsocketPlugin;
 impl Plugin for WebsocketPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_systems(Startup, setup)
-            .add_systems(Update, (accept_new_clients, read_clients));
+        let server = websocket::sync::Server::bind("0.0.0.0:8001").unwrap();
+        server.set_nonblocking(true).unwrap();
+
+        app.insert_resource(WebsocketServer { server })
+            .add_systems(Update, (accept_new_clients, read_clients))
+            .add_systems(First, savefile_changed);
     }
 }
 
 #[derive(Resource)]
 struct WebsocketServer {
     server: WsServer<NoTlsAcceptor, TcpListener>,
-}
-
-fn setup(mut commands: Commands) {
-    let server = websocket::sync::Server::bind("0.0.0.0:8001").unwrap();
-    server.set_nonblocking(true).unwrap();
-
-    commands.insert_resource(WebsocketServer { server });
 }
 
 fn accept_new_clients(mut commands: Commands, mut server: ResMut<WebsocketServer>) {
@@ -68,6 +67,14 @@ pub struct WebsocketClient {
     state: ClientState,
 }
 
+#[derive(PartialEq, Eq)]
+pub enum ClientState {
+    Initializing,
+    ProcessingAssets,
+    Ready,
+    Closed,
+}
+
 impl WebsocketClient {
     pub fn send_message(&mut self, message: ToRendererMessage) {
         let data = postcard::to_allocvec(&message).expect("Cannot convert to postcard");
@@ -78,56 +85,89 @@ impl WebsocketClient {
     pub fn state(&self) -> &ClientState {
         &self.state
     }
-    fn read_message(&mut self, data: Vec<u8>) {
-        let message =
-            postcard::from_bytes::<ToControllerMessage>(&data).expect("Cannot deserialize");
-
-        match message {
-            ToControllerMessage::Opened => {
-                self.state = ClientState::ProcessingAssets;
-                self.send_message(ToRendererMessage::Assets { images: Vec::new() });
+    fn read_websocket(&mut self) -> Option<ToControllerMessage> {
+        match self.client.get().recv_message() {
+            Ok(OwnedMessage::Binary(data)) => Some(
+                postcard::from_bytes::<ToControllerMessage>(&data).expect("Cannot deserialize"),
+            ),
+            Ok(OwnedMessage::Close(_)) => {
+                self.state = ClientState::Closed;
+                None
             }
-            ToControllerMessage::AssetsLoaded => {
-                self.state = ClientState::Ready;
+            Ok(m) => {
+                error!("Unexpected websocket message: {m:?}");
+                self.state = ClientState::Closed;
+                None
             }
-            ToControllerMessage::Debug(message) => {
-                println!("Message from renderer: {message}");
+            Err(websocket::WebSocketError::IoError(ref error))
+                if error.kind() == std::io::ErrorKind::WouldBlock =>
+            {
+                None
+            }
+            Err(e) => {
+                error!("Error in websocket: {e:?}");
+                self.state = ClientState::Closed;
+                None
             }
         }
     }
 }
 
-fn read_clients(mut commands: Commands, mut clients: Query<(&mut WebsocketClient, Entity)>) {
+fn read_clients(
+    mut commands: Commands,
+    savefile: Res<Savefile>,
+    mut clients: Query<(&mut WebsocketClient, Entity)>,
+) {
     for (mut client, entity) in clients.iter_mut() {
-        match client.client.get().recv_message() {
-            Ok(m) => match m {
-                OwnedMessage::Binary(data) => {
-                    client.read_message(data);
-                }
-                OwnedMessage::Close(_) => {
-                    commands.entity(entity).despawn();
-                }
-                m @ _ => {
-                    error!("Unexpected websocket message: {m:?}");
-                    commands.entity(entity).despawn();
-                }
-            },
-            Err(websocket::WebSocketError::IoError(ref error))
-                if error.kind() == std::io::ErrorKind::WouldBlock =>
-            {
-                ()
+        match client.read_websocket() {
+            Some(ToControllerMessage::Opened) => {
+                client.state = ClientState::ProcessingAssets;
+                client.send_message(make_assets_message(&*savefile));
+                // send assets
             }
-            Err(e) => {
-                error!("Error in websocket: {e:?}");
-                commands.entity(entity).despawn();
+            Some(ToControllerMessage::AssetsLoaded) => {
+                client.state = ClientState::Ready;
             }
-        };
+            Some(ToControllerMessage::Debug(m)) => debug!("Websocket message: {m}"),
+            None => (),
+        }
+        if client.state() == &ClientState::Closed {
+            commands.entity(entity).despawn();
+        }
     }
 }
 
-#[derive(PartialEq, Eq)]
-pub enum ClientState {
-    Initializing,
-    ProcessingAssets,
-    Ready,
+fn make_assets_message(savefile: &Savefile) -> ToRendererMessage {
+    let images: Vec<_> = savefile
+        .style()
+        .assets
+        .all_t()
+        .into_iter()
+        .map(|asset| {
+            let path = savefile.base_path().join(&asset.path);
+            (
+                asset.id,
+                path.into_os_string()
+                    .into_string()
+                    .expect("Cannot convert asset path to string"),
+            )
+        })
+        .collect();
+    ToRendererMessage::Assets { images }
+}
+
+fn savefile_changed(
+    savefile: Res<Savefile>,
+    mut savefile_changed_event: EventReader<SavefileChanged>,
+    mut clients: Query<&mut WebsocketClient>,
+) {
+    if savefile_changed_event.is_empty() {
+        return;
+    }
+    savefile_changed_event.clear();
+
+    for mut client in clients.iter_mut() {
+        client.state = ClientState::ProcessingAssets;
+        client.send_message(make_assets_message(&*savefile));
+    }
 }

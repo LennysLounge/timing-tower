@@ -26,6 +26,7 @@ use frontend::{
     FrontendPlugin,
 };
 
+use tracing::info;
 use websocket::{ReceivedMessages, SendMessage, WebsocketPlugin};
 
 fn main() {
@@ -101,10 +102,11 @@ fn spawn_cells(
     for messages in received_messages.read() {
         for message in messages.messages.iter() {
             match message {
-                ToRendererMessage::Assets { images: _ } => {
+                ToRendererMessage::Assets { images } => {
                     send_message.send(SendMessage {
                         message: ToControllerMessage::AssetsLoaded,
                     });
+                    info!("received assets: {images:?}");
                 }
                 ToRendererMessage::CellStyle(styles) => {
                     let cell_ids: Vec<Entity> = cells.iter().collect();

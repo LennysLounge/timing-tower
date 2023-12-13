@@ -1,5 +1,10 @@
+use backend::{
+    savefile::{Savefile, SavefileChanged},
+    BackendPlugin,
+};
 use bevy::{
-    ecs::system::Query,
+    app::Startup,
+    ecs::{event::EventWriter, system::Query},
     math::{vec2, vec3},
     prelude::{App, Res, ResMut, Resource, Update},
     render::color::Color,
@@ -7,24 +12,39 @@ use bevy::{
     DefaultPlugins,
 };
 use common::communication::{CellStyle, ToRendererMessage};
+use webserver::WebserverPlugin;
 use websocket::{ClientState, WebsocketClient, WebsocketPlugin};
 
+mod webserver;
 mod websocket;
 
 fn main() {
     App::new()
+        .add_plugins(BackendPlugin)
         .add_plugins(DefaultPlugins)
         .add_plugins(WebsocketPlugin)
+        .add_plugins(WebserverPlugin)
         .insert_resource(RenderTimer(Timer::from_seconds(
             0.001,
             TimerMode::Repeating,
         )))
+        .add_systems(Startup, load_savefile)
         .add_systems(Update, send_render_cell)
         .run();
 }
 
 #[derive(Resource)]
 struct RenderTimer(Timer);
+
+fn load_savefile(
+    mut savefile: ResMut<Savefile>,
+    savefile_changed_event: EventWriter<SavefileChanged>,
+) {
+    savefile.load(
+        "../editor/savefile/style.style.json",
+        savefile_changed_event,
+    );
+}
 
 fn send_render_cell(
     _time: Res<Time>,

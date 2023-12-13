@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 common = { path = "../common" }
+backend = { path = "../backend" }
 
 bevy = { workspace = true }
 postcard = { workspace = true, features = ["alloc"] }

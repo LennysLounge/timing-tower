@@ -1,7 +1,4 @@
-use std::{
-    net::{TcpListener, TcpStream},
-    thread,
-};
+use std::net::{TcpListener, TcpStream};
 
 use bevy::{
     app::{Plugin, Startup, Update},
@@ -13,7 +10,7 @@ use bevy::{
     utils::synccell::SyncCell,
 };
 use common::communication::{ToControllerMessage, ToRendererMessage};
-use tracing::{error, info};
+use tracing::error;
 use websocket::{
     server::{InvalidConnection, NoTlsAcceptor, WsServer},
     sync::Client,
@@ -34,14 +31,6 @@ struct WebsocketServer {
 }
 
 fn setup(mut commands: Commands) {
-    thread::spawn(|| {
-        info!("Starting web server");
-        rouille::start_server("0.0.0.0:8000", move |request| {
-            println!("Requested: {}", request.url());
-            rouille::match_assets(&request, concat!(file!(), "/../../web"))
-        });
-    });
-
     let server = websocket::sync::Server::bind("0.0.0.0:8001").unwrap();
     server.set_nonblocking(true).unwrap();
 

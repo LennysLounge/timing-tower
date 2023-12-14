@@ -1,5 +1,3 @@
-use std::env;
-
 use backend::{
     savefile::{Savefile, SavefileChanged},
     BackendPlugin,
@@ -24,7 +22,6 @@ mod webserver;
 mod websocket;
 
 fn main() {
-    println!("pwd: {:?}", env::current_dir());
     App::new()
         .add_plugins(BackendPlugin)
         .add_plugins(DefaultPlugins)

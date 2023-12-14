@@ -12,7 +12,7 @@ use common::communication::{ToControllerMessage, ToRendererMessage};
 use frontend::asset_path_store::{AssetPathProvider, AssetPathStore};
 use uuid::Uuid;
 
-use crate::websocket::{ReceivedMessages, SendMessage};
+use crate::websocket::{ReceivedMessage, SendMessage};
 
 pub struct WebAssetPathStorePlugin;
 impl Plugin for WebAssetPathStorePlugin {
@@ -34,13 +34,12 @@ impl AssetPathProvider for WebAssetPathStore {
 
 fn assets_received(
     mut asset_path_store: ResMut<AssetPathStore>,
-    mut received_messages: EventReader<ReceivedMessages>,
+    mut received_messages: EventReader<ReceivedMessage>,
     mut send_message: EventWriter<SendMessage>,
 ) {
     let Some(images) = received_messages
         .read()
-        .flat_map(|received_message| received_message.messages.iter())
-        .filter_map(|m| match m {
+        .filter_map(|ReceivedMessage { message }| match message {
             ToRendererMessage::Assets { images } => Some(images),
             _ => None,
         })

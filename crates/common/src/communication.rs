@@ -22,8 +22,8 @@ pub enum ToControllerMessage {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct StyleCommand {
-    id: Uuid,
-    style: CellStyle,
+    pub id: Uuid,
+    pub style: CellStyle,
 }
 
 #[derive(Serialize, Deserialize, Clone)]

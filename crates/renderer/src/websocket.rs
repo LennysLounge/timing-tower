@@ -14,7 +14,7 @@ pub struct WebsocketPlugin;
 impl Plugin for WebsocketPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_event::<SendMessage>()
-            .add_event::<ReceivedMessages>()
+            .add_event::<ReceivedMessage>()
             .add_systems(Startup, open_websocket)
             .add_systems(First, read_websocket)
             .add_systems(Last, send_messages);
@@ -29,8 +29,8 @@ pub struct SendMessage {
 
 /// Event contains all messages that were received from the controller.
 #[derive(Event)]
-pub struct ReceivedMessages {
-    pub messages: Vec<ToRendererMessage>,
+pub struct ReceivedMessage {
+    pub message: ToRendererMessage,
 }
 
 struct Websocket {
@@ -53,9 +53,8 @@ fn open_websocket(world: &mut World) {
 fn read_websocket(
     mut websocket: NonSendMut<Websocket>,
     mut send_message: EventWriter<SendMessage>,
-    mut received_messages: EventWriter<ReceivedMessages>,
+    mut received_messages: EventWriter<ReceivedMessage>,
 ) {
-    let mut messages = Vec::new();
     while let Some(event) = websocket.receiver.try_recv() {
         match event {
             ewebsock::WsEvent::Opened => {
@@ -64,45 +63,21 @@ fn read_websocket(
                 });
                 websocket.connected = true;
             }
-            ewebsock::WsEvent::Message(message) => match message {
-                WsMessage::Binary(b) => messages.push(
-                    postcard::from_bytes::<ToRendererMessage>(b.as_slice())
+            ewebsock::WsEvent::Message(WsMessage::Binary(b)) => {
+                received_messages.send(ReceivedMessage {
+                    message: postcard::from_bytes::<ToRendererMessage>(b.as_slice())
                         .expect("Cannot deserialize"),
-                ),
-                _ => {
-                    info!("Unexpected message on websocket: {message:?}");
-                }
-            },
+                });
+            }
+            ewebsock::WsEvent::Message(message) => {
+                info!("Unexpected message on websocket: {message:?}");
+            }
             ewebsock::WsEvent::Error(e) => info!("socket error: {e}"),
             ewebsock::WsEvent::Closed => {
                 info!("socket closed");
                 websocket.connected = false;
             }
         }
-    }
-
-    if !websocket.connected {
-        return;
-    }
-
-    //Remove all but the last CellStyle message
-    let last_cell_style_index = messages
-        .iter()
-        .rev()
-        .position(|m| matches!(m, ToRendererMessage::Style(_)));
-    let mut index = 0;
-    messages.retain(|m| {
-        let retain = if matches!(m, ToRendererMessage::Style(_)) {
-            last_cell_style_index.is_some_and(|keep_index| index == keep_index)
-        } else {
-            true
-        };
-        index += 1;
-        retain
-    });
-
-    if !messages.is_empty() {
-        received_messages.send(ReceivedMessages { messages });
     }
 }
 

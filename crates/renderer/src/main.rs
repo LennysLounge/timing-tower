@@ -26,7 +26,7 @@ use frontend::{
     FrontendPlugin,
 };
 
-use websocket::{ReceivedMessages, SendMessage, WebsocketPlugin};
+use websocket::{ReceivedMessage, SendMessage, WebsocketPlugin};
 
 fn main() {
     App::new()
@@ -93,42 +93,29 @@ fn mouse_click_send_message(
 fn spawn_cells(
     mut commands: Commands,
     cells: Query<Entity, With<CellMarker>>,
-    mut received_messages: EventReader<ReceivedMessages>,
+    mut received_messages: EventReader<ReceivedMessage>,
     mut set_style: EventWriter<SetStyle>,
     mut frame_counter: ResMut<FrameCounter>,
 ) {
-    for messages in received_messages.read() {
-        for message in messages.messages.iter() {
-            match message {
-                ToRendererMessage::Style(styles) => {
-                    let cell_ids: Vec<Entity> = cells.iter().collect();
-                    for (index, style) in styles.iter().enumerate() {
-                        let cell_id = cell_ids
-                            .get(index)
-                            .map(|e| *e)
-                            .unwrap_or_else(|| commands.spawn_empty().add(init_cell).id());
-                        set_style.send(SetStyle {
-                            entity: cell_id,
-                            style: CellStyle {
-                                text: style.text.clone(),
-                                text_color: style.text_color,
-                                text_size: style.text_size,
-                                text_alignment: style.text_alignment.clone(),
-                                text_position: style.text_position,
-                                color: style.color,
-                                texture: style.texture,
-                                pos: style.pos,
-                                size: style.size,
-                                skew: style.skew,
-                                visible: style.visible,
-                                rounding: style.rounding,
-                            },
-                        });
-                    }
-                    frame_counter.inc();
-                }
-                _ => (),
+    let cell_ids: Vec<Entity> = cells.iter().collect();
+    let style_commands = received_messages
+        .read()
+        .filter_map(|ReceivedMessage { message }| match message {
+            ToRendererMessage::Style(styles) => {
+                frame_counter.inc();
+                Some(styles)
             }
-        }
+            _ => None,
+        })
+        .flat_map(|styles| styles.iter());
+    for (index, command) in style_commands.enumerate() {
+        let cell_id = cell_ids
+            .get(index)
+            .map(|e| *e)
+            .unwrap_or_else(|| commands.spawn_empty().add(init_cell).id());
+        set_style.send(SetStyle {
+            entity: cell_id,
+            style: command.style.clone(),
+        });
     }
 }

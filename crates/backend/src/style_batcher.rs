@@ -36,7 +36,7 @@ impl StyleBatcher {
         // TODO: implement the change detection
         self.last_styles
             .insert(cell_id.id, (cell_id.weak(), style.clone()));
-        self.commands.push(StyleCommand {
+        self.commands.push(StyleCommand::Style {
             id: cell_id.id,
             style,
         });
@@ -59,11 +59,10 @@ fn prepare_batcher(mut batcher: ResMut<StyleBatcher>) {
         .filter_map(|(id, (reference, _))| (reference.strong_count() == 0).then_some(*id))
         .collect();
 
-    dead_cells
-        .iter()
-        .for_each(|cell_id| _ = batcher.last_styles.remove(cell_id));
-
-    // TODO: Add remove cell command.
+    dead_cells.into_iter().for_each(|cell_id| {
+        batcher.last_styles.remove(&cell_id);
+        batcher.commands.push(StyleCommand::Remove { id: cell_id });
+    });
 }
 
 /// Identifies a cell by a unique id.

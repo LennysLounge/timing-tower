@@ -69,7 +69,7 @@ fn update(
             ball.velocity.y *= -1.0;
         }
 
-        styles.push(StyleCommand {
+        styles.push(StyleCommand::Style {
             id: ball.id,
             style: CellStyle {
                 text: String::from("AABB"),

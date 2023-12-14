@@ -21,7 +21,7 @@ use bevy::{
     window::{PrimaryWindow, Window},
     DefaultPlugins,
 };
-use common::communication::{CellStyle, ToControllerMessage, ToRendererMessage};
+use common::communication::{CellStyle, StyleCommand, ToControllerMessage, ToRendererMessage};
 use framerate::{FrameCounter, FrameratePlugin};
 use frontend::{
     cell::{init_cell, CellSystem, SetStyle},
@@ -111,7 +111,10 @@ fn spawn_cells(
             _ => None,
         })
         .flat_map(|styles| styles.iter())
-        .map(|command| (command.id, &command.style))
+        .filter_map(|command| match command {
+            StyleCommand::Style { id, style } => Some((*id, style)),
+            StyleCommand::Remove { .. } => None,
+        })
         .collect();
 
     for (id, style) in style_commands {

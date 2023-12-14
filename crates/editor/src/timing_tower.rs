@@ -61,9 +61,6 @@ pub struct Row {
     pub columns: HashMap<String, CellId>,
 }
 
-#[derive(Component)]
-struct LogPosition(Vec3);
-
 pub fn init_timing_tower(adapter: Adapter) -> impl EntityCommand {
     |mut entity: EntityWorldMut| {
         let tower_id = entity.id();
@@ -84,7 +81,6 @@ pub fn init_timing_tower(adapter: Adapter) -> impl EntityCommand {
                 adapter,
                 table_id,
             })
-            .insert(LogPosition(Vec3::ZERO))
             .add_child(table_id);
     }
 }

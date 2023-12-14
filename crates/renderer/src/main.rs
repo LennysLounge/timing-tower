@@ -26,6 +26,7 @@ use frontend::{
     FrontendPlugin,
 };
 
+use tracing::info;
 use websocket::{ReceivedMessage, SendMessage, WebsocketPlugin};
 
 fn main() {
@@ -109,10 +110,10 @@ fn spawn_cells(
         })
         .flat_map(|styles| styles.iter());
     for (index, command) in style_commands.enumerate() {
-        let cell_id = cell_ids
-            .get(index)
-            .map(|e| *e)
-            .unwrap_or_else(|| commands.spawn_empty().add(init_cell).id());
+        let cell_id = cell_ids.get(index).map(|e| *e).unwrap_or_else(|| {
+            info!("Spawn entity");
+            commands.spawn_empty().add(init_cell).id()
+        });
         set_style.send(SetStyle {
             entity: cell_id,
             style: command.style.clone(),

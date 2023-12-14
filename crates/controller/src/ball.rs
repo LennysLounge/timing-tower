@@ -72,9 +72,9 @@ fn update(
         styles.push(StyleCommand {
             id: ball.id,
             style: CellStyle {
-                text: String::from(""),
+                text: String::from("AABB"),
                 text_color: Color::BLACK,
-                text_size: 20.0,
+                text_size: 40.0,
                 text_alignment: TextAlignment::Center,
                 text_position: Vec2::ZERO,
                 color: ball.color.clone(),

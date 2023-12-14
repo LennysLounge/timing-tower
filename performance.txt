@@ -10,3 +10,11 @@
 400     52      58                      58
 600     35      45                      46
 800     20*     33                      35
+
+With balls and entity reuse by id (no deduping of style messages):
+        No text         With text
+200     60              60
+400     60              60
+600     60              42   
+800     53              30*  
+

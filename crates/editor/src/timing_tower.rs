@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use backend::{
     savefile::Savefile,
     style::cell::Cell,
-    style_batch::StyleBatch,
+    style_batch::{CellId, StyleBatcher},
     value_store::ValueStore,
     value_types::{Boolean, Number, Text, Texture, Tint},
 };
@@ -18,14 +18,10 @@ use bevy::{
     },
 };
 use common::communication::CellStyle;
-use frontend::cell::init_cell;
 use unified_sim_model::{
     model::{Entry, EntryId},
     Adapter,
 };
-use uuid::Uuid;
-
-use crate::SpawnAndInitWorld;
 
 pub struct TimingTowerPlugin;
 impl Plugin for TimingTowerPlugin {
@@ -45,24 +41,24 @@ pub struct TimingTowerBundle {
 
 #[derive(Component)]
 pub struct TimingTower {
-    pub id: Uuid,
+    pub cell_id: CellId,
     pub adapter: Adapter,
     pub table_id: Entity,
 }
 
 #[derive(Component)]
 pub struct Table {
-    pub id: Uuid,
+    pub cell_id: CellId,
     pub tower_id: Entity,
     pub rows: HashMap<EntryId, Entity>,
 }
 
 #[derive(Component)]
 pub struct Row {
-    pub id: Uuid,
+    pub cell_id: CellId,
     pub tower_id: Entity,
     pub entry_id: EntryId,
-    pub columns: HashMap<String, Uuid>,
+    pub columns: HashMap<String, CellId>,
 }
 
 #[derive(Component)]
@@ -73,22 +69,18 @@ pub fn init_timing_tower(adapter: Adapter) -> impl EntityCommand {
         let tower_id = entity.id();
         let table_id = entity.world_scope(|world| {
             world
-                .spawn_new(init_cell)
+                .spawn_empty()
                 .insert(Table {
                     tower_id,
                     rows: HashMap::new(),
-                    id: Uuid::new_v4(),
+                    cell_id: CellId::new(),
                 })
                 .id()
         });
 
-        entity.world_scope(|world| {
-            init_cell(world.entity_mut(tower_id));
-        });
-
         entity
             .insert(TimingTower {
-                id: Uuid::new_v4(),
+                cell_id: CellId::new(),
                 adapter,
                 table_id,
             })
@@ -101,7 +93,7 @@ pub fn update_tower(
     variables: Res<ValueStore>,
     savefile: Option<Res<Savefile>>,
     towers: Query<&TimingTower>,
-    mut style_batch: ResMut<StyleBatch>,
+    mut style_batch: ResMut<StyleBatcher>,
 ) {
     let Some(style) = savefile.as_ref().map(|s| s.style()) else {
         return;
@@ -121,7 +113,7 @@ pub fn update_tower(
         };
 
         let style = create_cell_style(&style.timing_tower.cell, &variables, Some(entry));
-        style_batch.add(tower.id, style);
+        style_batch.add(&tower.cell_id, style);
     }
 }
 
@@ -130,7 +122,7 @@ fn update_table(
     towers: Query<&TimingTower>,
     savefile: Option<Res<Savefile>>,
     variables: Res<ValueStore>,
-    mut style_batch: ResMut<StyleBatch>,
+    mut style_batch: ResMut<StyleBatcher>,
 ) {
     let Some(style) = savefile.as_ref().map(|s| s.style()) else {
         return;
@@ -155,7 +147,7 @@ fn update_table(
 
         let mut style = create_cell_style(&style.timing_tower.table.cell, &variables, Some(entry));
         style.pos.z += 1.0;
-        style_batch.add(table.id, style);
+        style_batch.add(&table.cell_id, style);
     }
 }
 
@@ -166,7 +158,7 @@ fn update_rows(
     rows: Query<&Row>,
     mut tables: Query<(Entity, &mut Table)>,
     mut commands: Commands,
-    mut style_batch: ResMut<StyleBatch>,
+    mut style_batch: ResMut<StyleBatcher>,
 ) {
     let Some(style) = savefile.as_ref().map(|s| s.style()) else {
         return;
@@ -187,22 +179,23 @@ fn update_rows(
         // Create rows for each entry
         for entry_id in current_session.entries.keys() {
             if !table.rows.contains_key(entry_id) {
-                let row_id = commands.spawn_empty().add(init_cell).id();
                 // create all necessairy cells for rows.
-                let columns: HashMap<String, Uuid> = style
+                let columns: HashMap<String, CellId> = style
                     .timing_tower
                     .table
                     .row
                     .all_columns()
                     .iter()
-                    .map(|c| (c.name.clone(), Uuid::new_v4()))
+                    .map(|c| (c.name.clone(), CellId::new()))
                     .collect();
-                commands.entity(row_id).insert(Row {
-                    tower_id: table.tower_id,
-                    entry_id: *entry_id,
-                    columns,
-                    id: Uuid::new_v4(),
-                });
+                let row_id = commands
+                    .spawn(Row {
+                        tower_id: table.tower_id,
+                        entry_id: *entry_id,
+                        columns,
+                        cell_id: CellId::new(),
+                    })
+                    .id();
                 table.rows.insert(entry_id.clone(), row_id);
                 // add row as child to table.
                 commands.entity(table_id).add_child(row_id);
@@ -234,7 +227,7 @@ fn update_rows(
             cell_style.pos += Vec3::new(offset.x, offset.y, 1.0);
             let row_height = cell_style.size.y;
 
-            style_batch.add(row.id, cell_style);
+            style_batch.add(&row.cell_id, cell_style);
 
             offset.y -= row_height;
             offset -= Vec2::new(
@@ -257,7 +250,7 @@ fn update_columns(
     towers: Query<&TimingTower>,
     savefile: Option<Res<Savefile>>,
     variables: Res<ValueStore>,
-    mut style_batch: ResMut<StyleBatch>,
+    mut style_batch: ResMut<StyleBatcher>,
 ) {
     let Some(style) = savefile.as_ref().map(|s| s.style()) else {
         return;
@@ -286,7 +279,7 @@ fn update_columns(
 
             let mut style = create_cell_style(&column.cell, &variables, Some(entry));
             style.pos += Vec3::new(0.0, 0.0, 1.0);
-            style_batch.add(*cell_id, style);
+            style_batch.add(cell_id, style);
         }
     }
 }

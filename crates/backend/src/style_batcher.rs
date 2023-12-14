@@ -6,9 +6,20 @@
 
 use std::sync::{Arc, Weak};
 
-use bevy::ecs::system::Resource;
+use bevy::{
+    app::{First, Plugin},
+    ecs::system::{ResMut, Resource},
+};
 use common::communication::{CellStyle, StyleCommand};
 use uuid::Uuid;
+
+pub struct StyleBatcherPlugin;
+impl Plugin for StyleBatcherPlugin {
+    fn build(&self, app: &mut bevy::prelude::App) {
+        app.init_resource::<StyleBatcher>()
+            .add_systems(First, clear_style_batcher);
+    }
+}
 
 #[derive(Resource, Default)]
 pub struct StyleBatcher {
@@ -27,6 +38,10 @@ impl StyleBatcher {
     pub fn drain(&mut self) -> Vec<StyleCommand> {
         std::mem::replace(&mut self.commands, Vec::new())
     }
+}
+
+fn clear_style_batcher(mut batcher: ResMut<StyleBatcher>) {
+    batcher.drain();
 }
 
 /// Identifies a cell by a unique id.

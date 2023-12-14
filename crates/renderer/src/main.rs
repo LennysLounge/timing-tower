@@ -2,6 +2,8 @@ mod asset_path_store;
 mod framerate;
 mod websocket;
 
+use std::collections::HashMap;
+
 use asset_path_store::WebAssetPathStorePlugin;
 use bevy::{
     app::Update,
@@ -10,7 +12,7 @@ use bevy::{
         event::EventWriter,
         query::With,
         schedule::IntoSystemConfigs,
-        system::{Commands, Query, ResMut},
+        system::{Commands, Local, Query, ResMut},
     },
     input::mouse::MouseButtonInput,
     math::{vec2, vec3},
@@ -22,11 +24,12 @@ use bevy::{
 use common::communication::{CellStyle, ToControllerMessage, ToRendererMessage};
 use framerate::{FrameCounter, FrameratePlugin};
 use frontend::{
-    cell::{init_cell, CellMarker, CellSystem, SetStyle},
+    cell::{init_cell, CellSystem, SetStyle},
     FrontendPlugin,
 };
 
 use tracing::info;
+use uuid::Uuid;
 use websocket::{ReceivedMessage, SendMessage, WebsocketPlugin};
 
 fn main() {
@@ -93,12 +96,11 @@ fn mouse_click_send_message(
 
 fn spawn_cells(
     mut commands: Commands,
-    cells: Query<Entity, With<CellMarker>>,
     mut received_messages: EventReader<ReceivedMessage>,
     mut set_style: EventWriter<SetStyle>,
     mut frame_counter: ResMut<FrameCounter>,
+    mut entity_map: Local<HashMap<Uuid, Entity>>,
 ) {
-    let cell_ids: Vec<Entity> = cells.iter().collect();
     let style_commands = received_messages
         .read()
         .filter_map(|ReceivedMessage { message }| match message {
@@ -109,13 +111,15 @@ fn spawn_cells(
             _ => None,
         })
         .flat_map(|styles| styles.iter());
-    for (index, command) in style_commands.enumerate() {
-        let cell_id = cell_ids.get(index).map(|e| *e).unwrap_or_else(|| {
+
+    for command in style_commands {
+        let entity_id = entity_map.entry(command.id).or_insert_with(|| {
             info!("Spawn entity");
             commands.spawn_empty().add(init_cell).id()
         });
+
         set_style.send(SetStyle {
-            entity: cell_id,
+            entity: *entity_id,
             style: command.style.clone(),
         });
     }

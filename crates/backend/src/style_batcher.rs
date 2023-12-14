@@ -11,7 +11,10 @@ use std::{
 
 use bevy::{
     app::{First, Plugin, PostUpdate},
-    ecs::system::{ResMut, Resource},
+    ecs::{
+        schedule::{IntoSystemConfigs, SystemSet},
+        system::{ResMut, Resource},
+    },
 };
 use common::communication::{CellStyle, StyleCommand};
 use uuid::Uuid;
@@ -21,9 +24,12 @@ impl Plugin for StyleBatcherPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.init_resource::<StyleBatcher>()
             .add_systems(First, clear_style_batcher)
-            .add_systems(PostUpdate, prepare_batcher);
+            .add_systems(PostUpdate, prepare_batcher.in_set(PrepareBatcher));
     }
 }
+
+#[derive(SystemSet, Hash, Debug, PartialEq, Eq, Clone)]
+pub struct PrepareBatcher;
 
 #[derive(Resource, Default)]
 pub struct StyleBatcher {

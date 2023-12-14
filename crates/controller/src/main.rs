@@ -6,16 +6,14 @@ use backend::{
 };
 use bevy::{
     app::Startup,
-    ecs::{event::EventWriter, system::Query},
-    math::{vec2, vec3},
-    prelude::{App, Res, ResMut, Resource, Update},
-    render::color::Color,
-    time::{Time, Timer, TimerMode},
+    ecs::event::EventWriter,
+    prelude::{App, ResMut, Resource},
+    time::{Timer, TimerMode},
     DefaultPlugins,
 };
-use common::communication::{CellStyle, ToRendererMessage};
+
 use webserver::WebserverPlugin;
-use websocket::{ClientState, WebsocketClient, WebsocketPlugin};
+use websocket::WebsocketPlugin;
 
 mod webserver;
 mod websocket;
@@ -32,7 +30,6 @@ fn main() {
             TimerMode::Repeating,
         )))
         .add_systems(Startup, load_savefile)
-        //        .add_systems(Update, send_render_cell)
         .run();
 }
 
@@ -46,58 +43,58 @@ fn load_savefile(
     savefile.load("../../savefile/style.style.json", savefile_changed_event);
 }
 
-fn send_render_cell(
-    _time: Res<Time>,
-    mut _render_timer: ResMut<RenderTimer>,
-    mut clients: Query<&mut WebsocketClient>,
-) {
-    if !_render_timer.0.tick(_time.delta()).just_finished() {
-        return;
-    }
+// fn send_render_cell(
+//     _time: Res<Time>,
+//     mut _render_timer: ResMut<RenderTimer>,
+//     mut clients: Query<&mut WebsocketClient>,
+// ) {
+//     if !_render_timer.0.tick(_time.delta()).just_finished() {
+//         return;
+//     }
 
-    let styles = get_cell_styles();
+//     let styles = get_cell_styles();
 
-    for mut client in clients.iter_mut() {
-        if client.state() == &ClientState::Ready {
-            client.send_message(ToRendererMessage::Style(styles.clone()));
-        }
-    }
-}
+//     for mut client in clients.iter_mut() {
+//         if client.state() == &ClientState::Ready {
+//             //client.send_message(ToRendererMessage::Style(styles.clone()));
+//         }
+//     }
+// }
 
-fn get_cell_styles() -> Vec<CellStyle> {
-    let mut styles = Vec::new();
-    for _ in 0..200 {
-        styles.push(CellStyle {
-            text: String::from("AABB"),
-            text_color: Color::BLACK,
-            text_size: 40.0,
-            text_alignment: common::communication::TextAlignment::Center,
-            text_position: vec2(0.0, 0.0),
-            color: Color::Hsla {
-                hue: rand::random::<f32>() * 360.0,
-                saturation: rand::random::<f32>(),
-                lightness: rand::random::<f32>(),
-                alpha: 1.0,
-            },
-            pos: vec3(
-                rand::random::<f32>() * 1180.0,
-                rand::random::<f32>() * 620.0,
-                rand::random::<f32>() * 1.0,
-            ),
-            size: vec2(
-                rand::random::<f32>() * 80.0 + 20.0,
-                rand::random::<f32>() * 80.0 + 20.0,
-            ),
-            skew: rand::random::<f32>() * 50.0 - 25.0,
-            visible: true,
-            rounding: [
-                rand::random::<f32>() * 20.0,
-                rand::random::<f32>() * 20.0,
-                rand::random::<f32>() * 20.0,
-                rand::random::<f32>() * 20.0,
-            ],
-            texture: None,
-        });
-    }
-    styles
-}
+// fn get_cell_styles() -> Vec<CellStyle> {
+//     let mut styles = Vec::new();
+//     for _ in 0..200 {
+//         styles.push(CellStyle {
+//             text: String::from("AABB"),
+//             text_color: Color::BLACK,
+//             text_size: 40.0,
+//             text_alignment: common::communication::TextAlignment::Center,
+//             text_position: vec2(0.0, 0.0),
+//             color: Color::Hsla {
+//                 hue: rand::random::<f32>() * 360.0,
+//                 saturation: rand::random::<f32>(),
+//                 lightness: rand::random::<f32>(),
+//                 alpha: 1.0,
+//             },
+//             pos: vec3(
+//                 rand::random::<f32>() * 1180.0,
+//                 rand::random::<f32>() * 620.0,
+//                 rand::random::<f32>() * 1.0,
+//             ),
+//             size: vec2(
+//                 rand::random::<f32>() * 80.0 + 20.0,
+//                 rand::random::<f32>() * 80.0 + 20.0,
+//             ),
+//             skew: rand::random::<f32>() * 50.0 - 25.0,
+//             visible: true,
+//             rounding: [
+//                 rand::random::<f32>() * 20.0,
+//                 rand::random::<f32>() * 20.0,
+//                 rand::random::<f32>() * 20.0,
+//                 rand::random::<f32>() * 20.0,
+//             ],
+//             texture: None,
+//         });
+//     }
+//     styles
+// }

@@ -15,6 +15,7 @@ use bevy::{
     DefaultPlugins,
 };
 use bevy_egui::EguiPlugin;
+use cell_manager::CellManagerPlugin;
 use common::communication::{CellStyle, TextAlignment};
 use editor::EditorPlugin;
 use frontend::{
@@ -28,6 +29,7 @@ use timing_tower::{init_timing_tower, TimingTowerPlugin};
 use unified_sim_model::Adapter;
 
 mod asset_path_store;
+mod cell_manager;
 mod editor;
 mod properties;
 mod reference_store;
@@ -42,6 +44,7 @@ fn main() {
         .add_plugins(BackendPlugin)
         .add_plugins(EditorAssetPathStorePlugin)
         .add_plugins(TimingTowerPlugin)
+        .add_plugins(CellManagerPlugin)
         .add_plugins(EditorPlugin)
         .add_plugins(DefaultPlugins)
         .add_plugins(FrameTimeDiagnosticsPlugin)

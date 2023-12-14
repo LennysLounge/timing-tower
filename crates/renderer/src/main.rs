@@ -100,7 +100,7 @@ fn spawn_cells(
     for messages in received_messages.read() {
         for message in messages.messages.iter() {
             match message {
-                ToRendererMessage::CellStyle(styles) => {
+                ToRendererMessage::Style(styles) => {
                     let cell_ids: Vec<Entity> = cells.iter().collect();
                     for (index, style) in styles.iter().enumerate() {
                         let cell_id = cell_ids

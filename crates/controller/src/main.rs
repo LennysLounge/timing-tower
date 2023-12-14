@@ -59,7 +59,7 @@ fn send_render_cell(
 
     for mut client in clients.iter_mut() {
         if client.state() == &ClientState::Ready {
-            client.send_message(ToRendererMessage::CellStyle(styles.clone()));
+            client.send_message(ToRendererMessage::Style(styles.clone()));
         }
     }
 }

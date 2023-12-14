@@ -9,7 +9,7 @@ use uuid::Uuid;
 #[derive(Serialize, Deserialize)]
 pub enum ToRendererMessage {
     Assets { images: Vec<(Uuid, String)> },
-    CellStyle(Vec<CellStyle>),
+    Style(Vec<StyleCommand>),
 }
 
 /// Messages that are send by renderes to the controller.
@@ -18,6 +18,12 @@ pub enum ToControllerMessage {
     Opened,
     AssetsLoaded,
     Debug(String),
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct StyleCommand {
+    id: Uuid,
+    style: CellStyle,
 }
 
 #[derive(Serialize, Deserialize, Clone)]

@@ -89,10 +89,10 @@ fn read_websocket(
     let last_cell_style_index = messages
         .iter()
         .rev()
-        .position(|m| matches!(m, ToRendererMessage::CellStyle(_)));
+        .position(|m| matches!(m, ToRendererMessage::Style(_)));
     let mut index = 0;
     messages.retain(|m| {
-        let retain = if matches!(m, ToRendererMessage::CellStyle(_)) {
+        let retain = if matches!(m, ToRendererMessage::Style(_)) {
             last_cell_style_index.is_some_and(|keep_index| index == keep_index)
         } else {
             true

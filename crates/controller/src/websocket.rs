@@ -133,7 +133,7 @@ fn read_clients(
             }
             Some(ToControllerMessage::AssetsLoaded) => {
                 client.state = ClientState::Ready;
-                client.send_message(ToRendererMessage::CellStyle(vec![CellStyle {
+                client.send_message(ToRendererMessage::Style(vec![CellStyle {
                     text: String::from(""),
                     text_color: Color::BLACK,
                     text_size: 20.0,

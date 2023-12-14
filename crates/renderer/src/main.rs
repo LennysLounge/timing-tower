@@ -101,7 +101,7 @@ fn spawn_cells(
     mut frame_counter: ResMut<FrameCounter>,
     mut entity_map: Local<HashMap<Uuid, Entity>>,
 ) {
-    let style_commands = received_messages
+    let style_commands: HashMap<Uuid, &CellStyle> = received_messages
         .read()
         .filter_map(|ReceivedMessage { message }| match message {
             ToRendererMessage::Style(styles) => {
@@ -110,17 +110,19 @@ fn spawn_cells(
             }
             _ => None,
         })
-        .flat_map(|styles| styles.iter());
+        .flat_map(|styles| styles.iter())
+        .map(|command| (command.id, &command.style))
+        .collect();
 
-    for command in style_commands {
-        let entity_id = entity_map.entry(command.id).or_insert_with(|| {
+    for (id, style) in style_commands {
+        let entity_id = entity_map.entry(id).or_insert_with(|| {
             info!("Spawn entity");
             commands.spawn_empty().add(init_cell).id()
         });
 
         set_style.send(SetStyle {
             entity: *entity_id,
-            style: command.style.clone(),
+            style: style.clone(),
         });
     }
 }

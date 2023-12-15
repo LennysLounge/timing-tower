@@ -59,24 +59,29 @@ fn camera_drag(
 
     let (mut camera_drag, mut camera_transform, camera) = camera.single_mut();
 
+    let is_cursor_inside_viewport = window
+        .cursor_position()
+        .zip(camera.viewport.as_ref())
+        .is_some_and(|(cursor_pos, viewport)| {
+            let viewport_max =
+                (viewport.physical_position + viewport.physical_size).as_vec2() - vec2(5.0, 5.0);
+            let viewport_min = viewport.physical_position.as_vec2() + vec2(5.0, 5.0);
+
+            viewport_max.x > cursor_pos.x
+                && viewport_max.y > cursor_pos.y
+                && viewport_min.x < cursor_pos.x
+                && viewport_min.y < cursor_pos.y
+        });
+    if !is_cursor_inside_viewport {
+        mouse_events.clear();
+        scroll_events.clear();
+        return;
+    }
+
     for ev in mouse_events.read() {
         match ev.state {
             ButtonState::Pressed => {
-                let is_cursor_inside_viewport = |cursor_pos: &Vec2| {
-                    camera.viewport.as_ref().is_some_and(|viewport| {
-                        let viewport_max = (viewport.physical_position + viewport.physical_size)
-                            .as_vec2()
-                            - vec2(5.0, 5.0);
-                        let viewport_min = viewport.physical_position.as_vec2() + vec2(5.0, 5.0);
-
-                        viewport_max.x > cursor_pos.x
-                            && viewport_max.y > cursor_pos.y
-                            && viewport_min.x < cursor_pos.x
-                            && viewport_min.y < cursor_pos.y
-                    })
-                };
-                camera_drag.drag_position =
-                    window.cursor_position().filter(is_cursor_inside_viewport);
+                camera_drag.drag_position = window.cursor_position();
             }
             ButtonState::Released => {
                 camera_drag.drag_position = None;

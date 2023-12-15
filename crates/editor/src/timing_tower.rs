@@ -2,10 +2,10 @@ use std::collections::HashMap;
 
 use backend::{
     savefile::Savefile,
-    style::{cell::Cell, StyleDefinition},
+    style::{cell::Cell, timing_tower::TimingTowerTable},
     style_batcher::{CellId, StyleBatcher},
-    value_store::ValueStore,
-    value_types::{Boolean, Number, Text, Texture, Tint},
+    value_store::{TypedValueResolver, ValueStore},
+    value_types::{Boolean, Number, Property, Text, Texture, Tint},
 };
 use bevy::{
     ecs::system::ResMut,
@@ -90,14 +90,15 @@ pub fn update_tower(
             position: Vec3::ZERO,
         };
 
-        //let style = create_cell_style(&style_def.timing_tower.cell, &variables, Some(entry));
-        style_batcher.add(&cell_id, style_resolver.get(&style_def.timing_tower.cell));
+        let (cell_style, table_resolver) =
+            style_resolver.get_and_child(&style_def.timing_tower.cell);
+        style_batcher.add(&cell_id, cell_style);
 
         // Update table
         update_table(
             table,
-            style_def,
-            style_resolver.child_resolver(&style_def.timing_tower.cell),
+            &style_def.timing_tower.table,
+            table_resolver,
             style_batcher.as_mut(),
         );
     }
@@ -105,22 +106,18 @@ pub fn update_tower(
 
 fn update_table(
     table: &mut Table,
-    style: &StyleDefinition,
+    style: &TimingTowerTable,
     style_resolver: StyleResolver<'_>,
     style_batcher: &mut StyleBatcher,
 ) {
-    style_batcher.add(
-        &table.cell_id,
-        style_resolver.get(&style.timing_tower.table.cell),
-    );
+    let (table_style, mut row_resolver) = style_resolver.get_and_child(&style.cell);
+    style_batcher.add(&table.cell_id, table_style);
 
     // Create rows for each entry
     for entry_id in style_resolver.session.entries.keys() {
         if !table.rows.contains_key(entry_id) {
             // create all necessairy cells for rows.
             let columns: HashMap<String, CellId> = style
-                .timing_tower
-                .table
                 .row
                 .all_columns()
                 .iter()
@@ -145,17 +142,14 @@ fn update_table(
         is_connected.then(position)
     });
 
-    let mut row_resolver = style_resolver.child_resolver(&style.timing_tower.table.cell);
     let row_offset = vec3(
         row_resolver
-            .value_store
-            .get_property(&style.timing_tower.table.row_offset.x, None)
-            .unwrap_or(Number(0.0))
+            .property(&style.row_offset.x)
+            .unwrap_or_default()
             .0,
         -row_resolver
-            .value_store
-            .get_property(&style.timing_tower.table.row_offset.y, None)
-            .unwrap_or(Number(0.0))
+            .property(&style.row_offset.y)
+            .unwrap_or_default()
             .0,
         0.0,
     );
@@ -165,20 +159,18 @@ fn update_table(
         };
 
         row_resolver.entry = Some(entry);
-        let cell_style = row_resolver.get(&style.timing_tower.table.row.cell);
-        let row_height = cell_style.size.y;
-        style_batcher.add(&row.cell_id, cell_style);
+        let (row_style, column_resolver) = row_resolver.get_and_child(&style.row.cell);
 
         // update columns
-        let column_resolver = row_resolver.child_resolver(&style.timing_tower.table.row.cell);
-        for column in style.timing_tower.table.row.all_columns() {
+        for column in style.row.all_columns() {
             let Some(cell_id) = row.columns.get(&column.name) else {
                 continue;
             };
             style_batcher.add(cell_id, column_resolver.get(&column.cell));
         }
 
-        row_resolver.position += row_offset + vec3(0.0, -row_height, 0.0);
+        row_resolver.position += row_offset + vec3(0.0, -row_style.size.y, 0.0);
+        style_batcher.add(&row.cell_id, row_style);
     }
 }
 
@@ -194,15 +186,23 @@ impl StyleResolver<'_> {
         style.pos += self.position;
         style
     }
+    fn property<T>(&self, property: &Property<T>) -> Option<T>
+    where
+        ValueStore: TypedValueResolver<T>,
+        T: Clone,
+    {
+        self.value_store.get_property(property, self.entry)
+    }
 
-    fn child_resolver<'a>(&'a self, parent_cell: &Cell) -> StyleResolver<'a> {
-        let style = self.get(parent_cell);
-        StyleResolver {
+    fn get_and_child<'a>(&'a self, cell: &Cell) -> (CellStyle, StyleResolver<'a>) {
+        let style = self.get(cell);
+        let resolver = StyleResolver {
             value_store: self.value_store,
             session: self.session,
             entry: self.entry,
             position: style.pos + vec3(0.0, 0.0, 1.0),
-        }
+        };
+        (style, resolver)
     }
 }
 

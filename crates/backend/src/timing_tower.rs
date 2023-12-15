@@ -92,31 +92,31 @@ pub fn update_tower(
             position: Vec3::ZERO,
         };
 
-        let (cell_style, table_resolver) =
+        let (cell_style, row_resolver) =
             style_resolver.get_and_child(&style_def.scene.timing_tower.cell);
         style_batcher.add(&cell_id, cell_style);
 
         // Update table
-        update_table(
+        update_row(
             table,
             &style_def.scene.timing_tower,
-            table_resolver,
+            row_resolver,
             style_batcher.as_mut(),
         );
     }
 }
 
-fn update_table(
+fn update_row(
     table: &mut Table,
     style: &style::timing_tower::TimingTower,
-    style_resolver: StyleResolver<'_>,
+    mut row_resolver: StyleResolver<'_>,
     style_batcher: &mut StyleBatcher,
 ) {
-    let (table_style, mut row_resolver) = style_resolver.get_and_child(&style.table.cell);
-    style_batcher.add(&table.cell_id, table_style);
+    // let (table_style, mut row_resolver) = style_resolver.get_and_child(&style.table.cell);
+    // style_batcher.add(&table.cell_id, table_style);
 
     // Create rows for each entry
-    for entry_id in style_resolver.session.entries.keys() {
+    for entry_id in row_resolver.session.entries.keys() {
         if !table.rows.contains_key(entry_id) {
             // create all necessairy cells for rows.
             let columns: HashMap<String, CellId> = style
@@ -134,7 +134,7 @@ fn update_table(
     }
 
     // Update the rows
-    let mut entries: Vec<&Entry> = style_resolver.session.entries.values().collect();
+    let mut entries: Vec<&Entry> = row_resolver.session.entries.values().collect();
     entries.sort_by(|e1, e2| {
         let is_connected = e2.connected.cmp(&e1.connected);
         let position = e1

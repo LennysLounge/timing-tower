@@ -898,52 +898,6 @@
             "name": "pit indicator"
           }
         ]
-      },
-      "table": {
-        "id": "9539afda-b875-433f-9bd0-af822088b55d",
-        "cell": {
-          "text": "",
-          "text_color": {
-            "Rgba": {
-              "red": 0.0,
-              "green": 0.0,
-              "blue": 0.0,
-              "alpha": 1.0
-            }
-          },
-          "text_size": 20.0,
-          "color": {
-            "Rgba": {
-              "red": 0.0,
-              "green": 0.0,
-              "blue": 0.0,
-              "alpha": 0.0
-            }
-          },
-          "image": "None",
-          "pos": {
-            "x": 0.0,
-            "y": 0.0,
-            "z": 0.0
-          },
-          "size": {
-            "x": 680.0,
-            "y": 1000.0
-          },
-          "skew": 0.0,
-          "visible": true,
-          "rounding": {
-            "top_left": 0.0,
-            "top_right": 0.0,
-            "bot_left": 0.0,
-            "bot_right": 0.0
-          },
-          "text_alginment": "Center",
-          "text_position": {
-            "x": 0.0,
-            "y": 0.0
-          }
-        }
       }
     }
   }

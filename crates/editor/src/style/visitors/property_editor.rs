@@ -48,16 +48,6 @@ impl<'a> NodeVisitorMut for PropertyEditorVisitor<'a> {
         ControlFlow::Break(())
     }
 
-    fn visit_timing_tower_table(&mut self, table: &mut TimingTowerTable) -> ControlFlow<()> {
-        let PropertyEditorVisitor {
-            ui,
-            changed,
-            reference_store,
-        } = self;
-        *changed |= cell_property_editor(ui, &mut table.cell, reference_store);
-        ControlFlow::Continue(())
-    }
-
     fn visit_timing_tower_row(&mut self, row: &mut TimingTowerRow) -> ControlFlow<()> {
         let PropertyEditorVisitor {
             ui,

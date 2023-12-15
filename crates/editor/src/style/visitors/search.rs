@@ -48,10 +48,6 @@ impl<'a, T> NodeVisitor for SearchVisitor<'a, T> {
         self.test(tower)
     }
 
-    fn visit_timing_tower_table(&mut self, table: &TimingTowerTable) -> ControlFlow<()> {
-        self.test(table)
-    }
-
     fn visit_timing_tower_row(&mut self, row: &TimingTowerRow) -> ControlFlow<()> {
         self.test(row)
     }
@@ -109,10 +105,6 @@ impl<'a, T> NodeVisitorMut for SearchVisitorMut<'a, T> {
 
     fn visit_timing_tower(&mut self, tower: &mut TimingTower) -> ControlFlow<()> {
         self.test(tower)
-    }
-
-    fn visit_timing_tower_table(&mut self, table: &mut TimingTowerTable) -> ControlFlow<()> {
-        self.test(table)
     }
 
     fn visit_timing_tower_row(&mut self, row: &mut TimingTowerRow) -> ControlFlow<()> {

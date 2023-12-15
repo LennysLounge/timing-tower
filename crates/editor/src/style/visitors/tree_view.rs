@@ -148,20 +148,6 @@ impl NodeVisitorMut for TreeViewVisitor<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_timing_tower_table(&mut self, table: &mut TimingTowerTable) -> ControlFlow<()> {
-        self.stack.push(table.id);
-        self.builder.dir(&table.id, |ui| {
-            ui.label("Table");
-        });
-        ControlFlow::Continue(())
-    }
-
-    fn leave_timing_tower_table(&mut self, _table: &mut TimingTowerTable) -> ControlFlow<()> {
-        self.stack.pop();
-        self.builder.close_dir();
-        ControlFlow::Continue(())
-    }
-
     fn visit_timing_tower_row(&mut self, row: &mut TimingTowerRow) -> ControlFlow<()> {
         self.stack.push(row.id);
         let res = self.builder.dir(&row.id, |ui| {
@@ -315,7 +301,7 @@ impl NodeVisitorMut for TreeViewVisitor<'_> {
         });
         ControlFlow::Continue(())
     }
-    
+
     fn leave_scene(&mut self, _scene: &mut SceneDefinition) -> ControlFlow<()> {
         self.builder.close_dir();
         ControlFlow::Continue(())

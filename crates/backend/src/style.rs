@@ -22,7 +22,7 @@ pub mod definitions {
         assets::AssetDefinition,
         folder::{Folder, FolderInfo},
         scene::SceneDefinition,
-        timing_tower::{TimingTower, TimingTowerColumn, TimingTowerRow, TimingTowerTable},
+        timing_tower::{TimingTower, TimingTowerColumn, TimingTowerRow},
         variables::VariableDefinition,
         StyleDefinition,
     };

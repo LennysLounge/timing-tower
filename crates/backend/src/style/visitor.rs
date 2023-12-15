@@ -6,7 +6,7 @@ use super::{
     assets::AssetDefinition,
     folder::FolderInfo,
     scene::SceneDefinition,
-    timing_tower::{TimingTower, TimingTowerColumn, TimingTowerRow, TimingTowerTable},
+    timing_tower::{TimingTower, TimingTowerColumn, TimingTowerRow},
     variables::VariableDefinition,
     StyleDefinition,
 };
@@ -66,14 +66,6 @@ pub trait NodeVisitor {
         ControlFlow::Continue(())
     }
     #[allow(unused_variables)]
-    fn visit_timing_tower_table(&mut self, table: &TimingTowerTable) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
-    #[allow(unused_variables)]
-    fn leave_timing_tower_table(&mut self, table: &TimingTowerTable) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
-    #[allow(unused_variables)]
     fn visit_timing_tower_row(&mut self, row: &TimingTowerRow) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
@@ -126,14 +118,6 @@ pub trait NodeVisitorMut {
     }
     #[allow(unused_variables)]
     fn leave_timing_tower(&mut self, tower: &mut TimingTower) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
-    #[allow(unused_variables)]
-    fn visit_timing_tower_table(&mut self, table: &mut TimingTowerTable) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
-    #[allow(unused_variables)]
-    fn leave_timing_tower_table(&mut self, table: &mut TimingTowerTable) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
     #[allow(unused_variables)]

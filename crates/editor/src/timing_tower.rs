@@ -8,11 +8,9 @@ use backend::{
     value_types::{Boolean, Number, Text, Texture, Tint},
 };
 use bevy::{
-    ecs::system::{EntityCommand, ResMut},
-    prelude::{
-        Bundle, Color, Component, EntityWorldMut, Plugin, Query, Res, SpatialBundle, Update, Vec2,
-        Vec3,
-    },
+    ecs::system::ResMut,
+    math::vec3,
+    prelude::{Color, Component, Plugin, Query, Res, Update, Vec2, Vec3},
 };
 use common::communication::CellStyle;
 use unified_sim_model::{
@@ -27,17 +25,23 @@ impl Plugin for TimingTowerPlugin {
     }
 }
 
-#[derive(Bundle)]
-pub struct TimingTowerBundle {
-    pub spatial: SpatialBundle,
-    pub tower_def: TimingTower,
-}
-
 #[derive(Component)]
 pub struct TimingTower {
     pub cell_id: CellId,
     pub adapter: Adapter,
     pub table: Table,
+}
+impl TimingTower {
+    pub fn new(adapter: Adapter) -> Self {
+        Self {
+            cell_id: CellId::new(),
+            adapter,
+            table: Table {
+                cell_id: CellId::new(),
+                rows: HashMap::new(),
+            },
+        }
+    }
 }
 
 pub struct Table {
@@ -50,21 +54,7 @@ pub struct Row {
     pub columns: HashMap<String, CellId>,
 }
 
-pub fn init_timing_tower(adapter: Adapter) -> impl EntityCommand {
-    |mut entity: EntityWorldMut| {
-        entity.insert(TimingTower {
-            cell_id: CellId::new(),
-            adapter,
-            table: Table {
-                cell_id: CellId::new(),
-                rows: HashMap::new(),
-            },
-        });
-    }
-}
-
 pub fn update_tower(
-    variables: Res<ValueStore>,
     savefile: Option<Res<Savefile>>,
     value_store: Res<ValueStore>,
     mut towers: Query<&mut TimingTower>,
@@ -93,50 +83,39 @@ pub fn update_tower(
             continue;
         };
 
-        let style = create_cell_style(&style_def.timing_tower.cell, &variables, Some(entry));
-        style_batcher.add(&cell_id, style);
+        let style_resolver = StyleResolver {
+            value_store: &*value_store,
+            session: current_session,
+            entry: Some(entry),
+            position: Vec3::ZERO,
+        };
+
+        //let style = create_cell_style(&style_def.timing_tower.cell, &variables, Some(entry));
+        style_batcher.add(&cell_id, style_resolver.get(&style_def.timing_tower.cell));
 
         // Update table
-        let mut style =
-            create_cell_style(&style_def.timing_tower.table.cell, &variables, Some(entry));
-        style.pos.z += 1.0;
-        style_batcher.add(&table.cell_id, style);
-
-        update_rows(
+        update_table(
             table,
-            current_session,
             style_def,
-            value_store.as_ref(),
+            style_resolver.child_resolver(&style_def.timing_tower.cell),
             style_batcher.as_mut(),
         );
-
-        // update columns
-        for (entry_id, row) in table.rows.iter() {
-            let Some(entry) = current_session.entries.get(entry_id) else {
-                continue;
-            };
-            for column in style_def.timing_tower.table.row.all_columns() {
-                let Some(cell_id) = row.columns.get(&column.name) else {
-                    continue;
-                };
-
-                let mut style = create_cell_style(&column.cell, &variables, Some(entry));
-                style.pos += Vec3::new(0.0, 0.0, 1.0);
-                style_batcher.add(cell_id, style);
-            }
-        }
     }
 }
 
-fn update_rows(
+fn update_table(
     table: &mut Table,
-    current_session: &Session,
     style: &StyleDefinition,
-    value_store: &ValueStore,
+    style_resolver: StyleResolver<'_>,
     style_batcher: &mut StyleBatcher,
 ) {
+    style_batcher.add(
+        &table.cell_id,
+        style_resolver.get(&style.timing_tower.table.cell),
+    );
+
     // Create rows for each entry
-    for entry_id in current_session.entries.keys() {
+    for entry_id in style_resolver.session.entries.keys() {
         if !table.rows.contains_key(entry_id) {
             // create all necessairy cells for rows.
             let columns: HashMap<String, CellId> = style
@@ -156,7 +135,7 @@ fn update_rows(
     }
 
     // Update the rows
-    let mut entries: Vec<&Entry> = current_session.entries.values().collect();
+    let mut entries: Vec<&Entry> = style_resolver.session.entries.values().collect();
     entries.sort_by(|e1, e2| {
         let is_connected = e2.connected.cmp(&e1.connected);
         let position = e1
@@ -166,34 +145,64 @@ fn update_rows(
         is_connected.then(position)
     });
 
-    let mut offset = Vec2::new(0.0, 0.0);
+    let mut row_resolver = style_resolver.child_resolver(&style.timing_tower.table.cell);
+    let row_offset = vec3(
+        row_resolver
+            .value_store
+            .get_property(&style.timing_tower.table.row_offset.x, None)
+            .unwrap_or(Number(0.0))
+            .0,
+        -row_resolver
+            .value_store
+            .get_property(&style.timing_tower.table.row_offset.y, None)
+            .unwrap_or(Number(0.0))
+            .0,
+        0.0,
+    );
     for entry in entries {
         let Some(row) = table.rows.get(&entry.id) else {
             continue;
         };
 
-        let mut cell_style = create_cell_style(
-            &style.timing_tower.table.row.cell,
-            &value_store,
-            Some(entry),
-        );
-        cell_style.pos += Vec3::new(offset.x, offset.y, 1.0);
+        row_resolver.entry = Some(entry);
+        let cell_style = row_resolver.get(&style.timing_tower.table.row.cell);
         let row_height = cell_style.size.y;
-
         style_batcher.add(&row.cell_id, cell_style);
 
-        offset.y -= row_height;
-        offset -= Vec2::new(
-            value_store
-                .get_property(&style.timing_tower.table.row_offset.x, None)
-                .unwrap_or(Number(0.0))
-                .0
-                * -1.0,
-            value_store
-                .get_property(&style.timing_tower.table.row_offset.y, None)
-                .unwrap_or(Number(0.0))
-                .0,
-        );
+        // update columns
+        let column_resolver = row_resolver.child_resolver(&style.timing_tower.table.row.cell);
+        for column in style.timing_tower.table.row.all_columns() {
+            let Some(cell_id) = row.columns.get(&column.name) else {
+                continue;
+            };
+            style_batcher.add(cell_id, column_resolver.get(&column.cell));
+        }
+
+        row_resolver.position += row_offset + vec3(0.0, -row_height, 0.0);
+    }
+}
+
+struct StyleResolver<'a> {
+    value_store: &'a ValueStore,
+    session: &'a Session,
+    entry: Option<&'a Entry>,
+    position: Vec3,
+}
+impl StyleResolver<'_> {
+    fn get(&self, cell: &Cell) -> CellStyle {
+        let mut style = create_cell_style(cell, self.value_store, self.entry);
+        style.pos += self.position;
+        style
+    }
+
+    fn child_resolver<'a>(&'a self, parent_cell: &Cell) -> StyleResolver<'a> {
+        let style = self.get(parent_cell);
+        StyleResolver {
+            value_store: self.value_store,
+            session: self.session,
+            entry: self.entry,
+            position: style.pos + vec3(0.0, 0.0, 1.0),
+        }
     }
 }
 

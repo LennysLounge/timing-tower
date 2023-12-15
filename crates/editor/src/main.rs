@@ -25,7 +25,7 @@ use frontend::{
 use std::env;
 use uuid::uuid;
 
-use timing_tower::{init_timing_tower, TimingTowerPlugin};
+use timing_tower::{TimingTower, TimingTowerPlugin};
 use unified_sim_model::Adapter;
 
 mod asset_path_store;
@@ -117,7 +117,7 @@ fn setup(
             rounding: [0.0, 0.0, 0.0, 0.0],
         },
     });
-    commands.spawn_empty().add(init_timing_tower(adapter));
+    commands.spawn(TimingTower::new(adapter));
 }
 
 pub trait SpawnAndInitWorld {

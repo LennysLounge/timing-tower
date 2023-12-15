@@ -144,11 +144,11 @@ fn update_table(
 
     let row_offset = vec3(
         row_resolver
-            .property(&style.row_offset.x)
+            .property(&style.row.row_offset.x)
             .unwrap_or_default()
             .0,
         -row_resolver
-            .property(&style.row_offset.y)
+            .property(&style.row.row_offset.y)
             .unwrap_or_default()
             .0,
         0.0,

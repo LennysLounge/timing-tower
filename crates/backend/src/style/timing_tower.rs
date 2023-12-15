@@ -56,7 +56,6 @@ impl Visitable for TimingTower {
 pub struct TimingTowerTable {
     pub id: Uuid,
     pub cell: Cell,
-    pub row_offset: Vec2Property,
     pub row: TimingTowerRow,
 }
 impl StyleNode for TimingTowerTable {
@@ -98,6 +97,7 @@ impl Visitable for TimingTowerTable {
 pub struct TimingTowerRow {
     pub id: Uuid,
     pub cell: Cell,
+    pub row_offset: Vec2Property,
     pub columns: Vec<FolderOrT<TimingTowerColumn>>,
 }
 impl TimingTowerRow {

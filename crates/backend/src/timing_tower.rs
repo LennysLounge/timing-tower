@@ -160,6 +160,8 @@ fn update_table(
 
         row_resolver.entry = Some(entry);
         let (row_style, column_resolver) = row_resolver.get_and_child(&style.row.cell);
+        row_resolver.position += row_offset + vec3(0.0, -row_style.size.y, 0.0);
+        style_batcher.add(&row.cell_id, row_style);
 
         // update columns
         for column in style.row.all_columns() {
@@ -168,9 +170,6 @@ fn update_table(
             };
             style_batcher.add(cell_id, column_resolver.get(&column.cell));
         }
-
-        row_resolver.position += row_offset + vec3(0.0, -row_style.size.y, 0.0);
-        style_batcher.add(&row.cell_id, row_style);
     }
 }
 
@@ -180,7 +179,7 @@ struct StyleResolver<'a> {
     entry: Option<&'a Entry>,
     position: Vec3,
 }
-impl StyleResolver<'_> {
+impl<'a> StyleResolver<'a> {
     fn get(&self, cell: &Cell) -> CellStyle {
         let mut style = create_cell_style(cell, self.value_store, self.entry);
         style.pos += self.position;
@@ -194,7 +193,7 @@ impl StyleResolver<'_> {
         self.value_store.get_property(property, self.entry)
     }
 
-    fn get_and_child<'a>(&'a self, cell: &Cell) -> (CellStyle, StyleResolver<'a>) {
+    fn get_and_child(&self, cell: &Cell) -> (CellStyle, StyleResolver<'a>) {
         let style = self.get(cell);
         let resolver = StyleResolver {
             value_store: self.value_store,

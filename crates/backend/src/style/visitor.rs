@@ -5,6 +5,7 @@ use uuid::Uuid;
 use super::{
     assets::AssetDefinition,
     folder::FolderInfo,
+    scene::SceneDefinition,
     timing_tower::{TimingTower, TimingTowerColumn, TimingTowerRow, TimingTowerTable},
     variables::VariableDefinition,
     StyleDefinition,
@@ -92,6 +93,14 @@ pub trait NodeVisitor {
     fn visit_variable(&mut self, variable: &VariableDefinition) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
+    #[allow(unused_variables)]
+    fn visit_scene(&mut self, scene: &SceneDefinition) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+    #[allow(unused_variables)]
+    fn leave_scene(&mut self, scene: &SceneDefinition) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
 }
 
 pub trait NodeVisitorMut {
@@ -145,6 +154,14 @@ pub trait NodeVisitorMut {
     }
     #[allow(unused_variables)]
     fn visit_variable(&mut self, variable: &mut VariableDefinition) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+    #[allow(unused_variables)]
+    fn visit_scene(&mut self, scene: &mut SceneDefinition) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+    #[allow(unused_variables)]
+    fn leave_scene(&mut self, scene: &mut SceneDefinition) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
 }

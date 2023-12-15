@@ -6,7 +6,7 @@ use backend::style::{
     variables::{condition::Condition, fixed_value::FixedValue, map::Map, VariableBehavior},
     visitor::{NodeVisitorMut, StyleNode},
 };
-use bevy_egui::egui::{ComboBox, Ui};
+use bevy_egui::egui::{ComboBox, DragValue, Ui};
 
 use crate::{property_editor::PropertyEditor, reference_store::ReferenceStore, style::variables};
 
@@ -166,6 +166,25 @@ impl<'a> NodeVisitorMut for PropertyEditorVisitor<'a> {
                 variables::map::property_editor(ui, value, reference_store)
             }
         };
+        ControlFlow::Continue(())
+    }
+
+    fn visit_scene(&mut self, scene: &mut SceneDefinition) -> ControlFlow<()> {
+        let PropertyEditorVisitor {
+            ui,
+            reference_store: _,
+            changed,
+        } = self;
+
+        ui.label("Prefered size:");
+        ui.horizontal(|ui| {
+            ui.label("width:");
+            *changed |= ui.add(DragValue::new(&mut scene.prefered_size.x)).changed();
+        });
+        ui.horizontal(|ui| {
+            ui.label("height:");
+            *changed |= ui.add(DragValue::new(&mut scene.prefered_size.y)).changed();
+        });
         ControlFlow::Continue(())
     }
 }

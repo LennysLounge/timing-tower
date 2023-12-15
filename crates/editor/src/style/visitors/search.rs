@@ -130,4 +130,8 @@ impl<'a, T> NodeVisitorMut for SearchVisitorMut<'a, T> {
     fn visit_variable(&mut self, variable: &mut VariableDefinition) -> ControlFlow<()> {
         self.test(variable)
     }
+
+    fn visit_scene(&mut self, scene: &mut SceneDefinition) -> ControlFlow<()> {
+        self.test(scene)
+    }
 }

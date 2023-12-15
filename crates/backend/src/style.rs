@@ -5,12 +5,14 @@ use uuid::Uuid;
 
 use self::{
     definitions::*,
-    visitor::{NodeVisitor, NodeVisitorMut, Visitable, StyleNode},
+    scene::SceneDefinition,
+    visitor::{NodeVisitor, NodeVisitorMut, StyleNode, Visitable},
 };
 
 pub mod assets;
 pub mod cell;
 pub mod folder;
+pub mod scene;
 pub mod timing_tower;
 pub mod variables;
 pub mod visitor;
@@ -19,6 +21,7 @@ pub mod definitions {
     pub use self::super::{
         assets::AssetDefinition,
         folder::{Folder, FolderInfo},
+        scene::SceneDefinition,
         timing_tower::{TimingTower, TimingTowerColumn, TimingTowerRow, TimingTowerTable},
         variables::VariableDefinition,
         StyleDefinition,
@@ -30,9 +33,9 @@ pub struct StyleDefinition {
     pub id: Uuid,
     pub assets: Folder<AssetDefinition>,
     pub vars: Folder<VariableDefinition>,
-    pub timing_tower: TimingTower,
+    pub scene: SceneDefinition,
 }
-impl StyleNode for StyleDefinition{
+impl StyleNode for StyleDefinition {
     fn id(&self) -> &Uuid {
         &self.id
     }
@@ -42,7 +45,7 @@ impl Visitable for StyleDefinition {
         self.enter(visitor)?;
         self.assets.walk(visitor)?;
         self.vars.walk(visitor)?;
-        self.timing_tower.walk(visitor)?;
+        self.scene.walk(visitor)?;
         self.leave(visitor)
     }
 
@@ -58,7 +61,7 @@ impl Visitable for StyleDefinition {
         self.enter_mut(visitor)?;
         self.assets.walk_mut(visitor)?;
         self.vars.walk_mut(visitor)?;
-        self.timing_tower.walk_mut(visitor)?;
+        self.scene.walk_mut(visitor)?;
         self.leave_mut(visitor)
     }
 

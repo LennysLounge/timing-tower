@@ -91,13 +91,13 @@ pub fn update_tower(
         };
 
         let (cell_style, table_resolver) =
-            style_resolver.get_and_child(&style_def.timing_tower.cell);
+            style_resolver.get_and_child(&style_def.scene.timing_tower.cell);
         style_batcher.add(&cell_id, cell_style);
 
         // Update table
         update_table(
             table,
-            &style_def.timing_tower.table,
+            &style_def.scene.timing_tower.table,
             table_resolver,
             style_batcher.as_mut(),
         );

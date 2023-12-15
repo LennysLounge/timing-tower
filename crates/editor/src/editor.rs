@@ -132,8 +132,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 *self.viewport = ui.clip_rect();
             }
             Tab::Elements => {
-                *self.style_changed |=
-                    tree_view(ui, self.selected_node, &mut self.style.timing_tower);
+                *self.style_changed |= tree_view(ui, self.selected_node, &mut self.style.scene);
             }
             Tab::PropertyEditor => {
                 property_editor(

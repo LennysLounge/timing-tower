@@ -308,4 +308,16 @@ impl NodeVisitorMut for TreeViewVisitor<'_> {
         }
         ControlFlow::Continue(())
     }
+
+    fn visit_scene(&mut self, scene: &mut SceneDefinition) -> ControlFlow<()> {
+        self.builder.dir(&scene.id, |ui| {
+            ui.label("Scene");
+        });
+        ControlFlow::Continue(())
+    }
+    
+    fn leave_scene(&mut self, _scene: &mut SceneDefinition) -> ControlFlow<()> {
+        self.builder.close_dir();
+        ControlFlow::Continue(())
+    }
 }

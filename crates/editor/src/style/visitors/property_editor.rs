@@ -8,7 +8,7 @@ use backend::style::{
 };
 use bevy_egui::egui::{ComboBox, Ui};
 
-use crate::{properties::PropertyEditor, reference_store::ReferenceStore, style::variables};
+use crate::{property_editor::PropertyEditor, reference_store::ReferenceStore, style::variables};
 
 pub struct PropertyEditorVisitor<'a> {
     ui: &'a mut Ui,

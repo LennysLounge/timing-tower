@@ -1,6 +1,7 @@
 use asset_path_store::EditorAssetPathStorePlugin;
 use backend::{
     savefile::{Savefile, SavefileChanged},
+    timing_tower::TimingTower,
     BackendPlugin,
 };
 use bevy::{
@@ -25,16 +26,14 @@ use frontend::{
 use std::env;
 use uuid::uuid;
 
-use timing_tower::{TimingTower, TimingTowerPlugin};
 use unified_sim_model::Adapter;
 
 mod asset_path_store;
 mod cell_manager;
 mod editor;
-mod properties;
+mod property_editor;
 mod reference_store;
 mod style;
-mod timing_tower;
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
@@ -43,7 +42,6 @@ fn main() {
         .insert_resource(SimpleTimer(Timer::from_seconds(1.0, TimerMode::Repeating)))
         .add_plugins(BackendPlugin)
         .add_plugins(EditorAssetPathStorePlugin)
-        .add_plugins(TimingTowerPlugin)
         .add_plugins(CellManagerPlugin)
         .add_plugins(EditorPlugin)
         .add_plugins(DefaultPlugins)

@@ -1,6 +1,6 @@
 use bevy_egui::egui::{ComboBox, InnerResponse, Sense, Ui, Vec2};
 
-use crate::{properties::PropertyEditor, reference_store::ReferenceStore};
+use crate::{property_editor::PropertyEditor, reference_store::ReferenceStore};
 use backend::{
     style::variables::condition::{
         BooleanComparator, BooleanComparison, Comparison, Condition, NumberComparator,

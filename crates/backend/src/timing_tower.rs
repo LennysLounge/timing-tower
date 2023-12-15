@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use backend::{
+use super::{
     savefile::Savefile,
     style::{cell::Cell, timing_tower::TimingTowerTable},
     style_batcher::{CellId, StyleBatcher},
@@ -221,13 +221,11 @@ fn create_cell_style(cell: &Cell, vars: &ValueStore, entry: Option<&Entry>) -> C
             .unwrap_or(Number(20.0))
             .0,
         text_alignment: match cell.text_alginment {
-            backend::style::cell::TextAlignment::Left => common::communication::TextAlignment::Left,
-            backend::style::cell::TextAlignment::Center => {
+            crate::style::cell::TextAlignment::Left => common::communication::TextAlignment::Left,
+            crate::style::cell::TextAlignment::Center => {
                 common::communication::TextAlignment::Center
             }
-            backend::style::cell::TextAlignment::Right => {
-                common::communication::TextAlignment::Right
-            }
+            crate::style::cell::TextAlignment::Right => common::communication::TextAlignment::Right,
         },
         text_position: Vec2::new(
             vars.get_property(&cell.text_position.x, entry)

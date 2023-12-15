@@ -5,7 +5,7 @@ mod websocket;
 
 use asset_path_store::WebAssetPathStorePlugin;
 use bevy::{
-    app::Update,
+    app::{PluginGroup, Update},
     ecs::{
         event::EventWriter,
         query::With,
@@ -15,7 +15,7 @@ use bevy::{
     math::{vec2, vec3},
     prelude::{App, Camera2dBundle, ClearColor, Color, EventReader, Startup},
     transform::components::Transform,
-    window::{PrimaryWindow, Window},
+    window::{PrimaryWindow, Window, WindowPlugin},
     DefaultPlugins,
 };
 use cell_manager::CellManagerPlugin;
@@ -31,7 +31,13 @@ use websocket::{SendMessage, WebsocketPlugin};
 fn main() {
     App::new()
         .insert_resource(ClearColor(Color::rgb(0.5, 0.5, 0.9)))
-        .add_plugins(DefaultPlugins)
+        .add_plugins(DefaultPlugins.set(WindowPlugin {
+            primary_window: Some(Window {
+                fit_canvas_to_parent: true,
+                ..Default::default()
+            }),
+            ..Default::default()
+        }))
         .add_plugins(FrontendPlugin)
         .add_plugins((
             WebsocketPlugin,

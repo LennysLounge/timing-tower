@@ -1,8 +1,10 @@
 use std::collections::HashMap;
 
+use crate::style;
+
 use super::{
     savefile::Savefile,
-    style::{cell::Cell, timing_tower::TimingTowerTable},
+    style::cell::Cell,
     style_batcher::{CellId, StyleBatcher},
     value_store::{TypedValueResolver, ValueStore},
     value_types::{Boolean, Number, Property, Text, Texture, Tint},
@@ -97,7 +99,7 @@ pub fn update_tower(
         // Update table
         update_table(
             table,
-            &style_def.scene.timing_tower.table,
+            &style_def.scene.timing_tower,
             table_resolver,
             style_batcher.as_mut(),
         );
@@ -106,11 +108,11 @@ pub fn update_tower(
 
 fn update_table(
     table: &mut Table,
-    style: &TimingTowerTable,
+    style: &style::timing_tower::TimingTower,
     style_resolver: StyleResolver<'_>,
     style_batcher: &mut StyleBatcher,
 ) {
-    let (table_style, mut row_resolver) = style_resolver.get_and_child(&style.cell);
+    let (table_style, mut row_resolver) = style_resolver.get_and_child(&style.table.cell);
     style_batcher.add(&table.cell_id, table_style);
 
     // Create rows for each entry

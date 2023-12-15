@@ -16,6 +16,7 @@ pub struct TimingTower {
     pub id: Uuid,
     pub cell: Cell,
     pub table: TimingTowerTable,
+    pub row: TimingTowerRow,
 }
 impl StyleNode for TimingTower {
     fn id(&self) -> &Uuid {
@@ -26,6 +27,7 @@ impl Visitable for TimingTower {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
         self.enter(visitor)?;
         self.table.walk(visitor)?;
+        self.row.walk(visitor)?;
         self.leave(visitor)
     }
 
@@ -40,6 +42,7 @@ impl Visitable for TimingTower {
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
         self.enter_mut(visitor)?;
         self.table.walk_mut(visitor)?;
+        self.row.walk_mut(visitor)?;
         self.leave_mut(visitor)
     }
 
@@ -56,7 +59,6 @@ impl Visitable for TimingTower {
 pub struct TimingTowerTable {
     pub id: Uuid,
     pub cell: Cell,
-    pub row: TimingTowerRow,
 }
 impl StyleNode for TimingTowerTable {
     fn id(&self) -> &Uuid {
@@ -66,7 +68,6 @@ impl StyleNode for TimingTowerTable {
 impl Visitable for TimingTowerTable {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
         self.enter(visitor)?;
-        self.row.walk(visitor)?;
         self.leave(visitor)
     }
 
@@ -80,7 +81,6 @@ impl Visitable for TimingTowerTable {
 
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
         self.enter_mut(visitor)?;
-        self.row.walk_mut(visitor)?;
         self.leave_mut(visitor)
     }
 

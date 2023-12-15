@@ -1,19 +1,24 @@
 use backend::{
     savefile::{Savefile, SavefileChanged},
+    style_batcher::{PrepareBatcher, StyleBatcher},
     BackendPlugin,
 };
 use ball::Ball;
 use bevy::{
-    app::Startup,
-    ecs::{event::EventWriter, system::Commands},
+    app::{Startup, PostUpdate},
+    ecs::{
+        event::EventWriter,
+        system::{Commands, Query}, schedule::IntoSystemConfigs,
+    },
     prelude::{App, ResMut, Resource},
     time::{Timer, TimerMode},
     transform::components::Transform,
     DefaultPlugins,
 };
 
+use common::communication::ToRendererMessage;
 use webserver::WebserverPlugin;
-use websocket::WebsocketPlugin;
+use websocket::{ClientState, WebsocketClient, WebsocketPlugin};
 
 use crate::ball::BallPlugin;
 
@@ -33,6 +38,7 @@ fn main() {
             TimerMode::Repeating,
         )))
         .add_systems(Startup, (load_savefile, spawn_balls))
+        .add_systems(PostUpdate, send_style_commands.after(PrepareBatcher))
         .run();
 }
 
@@ -49,5 +55,17 @@ fn load_savefile(
 fn spawn_balls(mut commands: Commands) {
     for _ in 0..200 {
         commands.spawn((Transform::default(), Ball::new()));
+    }
+}
+
+fn send_style_commands(
+    mut style_batcher: ResMut<StyleBatcher>,
+    mut connections: Query<&mut WebsocketClient>,
+) {
+    let style_commands = style_batcher.drain();
+    for mut client in connections.iter_mut() {
+        if client.state() == &ClientState::Ready {
+            client.send_message(ToRendererMessage::Style(style_commands.clone()));
+        }
     }
 }

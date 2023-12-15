@@ -1,18 +1,15 @@
 mod asset_path_store;
+mod cell_manager;
 mod framerate;
 mod websocket;
-
-use std::collections::HashMap;
 
 use asset_path_store::WebAssetPathStorePlugin;
 use bevy::{
     app::Update,
     ecs::{
-        entity::Entity,
         event::EventWriter,
         query::With,
-        schedule::IntoSystemConfigs,
-        system::{Commands, Local, Query, ResMut},
+        system::{Commands, Query},
     },
     input::mouse::MouseButtonInput,
     math::{vec2, vec3},
@@ -21,30 +18,30 @@ use bevy::{
     window::{PrimaryWindow, Window},
     DefaultPlugins,
 };
-use common::communication::{CellStyle, StyleCommand, ToControllerMessage, ToRendererMessage};
-use framerate::{FrameCounter, FrameratePlugin};
+use cell_manager::CellManagerPlugin;
+use common::communication::{CellStyle, ToControllerMessage};
+use framerate::FrameratePlugin;
 use frontend::{
-    cell::{init_cell, CellSystem, SetStyle},
+    cell::{init_cell, SetStyle},
     FrontendPlugin,
 };
 
-use tracing::info;
-use uuid::Uuid;
-use websocket::{ReceivedMessage, SendMessage, WebsocketPlugin};
+use websocket::{SendMessage, WebsocketPlugin};
 
 fn main() {
     App::new()
         .insert_resource(ClearColor(Color::rgb(0.5, 0.5, 0.9)))
         .add_plugins(DefaultPlugins)
         .add_plugins(FrontendPlugin)
-        .add_plugins(WebAssetPathStorePlugin)
-        .add_plugins((WebsocketPlugin, FrameratePlugin))
+        .add_plugins((
+            WebsocketPlugin,
+            FrameratePlugin,
+            WebAssetPathStorePlugin,
+            CellManagerPlugin,
+        ))
         .add_systems(Startup, setup_camera)
         //.add_systems(Startup, setup_cell)
-        .add_systems(
-            Update,
-            (mouse_click_send_message, spawn_cells.before(CellSystem)),
-        )
+        .add_systems(Update, mouse_click_send_message)
         .run();
 }
 
@@ -91,41 +88,5 @@ fn mouse_click_send_message(
                 message: ToControllerMessage::Debug("Mouse pressed".to_owned()),
             });
         }
-    }
-}
-
-fn spawn_cells(
-    mut commands: Commands,
-    mut received_messages: EventReader<ReceivedMessage>,
-    mut set_style: EventWriter<SetStyle>,
-    mut frame_counter: ResMut<FrameCounter>,
-    mut entity_map: Local<HashMap<Uuid, Entity>>,
-) {
-    let style_commands: HashMap<Uuid, &CellStyle> = received_messages
-        .read()
-        .filter_map(|ReceivedMessage { message }| match message {
-            ToRendererMessage::Style(styles) => {
-                frame_counter.inc();
-                Some(styles)
-            }
-            _ => None,
-        })
-        .flat_map(|styles| styles.iter())
-        .filter_map(|command| match command {
-            StyleCommand::Style { id, style } => Some((*id, style)),
-            StyleCommand::Remove { .. } => None,
-        })
-        .collect();
-
-    for (id, style) in style_commands {
-        let entity_id = entity_map.entry(id).or_insert_with(|| {
-            info!("Spawn entity");
-            commands.spawn_empty().add(init_cell).id()
-        });
-
-        set_style.send(SetStyle {
-            entity: *entity_id,
-            style: style.clone(),
-        });
     }
 }

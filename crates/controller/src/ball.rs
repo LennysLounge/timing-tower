@@ -1,14 +1,15 @@
+use backend::style_batcher::{CellId, StyleBatcher};
 use bevy::{
     app::{Plugin, Update},
-    ecs::{component::Component, system::Query},
+    ecs::{
+        component::Component,
+        system::{Query, ResMut},
+    },
     math::{vec2, Vec2, Vec3},
     render::color::Color,
     transform::components::Transform,
 };
-use common::communication::{CellStyle, StyleCommand, TextAlignment, ToRendererMessage};
-use uuid::Uuid;
-
-use crate::websocket::{ClientState, WebsocketClient};
+use common::communication::{CellStyle, TextAlignment};
 
 pub struct BallPlugin;
 impl Plugin for BallPlugin {
@@ -19,7 +20,7 @@ impl Plugin for BallPlugin {
 
 #[derive(Component)]
 pub struct Ball {
-    id: Uuid,
+    id: CellId,
     velocity: Vec3,
     color: Color,
 }
@@ -27,7 +28,7 @@ pub struct Ball {
 impl Ball {
     pub fn new() -> Self {
         Self {
-            id: Uuid::new_v4(),
+            id: CellId::new(),
             velocity: Vec3::new(
                 rand::random::<f32>() * 5.0,
                 rand::random::<f32>() * 5.0,
@@ -43,12 +44,7 @@ impl Ball {
     }
 }
 
-fn update(
-    mut balls: Query<(&mut Ball, &mut Transform)>,
-    mut connections: Query<&mut WebsocketClient>,
-) {
-    let mut styles = Vec::new();
-
+fn update(mut balls: Query<(&mut Ball, &mut Transform)>, mut style_batcher: ResMut<StyleBatcher>) {
     for (mut ball, mut transform) in balls.iter_mut() {
         transform.translation += ball.velocity;
 
@@ -69,9 +65,9 @@ fn update(
             ball.velocity.y *= -1.0;
         }
 
-        styles.push(StyleCommand::Style {
-            id: ball.id,
-            style: CellStyle {
+        style_batcher.add(
+            &ball.id,
+            CellStyle {
                 text: String::from("AABB"),
                 text_color: Color::BLACK,
                 text_size: 40.0,
@@ -85,12 +81,6 @@ fn update(
                 visible: true,
                 rounding: [15.0; 4],
             },
-        })
-    }
-
-    for mut client in connections.iter_mut() {
-        if client.state() == &ClientState::Ready {
-            client.send_message(ToRendererMessage::Style(styles.clone()));
-        }
+        );
     }
 }

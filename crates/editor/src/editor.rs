@@ -42,7 +42,7 @@ use crate::{
 
 use self::{
     camera::{EditorCamera, EditorCameraPlugin},
-    command::UndoRedoManager,
+    command::{insert_node::InsertNode, UndoRedoManager},
 };
 
 pub struct EditorPlugin;
@@ -212,7 +212,12 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 *self.viewport = ui.clip_rect();
             }
             Tab::Elements => {
-                *self.style_changed |= tree_view(ui, self.selected_node, &mut self.style.scene);
+                *self.style_changed |= tree_view(
+                    ui,
+                    self.selected_node,
+                    &mut self.style.scene,
+                    self.undo_redo_manager,
+                );
             }
             Tab::PropertyEditor => {
                 property_editor(
@@ -224,10 +229,20 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 );
             }
             Tab::Variables => {
-                *self.style_changed |= tree_view(ui, self.selected_node, &mut self.style.vars);
+                *self.style_changed |= tree_view(
+                    ui,
+                    self.selected_node,
+                    &mut self.style.vars,
+                    self.undo_redo_manager,
+                );
             }
             Tab::Assets => {
-                *self.style_changed |= tree_view(ui, self.selected_node, &mut self.style.assets);
+                *self.style_changed |= tree_view(
+                    ui,
+                    self.selected_node,
+                    &mut self.style.assets,
+                    self.undo_redo_manager,
+                );
             }
             Tab::UndoRedo => {
                 undo_redo(ui, &mut self.undo_redo_manager);
@@ -273,6 +288,7 @@ fn tree_view(
     ui: &mut Ui,
     _selected_node: &mut Option<Uuid>,
     base_node: &mut impl StyleNode,
+    undo_redo_manager: &mut UndoRedoManager,
 ) -> bool {
     let mut changed = false;
     let TreeViewVisitorResult {
@@ -284,8 +300,15 @@ fn tree_view(
         .inner;
 
     // Add nodes
-    for (id, position, node) in nodes_to_add {
-        InsertNodeVisitor::new(id, position, node).insert_into(base_node);
+    for (target_node, position, node) in nodes_to_add {
+        undo_redo_manager.queue(
+            InsertNode {
+                target_node,
+                position,
+                node,
+            }
+            .into(),
+        );
     }
     // remove nodes
     for id in nodes_to_remove {

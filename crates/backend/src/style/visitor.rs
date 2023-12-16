@@ -10,8 +10,20 @@ use super::{
     variables::VariableDefinition,
     StyleDefinition,
 };
-pub trait StyleNode: ToAny + Visitable {
+pub trait StyleNode: ToAny + Visitable + BoxClone {
     fn id(&self) -> &Uuid;
+}
+
+pub trait BoxClone {
+    fn box_clone(&self) -> Box<dyn StyleNode>;
+}
+impl<T> BoxClone for T
+where
+    T: StyleNode + Clone + 'static,
+{
+    fn box_clone(&self) -> Box<dyn StyleNode> {
+        Box::new(self.clone())
+    }
 }
 
 pub trait ToAny {

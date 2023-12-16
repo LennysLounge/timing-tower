@@ -66,7 +66,7 @@ where
 }
 impl<T> FolderInfo for Folder<T>
 where
-    T: StyleNode + 'static,
+    T: StyleNode + Clone + 'static,
 {
     fn name(&self) -> &str {
         &self.name
@@ -128,7 +128,7 @@ where
 }
 impl<T> StyleNode for Folder<T>
 where
-    T: StyleNode + 'static,
+    T: StyleNode + Clone + 'static,
 {
     fn id(&self) -> &Uuid {
         &self.id
@@ -136,7 +136,7 @@ where
 }
 impl<T> Visitable for Folder<T>
 where
-    T: StyleNode + 'static,
+    T: StyleNode + Clone + 'static,
 {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
         self.enter(visitor)?;

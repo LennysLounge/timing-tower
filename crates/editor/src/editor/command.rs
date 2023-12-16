@@ -1,22 +1,40 @@
+pub mod insert_node;
+
 use backend::{
     savefile::{Savefile, SavefileChanged},
     style::StyleDefinition,
 };
 use bevy::ecs::{event::EventWriter, system::Resource};
 
+use self::insert_node::InsertNode;
+
 pub enum EditorCommand {
     Undo,
     Redo,
+    InsertNode(InsertNode),
 }
 impl EditorCommand {
     pub fn name(&self) -> &str {
         match self {
             EditorCommand::Undo => "Undo",
             EditorCommand::Redo => "Redo",
+            EditorCommand::InsertNode(_) => "Insert node",
         }
     }
-    fn redo(&self, style: &mut StyleDefinition) {}
-    fn undo(&self, style: &mut StyleDefinition) {}
+    fn redo(&self, style: &mut StyleDefinition) {
+        match self {
+            EditorCommand::Undo => (),
+            EditorCommand::Redo => (),
+            EditorCommand::InsertNode(o) => o.redo(style),
+        }
+    }
+    fn undo(&self, style: &mut StyleDefinition) {
+        match self {
+            EditorCommand::Undo => (),
+            EditorCommand::Redo => (),
+            EditorCommand::InsertNode(o) => o.undo(style),
+        }
+    }
 }
 
 #[derive(Resource, Default)]
@@ -31,10 +49,10 @@ impl UndoRedoManager {
         savefile: &mut Savefile,
         mut savefile_changed_event: EventWriter<SavefileChanged>,
     ) {
-        if self.queue.is_empty(){
+        if self.queue.is_empty() {
             return;
         }
-        
+
         let mut style = savefile.style().clone();
         for command in self.queue.drain(0..) {
             match command {

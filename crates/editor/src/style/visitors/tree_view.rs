@@ -10,12 +10,12 @@ use uuid::Uuid;
 
 pub struct TreeViewVisitorResult {
     pub response: TreeViewResponse,
-    pub nodes_to_add: Vec<(Uuid, DropPosition, Box<dyn StyleNode>)>,
+    pub nodes_to_add: Vec<(Uuid, DropPosition, Box<dyn StyleNode + Sync + Send>)>,
     pub nodes_to_remove: Vec<Uuid>,
 }
 pub struct TreeViewVisitor<'a> {
     builder: TreeViewBuilder<'a>,
-    nodes_to_add: &'a mut Vec<(Uuid, DropPosition, Box<dyn StyleNode>)>,
+    nodes_to_add: &'a mut Vec<(Uuid, DropPosition, Box<dyn StyleNode + Sync + Send>)>,
     nodes_to_remove: &'a mut Vec<Uuid>,
     stack: Vec<Uuid>,
 }

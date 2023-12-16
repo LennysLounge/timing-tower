@@ -374,13 +374,20 @@ fn undo_redo(ui: &mut Ui, undo_redo_manager: &mut UndoRedoManager) {
             undo_redo_manager.queue(command::EditorCommand::Redo);
         }
     });
-    for future_command in undo_redo_manager.future().iter() {
-        ui.label(future_command.name());
-    }
-    ui.add_space(10.0);
-    ui.label(">> Now <<");
-    ui.add_space(10.0);
-    for past_command in undo_redo_manager.past().iter().rev() {
-        ui.label(past_command.name());
-    }
+    ui.scope(|ui| {
+        ui.spacing_mut().item_spacing.y = 0.0;
+        for future_command in undo_redo_manager.future().iter() {
+            ui.horizontal(|ui| {
+                ui.add_space(17.0);
+                ui.label(future_command.name());
+            });
+        }
+        ui.label(">> Now");
+        for past_command in undo_redo_manager.past().iter().rev() {
+            ui.horizontal(|ui| {
+                ui.add_space(17.0);
+                ui.label(past_command.name());
+            });
+        }
+    });
 }

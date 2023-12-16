@@ -98,7 +98,7 @@ fn ui(
     mut ctx: EguiContexts,
     mut state: ResMut<EditorState>,
     mut editor_camera: Query<(&mut EditorCamera, &mut Transform), With<MainCamera>>,
-    mut save_file_changed: EventWriter<SavefileChanged>,
+    savefile_changed_event: EventWriter<SavefileChanged>,
     mut undo_redo_manager: ResMut<UndoRedoManager>,
 ) {
     egui::TopBottomPanel::top("Top panel").show(ctx.ctx_mut(), |ui| {
@@ -157,9 +157,10 @@ fn ui(
             },
         );
 
-    if style_changed {
-        savefile.set(style.clone(), &mut save_file_changed);
-    }
+    undo_redo_manager.apply_queue(savefile.as_mut(), savefile_changed_event);
+    // if style_changed {
+    //     savefile.set(style.clone(), &mut save_file_changed);
+    // }
 }
 
 fn savefile_changed(

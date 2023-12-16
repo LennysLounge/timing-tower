@@ -10,7 +10,7 @@ use super::{
     variables::VariableDefinition,
     StyleDefinition,
 };
-pub trait StyleNode: ToAny + Visitable + BoxClone {
+pub trait StyleNode: ToAny + Visitable + BoxClone + Sync + Send {
     fn id(&self) -> &Uuid;
 }
 

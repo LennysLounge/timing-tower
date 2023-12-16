@@ -1,4 +1,5 @@
 pub mod insert_node;
+pub mod remove_node;
 
 use backend::{
     savefile::{Savefile, SavefileChanged},
@@ -6,12 +7,13 @@ use backend::{
 };
 use bevy::ecs::{event::EventWriter, system::Resource};
 
-use self::insert_node::InsertNode;
+use self::{insert_node::InsertNode, remove_node::RemoveNode};
 
 pub enum EditorCommand {
     Undo,
     Redo,
     InsertNode(InsertNode),
+    RemoveNode(RemoveNode),
 }
 impl EditorCommand {
     pub fn name(&self) -> &str {
@@ -19,20 +21,23 @@ impl EditorCommand {
             EditorCommand::Undo => "Undo",
             EditorCommand::Redo => "Redo",
             EditorCommand::InsertNode(_) => "Insert node",
+            EditorCommand::RemoveNode(_) => "Remove node",
         }
     }
-    fn redo(&self, style: &mut StyleDefinition) {
+    fn redo(&mut self, style: &mut StyleDefinition) {
         match self {
             EditorCommand::Undo => (),
             EditorCommand::Redo => (),
             EditorCommand::InsertNode(o) => o.redo(style),
+            EditorCommand::RemoveNode(o) => o.redo(style),
         }
     }
-    fn undo(&self, style: &mut StyleDefinition) {
+    fn undo(&mut self, style: &mut StyleDefinition) {
         match self {
             EditorCommand::Undo => (),
             EditorCommand::Redo => (),
             EditorCommand::InsertNode(o) => o.undo(style),
+            EditorCommand::RemoveNode(o) => o.undo(style),
         }
     }
 }
@@ -57,18 +62,18 @@ impl UndoRedoManager {
         for command in self.queue.drain(0..) {
             match command {
                 EditorCommand::Undo => {
-                    if let Some(command) = self.past.pop() {
+                    if let Some(mut command) = self.past.pop() {
                         command.undo(&mut style);
                         self.future.push(command);
                     }
                 }
                 EditorCommand::Redo => {
-                    if let Some(command) = self.future.pop() {
+                    if let Some(mut command) = self.future.pop() {
                         command.redo(&mut style);
                         self.past.push(command);
                     }
                 }
-                command => {
+                mut command => {
                     command.redo(&mut style);
                     self.past.push(command);
                     self.future.clear();
@@ -78,8 +83,8 @@ impl UndoRedoManager {
         savefile.set(style, &mut savefile_changed_event);
     }
 
-    pub fn queue(&mut self, command: EditorCommand) {
-        self.queue.push(command);
+    pub fn queue<C: Into<EditorCommand>>(&mut self, command: C) {
+        self.queue.push(command.into());
     }
 
     pub fn past(&self) -> &Vec<EditorCommand> {

@@ -42,7 +42,7 @@ use crate::{
 
 use self::{
     camera::{EditorCamera, EditorCameraPlugin},
-    command::{insert_node::InsertNode, UndoRedoManager},
+    command::{insert_node::InsertNode, remove_node::RemoveNode, UndoRedoManager},
 };
 
 pub struct EditorPlugin;
@@ -301,18 +301,15 @@ fn tree_view(
 
     // Add nodes
     for (target_node, position, node) in nodes_to_add {
-        undo_redo_manager.queue(
-            InsertNode {
-                target_node,
-                position,
-                node,
-            }
-            .into(),
-        );
+        undo_redo_manager.queue(InsertNode {
+            target_node,
+            position,
+            node,
+        });
     }
     // remove nodes
     for id in nodes_to_remove {
-        RemoveNodeVisitor::new(id).remove_from(base_node);
+        undo_redo_manager.queue(RemoveNode::new(id));
     }
 
     if response.selected_node.is_some() {
@@ -335,14 +332,14 @@ fn tree_view(
         }
 
         if response.dropped && drop_allowed {
-            if let Some(removed_node) =
-                RemoveNodeVisitor::new(drop_action.drag_id).remove_from(base_node)
-            {
-                InsertNodeVisitor::new(drop_action.drop_id, drop_action.position, removed_node)
-                    .insert_into(base_node);
-            } else {
-                info!("No node was removed from the tree");
-            }
+            // if let Some(removed_node) =
+            //     RemoveNodeVisitor::new(drop_action.drag_id).remove_from(base_node)
+            // {
+            //     InsertNodeVisitor::new(drop_action.drop_id, drop_action.position, removed_node)
+            //         .insert_into(base_node);
+            // } else {
+            //     info!("No node was removed from the tree");
+            // }
 
             changed = true;
         }
@@ -387,7 +384,7 @@ fn undo_redo(ui: &mut Ui, undo_redo_manager: &mut UndoRedoManager) {
     ui.add_space(10.0);
     ui.label(">> Now <<");
     ui.add_space(10.0);
-    for past_command in undo_redo_manager.past().iter() {
+    for past_command in undo_redo_manager.past().iter().rev() {
         ui.label(past_command.name());
     }
 }

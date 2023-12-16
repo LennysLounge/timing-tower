@@ -1,4 +1,5 @@
 pub mod camera;
+pub mod command;
 
 use std::{fs::File, io::Write};
 
@@ -39,12 +40,16 @@ use crate::{
     MainCamera,
 };
 
-use self::camera::{EditorCamera, EditorCameraPlugin};
+use self::{
+    camera::{EditorCamera, EditorCameraPlugin},
+    command::UndoRedoManager,
+};
 
 pub struct EditorPlugin;
 impl Plugin for EditorPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource(EditorState::new())
+            .insert_resource(UndoRedoManager::default())
             .add_plugins(ReferenceStorePlugin)
             .add_plugins(EditorCameraPlugin)
             .add_systems(Startup, setup)
@@ -86,85 +91,6 @@ impl EditorState {
     }
 }
 
-fn savefile_changed(
-    savefile: Res<Savefile>,
-    mut editor_state: ResMut<EditorState>,
-    mut savefile_changed_event: EventReader<SavefileChanged>,
-) {
-    if savefile_changed_event.is_empty() {
-        return;
-    }
-    savefile_changed_event.clear();
-    editor_state.style = savefile.style().clone();
-}
-
-enum Tab {
-    SceneView,
-    Elements,
-    Variables,
-    Assets,
-    PropertyEditor,
-}
-
-struct EditorTabViewer<'a> {
-    viewport: &'a mut Rect,
-    selected_node: &'a mut Option<Uuid>,
-    style: &'a mut StyleDefinition,
-    style_changed: &'a mut bool,
-    reference_store: &'a ReferenceStore,
-}
-impl<'a> TabViewer for EditorTabViewer<'a> {
-    type Tab = Tab;
-
-    fn title(&mut self, tab: &mut Self::Tab) -> egui::WidgetText {
-        match tab {
-            Tab::SceneView => "Scene view".into(),
-            Tab::Elements => "Elements".into(),
-            Tab::PropertyEditor => "Style".into(),
-            Tab::Variables => "Variables".into(),
-            Tab::Assets => "Assets".into(),
-        }
-    }
-
-    fn ui(&mut self, ui: &mut egui::Ui, tab: &mut Self::Tab) {
-        match tab {
-            Tab::SceneView => {
-                *self.viewport = ui.clip_rect();
-            }
-            Tab::Elements => {
-                *self.style_changed |= tree_view(ui, self.selected_node, &mut self.style.scene);
-            }
-            Tab::PropertyEditor => {
-                property_editor(
-                    ui,
-                    self.selected_node,
-                    self.style,
-                    self.style_changed,
-                    self.reference_store,
-                );
-            }
-            Tab::Variables => {
-                *self.style_changed |= tree_view(ui, self.selected_node, &mut self.style.vars);
-            }
-            Tab::Assets => {
-                *self.style_changed |= tree_view(ui, self.selected_node, &mut self.style.assets);
-            }
-        }
-    }
-
-    fn scroll_bars(&self, _tab: &Self::Tab) -> [bool; 2] {
-        [false; 2]
-    }
-
-    fn closeable(&mut self, _tab: &mut Self::Tab) -> bool {
-        false
-    }
-
-    fn clear_background(&self, tab: &Self::Tab) -> bool {
-        !matches!(tab, Tab::SceneView)
-    }
-}
-
 fn ui(
     reference_store: Res<ReferenceStore>,
     mut savefile: ResMut<Savefile>,
@@ -172,6 +98,7 @@ fn ui(
     mut state: ResMut<EditorState>,
     mut editor_camera: Query<(&mut EditorCamera, &mut Transform), With<MainCamera>>,
     mut save_file_changed: EventWriter<SavefileChanged>,
+    mut undo_redo_manager: ResMut<UndoRedoManager>,
 ) {
     egui::TopBottomPanel::top("Top panel").show(ctx.ctx_mut(), |ui| {
         egui::menu::bar(ui, |ui| {
@@ -225,11 +152,92 @@ fn ui(
                 style: style,
                 style_changed: &mut style_changed,
                 reference_store: &reference_store,
+                undo_redo_manager: undo_redo_manager.as_mut(),
             },
         );
 
     if style_changed {
         savefile.set(style.clone(), &mut save_file_changed);
+    }
+}
+
+fn savefile_changed(
+    savefile: Res<Savefile>,
+    mut editor_state: ResMut<EditorState>,
+    mut savefile_changed_event: EventReader<SavefileChanged>,
+) {
+    if savefile_changed_event.is_empty() {
+        return;
+    }
+    savefile_changed_event.clear();
+    editor_state.style = savefile.style().clone();
+}
+
+enum Tab {
+    SceneView,
+    Elements,
+    Variables,
+    Assets,
+    PropertyEditor,
+}
+
+struct EditorTabViewer<'a> {
+    viewport: &'a mut Rect,
+    selected_node: &'a mut Option<Uuid>,
+    style: &'a mut StyleDefinition,
+    style_changed: &'a mut bool,
+    reference_store: &'a ReferenceStore,
+    undo_redo_manager: &'a mut UndoRedoManager,
+}
+impl<'a> TabViewer for EditorTabViewer<'a> {
+    type Tab = Tab;
+
+    fn title(&mut self, tab: &mut Self::Tab) -> egui::WidgetText {
+        match tab {
+            Tab::SceneView => "Scene view".into(),
+            Tab::Elements => "Elements".into(),
+            Tab::PropertyEditor => "Style".into(),
+            Tab::Variables => "Variables".into(),
+            Tab::Assets => "Assets".into(),
+        }
+    }
+
+    fn ui(&mut self, ui: &mut egui::Ui, tab: &mut Self::Tab) {
+        match tab {
+            Tab::SceneView => {
+                *self.viewport = ui.clip_rect();
+            }
+            Tab::Elements => {
+                *self.style_changed |= tree_view(ui, self.selected_node, &mut self.style.scene);
+            }
+            Tab::PropertyEditor => {
+                property_editor(
+                    ui,
+                    self.selected_node,
+                    self.style,
+                    self.style_changed,
+                    self.reference_store,
+                );
+            }
+            Tab::Variables => {
+                *self.style_changed |= tree_view(ui, self.selected_node, &mut self.style.vars);
+            }
+            Tab::Assets => {
+                *self.style_changed |= tree_view(ui, self.selected_node, &mut self.style.assets);
+            }
+        }
+    }
+
+    fn scroll_bars(&self, _tab: &Self::Tab) -> [bool; 2] {
+        [false; 2]
+    }
+
+    fn closeable(&mut self, _tab: &mut Self::Tab) -> bool {
+        false
+    }
+
+    fn clear_background(&self, tab: &Self::Tab) -> bool {
+        !matches!(tab, Tab::SceneView)
     }
 }
 

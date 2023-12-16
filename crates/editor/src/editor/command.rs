@@ -1,3 +1,4 @@
+pub mod edit_property;
 pub mod insert_node;
 pub mod move_node;
 pub mod remove_node;
@@ -9,6 +10,7 @@ use backend::{
 use bevy::ecs::{event::EventWriter, system::Resource};
 
 use self::{
+    edit_property::EditProperty,
     insert_node::{InsertNode, InsertNodeUndo},
     move_node::MoveNode,
     remove_node::{RemoveNode, RemoveNodeUndo},
@@ -22,6 +24,7 @@ pub enum EditorCommand {
     RemoveNode(RemoveNode),
     RemoveNodeUndo(RemoveNodeUndo),
     MoveNode(MoveNode),
+    EditProperty(EditProperty),
 }
 
 impl EditorCommand {
@@ -34,6 +37,7 @@ impl EditorCommand {
             EditorCommand::RemoveNode(_) => "Remove node",
             EditorCommand::RemoveNodeUndo(_) => "Remove node",
             EditorCommand::MoveNode(_) => "Move node",
+            EditorCommand::EditProperty(_) => "Edit property",
         }
     }
     fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
@@ -45,6 +49,7 @@ impl EditorCommand {
             EditorCommand::RemoveNode(o) => o.execute(style),
             EditorCommand::RemoveNodeUndo(o) => o.execute(style),
             EditorCommand::MoveNode(o) => o.execute(style),
+            EditorCommand::EditProperty(o) => o.execute(style),
         }
     }
 }

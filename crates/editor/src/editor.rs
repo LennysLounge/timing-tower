@@ -5,7 +5,7 @@ use std::{fs::File, io::Write};
 
 use backend::{
     savefile::{Savefile, SavefileChanged},
-    style::{visitor::StyleNode, StyleDefinition},
+    style::{timing_tower::TimingTowerColumn, visitor::StyleNode, StyleDefinition},
 };
 use bevy::{
     app::First,
@@ -41,7 +41,11 @@ use crate::{
 use self::{
     camera::{EditorCamera, EditorCameraPlugin},
     command::{
-        insert_node::InsertNode, move_node::MoveNode, remove_node::RemoveNode, UndoRedoManager,
+        edit_property::{EditProperty, Setter},
+        insert_node::InsertNode,
+        move_node::MoveNode,
+        remove_node::RemoveNode,
+        UndoRedoManager,
     },
 };
 
@@ -290,6 +294,20 @@ fn tree_view(
     base_node: &mut impl StyleNode,
     undo_redo_manager: &mut UndoRedoManager,
 ) -> bool {
+    {
+        // TODO: only for testing
+        if ui.button("Changed").clicked() {
+            undo_redo_manager.queue(EditProperty {
+                id: _selected_node.unwrap_or_default(),
+                setter: Box::new(Setter {
+                    accessor: |s: &mut TimingTowerColumn| &mut s.name,
+                    value: String::from("Works"),
+                }),
+            })
+        }
+        ui.separator();
+    }
+
     let mut changed = false;
     let TreeViewVisitorResult {
         response,

@@ -28,6 +28,7 @@ where
 
 pub trait ToAny {
     fn as_any(&self) -> &dyn Any;
+    fn as_any_mut(&mut self) -> &mut dyn Any;
     fn to_any(self: Box<Self>) -> Box<dyn Any>;
 }
 impl<T> ToAny for T
@@ -35,6 +36,10 @@ where
     T: Visitable + 'static,
 {
     fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn as_any_mut(&mut self) -> &mut dyn Any {
         self
     }
 

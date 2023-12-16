@@ -81,7 +81,8 @@ impl EditorState {
             0.15,
             vec![Tab::Elements, Tab::Variables, Tab::Assets],
         );
-        let [_scene, _tree_view] = tree.split_right(scene, 0.8, vec![Tab::PropertyEditor]);
+        let [scene, _tree_view] = tree.split_right(scene, 0.8, vec![Tab::PropertyEditor]);
+        let [_scene, _undo_redo] = tree.split_right(scene, 0.8, vec![Tab::UndoRedo]);
 
         Self {
             selected_node: None,
@@ -179,6 +180,7 @@ enum Tab {
     Variables,
     Assets,
     PropertyEditor,
+    UndoRedo,
 }
 
 struct EditorTabViewer<'a> {
@@ -199,6 +201,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
             Tab::PropertyEditor => "Style".into(),
             Tab::Variables => "Variables".into(),
             Tab::Assets => "Assets".into(),
+            Tab::UndoRedo => "Undo/Redo".into(),
         }
     }
 
@@ -224,6 +227,9 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
             }
             Tab::Assets => {
                 *self.style_changed |= tree_view(ui, self.selected_node, &mut self.style.assets);
+            }
+            Tab::UndoRedo => {
+                undo_redo(ui, &mut self.undo_redo_manager);
             }
         }
     }
@@ -340,4 +346,24 @@ fn property_editor(
             .search_in(style)
             .unwrap_or(false);
         });
+}
+
+fn undo_redo(ui: &mut Ui, undo_redo_manager: &mut UndoRedoManager) {
+    ui.horizontal(|ui| {
+        if ui.button("Undo").clicked() {
+            undo_redo_manager.queue(command::EditorCommand::Undo);
+        }
+        if ui.button("Redo").clicked() {
+            undo_redo_manager.queue(command::EditorCommand::Redo);
+        }
+    });
+    for future_command in undo_redo_manager.future().iter() {
+        ui.label(future_command.name());
+    }
+    ui.add_space(10.0);
+    ui.label(">> Now <<");
+    ui.add_space(10.0);
+    for past_command in undo_redo_manager.past().iter() {
+        ui.label(past_command.name());
+    }
 }

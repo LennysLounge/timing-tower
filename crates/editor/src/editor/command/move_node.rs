@@ -11,7 +11,7 @@ pub struct MoveNode {
     node_id: Uuid,
     parent_id: Uuid,
     position: DropPosition,
-    taken_from: Option<Uuid>,
+    taken_from: Option<(Uuid, DropPosition)>,
 }
 
 impl MoveNode {
@@ -26,8 +26,12 @@ impl MoveNode {
     pub fn undo(&self, style: &mut StyleDefinition) {
         if let Some(removed_node) = RemoveNodeVisitor::new(self.node_id).remove_from(style) {
             InsertNodeVisitor::new(
-                self.taken_from.expect("The source parent id should be set"),
-                DropPosition::Last,
+                self.taken_from
+                    .expect("The source parent id should be set")
+                    .0,
+                self.taken_from
+                    .expect("The source parent id should be set")
+                    .1,
                 removed_node.node,
             )
             .insert_into(style);
@@ -39,7 +43,7 @@ impl MoveNode {
         if let Some(removed_node) = RemoveNodeVisitor::new(self.node_id).remove_from(style) {
             InsertNodeVisitor::new(self.parent_id, self.position, removed_node.node)
                 .insert_into(style);
-            self.taken_from = Some(removed_node.parent_id);
+            self.taken_from = Some((removed_node.parent_id, removed_node.position));
         } else {
             info!("No node was removed from the tree");
         }

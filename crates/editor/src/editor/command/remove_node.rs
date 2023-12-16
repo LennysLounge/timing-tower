@@ -24,7 +24,7 @@ impl RemoveNode {
         if let Some(remove_node) = self.removed_node.as_ref() {
             InsertNodeVisitor::new(
                 remove_node.parent_id,
-                egui_ltreeview::DropPosition::Last,
+                remove_node.position,
                 (*remove_node.node).box_clone(),
             )
             .insert_into(style);

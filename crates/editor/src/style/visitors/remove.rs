@@ -5,6 +5,7 @@ use backend::style::{
     folder::FolderOrT,
     visitor::{NodeVisitorMut, StyleNode, Visitable},
 };
+use egui_ltreeview::DropPosition;
 use uuid::Uuid;
 
 pub struct RemoveNodeVisitor {
@@ -23,6 +24,7 @@ impl RemoveNodeVisitor {
 pub struct RemovedNode {
     pub parent_id: Uuid,
     pub node: Box<dyn StyleNode>,
+    pub position: DropPosition,
 }
 impl NodeVisitorMut for RemoveNodeVisitor {
     fn visit_folder(&mut self, folder: &mut dyn FolderInfo) -> ControlFlow<()> {
@@ -34,6 +36,11 @@ impl NodeVisitorMut for RemoveNodeVisitor {
             self.node = folder.remove_index(index).map(|n| RemovedNode {
                 parent_id: *folder.id(),
                 node: n,
+                position: (index == 0)
+                    .then_some(DropPosition::First)
+                    .unwrap_or_else(|| {
+                        DropPosition::After(*folder.content().get(index - 1).unwrap().id())
+                    }),
             });
             ControlFlow::Break(())
         } else {
@@ -49,6 +56,11 @@ impl NodeVisitorMut for RemoveNodeVisitor {
                     FolderOrT::T(t) => Box::new(t),
                     FolderOrT::Folder(f) => Box::new(f),
                 },
+                position: (index == 0)
+                    .then_some(DropPosition::First)
+                    .unwrap_or_else(|| {
+                        DropPosition::After(*row.columns.get(index - 1).unwrap().id())
+                    }),
             });
             ControlFlow::Break(())
         } else {

@@ -10,33 +10,40 @@ use crate::style::visitors::{
 use super::EditorCommand;
 
 pub struct RemoveNode {
-    id: Uuid,
-    removed_node: Option<RemovedNode>,
+    pub id: Uuid,
 }
 impl RemoveNode {
-    pub fn new(id: Uuid) -> Self {
-        Self {
-            id,
-            removed_node: None,
-        }
-    }
-    pub fn undo(&mut self, style: &mut StyleDefinition) {
-        if let Some(remove_node) = self.removed_node.as_ref() {
-            InsertNodeVisitor::new(
-                remove_node.parent_id,
-                remove_node.position,
-                (*remove_node.node).box_clone(),
-            )
-            .insert_into(style);
-        }
-    }
-    pub fn redo(&mut self, style: &mut StyleDefinition) {
-        self.removed_node = RemoveNodeVisitor::new(self.id).remove_from(style);
+    pub fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
+        let Some(removed_node) = RemoveNodeVisitor::new(self.id).remove_from(style) else {
+            return None;
+        };
+        Some(RemoveNodeUndo { removed_node }.into())
     }
 }
 
 impl From<RemoveNode> for EditorCommand {
     fn from(value: RemoveNode) -> Self {
         Self::RemoveNode(value)
+    }
+}
+
+pub struct RemoveNodeUndo {
+    removed_node: RemovedNode,
+}
+impl RemoveNodeUndo {
+    pub fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
+        let RemovedNode {
+            parent_id,
+            node,
+            position,
+        } = self.removed_node;
+        let node_id = *node.id();
+        InsertNodeVisitor::new(parent_id, position, node).insert_into(style);
+        Some(RemoveNode { id: node_id }.into())
+    }
+}
+impl From<RemoveNodeUndo> for EditorCommand {
+    fn from(value: RemoveNodeUndo) -> Self {
+        Self::RemoveNodeUndo(value)
     }
 }

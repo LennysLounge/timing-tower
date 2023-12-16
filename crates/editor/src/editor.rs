@@ -24,16 +24,14 @@ use bevy_egui::{
     EguiContexts,
 };
 use egui_dock::{DockArea, DockState, NodeIndex, TabViewer};
-use tracing::{error, info};
+use tracing::error;
 use uuid::Uuid;
 
 use crate::{
     reference_store::{ReferenceStore, ReferenceStorePlugin},
     style::visitors::{
         drop_allowed::DropAllowedVisitor,
-        insert::InsertNodeVisitor,
         property_editor::PropertyEditorVisitor,
-        remove::RemoveNodeVisitor,
         search::{SearchVisitor, SearchVisitorMut},
         tree_view::{TreeViewVisitor, TreeViewVisitorResult},
     },
@@ -42,7 +40,9 @@ use crate::{
 
 use self::{
     camera::{EditorCamera, EditorCameraPlugin},
-    command::{insert_node::InsertNode, remove_node::RemoveNode, UndoRedoManager},
+    command::{
+        insert_node::InsertNode, move_node::MoveNode, remove_node::RemoveNode, UndoRedoManager,
+    },
 };
 
 pub struct EditorPlugin;
@@ -332,15 +332,11 @@ fn tree_view(
         }
 
         if response.dropped && drop_allowed {
-            // if let Some(removed_node) =
-            //     RemoveNodeVisitor::new(drop_action.drag_id).remove_from(base_node)
-            // {
-            //     InsertNodeVisitor::new(drop_action.drop_id, drop_action.position, removed_node)
-            //         .insert_into(base_node);
-            // } else {
-            //     info!("No node was removed from the tree");
-            // }
-
+            undo_redo_manager.queue(MoveNode::new(
+                drop_action.drag_id,
+                drop_action.drop_id,
+                drop_action.position,
+            ));
             changed = true;
         }
     }

@@ -1,4 +1,5 @@
 pub mod insert_node;
+pub mod move_node;
 pub mod remove_node;
 
 use backend::{
@@ -7,13 +8,14 @@ use backend::{
 };
 use bevy::ecs::{event::EventWriter, system::Resource};
 
-use self::{insert_node::InsertNode, remove_node::RemoveNode};
+use self::{insert_node::InsertNode, move_node::MoveNode, remove_node::RemoveNode};
 
 pub enum EditorCommand {
     Undo,
     Redo,
     InsertNode(InsertNode),
     RemoveNode(RemoveNode),
+    MoveNode(MoveNode),
 }
 impl EditorCommand {
     pub fn name(&self) -> &str {
@@ -22,6 +24,7 @@ impl EditorCommand {
             EditorCommand::Redo => "Redo",
             EditorCommand::InsertNode(_) => "Insert node",
             EditorCommand::RemoveNode(_) => "Remove node",
+            EditorCommand::MoveNode(_) => "Move node",
         }
     }
     fn redo(&mut self, style: &mut StyleDefinition) {
@@ -30,6 +33,7 @@ impl EditorCommand {
             EditorCommand::Redo => (),
             EditorCommand::InsertNode(o) => o.redo(style),
             EditorCommand::RemoveNode(o) => o.redo(style),
+            EditorCommand::MoveNode(o) => o.redo(style),
         }
     }
     fn undo(&mut self, style: &mut StyleDefinition) {
@@ -38,6 +42,7 @@ impl EditorCommand {
             EditorCommand::Redo => (),
             EditorCommand::InsertNode(o) => o.undo(style),
             EditorCommand::RemoveNode(o) => o.undo(style),
+            EditorCommand::MoveNode(o) => o.undo(style),
         }
     }
 }

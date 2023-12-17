@@ -23,7 +23,7 @@ pub mod definitions {
         folder::{Folder, FolderInfo},
         scene::SceneDefinition,
         timing_tower::{TimingTower, TimingTowerColumn, TimingTowerRow},
-        variables::VariableDefinition,
+        variables::{VariableDefinition, VariableFolder},
         StyleDefinition,
     };
 }
@@ -32,7 +32,7 @@ pub mod definitions {
 pub struct StyleDefinition {
     pub id: Uuid,
     pub assets: AssetFolder,
-    pub vars: Folder<VariableDefinition>,
+    pub vars: VariableFolder,
     pub scene: SceneDefinition,
 }
 impl StyleNode for StyleDefinition {

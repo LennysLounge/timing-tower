@@ -7,7 +7,7 @@ use super::{
     folder::FolderInfo,
     scene::SceneDefinition,
     timing_tower::{TimingTower, TimingTowerColumn, TimingTowerRow},
-    variables::VariableDefinition,
+    variables::{VariableDefinition, VariableFolder},
     StyleDefinition,
 };
 pub trait StyleNode: ToAny + Visitable + BoxClone + Sync + Send {
@@ -111,6 +111,14 @@ pub trait NodeVisitor {
         ControlFlow::Continue(())
     }
     #[allow(unused_variables)]
+    fn visit_variable_folder(&mut self, folder: &VariableFolder) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+    #[allow(unused_variables)]
+    fn leave_variable_folder(&mut self, folder: &VariableFolder) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+    #[allow(unused_variables)]
     fn visit_scene(&mut self, scene: &SceneDefinition) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
@@ -171,6 +179,14 @@ pub trait NodeVisitorMut {
     }
     #[allow(unused_variables)]
     fn visit_variable(&mut self, variable: &mut VariableDefinition) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+    #[allow(unused_variables)]
+    fn visit_variable_folder(&mut self, folder: &mut VariableFolder) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+    #[allow(unused_variables)]
+    fn leave_variable_folder(&mut self, folder: &mut VariableFolder) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
     #[allow(unused_variables)]

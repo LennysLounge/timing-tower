@@ -85,6 +85,42 @@ impl NodeVisitorMut for InsertNodeVisitor {
         ControlFlow::Break(())
     }
 
+    fn visit_variable_folder(&mut self, folder: &mut VariableFolder) -> ControlFlow<()> {
+        if &self.id != folder.id() {
+            return ControlFlow::Continue(());
+        }
+
+        let folder_or_asset = {
+            let node = self.node.take().expect("Node should not be empty").to_any();
+            Err(node)
+                .or_else(|node| {
+                    try_downcast_to::<VariableDefinition>(node)
+                        .map(style::variables::VariableOrFolder::Variable)
+                })
+                .or_else(|node| {
+                    try_downcast_to::<VariableFolder>(node)
+                        .map(style::variables::VariableOrFolder::Folder)
+                })
+                .expect("No other types are allowed to be inserted")
+        };
+
+        match &self.position {
+            DropPosition::First => folder.content.insert(0, folder_or_asset),
+            DropPosition::Last => folder.content.insert(folder.content.len(), folder_or_asset),
+            DropPosition::After(id) => {
+                if let Some(index) = folder.content.iter().position(|s| s.id() == id) {
+                    folder.content.insert(index + 1, folder_or_asset);
+                }
+            }
+            DropPosition::Before(id) => {
+                if let Some(index) = folder.content.iter().position(|s| s.id() == id) {
+                    folder.content.insert(index, folder_or_asset);
+                }
+            }
+        }
+        ControlFlow::Break(())
+    }
+
     fn visit_timing_tower_row(&mut self, row: &mut TimingTowerRow) -> ControlFlow<()> {
         if &self.id != row.id() {
             return ControlFlow::Continue(());

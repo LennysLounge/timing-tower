@@ -48,13 +48,33 @@ impl NodeVisitorMut for RemoveNodeVisitor {
         }
     }
 
-    fn leave_asset_folder(&mut self, folder: &mut AssetFolder) -> ControlFlow<()> {
+    fn visit_asset_folder(&mut self, folder: &mut AssetFolder) -> ControlFlow<()> {
         if let Some(index) = folder.content.iter().position(|s| s.id() == &self.id) {
             self.node = Some(RemovedNode {
                 parent_id: folder.id,
                 node: match folder.content.remove(index) {
                     backend::style::assets::AssetOrFolder::Asset(a) => Box::new(a),
                     backend::style::assets::AssetOrFolder::Folder(f) => Box::new(f),
+                },
+                position: (index == 0)
+                    .then_some(DropPosition::First)
+                    .unwrap_or_else(|| {
+                        DropPosition::After(*folder.content.get(index - 1).unwrap().id())
+                    }),
+            });
+            ControlFlow::Break(())
+        } else {
+            ControlFlow::Continue(())
+        }
+    }
+
+    fn visit_variable_folder(&mut self, folder: &mut VariableFolder) -> ControlFlow<()> {
+        if let Some(index) = folder.content.iter().position(|s| s.id() == &self.id) {
+            self.node = Some(RemovedNode {
+                parent_id: folder.id,
+                node: match folder.content.remove(index) {
+                    backend::style::variables::VariableOrFolder::Variable(a) => Box::new(a),
+                    backend::style::variables::VariableOrFolder::Folder(f) => Box::new(f),
                 },
                 position: (index == 0)
                     .then_some(DropPosition::First)

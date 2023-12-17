@@ -67,6 +67,10 @@ impl<'a, T> NodeVisitor for SearchVisitor<'a, T> {
     fn visit_variable(&mut self, variable: &VariableDefinition) -> ControlFlow<()> {
         self.test(variable)
     }
+
+    fn visit_variable_folder(&mut self, folder: &VariableFolder) -> ControlFlow<()> {
+        self.test(folder)
+    }
 }
 
 pub struct SearchVisitorMut<'a, T> {
@@ -129,6 +133,10 @@ impl<'a, T> NodeVisitorMut for SearchVisitorMut<'a, T> {
 
     fn visit_variable(&mut self, variable: &mut VariableDefinition) -> ControlFlow<()> {
         self.test(variable)
+    }
+
+    fn visit_variable_folder(&mut self, folder: &mut VariableFolder) -> ControlFlow<()> {
+        self.test(folder)
     }
 
     fn visit_scene(&mut self, scene: &mut SceneDefinition) -> ControlFlow<()> {

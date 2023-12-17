@@ -167,17 +167,17 @@
     "name": "Variables",
     "content": [
       {
-        "folder_type": "Folder",
+        "element_type": "Folder",
         "id": "a594010f-a612-402e-8bc7-6446c602e1bd",
         "name": "Colors",
         "content": [
           {
-            "folder_type": "Folder",
+            "element_type": "Folder",
             "id": "f0fab6a7-a6c3-4d46-b05c-f417c04c5be1",
             "name": "Driver categories",
             "content": [
               {
-                "folder_type": "T",
+                "element_type": "Variable",
                 "id": "5a657363-96fc-4329-a580-8ed41b85405e",
                 "name": "Gold/Plat",
                 "behavior": "FixedValue",
@@ -190,7 +190,7 @@
                 }
               },
               {
-                "folder_type": "T",
+                "element_type": "Variable",
                 "id": "ecdfcaf2-d808-4fca-b118-88aee5d1b495",
                 "name": "Silver",
                 "behavior": "FixedValue",
@@ -203,7 +203,7 @@
                 }
               },
               {
-                "folder_type": "T",
+                "element_type": "Variable",
                 "id": "7a126bfa-2fb7-464f-9ed1-1f92665d9460",
                 "name": "Bronze",
                 "behavior": "FixedValue",
@@ -219,7 +219,7 @@
             "renameable": true
           },
           {
-            "folder_type": "T",
+            "element_type": "Variable",
             "id": "e41f142f-2026-4126-9dc4-bed03fecd31e",
             "name": "Manufacturer",
             "behavior": "FixedValue",
@@ -232,7 +232,7 @@
             }
           },
           {
-            "folder_type": "T",
+            "element_type": "Variable",
             "id": "e63c62b8-900a-476d-973b-2b0f12fb7b26",
             "name": "Position",
             "behavior": "FixedValue",
@@ -245,7 +245,7 @@
             }
           },
           {
-            "folder_type": "T",
+            "element_type": "Variable",
             "id": "3b9c1864-f07f-46ca-aa86-01cba7629860",
             "name": "Position selected",
             "behavior": "FixedValue",
@@ -261,7 +261,7 @@
         "renameable": true
       },
       {
-        "folder_type": "T",
+        "element_type": "Variable",
         "id": "e86a2ae3-6486-4941-bee9-b063f3ff0152",
         "name": "position color",
         "behavior": "Condition",
@@ -278,7 +278,7 @@
         }
       },
       {
-        "folder_type": "T",
+        "element_type": "Variable",
         "id": "8536ebf5-82e1-41e3-bc37-b713534a7780",
         "name": "Cup category background",
         "behavior": "Map",
@@ -315,7 +315,7 @@
         }
       },
       {
-        "folder_type": "T",
+        "element_type": "Variable",
         "id": "925dacee-265f-45ee-baf8-668e3005a03d",
         "name": "Cup Category text color",
         "behavior": "Map",
@@ -372,7 +372,7 @@
         }
       },
       {
-        "folder_type": "T",
+        "element_type": "Variable",
         "id": "94d9d538-676d-4ea9-a72c-923b054a2b6d",
         "name": "Manufacturer icons",
         "behavior": "Map",

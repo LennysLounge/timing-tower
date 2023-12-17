@@ -82,23 +82,6 @@ impl NodeVisitorMut for TreeViewVisitor<'_> {
                         ));
                         ui.close_menu();
                     }
-                } else if content_type == TypeId::of::<VariableDefinition>() {
-                    if ui.button("add variable").clicked() {
-                        self.nodes_to_add.push((
-                            *folder.id(),
-                            DropPosition::Last,
-                            Box::new(VariableDefinition::new()),
-                        ));
-                        ui.close_menu();
-                    }
-                    if ui.button("add group").clicked() {
-                        self.nodes_to_add.push((
-                            *folder.id(),
-                            DropPosition::Last,
-                            Box::new(Folder::<VariableDefinition>::new()),
-                        ));
-                        ui.close_menu();
-                    }
                 }
 
                 if ui.button("delete").clicked() {
@@ -307,6 +290,38 @@ impl NodeVisitorMut for TreeViewVisitor<'_> {
                 }
             });
         }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_variable_folder(&mut self, folder: &mut VariableFolder) -> ControlFlow<()> {
+        let res = self.builder.dir(&folder.id, |ui| {
+            ui.label(&folder.name);
+        });
+        if let Some(res) = res {
+            res.context_menu(|ui| {
+                if ui.button("add variable").clicked() {
+                    self.nodes_to_add.push((
+                        *folder.id(),
+                        DropPosition::Last,
+                        Box::new(VariableDefinition::new()),
+                    ));
+                    ui.close_menu();
+                }
+                if ui.button("add group").clicked() {
+                    self.nodes_to_add.push((
+                        *folder.id(),
+                        DropPosition::Last,
+                        Box::new(VariableFolder::new()),
+                    ));
+                    ui.close_menu();
+                }
+            });
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn leave_variable_folder(&mut self, _folder: &mut VariableFolder) -> ControlFlow<()> {
+        self.builder.close_dir();
         ControlFlow::Continue(())
     }
 

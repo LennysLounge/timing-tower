@@ -13,11 +13,7 @@ use uuid::Uuid;
 use backend::{
     game_sources::{self},
     savefile::{Savefile, SavefileChanged},
-    style::{
-        definitions::AssetFolder,
-        folder::{Folder, FolderOrT},
-        variables::VariableDefinition,
-    },
+    style::{definitions::AssetFolder, variables::VariableFolder},
     value_types::{UntypedValueRef, ValueRef, ValueType, ValueTypeOf},
 };
 
@@ -66,7 +62,7 @@ pub struct ReferenceStore {
 }
 
 impl ReferenceStore {
-    fn reload(&mut self, vars: &Folder<VariableDefinition>, assets: &AssetFolder) {
+    fn reload(&mut self, vars: &VariableFolder, assets: &AssetFolder) {
         self.variables = AssetOrFolder::from_vars(vars);
         self.game_sources = AssetOrFolder::from_game();
         self.assets = AssetOrFolder::from_asset_defs(assets);
@@ -192,15 +188,17 @@ impl Default for AssetOrFolder {
     }
 }
 impl AssetOrFolder {
-    fn from_vars(vars: &Folder<VariableDefinition>) -> Self {
+    fn from_vars(vars: &VariableFolder) -> Self {
         Self::Folder {
             name: vars.name.clone(),
             assets: vars
                 .content
                 .iter()
                 .map(|c| match c {
-                    FolderOrT::T(t) => Self::Asset(t.producer_data().clone()),
-                    FolderOrT::Folder(f) => Self::from_vars(f),
+                    backend::style::variables::VariableOrFolder::Variable(t) => {
+                        Self::Asset(t.producer_data().clone())
+                    }
+                    backend::style::variables::VariableOrFolder::Folder(f) => Self::from_vars(f),
                 })
                 .collect(),
         }

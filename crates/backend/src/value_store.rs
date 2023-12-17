@@ -150,7 +150,7 @@ fn savefile_changed(
 
     info!("Reload value store");
     value_store.reload_repo(
-        savefile.style().vars.all_t(),
+        savefile.style().vars.contained_variables(),
         savefile.style().assets.contained_assets(),
     );
 }

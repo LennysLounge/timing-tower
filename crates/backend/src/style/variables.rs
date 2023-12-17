@@ -8,7 +8,7 @@ use crate::value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, V
 
 use self::{condition::Condition, fixed_value::FixedValue, map::Map};
 
-use super::visitor::{NodeVisitor, NodeVisitorMut, Visitable, StyleNode};
+use super::visitor::{NodeVisitor, NodeVisitorMut, StyleNode, Visitable};
 
 pub mod condition;
 pub mod fixed_value;
@@ -49,7 +49,7 @@ impl IntoValueProducer for VariableDefinition {
         (self.id, producer)
     }
 }
-impl StyleNode for VariableDefinition{
+impl StyleNode for VariableDefinition {
     fn id(&self) -> &Uuid {
         &self.id
     }
@@ -87,5 +87,85 @@ where
 {
     fn get(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<T> {
         Some(self.0.clone())
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Default)]
+pub struct VariableFolder {
+    pub id: Uuid,
+    pub name: String,
+    pub content: Vec<VariableOrFolder>,
+}
+impl VariableFolder {
+    pub fn new() -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            name: String::from("Group"),
+            content: Vec::new(),
+        }
+    }
+    pub fn contained_variables(&self) -> Vec<&VariableDefinition> {
+        self.content
+            .iter()
+            .flat_map(|af| match af {
+                VariableOrFolder::Variable(a) => vec![a],
+                VariableOrFolder::Folder(f) => f.contained_variables(),
+            })
+            .collect()
+    }
+}
+impl StyleNode for VariableFolder {
+    fn id(&self) -> &Uuid {
+        &self.id
+    }
+}
+impl Visitable for VariableFolder {
+    fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
+        self.enter(visitor)?;
+        self.content.iter().try_for_each(|f| match f {
+            VariableOrFolder::Variable(o) => o.walk(visitor),
+            VariableOrFolder::Folder(o) => o.walk(visitor),
+        })?;
+        self.leave(visitor)
+    }
+
+    fn enter(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
+        visitor.visit_variable_folder(self)
+    }
+
+    fn leave(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
+        visitor.leave_variable_folder(self)
+    }
+
+    fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
+        self.enter_mut(visitor)?;
+        self.content.iter_mut().try_for_each(|f| match f {
+            VariableOrFolder::Variable(o) => o.walk_mut(visitor),
+            VariableOrFolder::Folder(o) => o.walk_mut(visitor),
+        })?;
+        self.leave_mut(visitor)
+    }
+
+    fn enter_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
+        visitor.visit_variable_folder(self)
+    }
+
+    fn leave_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
+        visitor.leave_variable_folder(self)
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(tag = "element_type")]
+pub enum VariableOrFolder {
+    Variable(VariableDefinition),
+    Folder(VariableFolder),
+}
+impl VariableOrFolder {
+    pub fn id(&self) -> &Uuid {
+        match self {
+            VariableOrFolder::Variable(o) => &o.id,
+            VariableOrFolder::Folder(o) => &o.id,
+        }
     }
 }

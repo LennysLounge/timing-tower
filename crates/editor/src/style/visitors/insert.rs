@@ -3,7 +3,7 @@ use std::{any::Any, ops::ControlFlow};
 use backend::style::{
     self,
     definitions::*,
-    folder::FolderOrT,
+    timing_tower::TimingTowerColumnFolder,
     visitor::{NodeVisitorMut, StyleNode, Visitable},
 };
 use egui_ltreeview::DropPosition;
@@ -125,27 +125,69 @@ impl NodeVisitorMut for InsertNodeVisitor {
         if &self.id != row.id() {
             return ControlFlow::Continue(());
         }
-        let folder_or_t = {
+        let column_or_folder = {
             let node = self.node.take().expect("Node should not be empty").to_any();
             Err(node)
                 .or_else(|node| {
-                    try_downcast_to::<Folder<TimingTowerColumn>>(node).map(FolderOrT::Folder)
+                    try_downcast_to::<TimingTowerColumnFolder>(node)
+                        .map(style::timing_tower::ColumnOrFolder::Folder)
                 })
-                .or_else(|node| try_downcast_to::<TimingTowerColumn>(node).map(FolderOrT::T))
+                .or_else(|node| {
+                    try_downcast_to::<TimingTowerColumn>(node)
+                        .map(style::timing_tower::ColumnOrFolder::Column)
+                })
                 .expect("No other types are allowed to be inserted")
         };
 
         match &self.position {
-            DropPosition::First => row.columns.insert(0, folder_or_t),
-            DropPosition::Last => row.columns.push(folder_or_t),
+            DropPosition::First => row.columns.insert(0, column_or_folder),
+            DropPosition::Last => row.columns.push(column_or_folder),
             DropPosition::After(id) => {
                 if let Some(index) = row.columns.iter().position(|c| c.id() == id) {
-                    row.columns.insert(index + 1, folder_or_t);
+                    row.columns.insert(index + 1, column_or_folder);
                 }
             }
             DropPosition::Before(id) => {
                 if let Some(index) = row.columns.iter().position(|c| c.id() == id) {
-                    row.columns.insert(index, folder_or_t);
+                    row.columns.insert(index, column_or_folder);
+                }
+            }
+        }
+        ControlFlow::Break(())
+    }
+
+    fn visit_timing_tower_column_folder(
+        &mut self,
+        folder: &mut TimingTowerColumnFolder,
+    ) -> ControlFlow<()> {
+        if &self.id != folder.id() {
+            return ControlFlow::Continue(());
+        }
+        let column_or_folder = {
+            let node = self.node.take().expect("Node should not be empty").to_any();
+            Err(node)
+                .or_else(|node| {
+                    try_downcast_to::<TimingTowerColumnFolder>(node)
+                        .map(style::timing_tower::ColumnOrFolder::Folder)
+                })
+                .or_else(|node| {
+                    try_downcast_to::<TimingTowerColumn>(node)
+                        .map(style::timing_tower::ColumnOrFolder::Column)
+                })
+                .expect("No other types are allowed to be inserted")
+        };
+
+        match &self.position {
+            DropPosition::First => folder.content.insert(0, column_or_folder),
+            DropPosition::Last => folder.content.push(column_or_folder),
+            DropPosition::After(id) => {
+                if let Some(index) = folder.content.iter().position(|c| c.id() == id) {
+                    folder.content.insert(index + 1, column_or_folder);
+                }
+            }
+            DropPosition::Before(id) => {
+                if let Some(index) = folder.content.iter().position(|c| c.id() == id) {
+                    folder.content.insert(index, column_or_folder);
                 }
             }
         }

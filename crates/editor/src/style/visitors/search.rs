@@ -56,6 +56,13 @@ impl<'a, T> NodeVisitor for SearchVisitor<'a, T> {
         self.test(column)
     }
 
+    fn visit_timing_tower_column_folder(
+        &mut self,
+        folder: &TimingTowerColumnFolder,
+    ) -> ControlFlow<()> {
+        self.test(folder)
+    }
+
     fn visit_asset(&mut self, asset: &AssetDefinition) -> ControlFlow<()> {
         self.test(asset)
     }
@@ -121,6 +128,13 @@ impl<'a, T> NodeVisitorMut for SearchVisitorMut<'a, T> {
 
     fn visit_timing_tower_column(&mut self, column: &mut TimingTowerColumn) -> ControlFlow<()> {
         self.test(column)
+    }
+
+    fn visit_timing_tower_column_folder(
+        &mut self,
+        folder: &mut TimingTowerColumnFolder,
+    ) -> ControlFlow<()> {
+        self.test(folder)
     }
 
     fn visit_asset(&mut self, asset: &mut AssetDefinition) -> ControlFlow<()> {

@@ -625,7 +625,7 @@
         },
         "columns": [
           {
-            "folder_type": "T",
+            "element_type": "Column",
             "id": "7d96c8c6-c978-4258-83c4-9504bccf7256",
             "cell": {
               "text": {
@@ -670,7 +670,7 @@
             "name": "position"
           },
           {
-            "folder_type": "T",
+            "element_type": "Column",
             "id": "95ab724b-b056-4e76-8153-2f9265aac3cb",
             "cell": {
               "text": {
@@ -720,7 +720,7 @@
             "name": "driver name"
           },
           {
-            "folder_type": "T",
+            "element_type": "Column",
             "id": "f7b469e0-7ee6-4553-bba5-1d6b361cb949",
             "cell": {
               "text": "",
@@ -763,7 +763,7 @@
             "name": "manufacturer bg"
           },
           {
-            "folder_type": "T",
+            "element_type": "Column",
             "id": "408863e5-c4d7-4721-bb58-2a3887551ea5",
             "cell": {
               "text": "",
@@ -808,7 +808,7 @@
             "name": "manufacturer"
           },
           {
-            "folder_type": "T",
+            "element_type": "Column",
             "id": "a275bdc4-ed4a-4dcb-a964-d0646598d64e",
             "cell": {
               "text": {
@@ -848,7 +848,7 @@
             "name": "car number"
           },
           {
-            "folder_type": "T",
+            "element_type": "Column",
             "id": "12b0a701-6b31-4027-8bbb-0c3011998f4c",
             "cell": {
               "text": "P",

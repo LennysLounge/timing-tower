@@ -121,7 +121,7 @@ fn update_row(
             // create all necessairy cells for rows.
             let columns: HashMap<String, CellId> = style
                 .row
-                .all_columns()
+                .contained_columns()
                 .iter()
                 .map(|c| (c.name.clone(), CellId::new()))
                 .collect();
@@ -166,7 +166,7 @@ fn update_row(
         style_batcher.add(&row.cell_id, row_style);
 
         // update columns
-        for column in style.row.all_columns() {
+        for column in style.row.contained_columns() {
             let Some(cell_id) = row.columns.get(&column.name) else {
                 continue;
             };

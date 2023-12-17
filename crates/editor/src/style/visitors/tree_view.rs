@@ -1,4 +1,4 @@
-use std::{any::TypeId, ops::ControlFlow};
+use std::ops::ControlFlow;
 
 use backend::style::{
     definitions::*,
@@ -64,26 +64,6 @@ impl NodeVisitorMut for TreeViewVisitor<'_> {
         });
         if let Some(res) = res {
             res.context_menu(|ui| {
-                let content_type = folder.content_type_id();
-                if content_type == TypeId::of::<TimingTowerColumn>() {
-                    if ui.button("add column").clicked() {
-                        self.nodes_to_add.push((
-                            *folder.id(),
-                            DropPosition::Last,
-                            Box::new(TimingTowerColumn::new()),
-                        ));
-                        ui.close_menu();
-                    }
-                    if ui.button("add group").clicked() {
-                        self.nodes_to_add.push((
-                            *folder.id(),
-                            DropPosition::Last,
-                            Box::new(Folder::<TimingTowerColumn>::new()),
-                        ));
-                        ui.close_menu();
-                    }
-                }
-
                 if ui.button("delete").clicked() {
                     self.nodes_to_remove.push(*folder.id());
                     ui.close_menu();
@@ -134,7 +114,7 @@ impl NodeVisitorMut for TreeViewVisitor<'_> {
                     self.nodes_to_add.push((
                         row.id,
                         DropPosition::Last,
-                        Box::new(Folder::<TimingTowerColumn>::new()),
+                        Box::new(TimingTowerColumnFolder::new()),
                     ));
                     ui.close_menu();
                 }
@@ -174,7 +154,7 @@ impl NodeVisitorMut for TreeViewVisitor<'_> {
                             .last()
                             .expect("There should always be a parent node"),
                         DropPosition::Last,
-                        Box::new(Folder::<TimingTowerColumn>::new()),
+                        Box::new(TimingTowerColumnFolder::new()),
                     ));
                     ui.close_menu();
                 }
@@ -184,6 +164,44 @@ impl NodeVisitorMut for TreeViewVisitor<'_> {
                 }
             });
         }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_timing_tower_column_folder(
+        &mut self,
+        folder: &mut TimingTowerColumnFolder,
+    ) -> ControlFlow<()> {
+        let res = self.builder.dir(&folder.id, |ui| {
+            ui.label(&folder.name);
+        });
+        if let Some(res) = res {
+            res.context_menu(|ui| {
+                if ui.button("add column").clicked() {
+                    self.nodes_to_add.push((
+                        *folder.id(),
+                        DropPosition::Last,
+                        Box::new(TimingTowerColumn::new()),
+                    ));
+                    ui.close_menu();
+                }
+                if ui.button("add group").clicked() {
+                    self.nodes_to_add.push((
+                        *folder.id(),
+                        DropPosition::Last,
+                        Box::new(TimingTowerColumnFolder::new()),
+                    ));
+                    ui.close_menu();
+                }
+            });
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn leave_timing_tower_column_folder(
+        &mut self,
+        _folder: &mut TimingTowerColumnFolder,
+    ) -> ControlFlow<()> {
+        self.builder.close_dir();
         ControlFlow::Continue(())
     }
 

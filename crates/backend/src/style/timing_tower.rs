@@ -7,7 +7,6 @@ use crate::value_types::Vec2Property;
 
 use super::{
     cell::Cell,
-    folder::FolderOrT,
     visitor::{NodeVisitor, NodeVisitorMut, StyleNode, Visitable},
 };
 
@@ -57,15 +56,15 @@ pub struct TimingTowerRow {
     pub id: Uuid,
     pub cell: Cell,
     pub row_offset: Vec2Property,
-    pub columns: Vec<FolderOrT<TimingTowerColumn>>,
+    pub columns: Vec<ColumnOrFolder>,
 }
 impl TimingTowerRow {
-    pub fn all_columns(&self) -> Vec<&TimingTowerColumn> {
+    pub fn contained_columns(&self) -> Vec<&TimingTowerColumn> {
         self.columns
             .iter()
             .flat_map(|c| match c {
-                FolderOrT::T(t) => vec![t],
-                FolderOrT::Folder(f) => f.all_t(),
+                ColumnOrFolder::Column(t) => vec![t],
+                ColumnOrFolder::Folder(f) => f.contained_columns(),
             })
             .collect()
     }
@@ -79,8 +78,8 @@ impl Visitable for TimingTowerRow {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
         self.enter(visitor)?;
         self.columns.iter().try_for_each(|c| match c {
-            FolderOrT::T(t) => t.walk(visitor),
-            FolderOrT::Folder(f) => f.walk(visitor),
+            ColumnOrFolder::Column(o) => o.walk(visitor),
+            ColumnOrFolder::Folder(o) => o.walk(visitor),
         })?;
         self.leave(visitor)
     }
@@ -96,8 +95,8 @@ impl Visitable for TimingTowerRow {
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
         self.enter_mut(visitor)?;
         self.columns.iter_mut().try_for_each(|c| match c {
-            FolderOrT::T(t) => t.walk_mut(visitor),
-            FolderOrT::Folder(f) => f.walk_mut(visitor),
+            ColumnOrFolder::Column(o) => o.walk_mut(visitor),
+            ColumnOrFolder::Folder(o) => o.walk_mut(visitor),
         })?;
         self.leave_mut(visitor)
     }
@@ -155,5 +154,85 @@ impl Visitable for TimingTowerColumn {
 
     fn leave_mut(&mut self, _visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
         ControlFlow::Continue(())
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Default)]
+pub struct TimingTowerColumnFolder {
+    pub id: Uuid,
+    pub name: String,
+    pub content: Vec<ColumnOrFolder>,
+}
+impl TimingTowerColumnFolder {
+    pub fn new() -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            name: String::from("Group"),
+            content: Vec::new(),
+        }
+    }
+    pub fn contained_columns(&self) -> Vec<&TimingTowerColumn> {
+        self.content
+            .iter()
+            .flat_map(|af| match af {
+                ColumnOrFolder::Column(a) => vec![a],
+                ColumnOrFolder::Folder(f) => f.contained_columns(),
+            })
+            .collect()
+    }
+}
+impl StyleNode for TimingTowerColumnFolder {
+    fn id(&self) -> &Uuid {
+        &self.id
+    }
+}
+impl Visitable for TimingTowerColumnFolder {
+    fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
+        self.enter(visitor)?;
+        self.content.iter().try_for_each(|f| match f {
+            ColumnOrFolder::Column(o) => o.walk(visitor),
+            ColumnOrFolder::Folder(o) => o.walk(visitor),
+        })?;
+        self.leave(visitor)
+    }
+
+    fn enter(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
+        visitor.visit_timing_tower_column_folder(self)
+    }
+
+    fn leave(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
+        visitor.leave_timing_tower_column_folder(self)
+    }
+
+    fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
+        self.enter_mut(visitor)?;
+        self.content.iter_mut().try_for_each(|f| match f {
+            ColumnOrFolder::Column(o) => o.walk_mut(visitor),
+            ColumnOrFolder::Folder(o) => o.walk_mut(visitor),
+        })?;
+        self.leave_mut(visitor)
+    }
+
+    fn enter_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
+        visitor.visit_timing_tower_column_folder(self)
+    }
+
+    fn leave_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
+        visitor.leave_timing_tower_column_folder(self)
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(tag = "element_type")]
+pub enum ColumnOrFolder {
+    Column(TimingTowerColumn),
+    Folder(TimingTowerColumnFolder),
+}
+impl ColumnOrFolder {
+    pub fn id(&self) -> &Uuid {
+        match self {
+            ColumnOrFolder::Column(o) => &o.id,
+            ColumnOrFolder::Folder(o) => &o.id,
+        }
     }
 }

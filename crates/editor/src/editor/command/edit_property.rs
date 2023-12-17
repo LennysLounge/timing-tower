@@ -1,4 +1,5 @@
 use backend::style::{StyleDefinition, StyleNode};
+use dyn_clone::DynClone;
 use uuid::Uuid;
 
 use crate::style::visitors::search::SearchVisitorMut;
@@ -34,6 +35,7 @@ impl From<EditProperty> for EditorCommand {
 /// The accessor function returns a mutable reference to the field that is suposed to change.
 /// This way it is possible to defer the setting of a field without having to know what field or
 /// value to set.
+#[derive(Clone)]
 pub struct Setter<Input, Value> {
     /// Function pointer that returns a reference to the value that is supposed to change
     pub accessor: fn(&mut Input) -> &mut Value,
@@ -46,7 +48,7 @@ pub struct Setter<Input, Value> {
 /// input and value pair.
 /// This trait makes it possible to interact with all Setters without having
 /// know their generic types.
-pub trait AnySetter: Sync + Send {
+pub trait AnySetter: Sync + Send + DynClone {
     /// Executes the setter on the subject and returns a new setter to undo this change.
     /// The return value is `None` if the setter expected a different type
     /// that the provieded subject. In this case the setter cannot set the
@@ -54,10 +56,12 @@ pub trait AnySetter: Sync + Send {
     fn execute_on(&self, subject: &mut dyn StyleNode) -> Option<Box<dyn AnySetter>>;
 }
 
+dyn_clone::clone_trait_object!(AnySetter);
+
 impl<Input, Value> AnySetter for Setter<Input, Value>
 where
     Value: Clone + Sync + Send + 'static,
-    Input: 'static,
+    Input: Clone + 'static,
 {
     fn execute_on(&self, subject: &mut dyn StyleNode) -> Option<Box<dyn AnySetter>> {
         let Some(typed_subject) = subject.as_any_mut().downcast_mut::<Input>() else {

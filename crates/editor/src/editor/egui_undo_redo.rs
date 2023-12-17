@@ -1,0 +1,99 @@
+use std::time::Instant;
+
+use backend::style::StyleNode;
+use bevy_egui::egui::{Context, Response, Ui};
+use uuid::Uuid;
+
+use super::command::{
+    edit_property::{AnySetter, EditProperty, Setter},
+    EditorCommand,
+};
+
+#[derive(Clone)]
+struct EditPoint {
+    last_edit: Instant,
+    response_id: bevy_egui::egui::Id,
+    node_id: Uuid,
+    setter: Box<dyn AnySetter>,
+}
+impl EditPoint {
+    fn duration_passed(&self) -> bool {
+        Instant::now().duration_since(self.last_edit).as_secs() > 1
+    }
+    fn is_different_to(&self, other: &EditPoint) -> bool {
+        self.node_id != other.node_id || self.response_id != other.response_id
+    }
+    fn to_command(self) -> EditorCommand {
+        EditProperty {
+            id: self.node_id,
+            setter: self.setter,
+        }
+        .into()
+    }
+}
+
+/// Start an undo/redo context. Changes that occur inside this scope are
+/// rememberd in the undo/redo system.
+/// If the response returned from the `add_content` closure is marked with
+/// a change, then a new edit point is created for this change.
+/// Uses the accessor method to access the required property of the subject.
+pub fn undo_redo_context<Input, Value>(
+    ui: &mut Ui,
+    subjet: &mut Input,
+    accessor: fn(&mut Input) -> &mut Value,
+    mut add_content: impl FnMut(&mut Ui, &mut Value) -> Response,
+) where
+    Input: Clone + StyleNode + 'static,
+    Value: Clone + Sync + Send + 'static,
+{
+    let value_ref = (accessor)(subjet);
+    let res = add_content(ui, value_ref);
+
+    if res.changed() {
+        let edit_point = EditPoint {
+            last_edit: Instant::now(),
+            node_id: *subjet.id(),
+            response_id: res.id,
+            setter: Box::new(Setter {
+                accessor,
+                value: (accessor)(subjet).clone(),
+            }),
+        };
+        ui.data_mut(|d| {
+            d.insert_persisted(
+                bevy_egui::egui::Id::new("UndoRedoContext Current"),
+                edit_point,
+            )
+        })
+    }
+}
+
+/// Extrac a `EditProperty` command from the undo redo system.
+pub fn extract_undo_redo_command(ctx: &Context) -> Option<EditorCommand> {
+    let previous_id = bevy_egui::egui::Id::new("UndoRedoContext Previous");
+    let current_id = bevy_egui::egui::Id::new("UndoRedoContext Current");
+    let previous_edit: Option<EditPoint> = ctx.data_mut(|d| d.get_persisted(previous_id));
+    let current_edit: Option<EditPoint> = ctx.data_mut(|d| d.get_persisted(current_id));
+
+    // Turn the previous edit into a command either if
+    // 1) A new different command was issued.
+    // 2) The duration of the edit has passed.
+    let command = match (previous_edit, &current_edit) {
+        (Some(previous), Some(current)) if previous.is_different_to(current) => {
+            Some(previous.to_command())
+        }
+        (Some(previous), None) if previous.duration_passed() => {
+            ctx.data_mut(|d| d.remove::<EditPoint>(previous_id));
+            Some(previous.to_command())
+        }
+        _ => None,
+    };
+
+    // Remember the current edit for next frame
+    if let Some(current_edit) = current_edit {
+        ctx.data_mut(|d| d.insert_persisted(previous_id, current_edit));
+    }
+    ctx.data_mut(|d| d.remove::<EditPoint>(current_id));
+
+    command
+}

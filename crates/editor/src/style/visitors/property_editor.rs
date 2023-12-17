@@ -9,7 +9,10 @@ use backend::style::{
 };
 use bevy_egui::egui::{ComboBox, DragValue, Ui};
 
-use crate::{property_editor::PropertyEditor, reference_store::ReferenceStore, style::variables};
+use crate::{
+    editor::egui_undo_redo::undo_redo_context, property_editor::PropertyEditor,
+    reference_store::ReferenceStore, style::variables,
+};
 
 pub struct PropertyEditorVisitor<'a> {
     ui: &'a mut Ui,
@@ -68,7 +71,18 @@ impl<'a> NodeVisitorMut for PropertyEditorVisitor<'a> {
         } = self;
 
         ui.label("Name:");
-        *changed |= ui.text_edit_singleline(&mut column.name).changed();
+
+        undo_redo_context(
+            ui,
+            column,
+            |c| &mut c.name,
+            |ui, column_name| {
+                let res = ui.text_edit_singleline(column_name);
+                *changed |= res.changed();
+                res
+            },
+        );
+
         ui.separator();
         *changed |= cell_property_editor(ui, &mut column.cell, reference_store);
         ControlFlow::Continue(())

@@ -1,5 +1,6 @@
 pub mod camera;
 pub mod command;
+pub mod egui_undo_redo;
 
 use std::{fs::File, io::Write};
 
@@ -47,6 +48,7 @@ use self::{
         remove_node::RemoveNode,
         UndoRedoManager,
     },
+    egui_undo_redo::extract_undo_redo_command,
 };
 
 pub struct EditorPlugin;
@@ -161,6 +163,9 @@ fn ui(
             },
         );
 
+    if let Some(command) = extract_undo_redo_command(ctx.ctx_mut()) {
+        undo_redo_manager.queue(command);
+    }
     undo_redo_manager.apply_queue(savefile.as_mut(), savefile_changed_event);
     // if style_changed {
     //     savefile.set(style.clone(), &mut save_file_changed);

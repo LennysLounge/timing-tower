@@ -4,7 +4,8 @@ use backend::style::{
     cell::{Cell, TextAlignment},
     definitions::*,
     variables::{condition::Condition, fixed_value::FixedValue, map::Map, VariableBehavior},
-    visitor::{NodeVisitorMut, StyleNode},
+    visitor::NodeVisitorMut,
+    StyleNode,
 };
 use bevy_egui::egui::{ComboBox, DragValue, Ui};
 

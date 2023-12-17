@@ -1,6 +1,4 @@
-use std::{any::Any, ops::ControlFlow};
-
-use uuid::Uuid;
+use std::ops::ControlFlow;
 
 use super::{
     assets::{AssetDefinition, AssetFolder},
@@ -9,43 +7,6 @@ use super::{
     variables::{VariableDefinition, VariableFolder},
     StyleDefinition,
 };
-pub trait StyleNode: ToAny + Visitable + BoxClone + Sync + Send {
-    fn id(&self) -> &Uuid;
-}
-
-pub trait BoxClone {
-    fn box_clone(&self) -> Box<dyn StyleNode>;
-}
-impl<T> BoxClone for T
-where
-    T: StyleNode + Clone + 'static,
-{
-    fn box_clone(&self) -> Box<dyn StyleNode> {
-        Box::new(self.clone())
-    }
-}
-
-pub trait ToAny {
-    fn as_any(&self) -> &dyn Any;
-    fn as_any_mut(&mut self) -> &mut dyn Any;
-    fn to_any(self: Box<Self>) -> Box<dyn Any>;
-}
-impl<T> ToAny for T
-where
-    T: Visitable + 'static,
-{
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-
-    fn as_any_mut(&mut self) -> &mut dyn Any {
-        self
-    }
-
-    fn to_any(self: Box<Self>) -> Box<dyn Any> {
-        self
-    }
-}
 
 pub trait Visitable {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()>;

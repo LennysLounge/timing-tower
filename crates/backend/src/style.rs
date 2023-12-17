@@ -1,4 +1,4 @@
-use std::ops::ControlFlow;
+use std::{any::Any, ops::ControlFlow};
 
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -6,7 +6,7 @@ use uuid::Uuid;
 use self::{
     definitions::*,
     scene::SceneDefinition,
-    visitor::{NodeVisitor, NodeVisitorMut, StyleNode, Visitable},
+    visitor::{NodeVisitor, NodeVisitorMut, Visitable},
 };
 
 pub mod assets;
@@ -69,5 +69,47 @@ impl Visitable for StyleDefinition {
 
     fn leave_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
         visitor.leave_style(self)
+    }
+}
+
+/// Base trait for all elements in the style definition.
+pub trait StyleNode: ToAny + Visitable + BoxClone + Sync + Send {
+    fn id(&self) -> &Uuid;
+}
+
+/// Allows for cloneing a stylenode from a trait object.
+pub trait BoxClone {
+    /// Clone the element into a `StyleNode` trait object.
+    fn box_clone(&self) -> Box<dyn StyleNode>;
+}
+impl<T> BoxClone for T
+where
+    T: StyleNode + Clone + 'static,
+{
+    fn box_clone(&self) -> Box<dyn StyleNode> {
+        Box::new(self.clone())
+    }
+}
+
+/// Utilities for converting a `StyleNode` into any.
+pub trait ToAny {
+    fn as_any(&self) -> &dyn Any;
+    fn as_any_mut(&mut self) -> &mut dyn Any;
+    fn to_any(self: Box<Self>) -> Box<dyn Any>;
+}
+impl<T> ToAny for T
+where
+    T: Visitable + 'static,
+{
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }
+
+    fn to_any(self: Box<Self>) -> Box<dyn Any> {
+        self
     }
 }

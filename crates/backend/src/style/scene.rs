@@ -6,7 +6,8 @@ use uuid::Uuid;
 
 use super::{
     definitions::TimingTower,
-    visitor::{NodeVisitor, NodeVisitorMut, StyleNode, Visitable},
+    visitor::{NodeVisitor, NodeVisitorMut, Visitable},
+    StyleNode,
 };
 
 #[derive(Serialize, Deserialize, Clone, Default)]

@@ -1,9 +1,6 @@
 use std::ops::ControlFlow;
 
-use backend::style::{
-    definitions::*,
-    visitor::{NodeVisitorMut, StyleNode},
-};
+use backend::style::{definitions::*, visitor::NodeVisitorMut, StyleNode};
 use bevy_egui::egui::Ui;
 use egui_ltreeview::{DropPosition, TreeViewBuilder, TreeViewResponse};
 use uuid::Uuid;

@@ -7,7 +7,8 @@ use crate::value_types::Vec2Property;
 
 use super::{
     cell::Cell,
-    visitor::{NodeVisitor, NodeVisitorMut, StyleNode, Visitable},
+    visitor::{NodeVisitor, NodeVisitorMut, Visitable},
+    StyleNode,
 };
 
 #[derive(Serialize, Deserialize, Clone, Default)]

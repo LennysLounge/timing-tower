@@ -1,7 +1,7 @@
 use egui_ltreeview::DropPosition;
 use uuid::Uuid;
 
-use backend::style::{definitions::*, visitor::StyleNode};
+use backend::style::{definitions::*, StyleNode};
 
 use crate::style::visitors::{insert::InsertNodeVisitor, remove::RemoveNodeVisitor};
 

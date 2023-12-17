@@ -8,7 +8,10 @@ use crate::value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, V
 
 use self::{condition::Condition, fixed_value::FixedValue, map::Map};
 
-use super::visitor::{NodeVisitor, NodeVisitorMut, StyleNode, Visitable};
+use super::{
+    visitor::{NodeVisitor, NodeVisitorMut, Visitable},
+    StyleNode,
+};
 
 pub mod condition;
 pub mod fixed_value;

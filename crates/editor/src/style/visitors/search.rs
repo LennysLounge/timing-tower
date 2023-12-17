@@ -2,7 +2,8 @@ use std::ops::ControlFlow;
 
 use backend::style::{
     definitions::*,
-    visitor::{NodeVisitor, NodeVisitorMut, StyleNode},
+    visitor::{NodeVisitor, NodeVisitorMut},
+    StyleNode,
 };
 use uuid::Uuid;
 

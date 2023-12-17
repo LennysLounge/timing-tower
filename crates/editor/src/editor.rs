@@ -5,7 +5,7 @@ use std::{fs::File, io::Write};
 
 use backend::{
     savefile::{Savefile, SavefileChanged},
-    style::{timing_tower::TimingTowerColumn, visitor::StyleNode, StyleDefinition},
+    style::{timing_tower::TimingTowerColumn, StyleDefinition, StyleNode},
 };
 use bevy::{
     app::First,

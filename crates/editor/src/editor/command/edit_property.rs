@@ -1,4 +1,4 @@
-use backend::style::{visitor::StyleNode, StyleDefinition};
+use backend::style::{StyleDefinition, StyleNode};
 use uuid::Uuid;
 
 use crate::style::visitors::search::SearchVisitorMut;

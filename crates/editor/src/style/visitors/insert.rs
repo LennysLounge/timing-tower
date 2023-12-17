@@ -4,7 +4,8 @@ use backend::style::{
     self,
     definitions::*,
     timing_tower::TimingTowerColumnFolder,
-    visitor::{NodeVisitorMut, StyleNode, Visitable},
+    visitor::{NodeVisitorMut, Visitable},
+    StyleNode,
 };
 use egui_ltreeview::DropPosition;
 use uuid::Uuid;

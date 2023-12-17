@@ -2,7 +2,8 @@ use std::ops::ControlFlow;
 
 use backend::style::{
     definitions::*,
-    visitor::{NodeVisitorMut, StyleNode, Visitable},
+    visitor::{NodeVisitorMut, Visitable},
+    StyleNode,
 };
 use egui_ltreeview::DropPosition;
 use uuid::Uuid;

@@ -10,7 +10,8 @@ use crate::{
 
 use super::{
     variables::StaticValueProducer,
-    visitor::{NodeVisitor, NodeVisitorMut, StyleNode, Visitable},
+    visitor::{NodeVisitor, NodeVisitorMut, Visitable},
+    StyleNode,
 };
 
 #[derive(Serialize, Deserialize, Clone)]

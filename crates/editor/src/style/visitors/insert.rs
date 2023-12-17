@@ -1,4 +1,4 @@
-use std::ops::ControlFlow;
+use std::{any::Any, ops::ControlFlow};
 
 use backend::style::{
     self,
@@ -54,23 +54,18 @@ impl NodeVisitorMut for InsertNodeVisitor {
         if &self.id != folder.id() {
             return ControlFlow::Continue(());
         }
+
         let folder_or_asset = {
             let node = self.node.take().expect("Node should not be empty").to_any();
-            if node.is::<AssetDefinition>() {
-                style::assets::AssetOrFolder::Asset(
-                    *node
-                        .downcast::<AssetDefinition>()
-                        .expect("Cannot downcast but should"),
-                )
-            } else if node.is::<AssetFolder>() {
-                style::assets::AssetOrFolder::Folder(
-                    *node
-                        .downcast::<AssetFolder>()
-                        .expect("Cannot downcast but should"),
-                )
-            } else {
-                unreachable!("No other types should be inserted into a row");
-            }
+            Err(node)
+                .or_else(|node| {
+                    try_downcast_to::<AssetDefinition>(node)
+                        .map(style::assets::AssetOrFolder::Asset)
+                })
+                .or_else(|node| {
+                    try_downcast_to::<AssetFolder>(node).map(style::assets::AssetOrFolder::Folder)
+                })
+                .expect("No other types are allowed to be inserted")
         };
 
         match &self.position {
@@ -96,20 +91,14 @@ impl NodeVisitorMut for InsertNodeVisitor {
         }
         let folder_or_t = {
             let node = self.node.take().expect("Node should not be empty").to_any();
-            if node.is::<Folder<TimingTowerColumn>>() {
-                let folder = node
-                    .downcast::<Folder<TimingTowerColumn>>()
-                    .expect("Cannot downcast but should");
-                FolderOrT::Folder(*folder)
-            } else if node.is::<TimingTowerColumn>() {
-                let column = node
-                    .downcast::<TimingTowerColumn>()
-                    .expect("Cannot downcast but should");
-                FolderOrT::T(*column)
-            } else {
-                unreachable!("No other types should be inserted into a row");
-            }
+            Err(node)
+                .or_else(|node| {
+                    try_downcast_to::<Folder<TimingTowerColumn>>(node).map(FolderOrT::Folder)
+                })
+                .or_else(|node| try_downcast_to::<TimingTowerColumn>(node).map(FolderOrT::T))
+                .expect("No other types are allowed to be inserted")
         };
+
         match &self.position {
             DropPosition::First => row.columns.insert(0, folder_or_t),
             DropPosition::Last => row.columns.push(folder_or_t),
@@ -125,5 +114,13 @@ impl NodeVisitorMut for InsertNodeVisitor {
             }
         }
         ControlFlow::Break(())
+    }
+}
+
+fn try_downcast_to<T: 'static>(any: Box<dyn Any>) -> Result<T, Box<dyn Any>> {
+    if any.is::<T>() {
+        Ok(*any.downcast::<T>().expect("Cannot downcast but should"))
+    } else {
+        Err(any)
     }
 }

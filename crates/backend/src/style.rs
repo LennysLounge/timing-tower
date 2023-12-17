@@ -1,5 +1,6 @@
 use std::{any::Any, ops::ControlFlow};
 
+use dyn_clone::DynClone;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -73,9 +74,11 @@ impl Visitable for StyleDefinition {
 }
 
 /// Base trait for all elements in the style definition.
-pub trait StyleNode: ToAny + Visitable + BoxClone + Sync + Send {
+pub trait StyleNode: ToAny + Visitable + Sync + Send + DynClone {
     fn id(&self) -> &Uuid;
 }
+
+dyn_clone::clone_trait_object!(StyleNode);
 
 /// Utilities for converting a `StyleNode` into any.
 pub trait ToAny {
@@ -100,22 +103,22 @@ where
     }
 }
 
-/// Allows for cloneing a `StyleNode` as a trait object.
-pub trait BoxClone {
-    /// Clone the element into a `StyleNode` trait object.
-    fn box_clone(&self) -> Box<dyn StyleNode>;
-}
-impl<T> BoxClone for T
-where
-    T: StyleNode + Clone + 'static,
-{
-    fn box_clone(&self) -> Box<dyn StyleNode> {
-        Box::new(self.clone())
-    }
-}
+// /// Allows for cloneing a `StyleNode` as a trait object.
+// pub trait BoxClone {
+//     /// Clone the element into a `StyleNode` trait object.
+//     fn box_clone(&self) -> Box<dyn StyleNode>;
+// }
+// impl<T> BoxClone for T
+// where
+//     T: StyleNode + Clone + 'static,
+// {
+//     fn box_clone(&self) -> Box<dyn StyleNode> {
+//         Box::new(self.clone())
+//     }
+// }
 
-impl Clone for Box<dyn StyleNode> {
-    fn clone(&self) -> Self {
-        (*self).box_clone()
-    }
-}
+// impl Clone for Box<dyn StyleNode> {
+//     fn clone(&self) -> Self {
+//         (*self).box_clone()
+//     }
+// }

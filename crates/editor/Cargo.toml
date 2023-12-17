@@ -19,3 +19,4 @@ egui_ltreeview = { git = "https://github.com/LennysLounge/egui_ltreeview.git" }
 serde_json = "1.0.107"
 tracing = "0.1.37"
 uuid = { version = "1.4.1", features = ["v4"] }
+dyn-clone = "1.0.16"

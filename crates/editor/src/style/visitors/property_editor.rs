@@ -102,6 +102,18 @@ impl<'a> NodeVisitorMut for PropertyEditorVisitor<'a> {
         ControlFlow::Continue(())
     }
 
+    fn visit_asset_folder(&mut self, folder: &mut AssetFolder) -> ControlFlow<()> {
+        let PropertyEditorVisitor {
+            ui,
+            changed,
+            reference_store: _,
+        } = self;
+
+        ui.label("Name:");
+        *changed |= ui.text_edit_singleline(&mut folder.name).changed();
+        ControlFlow::Continue(())
+    }
+
     fn visit_variable(&mut self, variable: &mut VariableDefinition) -> ControlFlow<()> {
         let PropertyEditorVisitor {
             ui,

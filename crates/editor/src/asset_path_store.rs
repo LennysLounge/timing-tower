@@ -43,7 +43,7 @@ fn savefile_changed(
     info!("Reload asset path store");
 
     let mut map = HashMap::new();
-    for asset in savefile.style().assets.all_t() {
+    for asset in savefile.style().assets.contained_assets() {
         let asset_path = savefile.base_path().join(&asset.path);
         map.insert(
             asset.id,

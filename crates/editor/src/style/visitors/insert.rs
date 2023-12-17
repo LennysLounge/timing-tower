@@ -1,6 +1,7 @@
 use std::ops::ControlFlow;
 
 use backend::style::{
+    self,
     definitions::*,
     folder::FolderOrT,
     visitor::{NodeVisitorMut, StyleNode, Visitable},
@@ -43,6 +44,46 @@ impl NodeVisitorMut for InsertNodeVisitor {
             DropPosition::Before(id) => {
                 if let Some(index) = folder.content().into_iter().position(|s| s.id() == id) {
                     folder.insert_index(index, node);
+                }
+            }
+        }
+        ControlFlow::Break(())
+    }
+
+    fn visit_asset_folder(&mut self, folder: &mut AssetFolder) -> ControlFlow<()> {
+        if &self.id != folder.id() {
+            return ControlFlow::Continue(());
+        }
+        let folder_or_asset = {
+            let node = self.node.take().expect("Node should not be empty").to_any();
+            if node.is::<AssetDefinition>() {
+                style::assets::AssetOrFolder::Asset(
+                    *node
+                        .downcast::<AssetDefinition>()
+                        .expect("Cannot downcast but should"),
+                )
+            } else if node.is::<AssetFolder>() {
+                style::assets::AssetOrFolder::Folder(
+                    *node
+                        .downcast::<AssetFolder>()
+                        .expect("Cannot downcast but should"),
+                )
+            } else {
+                unreachable!("No other types should be inserted into a row");
+            }
+        };
+
+        match &self.position {
+            DropPosition::First => folder.content.insert(0, folder_or_asset),
+            DropPosition::Last => folder.content.insert(folder.content.len(), folder_or_asset),
+            DropPosition::After(id) => {
+                if let Some(index) = folder.content.iter().position(|s| s.id() == id) {
+                    folder.content.insert(index + 1, folder_or_asset);
+                }
+            }
+            DropPosition::Before(id) => {
+                if let Some(index) = folder.content.iter().position(|s| s.id() == id) {
+                    folder.content.insert(index, folder_or_asset);
                 }
             }
         }

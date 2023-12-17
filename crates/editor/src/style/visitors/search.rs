@@ -60,6 +60,10 @@ impl<'a, T> NodeVisitor for SearchVisitor<'a, T> {
         self.test(asset)
     }
 
+    fn visit_asset_folder(&mut self, folder: &AssetFolder) -> ControlFlow<()> {
+        self.test(folder)
+    }
+
     fn visit_variable(&mut self, variable: &VariableDefinition) -> ControlFlow<()> {
         self.test(variable)
     }
@@ -117,6 +121,10 @@ impl<'a, T> NodeVisitorMut for SearchVisitorMut<'a, T> {
 
     fn visit_asset(&mut self, asset: &mut AssetDefinition) -> ControlFlow<()> {
         self.test(asset)
+    }
+
+    fn visit_asset_folder(&mut self, folder: &mut AssetFolder) -> ControlFlow<()> {
+        self.test(folder)
     }
 
     fn visit_variable(&mut self, variable: &mut VariableDefinition) -> ControlFlow<()> {

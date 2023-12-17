@@ -144,7 +144,7 @@ fn make_assets_message(savefile: &Savefile) -> ToRendererMessage {
     let images: Vec<_> = savefile
         .style()
         .assets
-        .all_t()
+        .contained_assets()
         .into_iter()
         .map(|asset| (asset.id, asset_to_uuid_asset_path(asset).into()))
         .collect();

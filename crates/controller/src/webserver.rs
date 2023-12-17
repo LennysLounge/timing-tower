@@ -61,7 +61,7 @@ fn start_webserver(
 ) -> Result<(JoinHandle<()>, Sender<()>), Box<dyn Error + Sync + Send>> {
     // Load all assets for this savefile.
     let mut assets = HashMap::new();
-    for asset in savefile.style().assets.all_t().into_iter() {
+    for asset in savefile.style().assets.contained_assets().into_iter() {
         let url = super::websocket::asset_to_uuid_asset_path(asset);
         let path = savefile.working_directory_path().join(&asset.path);
         match fs::read(&path) {

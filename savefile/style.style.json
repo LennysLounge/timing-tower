@@ -6,146 +6,146 @@
     "renameable": false,
     "content": [
       {
-        "folder_type": "Folder",
+        "element_type": "Folder",
         "id": "bd6a3f41-6897-41d6-94ed-b02beaca3762",
         "name": "Constructors",
         "renameable": true,
         "content": [
           {
-            "folder_type": "T",
+            "element_type": "Asset",
             "id": "b7ba5250-cf78-4146-a7c8-f2b85adc4c5f",
             "name": "Alpine",
             "value_type": "Texture",
             "path": "constructors/Alpine.png"
           },
           {
-            "folder_type": "T",
+            "element_type": "Asset",
             "id": "3eee3a38-140e-453e-8830-4f256ee83e07",
             "name": "Aston-Martin",
             "value_type": "Texture",
             "path": "constructors/Aston-Martin.png"
           },
           {
-            "folder_type": "T",
+            "element_type": "Asset",
             "id": "1e8814f4-16dd-4ad9-be24-2ea075bcff6a",
             "name": "Audi",
             "value_type": "Texture",
             "path": "constructors/Audi.png"
           },
           {
-            "folder_type": "T",
+            "element_type": "Asset",
             "id": "ecfb2bad-459a-4b64-b8ed-5d5147053ea2",
             "name": "Bentley",
             "value_type": "Texture",
             "path": "constructors/Bentley.png"
           },
           {
-            "folder_type": "T",
+            "element_type": "Asset",
             "id": "ecd425a6-2490-484b-9979-a19933de1193",
             "name": "BMW",
             "value_type": "Texture",
             "path": "constructors/BMW.png"
           },
           {
-            "folder_type": "T",
+            "element_type": "Asset",
             "id": "48368915-4dcb-443b-8f6e-d6ace044ced9",
             "name": "Chevrolet",
             "value_type": "Texture",
             "path": "constructors/Chevrolet.png"
           },
           {
-            "folder_type": "T",
+            "element_type": "Asset",
             "id": "62823f7e-db28-4087-a148-79d943b6ecfc",
             "name": "Error",
             "value_type": "Texture",
             "path": "constructors/Error.png"
           },
           {
-            "folder_type": "T",
+            "element_type": "Asset",
             "id": "afcae1d6-f887-4417-bdfb-c09e91116adb",
             "name": "Ferrari",
             "value_type": "Texture",
             "path": "constructors/Ferrari.png"
           },
           {
-            "folder_type": "T",
+            "element_type": "Asset",
             "id": "77133dec-724a-491a-b2ce-fd2888a78ab1",
             "name": "Ginetta",
             "value_type": "Texture",
             "path": "constructors/Ginetta.png"
           },
           {
-            "folder_type": "T",
+            "element_type": "Asset",
             "id": "c0432571-650f-4fdc-a708-aa9a01117590",
             "name": "Honda",
             "value_type": "Texture",
             "path": "constructors/Honda.png"
           },
           {
-            "folder_type": "T",
+            "element_type": "Asset",
             "id": "95dc96a9-97ce-436b-bf78-8465e0929ce9",
             "name": "Jaguar",
             "value_type": "Texture",
             "path": "constructors/Jaguar.png"
           },
           {
-            "folder_type": "T",
+            "element_type": "Asset",
             "id": "922570d9-792b-4555-aa52-65f1d890996b",
             "name": "KTM",
             "value_type": "Texture",
             "path": "constructors/KTM.png"
           },
           {
-            "folder_type": "T",
+            "element_type": "Asset",
             "id": "fc0aba26-4d09-41a8-982a-d2534c9fdb8c",
             "name": "Lamborghini",
             "value_type": "Texture",
             "path": "constructors/Lamborghini.png"
           },
           {
-            "folder_type": "T",
+            "element_type": "Asset",
             "id": "66146a86-cb01-437f-814d-5c86efd5a777",
             "name": "Lexus",
             "value_type": "Texture",
             "path": "constructors/Lexus.png"
           },
           {
-            "folder_type": "T",
+            "element_type": "Asset",
             "id": "230297a5-ff60-494e-acba-5af35c4f7e99",
             "name": "Maserati",
             "value_type": "Texture",
             "path": "constructors/Maserati.png"
           },
           {
-            "folder_type": "T",
+            "element_type": "Asset",
             "id": "2295c661-0609-483d-b3df-248efa705f9d",
             "name": "McLaren",
             "value_type": "Texture",
             "path": "constructors/McLaren.png"
           },
           {
-            "folder_type": "T",
+            "element_type": "Asset",
             "id": "d0edeef4-f187-44df-9c65-d81d405d8062",
             "name": "Mercedes-AMG",
             "value_type": "Texture",
             "path": "constructors/Mercedes-AMG.png"
           },
           {
-            "folder_type": "T",
+            "element_type": "Asset",
             "id": "1f2524af-9c72-495e-89e2-fda763f2ee18",
             "name": "Nissan",
             "value_type": "Texture",
             "path": "constructors/Nissan.png"
           },
           {
-            "folder_type": "T",
+            "element_type": "Asset",
             "id": "4971fafb-479d-470f-8afd-b85e6820a396",
             "name": "Porsche",
             "value_type": "Texture",
             "path": "constructors/Porsche.png"
           },
           {
-            "folder_type": "T",
+            "element_type": "Asset",
             "id": "109ecca7-9500-4c6a-b496-95a8da13d299",
             "name": "Reiter-Engineering",
             "value_type": "Texture",
@@ -154,7 +154,7 @@
         ]
       },
       {
-        "folder_type": "T",
+        "element_type": "Asset",
         "id": "819d2f30-0d03-413a-8f09-9a0afa58b3ed",
         "name": "background",
         "value_type": "Texture",

@@ -14,7 +14,7 @@ use backend::{
     game_sources::{self},
     savefile::{Savefile, SavefileChanged},
     style::{
-        assets::AssetDefinition,
+        definitions::AssetFolder,
         folder::{Folder, FolderOrT},
         variables::VariableDefinition,
     },
@@ -66,7 +66,7 @@ pub struct ReferenceStore {
 }
 
 impl ReferenceStore {
-    fn reload(&mut self, vars: &Folder<VariableDefinition>, assets: &Folder<AssetDefinition>) {
+    fn reload(&mut self, vars: &Folder<VariableDefinition>, assets: &AssetFolder) {
         self.variables = AssetOrFolder::from_vars(vars);
         self.game_sources = AssetOrFolder::from_game();
         self.assets = AssetOrFolder::from_asset_defs(assets);
@@ -220,15 +220,17 @@ impl AssetOrFolder {
                 .collect(),
         }
     }
-    fn from_asset_defs(assets: &Folder<AssetDefinition>) -> Self {
+    fn from_asset_defs(assets: &AssetFolder) -> Self {
         Self::Folder {
             name: assets.name.clone(),
             assets: assets
                 .content
                 .iter()
                 .map(|a| match a {
-                    FolderOrT::T(def) => Self::Asset(def.producer_data().clone()),
-                    FolderOrT::Folder(f) => Self::from_asset_defs(f),
+                    backend::style::assets::AssetOrFolder::Asset(a) => {
+                        AssetOrFolder::Asset(a.producer_data())
+                    }
+                    backend::style::assets::AssetOrFolder::Folder(f) => Self::from_asset_defs(f),
                 })
                 .collect(),
         }

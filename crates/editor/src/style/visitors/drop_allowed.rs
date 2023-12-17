@@ -31,6 +31,12 @@ impl NodeVisitor for DropAllowedVisitor<'_> {
         ControlFlow::Break(())
     }
 
+    fn visit_asset_folder(&mut self, _folder: &AssetFolder) -> ControlFlow<()> {
+        self.drop_allowed =
+            self.dragged_node.is::<AssetDefinition>() || self.dragged_node.is::<AssetFolder>();
+        ControlFlow::Break(())
+    }
+
     fn visit_timing_tower_row(&mut self, _row: &TimingTowerRow) -> ControlFlow<()> {
         self.drop_allowed = self.dragged_node.is::<TimingTowerColumn>()
             || self.dragged_node.is::<Folder<TimingTowerColumn>>();

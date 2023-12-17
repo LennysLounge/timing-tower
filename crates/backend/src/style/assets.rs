@@ -72,16 +72,29 @@ impl Visitable for AssetDefinition {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Default)]
 pub struct AssetFolder {
     pub id: Uuid,
     pub name: String,
     pub content: Vec<AssetOrFolder>,
 }
-#[derive(Serialize, Deserialize, Clone)]
-pub enum AssetOrFolder {
-    Asset(AssetDefinition),
-    Folder(AssetFolder),
+impl AssetFolder {
+    pub fn new() -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            name: String::from("Group"),
+            content: Vec::new(),
+        }
+    }
+    pub fn contained_assets(&self) -> Vec<&AssetDefinition> {
+        self.content
+            .iter()
+            .flat_map(|af| match af {
+                AssetOrFolder::Asset(a) => vec![a],
+                AssetOrFolder::Folder(f) => f.contained_assets(),
+            })
+            .collect()
+    }
 }
 impl StyleNode for AssetFolder {
     fn id(&self) -> &Uuid {
@@ -121,5 +134,20 @@ impl Visitable for AssetFolder {
 
     fn leave_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
         visitor.leave_asset_folder(self)
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(tag = "element_type")]
+pub enum AssetOrFolder {
+    Asset(AssetDefinition),
+    Folder(AssetFolder),
+}
+impl AssetOrFolder {
+    pub fn id(&self) -> &Uuid {
+        match self {
+            AssetOrFolder::Asset(o) => &o.id,
+            AssetOrFolder::Folder(o) => &o.id,
+        }
     }
 }

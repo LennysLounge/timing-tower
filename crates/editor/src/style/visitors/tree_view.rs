@@ -82,23 +82,6 @@ impl NodeVisitorMut for TreeViewVisitor<'_> {
                         ));
                         ui.close_menu();
                     }
-                } else if content_type == TypeId::of::<AssetDefinition>() {
-                    if ui.button("add image").clicked() {
-                        self.nodes_to_add.push((
-                            *folder.id(),
-                            DropPosition::Last,
-                            Box::new(AssetDefinition::new()),
-                        ));
-                        ui.close_menu();
-                    }
-                    if ui.button("add group").clicked() {
-                        self.nodes_to_add.push((
-                            *folder.id(),
-                            DropPosition::Last,
-                            Box::new(Folder::<AssetDefinition>::new()),
-                        ));
-                        ui.close_menu();
-                    }
                 } else if content_type == TypeId::of::<VariableDefinition>() {
                     if ui.button("add variable").clicked() {
                         self.nodes_to_add.push((
@@ -255,6 +238,38 @@ impl NodeVisitorMut for TreeViewVisitor<'_> {
                 }
             });
         }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_asset_folder(&mut self, folder: &mut AssetFolder) -> ControlFlow<()> {
+        let res = self.builder.dir(&folder.id, |ui| {
+            ui.label(&folder.name);
+        });
+        if let Some(res) = res {
+            res.context_menu(|ui| {
+                if ui.button("add image").clicked() {
+                    self.nodes_to_add.push((
+                        *folder.id(),
+                        DropPosition::Last,
+                        Box::new(AssetDefinition::new()),
+                    ));
+                    ui.close_menu();
+                }
+                if ui.button("add group").clicked() {
+                    self.nodes_to_add.push((
+                        *folder.id(),
+                        DropPosition::Last,
+                        Box::new(AssetFolder::new()),
+                    ));
+                    ui.close_menu();
+                }
+            });
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn leave_asset_folder(&mut self, _folder: &mut AssetFolder) -> ControlFlow<()> {
+        self.builder.close_dir();
         ControlFlow::Continue(())
     }
 

@@ -19,7 +19,7 @@ pub mod visitor;
 
 pub mod definitions {
     pub use self::super::{
-        assets::AssetDefinition,
+        assets::{AssetDefinition, AssetFolder},
         folder::{Folder, FolderInfo},
         scene::SceneDefinition,
         timing_tower::{TimingTower, TimingTowerColumn, TimingTowerRow},
@@ -31,7 +31,7 @@ pub mod definitions {
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct StyleDefinition {
     pub id: Uuid,
-    pub assets: Folder<AssetDefinition>,
+    pub assets: AssetFolder,
     pub vars: Folder<VariableDefinition>,
     pub scene: SceneDefinition,
 }

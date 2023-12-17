@@ -1,7 +1,7 @@
 use std::time::Instant;
 
 use backend::style::StyleNode;
-use bevy_egui::egui::{Context, Response, Ui};
+use bevy_egui::egui::{Context, Ui};
 use uuid::Uuid;
 
 use super::command::{
@@ -12,7 +12,7 @@ use super::command::{
 #[derive(Clone)]
 struct EditPoint {
     last_edit: Instant,
-    response_id: bevy_egui::egui::Id,
+    egui_id: bevy_egui::egui::Id,
     node_id: Uuid,
     setter: Box<dyn AnySetter>,
 }
@@ -21,7 +21,7 @@ impl EditPoint {
         Instant::now().duration_since(self.last_edit).as_secs() > 1
     }
     fn is_different_to(&self, other: &EditPoint) -> bool {
-        self.node_id != other.node_id || self.response_id != other.response_id
+        self.node_id != other.node_id || self.egui_id != other.egui_id
     }
     fn to_command(self) -> EditorCommand {
         EditProperty {
@@ -30,6 +30,14 @@ impl EditPoint {
         }
         .into()
     }
+}
+
+/// The result of a undo/redo context.
+pub enum EditResult {
+    /// No value were changed.
+    None,
+    /// The value was changed by a widget with this id.
+    FromId(bevy_egui::egui::Id),
 }
 
 /// Start an undo/redo context. Changes that occur inside this scope are
@@ -41,7 +49,7 @@ pub fn undo_redo_context<Input, Value>(
     ui: &mut Ui,
     subjet: &mut Input,
     accessor: fn(&mut Input) -> &mut Value,
-    mut add_content: impl FnMut(&mut Ui, &mut Value) -> Response,
+    mut add_content: impl FnMut(&mut Ui, &mut Value) -> EditResult,
 ) where
     Input: Clone + StyleNode + 'static,
     Value: Clone + Sync + Send + 'static,
@@ -49,11 +57,11 @@ pub fn undo_redo_context<Input, Value>(
     let value_ref = (accessor)(subjet);
     let res = add_content(ui, value_ref);
 
-    if res.changed() {
+    if let EditResult::FromId(egui_id) = res {
         let edit_point = EditPoint {
             last_edit: Instant::now(),
             node_id: *subjet.id(),
-            response_id: res.id,
+            egui_id,
             setter: Box::new(Setter {
                 accessor,
                 value: (accessor)(subjet).clone(),

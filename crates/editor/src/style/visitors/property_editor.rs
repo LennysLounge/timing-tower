@@ -10,8 +10,10 @@ use backend::style::{
 use bevy_egui::egui::{ComboBox, DragValue, Ui};
 
 use crate::{
-    editor::egui_undo_redo::undo_redo_context, property_editor::PropertyEditor,
-    reference_store::ReferenceStore, style::variables,
+    editor::egui_undo_redo::{undo_redo_context, EditResult},
+    property_editor::PropertyEditor,
+    reference_store::ReferenceStore,
+    style::variables,
 };
 
 pub struct PropertyEditorVisitor<'a> {
@@ -34,7 +36,10 @@ impl<'a> PropertyEditorVisitor<'a> {
 }
 impl<'a> NodeVisitorMut for PropertyEditorVisitor<'a> {
     fn visit_timing_tower(&mut self, tower: &mut TimingTower) -> ControlFlow<()> {
-        self.changed |= cell_property_editor(self.ui, &mut tower.cell, self.reference_store);
+        match cell_property_editor(self.ui, &mut tower.cell, self.reference_store) {
+            EditResult::None => (),
+            EditResult::FromId(_) => self.changed = true,
+        }
         ControlFlow::Break(())
     }
 
@@ -59,7 +64,10 @@ impl<'a> NodeVisitorMut for PropertyEditorVisitor<'a> {
                 .changed();
         });
         ui.separator();
-        self.changed |= cell_property_editor(self.ui, &mut row.cell, self.reference_store);
+        match cell_property_editor(self.ui, &mut row.cell, self.reference_store) {
+            EditResult::None => (),
+            EditResult::FromId(_) => self.changed = true,
+        }
         ControlFlow::Continue(())
     }
 
@@ -78,13 +86,19 @@ impl<'a> NodeVisitorMut for PropertyEditorVisitor<'a> {
             |c| &mut c.name,
             |ui, column_name| {
                 let res = ui.text_edit_singleline(column_name);
-                *changed |= res.changed();
-                res
+                if res.changed() {
+                    EditResult::FromId(res.id)
+                } else {
+                    EditResult::None
+                }
             },
         );
 
         ui.separator();
-        *changed |= cell_property_editor(ui, &mut column.cell, reference_store);
+        match cell_property_editor(ui, &mut column.cell, reference_store) {
+            EditResult::None => (),
+            EditResult::FromId(_) => *changed = true,
+        }
         ControlFlow::Continue(())
     }
 
@@ -218,33 +232,41 @@ impl<'a> NodeVisitorMut for PropertyEditorVisitor<'a> {
     }
 }
 
-fn cell_property_editor(ui: &mut Ui, cell: &mut Cell, reference_store: &ReferenceStore) -> bool {
-    let mut changed = false;
+fn cell_property_editor(
+    ui: &mut Ui,
+    cell: &mut Cell,
+    reference_store: &ReferenceStore,
+) -> EditResult {
+    let mut edit_result = EditResult::None;
 
     ui.label("Cell:");
     ui.horizontal(|ui| {
         ui.label("Visible:");
-        changed |= ui
-            .add(PropertyEditor::new(&mut cell.visible, reference_store))
-            .changed();
+        let res = ui.add(PropertyEditor::new(&mut cell.visible, reference_store));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
     });
     ui.horizontal(|ui| {
         ui.label("Text:");
-        changed |= ui
-            .add(PropertyEditor::new(&mut cell.text, reference_store))
-            .changed();
+        let res = ui.add(PropertyEditor::new(&mut cell.text, reference_store));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
     });
     ui.horizontal(|ui| {
         ui.label("Text color:");
-        changed |= ui
-            .add(PropertyEditor::new(&mut cell.text_color, reference_store))
-            .changed();
+        let res = ui.add(PropertyEditor::new(&mut cell.text_color, reference_store));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
     });
     ui.horizontal(|ui| {
         ui.label("Text size:");
-        changed |= ui
-            .add(PropertyEditor::new(&mut cell.text_size, reference_store))
-            .changed();
+        let res = ui.add(PropertyEditor::new(&mut cell.text_size, reference_store));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
     });
     ui.horizontal(|ui| {
         ui.label("Text alginment:");
@@ -255,119 +277,139 @@ fn cell_property_editor(ui: &mut Ui, cell: &mut Cell, reference_store: &Referenc
                 TextAlignment::Right => "Right",
             })
             .show_ui(ui, |ui| {
-                changed |= ui
-                    .selectable_value(&mut cell.text_alginment, TextAlignment::Left, "Left")
-                    .changed();
-                changed |= ui
-                    .selectable_value(&mut cell.text_alginment, TextAlignment::Center, "Center")
-                    .changed();
-                changed |= ui
-                    .selectable_value(&mut cell.text_alginment, TextAlignment::Right, "Right")
-                    .changed();
+                let res =
+                    ui.selectable_value(&mut cell.text_alginment, TextAlignment::Left, "Left");
+                if res.changed() {
+                    edit_result = EditResult::FromId(res.id)
+                }
+                let res =
+                    ui.selectable_value(&mut cell.text_alginment, TextAlignment::Center, "Center");
+                if res.changed() {
+                    edit_result = EditResult::FromId(res.id)
+                }
+                let res =
+                    ui.selectable_value(&mut cell.text_alginment, TextAlignment::Right, "Right");
+                if res.changed() {
+                    edit_result = EditResult::FromId(res.id)
+                }
             });
     });
     ui.horizontal(|ui| {
         ui.label("Text pos x:");
-        changed |= ui
-            .add(PropertyEditor::new(
-                &mut cell.text_position.x,
-                reference_store,
-            ))
-            .changed();
+        let res = ui.add(PropertyEditor::new(
+            &mut cell.text_position.x,
+            reference_store,
+        ));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
     });
     ui.horizontal(|ui| {
         ui.label("Text pos y:");
-        changed |= ui
-            .add(PropertyEditor::new(
-                &mut cell.text_position.y,
-                reference_store,
-            ))
-            .changed();
+        let res = ui.add(PropertyEditor::new(
+            &mut cell.text_position.y,
+            reference_store,
+        ));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
     });
     ui.horizontal(|ui| {
         ui.label("Background color:");
-        changed |= ui
-            .add(PropertyEditor::new(&mut cell.color, reference_store))
-            .changed();
+        let res = ui.add(PropertyEditor::new(&mut cell.color, reference_store));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
     });
     ui.horizontal(|ui| {
         ui.label("Background image:");
-        changed |= ui
-            .add(PropertyEditor::new(&mut cell.image, reference_store))
-            .changed();
+        let res = ui.add(PropertyEditor::new(&mut cell.image, reference_store));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
     });
     ui.horizontal(|ui| {
         ui.label("Pos x:");
-        changed |= ui
-            .add(PropertyEditor::new(&mut cell.pos.x, reference_store))
-            .changed();
+        let res = ui.add(PropertyEditor::new(&mut cell.pos.x, reference_store));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
     });
     ui.horizontal(|ui| {
         ui.label("Pos y:");
-        changed |= ui
-            .add(PropertyEditor::new(&mut cell.pos.y, reference_store))
-            .changed();
+        let res = ui.add(PropertyEditor::new(&mut cell.pos.y, reference_store));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
     });
     ui.horizontal(|ui| {
         ui.label("Pos z:");
-        changed |= ui
-            .add(PropertyEditor::new(&mut cell.pos.z, reference_store))
-            .changed();
+        let res = ui.add(PropertyEditor::new(&mut cell.pos.z, reference_store));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
     });
     ui.horizontal(|ui| {
         ui.label("Width:");
-        changed |= ui
-            .add(PropertyEditor::new(&mut cell.size.x, reference_store))
-            .changed();
+        let res = ui.add(PropertyEditor::new(&mut cell.size.x, reference_store));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
     });
     ui.horizontal(|ui| {
         ui.label("Height:");
-        changed |= ui
-            .add(PropertyEditor::new(&mut cell.size.y, reference_store))
-            .changed();
+        let res = ui.add(PropertyEditor::new(&mut cell.size.y, reference_store));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
     });
     ui.horizontal(|ui| {
         ui.label("Skew:");
-        changed |= ui
-            .add(PropertyEditor::new(&mut cell.skew, reference_store))
-            .changed();
+        let res = ui.add(PropertyEditor::new(&mut cell.skew, reference_store));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
     });
     ui.label("Rounding:");
     ui.horizontal(|ui| {
         ui.label("top left:");
-        changed |= ui
-            .add(PropertyEditor::new(
-                &mut cell.rounding.top_left,
-                reference_store,
-            ))
-            .changed();
+        let res = ui.add(PropertyEditor::new(
+            &mut cell.rounding.top_left,
+            reference_store,
+        ));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
     });
     ui.horizontal(|ui| {
         ui.label("top right:");
-        changed |= ui
-            .add(PropertyEditor::new(
-                &mut cell.rounding.top_right,
-                reference_store,
-            ))
-            .changed();
+        let res = ui.add(PropertyEditor::new(
+            &mut cell.rounding.top_right,
+            reference_store,
+        ));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
     });
     ui.horizontal(|ui| {
         ui.label("bottom right:");
-        changed |= ui
-            .add(PropertyEditor::new(
-                &mut cell.rounding.bot_right,
-                reference_store,
-            ))
-            .changed();
+        let res = ui.add(PropertyEditor::new(
+            &mut cell.rounding.bot_right,
+            reference_store,
+        ));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
     });
     ui.horizontal(|ui| {
         ui.label("bottom left:");
-        changed |= ui
-            .add(PropertyEditor::new(
-                &mut cell.rounding.bot_left,
-                reference_store,
-            ))
-            .changed();
+        let res = ui.add(PropertyEditor::new(
+            &mut cell.rounding.bot_left,
+            reference_store,
+        ));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
     });
-    changed
+    edit_result
 }

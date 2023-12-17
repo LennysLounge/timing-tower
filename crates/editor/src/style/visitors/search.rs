@@ -40,10 +40,6 @@ impl<'a, T> NodeVisitor for SearchVisitor<'a, T> {
         self.test(style)
     }
 
-    fn visit_folder(&mut self, folder: &dyn FolderInfo) -> ControlFlow<()> {
-        self.test(folder.as_style_node())
-    }
-
     fn visit_timing_tower(&mut self, tower: &TimingTower) -> ControlFlow<()> {
         self.test(tower)
     }
@@ -112,10 +108,6 @@ impl<'a, T> SearchVisitorMut<'a, T> {
 impl<'a, T> NodeVisitorMut for SearchVisitorMut<'a, T> {
     fn visit_style(&mut self, style: &mut StyleDefinition) -> ControlFlow<()> {
         self.test(style)
-    }
-
-    fn visit_folder(&mut self, folder: &mut dyn FolderInfo) -> ControlFlow<()> {
-        self.test(folder.as_style_node_mut())
     }
 
     fn visit_timing_tower(&mut self, tower: &mut TimingTower) -> ControlFlow<()> {

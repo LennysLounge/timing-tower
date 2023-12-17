@@ -29,20 +29,6 @@ impl<'a> PropertyEditorVisitor<'a> {
     }
 }
 impl<'a> NodeVisitorMut for PropertyEditorVisitor<'a> {
-    fn visit_folder(&mut self, folder: &mut dyn FolderInfo) -> ControlFlow<()> {
-        let PropertyEditorVisitor {
-            ui,
-            changed,
-            reference_store: _,
-        } = self;
-
-        if folder.renameable() {
-            ui.label("Name:");
-            *changed |= ui.text_edit_singleline(folder.name_mut()).changed();
-        }
-        ControlFlow::Continue(())
-    }
-
     fn visit_timing_tower(&mut self, tower: &mut TimingTower) -> ControlFlow<()> {
         self.changed |= cell_property_editor(self.ui, &mut tower.cell, self.reference_store);
         ControlFlow::Break(())

@@ -4,7 +4,6 @@ use uuid::Uuid;
 
 use super::{
     assets::{AssetDefinition, AssetFolder},
-    folder::FolderInfo,
     scene::SceneDefinition,
     timing_tower::{TimingTower, TimingTowerColumn, TimingTowerColumnFolder, TimingTowerRow},
     variables::{VariableDefinition, VariableFolder},
@@ -64,14 +63,6 @@ pub trait NodeVisitor {
     }
     #[allow(unused_variables)]
     fn leave_style(&mut self, style: &StyleDefinition) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
-    #[allow(unused_variables)]
-    fn visit_folder(&mut self, folder: &dyn FolderInfo) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
-    #[allow(unused_variables)]
-    fn leave_folder(&mut self, folder: &dyn FolderInfo) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
     #[allow(unused_variables)]
@@ -149,14 +140,6 @@ pub trait NodeVisitorMut {
     }
     #[allow(unused_variables)]
     fn leave_style(&mut self, style: &mut StyleDefinition) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
-    #[allow(unused_variables)]
-    fn visit_folder(&mut self, folder: &mut dyn FolderInfo) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
-    #[allow(unused_variables)]
-    fn leave_folder(&mut self, folder: &mut dyn FolderInfo) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
     #[allow(unused_variables)]

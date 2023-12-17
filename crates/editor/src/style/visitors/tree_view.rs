@@ -57,29 +57,6 @@ impl NodeVisitorMut for TreeViewVisitor<'_> {
         ControlFlow::Continue(())
     }
 
-    fn visit_folder(&mut self, folder: &mut dyn FolderInfo) -> ControlFlow<()> {
-        self.stack.push(*folder.id());
-        let res = self.builder.dir(&folder.id(), |ui| {
-            ui.label(folder.name());
-        });
-        if let Some(res) = res {
-            res.context_menu(|ui| {
-                if ui.button("delete").clicked() {
-                    self.nodes_to_remove.push(*folder.id());
-                    ui.close_menu();
-                }
-            });
-        }
-
-        ControlFlow::Continue(())
-    }
-
-    fn leave_folder(&mut self, _folder: &mut dyn FolderInfo) -> ControlFlow<()> {
-        self.stack.pop();
-        self.builder.close_dir();
-        ControlFlow::Continue(())
-    }
-
     fn visit_timing_tower(&mut self, tower: &mut TimingTower) -> ControlFlow<()> {
         self.stack.push(tower.id);
         self.builder.dir(&tower.id, |ui| {
@@ -229,7 +206,7 @@ impl NodeVisitorMut for TreeViewVisitor<'_> {
                             .last()
                             .expect("There should always be a parent node"),
                         DropPosition::Last,
-                        Box::new(Folder::<AssetDefinition>::new()),
+                        Box::new(AssetFolder::new()),
                     ));
                     ui.close_menu();
                 }
@@ -298,7 +275,7 @@ impl NodeVisitorMut for TreeViewVisitor<'_> {
                             .last()
                             .expect("There should always be a parent node"),
                         DropPosition::Last,
-                        Box::new(Folder::<VariableDefinition>::new()),
+                        Box::new(VariableFolder::new()),
                     ));
                     ui.close_menu();
                 }

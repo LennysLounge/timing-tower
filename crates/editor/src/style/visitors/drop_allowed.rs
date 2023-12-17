@@ -26,12 +26,6 @@ impl<'a> DropAllowedVisitor<'a> {
     }
 }
 impl NodeVisitor for DropAllowedVisitor<'_> {
-    fn visit_folder(&mut self, folder: &dyn FolderInfo) -> ControlFlow<()> {
-        self.drop_allowed = self.dragged_node.type_id() == folder.content_type_id()
-            || self.dragged_node.type_id() == folder.own_type_id();
-        ControlFlow::Break(())
-    }
-
     fn visit_asset_folder(&mut self, _folder: &AssetFolder) -> ControlFlow<()> {
         self.drop_allowed =
             self.dragged_node.is::<AssetDefinition>() || self.dragged_node.is::<AssetFolder>();

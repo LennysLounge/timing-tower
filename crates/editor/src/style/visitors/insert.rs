@@ -28,28 +28,6 @@ impl InsertNodeVisitor {
     }
 }
 impl NodeVisitorMut for InsertNodeVisitor {
-    fn visit_folder(&mut self, folder: &mut dyn FolderInfo) -> ControlFlow<()> {
-        if &self.id != folder.id() {
-            return ControlFlow::Continue(());
-        }
-        let node = self.node.take().expect("Node should not be empty");
-        match &self.position {
-            DropPosition::First => folder.insert_index(0, node),
-            DropPosition::Last => folder.insert_index(folder.content().len(), node),
-            DropPosition::After(id) => {
-                if let Some(index) = folder.content().into_iter().position(|s| s.id() == id) {
-                    folder.insert_index(index + 1, node);
-                }
-            }
-            DropPosition::Before(id) => {
-                if let Some(index) = folder.content().into_iter().position(|s| s.id() == id) {
-                    folder.insert_index(index, node);
-                }
-            }
-        }
-        ControlFlow::Break(())
-    }
-
     fn visit_asset_folder(&mut self, folder: &mut AssetFolder) -> ControlFlow<()> {
         if &self.id != folder.id() {
             return ControlFlow::Continue(());

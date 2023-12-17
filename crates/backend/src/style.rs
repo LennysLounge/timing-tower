@@ -77,7 +77,30 @@ pub trait StyleNode: ToAny + Visitable + BoxClone + Sync + Send {
     fn id(&self) -> &Uuid;
 }
 
-/// Allows for cloneing a stylenode from a trait object.
+/// Utilities for converting a `StyleNode` into any.
+pub trait ToAny {
+    fn as_any(&self) -> &dyn Any;
+    fn as_any_mut(&mut self) -> &mut dyn Any;
+    fn to_any(self: Box<Self>) -> Box<dyn Any>;
+}
+impl<T> ToAny for T
+where
+    T: StyleNode + 'static,
+{
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }
+
+    fn to_any(self: Box<Self>) -> Box<dyn Any> {
+        self
+    }
+}
+
+/// Allows for cloneing a `StyleNode` as a trait object.
 pub trait BoxClone {
     /// Clone the element into a `StyleNode` trait object.
     fn box_clone(&self) -> Box<dyn StyleNode>;
@@ -91,25 +114,8 @@ where
     }
 }
 
-/// Utilities for converting a `StyleNode` into any.
-pub trait ToAny {
-    fn as_any(&self) -> &dyn Any;
-    fn as_any_mut(&mut self) -> &mut dyn Any;
-    fn to_any(self: Box<Self>) -> Box<dyn Any>;
-}
-impl<T> ToAny for T
-where
-    T: Visitable + 'static,
-{
-    fn as_any(&self) -> &dyn Any {
-        self
-    }
-
-    fn as_any_mut(&mut self) -> &mut dyn Any {
-        self
-    }
-
-    fn to_any(self: Box<Self>) -> Box<dyn Any> {
-        self
+impl Clone for Box<dyn StyleNode> {
+    fn clone(&self) -> Self {
+        (*self).box_clone()
     }
 }

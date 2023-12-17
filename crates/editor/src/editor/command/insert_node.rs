@@ -15,7 +15,7 @@ pub struct InsertNode {
 impl InsertNode {
     pub fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
         let id = *self.node.id();
-        InsertNodeVisitor::new(self.target_node, self.position, (*self.node).box_clone())
+        InsertNodeVisitor::new(self.target_node, self.position, self.node.clone())
             .insert_into(style);
         Some(InsertNodeUndo { id }.into())
     }

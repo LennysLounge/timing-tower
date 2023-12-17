@@ -71,3 +71,55 @@ impl Visitable for AssetDefinition {
         ControlFlow::Continue(())
     }
 }
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct AssetFolder {
+    pub id: Uuid,
+    pub name: String,
+    pub content: Vec<AssetOrFolder>,
+}
+#[derive(Serialize, Deserialize, Clone)]
+pub enum AssetOrFolder {
+    Asset(AssetDefinition),
+    Folder(AssetFolder),
+}
+impl StyleNode for AssetFolder {
+    fn id(&self) -> &Uuid {
+        &self.id
+    }
+}
+impl Visitable for AssetFolder {
+    fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
+        self.enter(visitor)?;
+        self.content.iter().try_for_each(|f| match f {
+            AssetOrFolder::Asset(o) => o.walk(visitor),
+            AssetOrFolder::Folder(o) => o.walk(visitor),
+        })?;
+        self.leave(visitor)
+    }
+
+    fn enter(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
+        visitor.visit_asset_folder(self)
+    }
+
+    fn leave(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
+        visitor.leave_asset_folder(self)
+    }
+
+    fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
+        self.enter_mut(visitor)?;
+        self.content.iter_mut().try_for_each(|f| match f {
+            AssetOrFolder::Asset(o) => o.walk_mut(visitor),
+            AssetOrFolder::Folder(o) => o.walk_mut(visitor),
+        })?;
+        self.leave_mut(visitor)
+    }
+
+    fn enter_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
+        visitor.visit_asset_folder(self)
+    }
+
+    fn leave_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
+        visitor.leave_asset_folder(self)
+    }
+}

@@ -3,7 +3,7 @@ use std::{any::Any, ops::ControlFlow};
 use uuid::Uuid;
 
 use super::{
-    assets::AssetDefinition,
+    assets::{AssetDefinition, AssetFolder},
     folder::FolderInfo,
     scene::SceneDefinition,
     timing_tower::{TimingTower, TimingTowerColumn, TimingTowerRow},
@@ -99,6 +99,14 @@ pub trait NodeVisitor {
         ControlFlow::Continue(())
     }
     #[allow(unused_variables)]
+    fn visit_asset_folder(&mut self, folder: &AssetFolder) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+    #[allow(unused_variables)]
+    fn leave_asset_folder(&mut self, folder: &AssetFolder) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+    #[allow(unused_variables)]
     fn visit_variable(&mut self, variable: &VariableDefinition) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
@@ -151,6 +159,14 @@ pub trait NodeVisitorMut {
     }
     #[allow(unused_variables)]
     fn visit_asset(&mut self, asset: &mut AssetDefinition) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+    #[allow(unused_variables)]
+    fn visit_asset_folder(&mut self, folder: &mut AssetFolder) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+    #[allow(unused_variables)]
+    fn leave_asset_folder(&mut self, folder: &mut AssetFolder) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
     #[allow(unused_variables)]

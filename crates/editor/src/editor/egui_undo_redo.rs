@@ -5,7 +5,7 @@ use bevy_egui::egui::{Context, Ui};
 use uuid::Uuid;
 
 use super::command::{
-    edit_property::{AnySetter, EditProperty, Setter},
+    edit_property::{AnyNewValue, EditProperty, NewValue},
     EditorCommand,
 };
 
@@ -14,7 +14,7 @@ struct EditPoint {
     last_edit: Instant,
     egui_id: bevy_egui::egui::Id,
     node_id: Uuid,
-    setter: Box<dyn AnySetter>,
+    new_value: Box<dyn AnyNewValue>,
 }
 impl EditPoint {
     fn duration_passed(&self) -> bool {
@@ -26,7 +26,7 @@ impl EditPoint {
     fn to_command(self) -> EditorCommand {
         EditProperty {
             id: self.node_id,
-            setter: self.setter,
+            new_value: self.new_value,
         }
         .into()
     }
@@ -45,26 +45,22 @@ pub enum EditResult {
 /// If the response returned from the `add_content` closure is marked with
 /// a change, then a new edit point is created for this change.
 /// Uses the accessor method to access the required property of the subject.
-pub fn undo_redo_context<Input, Value>(
+pub fn undo_redo_context<Input>(
     ui: &mut Ui,
     subjet: &mut Input,
-    accessor: fn(&mut Input) -> &mut Value,
-    mut add_content: impl FnMut(&mut Ui, &mut Value) -> EditResult,
+    mut add_content: impl FnMut(&mut Ui, &mut Input) -> EditResult,
 ) where
     Input: Clone + StyleNode + 'static,
-    Value: Clone + Sync + Send + 'static,
 {
-    let value_ref = (accessor)(subjet);
-    let res = add_content(ui, value_ref);
+    let res = add_content(ui, subjet);
 
     if let EditResult::FromId(egui_id) = res {
         let edit_point = EditPoint {
             last_edit: Instant::now(),
             node_id: *subjet.id(),
             egui_id,
-            setter: Box::new(Setter {
-                accessor,
-                value: (accessor)(subjet).clone(),
+            new_value: Box::new(NewValue {
+                new_value: subjet.clone(),
             }),
         };
         ui.data_mut(|d| {

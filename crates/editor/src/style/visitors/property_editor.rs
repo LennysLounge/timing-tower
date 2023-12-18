@@ -74,31 +74,26 @@ impl<'a> NodeVisitorMut for PropertyEditorVisitor<'a> {
     fn visit_timing_tower_column(&mut self, column: &mut TimingTowerColumn) -> ControlFlow<()> {
         let PropertyEditorVisitor {
             ui,
-            changed,
             reference_store,
+            ..
         } = self;
 
-        ui.label("Name:");
+        undo_redo_context(ui, column, |ui, column| {
+            let mut edit_result = EditResult::None;
 
-        undo_redo_context(
-            ui,
-            column,
-            |c| &mut c.name,
-            |ui, column_name| {
-                let res = ui.text_edit_singleline(column_name);
-                if res.changed() {
-                    EditResult::FromId(res.id)
-                } else {
-                    EditResult::None
-                }
-            },
-        );
+            ui.label("Name:");
+            let res = ui.text_edit_singleline(&mut column.name);
+            if res.changed() {
+                edit_result = EditResult::FromId(res.id);
+            }
+            ui.separator();
 
-        ui.separator();
-        match cell_property_editor(ui, &mut column.cell, reference_store) {
-            EditResult::None => (),
-            EditResult::FromId(_) => *changed = true,
-        }
+            match cell_property_editor(ui, &mut column.cell, reference_store) {
+                result @ EditResult::FromId(_) => edit_result = result,
+                EditResult::None => (),
+            }
+            edit_result
+        });
         ControlFlow::Continue(())
     }
 

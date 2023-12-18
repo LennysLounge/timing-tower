@@ -19,6 +19,7 @@ use unified_sim_model::{
     model::{Entry, EntryId, Session},
     Adapter,
 };
+use uuid::Uuid;
 
 pub struct TimingTowerPlugin;
 impl Plugin for TimingTowerPlugin {
@@ -53,7 +54,7 @@ pub struct Table {
 
 pub struct Row {
     pub cell_id: CellId,
-    pub columns: HashMap<String, CellId>,
+    pub columns: HashMap<Uuid, CellId>,
 }
 
 pub fn update_tower(
@@ -119,11 +120,11 @@ fn update_row(
     for entry_id in row_resolver.session.entries.keys() {
         if !table.rows.contains_key(entry_id) {
             // create all necessairy cells for rows.
-            let columns: HashMap<String, CellId> = style
+            let columns: HashMap<Uuid, CellId> = style
                 .row
                 .contained_columns()
                 .iter()
-                .map(|c| (c.name.clone(), CellId::new()))
+                .map(|c| (c.id, CellId::new()))
                 .collect();
             let row = Row {
                 columns,
@@ -167,7 +168,7 @@ fn update_row(
 
         // update columns
         for column in style.row.contained_columns() {
-            let Some(cell_id) = row.columns.get(&column.name) else {
+            let Some(cell_id) = row.columns.get(&column.id) else {
                 continue;
             };
             style_batcher.add(cell_id, column_resolver.get(&column.cell));

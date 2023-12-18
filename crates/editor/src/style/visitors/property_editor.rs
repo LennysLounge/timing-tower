@@ -36,38 +36,45 @@ impl<'a> PropertyEditorVisitor<'a> {
 }
 impl<'a> NodeVisitorMut for PropertyEditorVisitor<'a> {
     fn visit_timing_tower(&mut self, tower: &mut TimingTower) -> ControlFlow<()> {
-        match cell_property_editor(self.ui, &mut tower.cell, self.reference_store) {
-            EditResult::None => (),
-            EditResult::FromId(_) => self.changed = true,
-        }
+        let PropertyEditorVisitor {
+            ui,
+            reference_store,
+            ..
+        } = self;
+
+        undo_redo_context(ui, tower, |ui, tower| {
+            cell_property_editor(ui, &mut tower.cell, reference_store)
+        });
         ControlFlow::Break(())
     }
 
     fn visit_timing_tower_row(&mut self, row: &mut TimingTowerRow) -> ControlFlow<()> {
         let PropertyEditorVisitor {
             ui,
-            changed,
             reference_store,
+            ..
         } = self;
 
-        ui.label("Row offset:");
-        ui.horizontal(|ui| {
-            ui.label("Offset x:");
-            *changed |= ui
-                .add(PropertyEditor::new(&mut row.row_offset.x, reference_store))
-                .changed();
+        undo_redo_context(ui, row, |ui, row| {
+            let mut edit_result = EditResult::None;
+
+            ui.label("Row offset:");
+            ui.horizontal(|ui| {
+                ui.label("Offset x:");
+                edit_result |= ui
+                    .add(PropertyEditor::new(&mut row.row_offset.x, reference_store))
+                    .into();
+            });
+            ui.horizontal(|ui| {
+                ui.label("Offset y:");
+                edit_result |= ui
+                    .add(PropertyEditor::new(&mut row.row_offset.y, reference_store))
+                    .into();
+            });
+            ui.separator();
+            edit_result |= cell_property_editor(ui, &mut row.cell, reference_store);
+            edit_result
         });
-        ui.horizontal(|ui| {
-            ui.label("Offset y:");
-            *changed |= ui
-                .add(PropertyEditor::new(&mut row.row_offset.y, reference_store))
-                .changed();
-        });
-        ui.separator();
-        match cell_property_editor(self.ui, &mut row.cell, self.reference_store) {
-            EditResult::None => (),
-            EditResult::FromId(_) => self.changed = true,
-        }
         ControlFlow::Continue(())
     }
 
@@ -82,16 +89,10 @@ impl<'a> NodeVisitorMut for PropertyEditorVisitor<'a> {
             let mut edit_result = EditResult::None;
 
             ui.label("Name:");
-            let res = ui.text_edit_singleline(&mut column.name);
-            if res.changed() {
-                edit_result = EditResult::FromId(res.id);
-            }
+            edit_result |= ui.text_edit_singleline(&mut column.name).into();
             ui.separator();
 
-            match cell_property_editor(ui, &mut column.cell, reference_store) {
-                result @ EditResult::FromId(_) => edit_result = result,
-                EditResult::None => (),
-            }
+            edit_result |= cell_property_editor(ui, &mut column.cell, reference_store).into();
             edit_result
         });
         ControlFlow::Continue(())
@@ -99,129 +100,148 @@ impl<'a> NodeVisitorMut for PropertyEditorVisitor<'a> {
 
     fn visit_timing_tower_column_folder(
         &mut self,
-        folder: &mut backend::style::timing_tower::TimingTowerColumnFolder,
+        folder: &mut TimingTowerColumnFolder,
     ) -> ControlFlow<()> {
-        let PropertyEditorVisitor {
-            ui,
-            changed,
-            reference_store: _,
-        } = self;
+        let PropertyEditorVisitor { ui, .. } = self;
 
-        ui.label("Name:");
-        *changed |= ui.text_edit_singleline(&mut folder.name).changed();
+        undo_redo_context(ui, folder, |ui, folder| {
+            ui.label("Name:");
+            ui.text_edit_singleline(&mut folder.name).into()
+        });
+
         ControlFlow::Continue(())
     }
 
     fn visit_asset(&mut self, asset: &mut AssetDefinition) -> ControlFlow<()> {
-        let PropertyEditorVisitor {
-            ui,
-            changed,
-            reference_store: _,
-        } = self;
+        let PropertyEditorVisitor { ui, .. } = self;
 
-        ui.label("Name");
-        *changed |= ui.text_edit_singleline(&mut asset.name).changed();
-        ui.separator();
-        ui.label("Path:");
-        *changed |= ui.text_edit_singleline(&mut asset.path).changed();
+        undo_redo_context(ui, asset, |ui, asset| {
+            let mut edit_result = EditResult::None;
+
+            ui.label("Name");
+            edit_result |= ui.text_edit_singleline(&mut asset.name).into();
+            ui.separator();
+            ui.label("Path:");
+            edit_result |= ui.text_edit_singleline(&mut asset.path).into();
+            edit_result
+        });
+
         ControlFlow::Continue(())
     }
 
     fn visit_asset_folder(&mut self, folder: &mut AssetFolder) -> ControlFlow<()> {
-        let PropertyEditorVisitor {
-            ui,
-            changed,
-            reference_store: _,
-        } = self;
+        let PropertyEditorVisitor { ui, .. } = self;
 
-        ui.label("Name:");
-        *changed |= ui.text_edit_singleline(&mut folder.name).changed();
+        undo_redo_context(ui, folder, |ui, folder| {
+            ui.label("Name:");
+            ui.text_edit_singleline(&mut folder.name).into()
+        });
+
         ControlFlow::Continue(())
     }
 
     fn visit_variable(&mut self, variable: &mut VariableDefinition) -> ControlFlow<()> {
         let PropertyEditorVisitor {
             ui,
-            changed,
             reference_store,
+            ..
         } = self;
 
-        ui.label("Name:");
-        *changed |= ui.text_edit_singleline(&mut variable.name).changed();
+        undo_redo_context(ui, variable, |ui, variable| {
+            let mut edit_result = EditResult::None;
 
-        ui.horizontal(|ui| {
-            ui.label("Behavior:");
-            ComboBox::new(ui.next_auto_id(), "")
-                .selected_text(match variable.behavior {
-                    VariableBehavior::FixedValue(_) => "Fixed value",
-                    VariableBehavior::Condition(_) => "Condition",
-                    VariableBehavior::Map(_) => "Map",
-                })
-                .show_ui(ui, |ui| {
-                    let is_fixed_value =
-                        matches!(variable.behavior, VariableBehavior::FixedValue(_));
-                    if ui.selectable_label(is_fixed_value, "Fixed value").clicked()
-                        && !is_fixed_value
-                    {
-                        variable.behavior = VariableBehavior::FixedValue(FixedValue::default());
-                        *changed |= true;
-                    }
+            ui.label("Name:");
+            edit_result |= ui.text_edit_singleline(&mut variable.name).into();
 
-                    let is_condition = matches!(variable.behavior, VariableBehavior::Condition(_));
-                    if ui.selectable_label(is_condition, "Condition").clicked() && !is_condition {
-                        variable.behavior = VariableBehavior::Condition(Condition::default());
-                        *changed = true;
+            ui.horizontal(|ui| {
+                ui.label("Behavior:");
+                ComboBox::new(ui.next_auto_id(), "")
+                    .selected_text(match variable.behavior {
+                        VariableBehavior::FixedValue(_) => "Fixed value",
+                        VariableBehavior::Condition(_) => "Condition",
+                        VariableBehavior::Map(_) => "Map",
+                    })
+                    .show_ui(ui, |ui| {
+                        let is_fixed_value =
+                            matches!(variable.behavior, VariableBehavior::FixedValue(_));
+                        let res = ui.selectable_label(is_fixed_value, "Fixed value");
+                        if res.clicked() && !is_fixed_value {
+                            variable.behavior = VariableBehavior::FixedValue(FixedValue::default());
+                            edit_result |= EditResult::FromId(res.id);
+                        }
+
+                        let is_condition =
+                            matches!(variable.behavior, VariableBehavior::Condition(_));
+                        let res = ui.selectable_label(is_condition, "Condition");
+                        if res.clicked() && !is_condition {
+                            variable.behavior = VariableBehavior::Condition(Condition::default());
+                            edit_result |= EditResult::FromId(res.id);
+                        }
+
+                        let is_map = matches!(variable.behavior, VariableBehavior::Map(_));
+                        let res = ui.selectable_label(is_map, "Map");
+                        if res.clicked() && !is_map {
+                            variable.behavior = VariableBehavior::Map(Map::default());
+                            edit_result |= EditResult::FromId(res.id);
+                        }
+                    });
+            });
+            ui.separator();
+            edit_result |= match &mut variable.behavior {
+                VariableBehavior::FixedValue(value) => {
+                    if variables::fixed_value::property_editor(ui, value, reference_store) {
+                        EditResult::FromId(ui.make_persistent_id("Fixed_value_edit"))
+                    } else {
+                        EditResult::None
                     }
-                    let is_map = matches!(variable.behavior, VariableBehavior::Map(_));
-                    if ui.selectable_label(is_map, "Map").clicked() && !is_map {
-                        variable.behavior = VariableBehavior::Map(Map::default());
-                        *changed = true;
+                }
+                VariableBehavior::Condition(value) => {
+                    if variables::condition::property_editor(ui, value, reference_store) {
+                        EditResult::FromId(ui.make_persistent_id("condition_value_edit"))
+                    } else {
+                        EditResult::None
                     }
-                });
+                }
+                VariableBehavior::Map(value) => {
+                    if variables::map::property_editor(ui, value, reference_store) {
+                        EditResult::FromId(ui.make_persistent_id("map_value_edit"))
+                    } else {
+                        EditResult::None
+                    }
+                }
+            };
+            edit_result
         });
 
-        ui.separator();
-        *changed |= match &mut variable.behavior {
-            VariableBehavior::FixedValue(value) => {
-                variables::fixed_value::property_editor(ui, value, reference_store)
-            }
-            VariableBehavior::Condition(value) => {
-                variables::condition::property_editor(ui, value, reference_store)
-            }
-            VariableBehavior::Map(value) => {
-                variables::map::property_editor(ui, value, reference_store)
-            }
-        };
         ControlFlow::Continue(())
     }
 
     fn visit_variable_folder(&mut self, folder: &mut VariableFolder) -> ControlFlow<()> {
-        let PropertyEditorVisitor {
-            ui,
-            changed,
-            reference_store: _,
-        } = self;
+        let PropertyEditorVisitor { ui, .. } = self;
 
-        ui.label("Name:");
-        *changed |= ui.text_edit_singleline(&mut folder.name).changed();
+        undo_redo_context(ui, folder, |ui, folder| {
+            ui.label("Name:");
+            ui.text_edit_singleline(&mut folder.name).into()
+        });
         ControlFlow::Continue(())
     }
 
     fn visit_scene(&mut self, scene: &mut SceneDefinition) -> ControlFlow<()> {
-        let PropertyEditorVisitor {
-            ui,
-            reference_store: _,
-            changed,
-        } = self;
+        let PropertyEditorVisitor { ui, .. } = self;
 
-        ui.label("Prefered size:");
-        ui.horizontal(|ui| {
-            ui.label("width:");
-            *changed |= ui.add(DragValue::new(&mut scene.prefered_size.x)).changed();
-        });
-        ui.horizontal(|ui| {
-            ui.label("height:");
-            *changed |= ui.add(DragValue::new(&mut scene.prefered_size.y)).changed();
+        undo_redo_context(ui, scene, |ui, scene| {
+            let mut edit_result = EditResult::None;
+
+            ui.label("Prefered size:");
+            ui.horizontal(|ui| {
+                ui.label("width:");
+                edit_result |= ui.add(DragValue::new(&mut scene.prefered_size.x)).into();
+            });
+            ui.horizontal(|ui| {
+                ui.label("height:");
+                edit_result |= ui.add(DragValue::new(&mut scene.prefered_size.y)).into();
+            });
+            edit_result
         });
         ControlFlow::Continue(())
     }

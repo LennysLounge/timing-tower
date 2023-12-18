@@ -1,7 +1,7 @@
-use std::time::Instant;
+use std::{ops::BitOrAssign, time::Instant};
 
 use backend::style::StyleNode;
-use bevy_egui::egui::{Context, Ui};
+use bevy_egui::egui::{Context, Response, Ui};
 use uuid::Uuid;
 
 use super::command::{
@@ -38,6 +38,23 @@ pub enum EditResult {
     None,
     /// The value was changed by a widget with this id.
     FromId(bevy_egui::egui::Id),
+}
+impl BitOrAssign for EditResult {
+    fn bitor_assign(&mut self, rhs: Self) {
+        match rhs {
+            EditResult::None => (),
+            EditResult::FromId(_) => *self = rhs,
+        }
+    }
+}
+impl From<Response> for EditResult {
+    fn from(value: Response) -> Self {
+        if value.changed() {
+            Self::FromId(value.id)
+        } else {
+            Self::None
+        }
+    }
 }
 
 /// Start an undo/redo context. Changes that occur inside this scope are

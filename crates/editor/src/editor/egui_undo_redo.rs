@@ -28,6 +28,7 @@ impl EditPoint {
             node_id: self.node_id,
             new_value: self.new_value,
             timestamp: self.last_edit,
+            widget_id: self.egui_id,
         }
         .into()
     }

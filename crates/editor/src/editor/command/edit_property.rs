@@ -1,6 +1,7 @@
 use std::time::Instant;
 
 use backend::style::{StyleDefinition, StyleNode};
+use bevy_egui::egui;
 use dyn_clone::DynClone;
 use uuid::Uuid;
 
@@ -11,6 +12,7 @@ use super::EditorCommand;
 pub struct EditProperty {
     pub timestamp: Instant,
     pub node_id: Uuid,
+    pub widget_id: egui::Id,
     pub new_value: Box<dyn AnyNewValue>,
 }
 impl EditProperty {
@@ -22,6 +24,7 @@ impl EditProperty {
                     timestamp: self.timestamp,
                     node_id: self.node_id,
                     new_value,
+                    widget_id: self.widget_id,
                 })
         })
         .search_in(style)
@@ -31,6 +34,7 @@ impl EditProperty {
 
     pub fn can_merge_with(&self, other: &EditProperty) -> bool {
         self.node_id == other.node_id
+            && self.widget_id == other.widget_id
             && other.timestamp.duration_since(self.timestamp).as_secs() < 1
     }
 
@@ -38,6 +42,7 @@ impl EditProperty {
         Self {
             timestamp: other.timestamp,
             node_id: self.node_id,
+            widget_id: self.widget_id,
             new_value: self.new_value,
         }
     }

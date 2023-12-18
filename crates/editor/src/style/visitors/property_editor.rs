@@ -56,18 +56,15 @@ impl<'a> NodeVisitorMut for PropertyEditorVisitor<'a> {
         } = self;
 
         let mut tower_edit = tower.clone();
-        let changed = match cell_property_editor(ui, &mut tower_edit.cell, reference_store) {
-            EditResult::None => false,
-            EditResult::FromId(_) => true,
-        };
-        if changed {
-            println!("Changed!");
+        let changed = cell_property_editor(ui, &mut tower_edit.cell, reference_store);
+        if let EditResult::FromId(egui_id) = changed {
             undo_redo_manager.queue(EditProperty {
                 node_id: tower.id,
                 new_value: Box::new(NewValue {
                     new_value: tower_edit,
                 }),
                 timestamp: Instant::now(),
+                widget_id: egui_id,
             });
         }
 

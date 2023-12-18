@@ -40,6 +40,20 @@ impl EditorCommand {
             EditorCommand::EditProperty(_) => "Edit property",
         }
     }
+
+    fn debug_name(&self) -> &str {
+        match self {
+            EditorCommand::Undo => "EditorCommand::Undo",
+            EditorCommand::Redo => "EditorCommand::Redo",
+            EditorCommand::InsertNode(_) => "EditorCommand::InsertNode",
+            EditorCommand::InsertNodeUndo(_) => "EditorCommand::InsertNodeUndo",
+            EditorCommand::RemoveNode(_) => "EditorCommand::RemoveNode",
+            EditorCommand::RemoveNodeUndo(_) => "EditorCommand::RemoveNodeUndo",
+            EditorCommand::MoveNode(_) => "EditorCommand::MoveNode",
+            EditorCommand::EditProperty(_) => "EditorCommand::EditProperty",
+        }
+    }
+
     fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
         match self {
             EditorCommand::Undo => unreachable!("Undo command should never be executed"),
@@ -71,7 +85,8 @@ impl UndoRedoManager {
         }
 
         let mut style = savefile.style().clone();
-        for command in self.queue.drain(0..) {
+        let commands: Vec<_> = self.queue.drain(0..).collect();
+        for command in commands {
             match command {
                 EditorCommand::Undo => {
                     self.undo
@@ -87,7 +102,7 @@ impl UndoRedoManager {
                 }
                 command => {
                     command.execute(&mut style).map(|undo| {
-                        self.undo.push(undo);
+                        self.add_to_undo_list(undo);
                         self.redo.clear();
                     });
                 }
@@ -106,5 +121,31 @@ impl UndoRedoManager {
 
     pub fn redo_list(&self) -> &Vec<EditorCommand> {
         &self.redo
+    }
+
+    fn add_to_undo_list(&mut self, command: EditorCommand) {
+        use EditorCommand as EC;
+        let can_merge = self.undo.last().is_some_and(|last| match (last, &command) {
+            (EC::EditProperty(last), EC::EditProperty(new)) => last.can_merge_with(new),
+            _ => false,
+        });
+
+        if can_merge {
+            let last = self
+                .undo
+                .pop()
+                .expect("If two editor commands can merge the list can't be empty");
+            let merged: EditorCommand = match (last, command) {
+                (EC::EditProperty(last), EC::EditProperty(new)) => last.merge(new).into(),
+                (a, b) => unreachable!(
+                    "Editor commands {} and {} can merge but no merge action was defined",
+                    a.debug_name(),
+                    b.debug_name()
+                ),
+            };
+            self.undo.push(merged);
+        } else {
+            self.undo.push(command);
+        }
     }
 }

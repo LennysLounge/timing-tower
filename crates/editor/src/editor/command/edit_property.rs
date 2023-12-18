@@ -7,22 +7,30 @@ use crate::style::visitors::search::SearchVisitorMut;
 use super::EditorCommand;
 
 pub struct EditProperty {
-    pub id: Uuid,
+    pub node_id: Uuid,
     pub new_value: Box<dyn AnyNewValue>,
 }
 impl EditProperty {
     pub fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
-        SearchVisitorMut::new(self.id, |style_node| {
+        SearchVisitorMut::new(self.node_id, |style_node| {
             self.new_value
                 .set(style_node)
                 .map(|new_value| EditProperty {
-                    id: self.id,
+                    node_id: self.node_id,
                     new_value,
                 })
         })
         .search_in(style)
         .flatten()
         .map(|c| c.into())
+    }
+
+    pub fn can_merge_with(&self, other: &EditProperty) -> bool {
+        self.node_id == other.node_id
+    }
+
+    pub fn merge(self, _other: EditProperty) -> EditProperty {
+        self
     }
 }
 impl From<EditProperty> for EditorCommand {

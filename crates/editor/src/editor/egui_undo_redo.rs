@@ -25,7 +25,7 @@ impl EditPoint {
     }
     fn to_command(self) -> EditorCommand {
         EditProperty {
-            id: self.node_id,
+            node_id: self.node_id,
             new_value: self.new_value,
         }
         .into()

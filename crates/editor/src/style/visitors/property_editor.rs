@@ -63,7 +63,7 @@ impl<'a> NodeVisitorMut for PropertyEditorVisitor<'a> {
         if changed {
             println!("Changed!");
             undo_redo_manager.queue(EditProperty {
-                id: tower.id,
+                node_id: tower.id,
                 new_value: Box::new(NewValue {
                     new_value: tower_edit,
                 }),

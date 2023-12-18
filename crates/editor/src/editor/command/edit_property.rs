@@ -1,7 +1,7 @@
-use std::time::Instant;
+use std::{ops::BitOrAssign, time::Instant};
 
 use backend::style::{StyleDefinition, StyleNode};
-use bevy_egui::egui;
+use bevy_egui::egui::{self, Response};
 use dyn_clone::DynClone;
 use uuid::Uuid;
 
@@ -16,6 +16,18 @@ pub struct EditProperty {
     pub new_value: Box<dyn AnyNewValue>,
 }
 impl EditProperty {
+    pub fn new<T>(node_id: Uuid, new_value: T, widget_id: egui::Id) -> Self
+    where
+        T: Sync + Send + Clone + 'static,
+    {
+        Self {
+            timestamp: Instant::now(),
+            node_id,
+            widget_id,
+            new_value: Box::new(NewValue { new_value }),
+        }
+    }
+
     pub fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
         SearchVisitorMut::new(self.node_id, |style_node| {
             self.new_value
@@ -83,53 +95,27 @@ where
     }
 }
 
-// /// The Setter combines an accessor function with a value.
-// /// The accessor function returns a mutable reference to the field that is suposed to change.
-// /// This way it is possible to defer the setting of a field without having to know what field or
-// /// value to set.
-// #[derive(Clone)]
-// pub struct Setter<Input, Value> {
-//     /// Function pointer that returns a reference to the value that is supposed to change
-//     pub accessor: fn(&mut Input) -> &mut Value,
-//     /// The value to set
-//     pub value: Value,
-// }
-
-// /// Combines multiple `Setter` into a trait object.
-// /// Setters are generic and therefore exists in many generic forms for each
-// /// input and value pair.
-// /// This trait makes it possible to interact with all Setters without having
-// /// know their generic types.
-// pub trait AnySetter: Sync + Send + DynClone {
-//     /// Executes the setter on the subject and returns a new setter to undo this change.
-//     /// The return value is `None` if the setter expected a different type
-//     /// that the provieded subject. In this case the setter cannot set the
-//     /// value and no inverse action exists.
-//     fn execute_on(&self, subject: &mut dyn StyleNode) -> Option<Box<dyn AnySetter>>;
-// }
-
-// dyn_clone::clone_trait_object!(AnySetter);
-
-// impl<Input, Value> AnySetter for Setter<Input, Value>
-// where
-//     Value: Clone + Sync + Send + 'static,
-//     Input: Clone + 'static,
-// {
-//     fn execute_on(&self, subject: &mut dyn StyleNode) -> Option<Box<dyn AnySetter>> {
-//         let Some(typed_subject) = subject.as_any_mut().downcast_mut::<Input>() else {
-//             return None;
-//         };
-
-//         // save old value;
-//         let old_value = (self.accessor)(typed_subject).clone();
-
-//         // apply the setter
-//         *(self.accessor)(typed_subject) = self.value.clone();
-
-//         // make new setter for the undo
-//         Some(Box::new(Setter {
-//             accessor: self.accessor,
-//             value: old_value,
-//         }))
-//     }
-// }
+/// The result of a undo/redo context.
+pub enum EditResult {
+    /// No value were changed.
+    None,
+    /// The value was changed by a widget with this id.
+    FromId(bevy_egui::egui::Id),
+}
+impl BitOrAssign for EditResult {
+    fn bitor_assign(&mut self, rhs: Self) {
+        match rhs {
+            EditResult::None => (),
+            EditResult::FromId(_) => *self = rhs,
+        }
+    }
+}
+impl From<Response> for EditResult {
+    fn from(value: Response) -> Self {
+        if value.changed() {
+            Self::FromId(value.id)
+        } else {
+            Self::None
+        }
+    }
+}

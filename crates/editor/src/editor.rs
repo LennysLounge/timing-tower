@@ -1,6 +1,5 @@
 pub mod camera;
 pub mod command;
-pub mod egui_undo_redo;
 
 use std::{fs::File, io::Write};
 

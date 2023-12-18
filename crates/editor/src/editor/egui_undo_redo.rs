@@ -27,6 +27,7 @@ impl EditPoint {
         EditProperty {
             node_id: self.node_id,
             new_value: self.new_value,
+            timestamp: self.last_edit,
         }
         .into()
     }

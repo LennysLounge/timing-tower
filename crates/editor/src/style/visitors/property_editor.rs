@@ -1,4 +1,4 @@
-use std::ops::ControlFlow;
+use std::{ops::ControlFlow, time::Instant};
 
 use backend::style::{
     cell::{Cell, TextAlignment},
@@ -67,6 +67,7 @@ impl<'a> NodeVisitorMut for PropertyEditorVisitor<'a> {
                 new_value: Box::new(NewValue {
                     new_value: tower_edit,
                 }),
+                timestamp: Instant::now(),
             });
         }
 

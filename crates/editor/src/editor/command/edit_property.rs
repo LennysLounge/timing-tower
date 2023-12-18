@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use backend::style::{StyleDefinition, StyleNode};
 use dyn_clone::DynClone;
 use uuid::Uuid;
@@ -7,6 +9,7 @@ use crate::style::visitors::search::SearchVisitorMut;
 use super::EditorCommand;
 
 pub struct EditProperty {
+    pub timestamp: Instant,
     pub node_id: Uuid,
     pub new_value: Box<dyn AnyNewValue>,
 }
@@ -16,6 +19,7 @@ impl EditProperty {
             self.new_value
                 .set(style_node)
                 .map(|new_value| EditProperty {
+                    timestamp: self.timestamp,
                     node_id: self.node_id,
                     new_value,
                 })
@@ -27,10 +31,15 @@ impl EditProperty {
 
     pub fn can_merge_with(&self, other: &EditProperty) -> bool {
         self.node_id == other.node_id
+            && other.timestamp.duration_since(self.timestamp).as_secs() < 1
     }
 
-    pub fn merge(self, _other: EditProperty) -> EditProperty {
-        self
+    pub fn merge(self, other: EditProperty) -> EditProperty {
+        Self {
+            timestamp: other.timestamp,
+            node_id: self.node_id,
+            new_value: self.new_value,
+        }
     }
 }
 impl From<EditProperty> for EditorCommand {

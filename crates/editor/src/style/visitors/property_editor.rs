@@ -10,7 +10,13 @@ use backend::style::{
 use bevy_egui::egui::{ComboBox, DragValue, Ui};
 
 use crate::{
-    editor::egui_undo_redo::{undo_redo_context, EditResult},
+    editor::{
+        command::{
+            edit_property::{EditProperty, NewValue},
+            UndoRedoManager,
+        },
+        egui_undo_redo::{undo_redo_context, EditResult},
+    },
     property_editor::PropertyEditor,
     reference_store::ReferenceStore,
     style::variables,
@@ -19,13 +25,19 @@ use crate::{
 pub struct PropertyEditorVisitor<'a> {
     ui: &'a mut Ui,
     reference_store: &'a ReferenceStore,
+    undo_redo_manager: &'a mut UndoRedoManager,
     changed: bool,
 }
 impl<'a> PropertyEditorVisitor<'a> {
-    pub fn new(ui: &'a mut Ui, reference_store: &'a ReferenceStore) -> Self {
+    pub fn new(
+        ui: &'a mut Ui,
+        reference_store: &'a ReferenceStore,
+        undo_redo_manager: &'a mut UndoRedoManager,
+    ) -> Self {
         Self {
             ui,
             reference_store,
+            undo_redo_manager,
             changed: false,
         }
     }
@@ -39,12 +51,25 @@ impl<'a> NodeVisitorMut for PropertyEditorVisitor<'a> {
         let PropertyEditorVisitor {
             ui,
             reference_store,
+            undo_redo_manager,
             ..
         } = self;
 
-        undo_redo_context(ui, tower, |ui, tower| {
-            cell_property_editor(ui, &mut tower.cell, reference_store)
-        });
+        let mut tower_edit = tower.clone();
+        let changed = match cell_property_editor(ui, &mut tower_edit.cell, reference_store) {
+            EditResult::None => false,
+            EditResult::FromId(_) => true,
+        };
+        if changed {
+            println!("Changed!");
+            undo_redo_manager.queue(EditProperty {
+                id: tower.id,
+                new_value: Box::new(NewValue {
+                    new_value: tower_edit,
+                }),
+            });
+        }
+
         ControlFlow::Break(())
     }
 

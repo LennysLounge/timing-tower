@@ -44,7 +44,6 @@ use self::{
     command::{
         insert_node::InsertNode, move_node::MoveNode, remove_node::RemoveNode, UndoRedoManager,
     },
-    egui_undo_redo::extract_undo_redo_command,
 };
 
 pub struct EditorPlugin;
@@ -159,9 +158,9 @@ fn ui(
             },
         );
 
-    if let Some(command) = extract_undo_redo_command(ctx.ctx_mut()) {
-        undo_redo_manager.queue(command);
-    }
+    // if let Some(command) = extract_undo_redo_command(ctx.ctx_mut()) {
+    //     undo_redo_manager.queue(command);
+    // }
     undo_redo_manager.apply_queue(savefile.as_mut(), savefile_changed_event);
     // if style_changed {
     //     savefile.set(style.clone(), &mut save_file_changed);
@@ -231,6 +230,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     self.style,
                     self.style_changed,
                     self.reference_store,
+                    self.undo_redo_manager,
                 );
             }
             Tab::Variables => {
@@ -354,6 +354,7 @@ fn property_editor(
     style: &mut StyleDefinition,
     changed: &mut bool,
     reference_store: &ReferenceStore,
+    undo_redo_manager: &mut UndoRedoManager,
 ) {
     let Some(selected_id) = selected_id else {
         return;
@@ -363,7 +364,8 @@ fn property_editor(
         .auto_shrink([false, false])
         .show(ui, |ui| {
             *changed |= SearchVisitorMut::new(*selected_id, |selected_node| {
-                PropertyEditorVisitor::new(ui, reference_store).apply_to(selected_node)
+                PropertyEditorVisitor::new(ui, reference_store, undo_redo_manager)
+                    .apply_to(selected_node)
             })
             .search_in(style)
             .unwrap_or(false);

@@ -4,7 +4,7 @@ use backend::style::{
     cell::{Cell, TextAlignment},
     definitions::*,
     variables::{condition::Condition, fixed_value::FixedValue, map::Map, VariableBehavior},
-    visitor::NodeVisitor,
+    visitor::NodeVisitorMut,
     StyleNode,
 };
 use bevy_egui::egui::{ComboBox, DragValue, Ui};
@@ -23,7 +23,6 @@ pub struct PropertyEditorVisitor<'a> {
     ui: &'a mut Ui,
     reference_store: &'a ReferenceStore,
     undo_redo_manager: &'a mut UndoRedoManager,
-    changed: bool,
 }
 impl<'a> PropertyEditorVisitor<'a> {
     pub fn new(
@@ -35,16 +34,14 @@ impl<'a> PropertyEditorVisitor<'a> {
             ui,
             reference_store,
             undo_redo_manager,
-            changed: false,
         }
     }
-    pub fn apply_to(mut self, node: &mut dyn StyleNode) -> bool {
-        node.enter(&mut self);
-        self.changed
+    pub fn apply_to(mut self, node: &mut dyn StyleNode) {
+        node.enter_mut(&mut self);
     }
 }
-impl<'a> NodeVisitor for PropertyEditorVisitor<'a> {
-    fn visit_timing_tower(&mut self, tower: &TimingTower) -> ControlFlow<()> {
+impl<'a> NodeVisitorMut for PropertyEditorVisitor<'a> {
+    fn visit_timing_tower(&mut self, tower: &mut TimingTower) -> ControlFlow<()> {
         let PropertyEditorVisitor {
             ui,
             reference_store,
@@ -61,7 +58,7 @@ impl<'a> NodeVisitor for PropertyEditorVisitor<'a> {
         ControlFlow::Break(())
     }
 
-    fn visit_timing_tower_row(&mut self, row: &TimingTowerRow) -> ControlFlow<()> {
+    fn visit_timing_tower_row(&mut self, row: &mut TimingTowerRow) -> ControlFlow<()> {
         let PropertyEditorVisitor {
             ui,
             reference_store,
@@ -69,39 +66,32 @@ impl<'a> NodeVisitor for PropertyEditorVisitor<'a> {
             ..
         } = self;
 
-        let mut row_edit = row.clone();
         let mut edit_result = EditResult::None;
 
         ui.label("Row offset:");
         ui.horizontal(|ui| {
             ui.label("Offset x:");
             edit_result |= ui
-                .add(PropertyEditor::new(
-                    &mut row_edit.row_offset.x,
-                    reference_store,
-                ))
+                .add(PropertyEditor::new(&mut row.row_offset.x, reference_store))
                 .into();
         });
         ui.horizontal(|ui| {
             ui.label("Offset y:");
             edit_result |= ui
-                .add(PropertyEditor::new(
-                    &mut row_edit.row_offset.y,
-                    reference_store,
-                ))
+                .add(PropertyEditor::new(&mut row.row_offset.y, reference_store))
                 .into();
         });
         ui.separator();
-        edit_result |= cell_property_editor(ui, &mut row_edit.cell, reference_store);
+        edit_result |= cell_property_editor(ui, &mut row.cell, reference_store);
 
         if let EditResult::FromId(widget_id) = edit_result {
-            undo_redo_manager.queue(EditProperty::new(row.id, row_edit, widget_id));
+            undo_redo_manager.queue(EditProperty::new(row.id, row.clone(), widget_id));
         }
 
         ControlFlow::Continue(())
     }
 
-    fn visit_timing_tower_column(&mut self, column: &TimingTowerColumn) -> ControlFlow<()> {
+    fn visit_timing_tower_column(&mut self, column: &mut TimingTowerColumn) -> ControlFlow<()> {
         let PropertyEditorVisitor {
             ui,
             reference_store,
@@ -109,23 +99,22 @@ impl<'a> NodeVisitor for PropertyEditorVisitor<'a> {
             ..
         } = self;
 
-        let mut column_edit = column.clone();
         let mut edit_result = EditResult::None;
 
         ui.label("Name:");
-        edit_result |= ui.text_edit_singleline(&mut column_edit.name).into();
+        edit_result |= ui.text_edit_singleline(&mut column.name).into();
         ui.separator();
-        edit_result |= cell_property_editor(ui, &mut column_edit.cell, reference_store).into();
+        edit_result |= cell_property_editor(ui, &mut column.cell, reference_store).into();
 
         if let EditResult::FromId(widget_id) = edit_result {
-            undo_redo_manager.queue(EditProperty::new(column.id, column_edit, widget_id));
+            undo_redo_manager.queue(EditProperty::new(column.id, column.clone(), widget_id));
         }
         ControlFlow::Continue(())
     }
 
     fn visit_timing_tower_column_folder(
         &mut self,
-        folder: &TimingTowerColumnFolder,
+        folder: &mut TimingTowerColumnFolder,
     ) -> ControlFlow<()> {
         let PropertyEditorVisitor {
             ui,
@@ -133,63 +122,60 @@ impl<'a> NodeVisitor for PropertyEditorVisitor<'a> {
             ..
         } = self;
 
-        let mut folder_edit = folder.clone();
         let mut edit_result = EditResult::None;
 
         ui.label("Name:");
-        edit_result |= ui.text_edit_singleline(&mut folder_edit.name).into();
+        edit_result |= ui.text_edit_singleline(&mut folder.name).into();
 
         if let EditResult::FromId(widget_id) = edit_result {
-            undo_redo_manager.queue(EditProperty::new(folder.id, folder_edit, widget_id));
+            undo_redo_manager.queue(EditProperty::new(folder.id, folder.clone(), widget_id));
         }
 
         ControlFlow::Continue(())
     }
 
-    fn visit_asset(&mut self, asset: &AssetDefinition) -> ControlFlow<()> {
+    fn visit_asset(&mut self, asset: &mut AssetDefinition) -> ControlFlow<()> {
         let PropertyEditorVisitor {
             ui,
             undo_redo_manager,
             ..
         } = self;
 
-        let mut asset_edit = asset.clone();
         let mut edit_result = EditResult::None;
 
         ui.label("Name");
-        edit_result |= ui.text_edit_singleline(&mut asset_edit.name).into();
+        edit_result |= ui.text_edit_singleline(&mut asset.name).into();
         ui.separator();
         ui.label("Path:");
-        edit_result |= ui.text_edit_singleline(&mut asset_edit.path).into();
+        edit_result |= ui.text_edit_singleline(&mut asset.path).into();
 
         if let EditResult::FromId(widget_id) = edit_result {
-            undo_redo_manager.queue(EditProperty::new(asset.id, asset_edit, widget_id));
+            undo_redo_manager.queue(EditProperty::new(asset.id, asset.clone(), widget_id));
         }
 
         ControlFlow::Continue(())
     }
 
-    fn visit_asset_folder(&mut self, folder: &AssetFolder) -> ControlFlow<()> {
+    fn visit_asset_folder(&mut self, folder: &mut AssetFolder) -> ControlFlow<()> {
         let PropertyEditorVisitor {
             ui,
             undo_redo_manager,
             ..
         } = self;
 
-        let mut folder_edit = folder.clone();
         let mut edit_result = EditResult::None;
 
         ui.label("Name:");
-        edit_result |= ui.text_edit_singleline(&mut folder_edit.name).into();
+        edit_result |= ui.text_edit_singleline(&mut folder.name).into();
 
         if let EditResult::FromId(widget_id) = edit_result {
-            undo_redo_manager.queue(EditProperty::new(folder.id, folder_edit, widget_id));
+            undo_redo_manager.queue(EditProperty::new(folder.id, folder.clone(), widget_id));
         }
 
         ControlFlow::Continue(())
     }
 
-    fn visit_variable(&mut self, variable: &VariableDefinition) -> ControlFlow<()> {
+    fn visit_variable(&mut self, variable: &mut VariableDefinition) -> ControlFlow<()> {
         let PropertyEditorVisitor {
             ui,
             reference_store,
@@ -197,48 +183,45 @@ impl<'a> NodeVisitor for PropertyEditorVisitor<'a> {
             ..
         } = self;
 
-        let mut variable_edit = variable.clone();
         let mut edit_result = EditResult::None;
 
         ui.label("Name:");
-        edit_result |= ui.text_edit_singleline(&mut variable_edit.name).into();
+        edit_result |= ui.text_edit_singleline(&mut variable.name).into();
 
         ui.horizontal(|ui| {
             ui.label("Behavior:");
             ComboBox::new(ui.next_auto_id(), "")
-                .selected_text(match variable_edit.behavior {
+                .selected_text(match variable.behavior {
                     VariableBehavior::FixedValue(_) => "Fixed value",
                     VariableBehavior::Condition(_) => "Condition",
                     VariableBehavior::Map(_) => "Map",
                 })
                 .show_ui(ui, |ui| {
                     let is_fixed_value =
-                        matches!(variable_edit.behavior, VariableBehavior::FixedValue(_));
+                        matches!(variable.behavior, VariableBehavior::FixedValue(_));
                     let res = ui.selectable_label(is_fixed_value, "Fixed value");
                     if res.clicked() && !is_fixed_value {
-                        variable_edit.behavior =
-                            VariableBehavior::FixedValue(FixedValue::default());
+                        variable.behavior = VariableBehavior::FixedValue(FixedValue::default());
                         edit_result |= EditResult::FromId(res.id);
                     }
 
-                    let is_condition =
-                        matches!(variable_edit.behavior, VariableBehavior::Condition(_));
+                    let is_condition = matches!(variable.behavior, VariableBehavior::Condition(_));
                     let res = ui.selectable_label(is_condition, "Condition");
                     if res.clicked() && !is_condition {
-                        variable_edit.behavior = VariableBehavior::Condition(Condition::default());
+                        variable.behavior = VariableBehavior::Condition(Condition::default());
                         edit_result |= EditResult::FromId(res.id);
                     }
 
-                    let is_map = matches!(variable_edit.behavior, VariableBehavior::Map(_));
+                    let is_map = matches!(variable.behavior, VariableBehavior::Map(_));
                     let res = ui.selectable_label(is_map, "Map");
                     if res.clicked() && !is_map {
-                        variable_edit.behavior = VariableBehavior::Map(Map::default());
+                        variable.behavior = VariableBehavior::Map(Map::default());
                         edit_result |= EditResult::FromId(res.id);
                     }
                 });
         });
         ui.separator();
-        edit_result |= match &mut variable_edit.behavior {
+        edit_result |= match &mut variable.behavior {
             VariableBehavior::FixedValue(value) => {
                 if variables::fixed_value::property_editor(ui, value, reference_store) {
                     EditResult::FromId(ui.make_persistent_id("Fixed_value_edit"))
@@ -263,61 +246,55 @@ impl<'a> NodeVisitor for PropertyEditorVisitor<'a> {
         };
 
         if let EditResult::FromId(widget_id) = edit_result {
-            undo_redo_manager.queue(EditProperty::new(variable.id, variable_edit, widget_id));
+            undo_redo_manager.queue(EditProperty::new(variable.id, variable.clone(), widget_id));
         }
 
         ControlFlow::Continue(())
     }
 
-    fn visit_variable_folder(&mut self, folder: &VariableFolder) -> ControlFlow<()> {
+    fn visit_variable_folder(&mut self, folder: &mut VariableFolder) -> ControlFlow<()> {
         let PropertyEditorVisitor {
             ui,
             undo_redo_manager,
             ..
         } = self;
 
-        let mut folder_edit = folder.clone();
         let mut edit_result = EditResult::None;
 
         ui.label("Name:");
-        edit_result |= ui.text_edit_singleline(&mut folder_edit.name).into();
+        edit_result |= ui.text_edit_singleline(&mut folder.name).into();
 
         if let EditResult::FromId(widget_id) = edit_result {
-            undo_redo_manager.queue(EditProperty::new(folder.id, folder_edit, widget_id));
+            undo_redo_manager.queue(EditProperty::new(folder.id, folder.clone(), widget_id));
         }
         ControlFlow::Continue(())
     }
 
-    fn visit_scene(&mut self, scene: &SceneDefinition) -> ControlFlow<()> {
+    fn visit_scene(&mut self, scene: &mut SceneDefinition) -> ControlFlow<()> {
         let PropertyEditorVisitor {
             ui,
             undo_redo_manager,
             ..
         } = self;
 
-        let mut scene_edit = scene.clone();
         let mut edit_result = EditResult::None;
 
         ui.label("Prefered size:");
         ui.horizontal(|ui| {
             ui.label("width:");
-            edit_result |= ui
-                .add(DragValue::new(&mut scene_edit.prefered_size.x))
-                .into();
+            edit_result |= ui.add(DragValue::new(&mut scene.prefered_size.x)).into();
         });
         ui.horizontal(|ui| {
             ui.label("height:");
-            edit_result |= ui
-                .add(DragValue::new(&mut scene_edit.prefered_size.y))
-                .into();
+            edit_result |= ui.add(DragValue::new(&mut scene.prefered_size.y)).into();
         });
         if let EditResult::FromId(widget_id) = edit_result {
-            undo_redo_manager.queue(EditProperty::new(scene.id, scene_edit, widget_id));
+            undo_redo_manager.queue(EditProperty::new(scene.id, scene.clone(), widget_id));
         }
         ControlFlow::Continue(())
     }
 
-    fn visit_clip_area(&mut self, clip_area: &dyn DynClipArea) -> ControlFlow<()> {
+    fn visit_clip_area(&mut self, clip_area: &mut dyn DynClipArea) -> ControlFlow<()> {
         let PropertyEditorVisitor {
             ui,
             undo_redo_manager,
@@ -325,8 +302,7 @@ impl<'a> NodeVisitor for PropertyEditorVisitor<'a> {
             ..
         } = self;
 
-        let mut clip_area_edit = clip_area.clone();
-        let mut data = clip_area_edit.data_mut();
+        let mut data = clip_area.data_mut();
         let mut edit_result = EditResult::None;
 
         ui.horizontal(|ui| {
@@ -414,11 +390,7 @@ impl<'a> NodeVisitor for PropertyEditorVisitor<'a> {
         });
 
         if let EditResult::FromId(widget_id) = edit_result {
-            undo_redo_manager.queue(EditProperty::new(
-                *clip_area.id(),
-                clip_area_edit,
-                widget_id,
-            ));
+            undo_redo_manager.queue(EditProperty::new(*clip_area.id(), clip_area, widget_id));
         }
         ControlFlow::Continue(())
     }

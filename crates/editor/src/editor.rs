@@ -151,7 +151,6 @@ fn ui(
                 viewport,
                 selected_node,
                 style: style,
-                style_changed: &mut style_changed,
                 reference_store: &reference_store,
                 undo_redo_manager: undo_redo_manager.as_mut(),
             },
@@ -191,7 +190,6 @@ struct EditorTabViewer<'a> {
     viewport: &'a mut Rect,
     selected_node: &'a mut Option<Uuid>,
     style: &'a mut StyleDefinition,
-    style_changed: &'a mut bool,
     reference_store: &'a ReferenceStore,
     undo_redo_manager: &'a mut UndoRedoManager,
 }
@@ -215,7 +213,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 *self.viewport = ui.clip_rect();
             }
             Tab::Elements => {
-                *self.style_changed |= tree_view(
+                tree_view(
                     ui,
                     self.selected_node,
                     &mut self.style.scene,
@@ -227,13 +225,12 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     ui,
                     self.selected_node,
                     self.style,
-                    self.style_changed,
                     self.reference_store,
                     self.undo_redo_manager,
                 );
             }
             Tab::Variables => {
-                *self.style_changed |= tree_view(
+                tree_view(
                     ui,
                     self.selected_node,
                     &mut self.style.vars,
@@ -241,7 +238,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 );
             }
             Tab::Assets => {
-                *self.style_changed |= tree_view(
+                tree_view(
                     ui,
                     self.selected_node,
                     &mut self.style.assets,
@@ -351,7 +348,6 @@ fn property_editor(
     ui: &mut Ui,
     selected_id: &mut Option<Uuid>,
     style: &mut StyleDefinition,
-    changed: &mut bool,
     reference_store: &ReferenceStore,
     undo_redo_manager: &mut UndoRedoManager,
 ) {
@@ -362,12 +358,11 @@ fn property_editor(
     ScrollArea::vertical()
         .auto_shrink([false, false])
         .show(ui, |ui| {
-            *changed |= SearchVisitorMut::new(*selected_id, |selected_node| {
+            SearchVisitorMut::new(*selected_id, |selected_node| {
                 PropertyEditorVisitor::new(ui, reference_store, undo_redo_manager)
                     .apply_to(selected_node)
             })
-            .search_in(style)
-            .unwrap_or(false);
+            .search_in(style);
         });
 }
 

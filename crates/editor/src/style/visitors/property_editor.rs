@@ -1,4 +1,4 @@
-use std::ops::ControlFlow;
+use std::{ops::ControlFlow, any::TypeId};
 
 use backend::style::{
     cell::{Cell, TextAlignment},
@@ -302,7 +302,7 @@ impl<'a> NodeVisitorMut for PropertyEditorVisitor<'a> {
             ..
         } = self;
 
-        let mut data = clip_area.data_mut();
+        let data = clip_area.data_mut();
         let mut edit_result = EditResult::None;
 
         ui.horizontal(|ui| {
@@ -388,10 +388,14 @@ impl<'a> NodeVisitorMut for PropertyEditorVisitor<'a> {
                 edit_result = EditResult::FromId(res.id)
             }
         });
-
-        if let EditResult::FromId(widget_id) = edit_result {
-            undo_redo_manager.queue(EditProperty::new(*clip_area.id(), clip_area, widget_id));
+        if ui.button("test").clicked(){
+            println!("type id of this clip_area: {:?}", clip_area.as_any().type_id());
+            println!("type id of a ClipArea<TimingTowerRow>: {:?}", TypeId::of::<ClipArea<TimingTowerRow>>());
         }
+
+        // if let EditResult::FromId(widget_id) = edit_result {
+        //     undo_redo_manager.queue(EditProperty::new(*clip_area.id(), clip_area, widget_id));
+        // }
         ControlFlow::Continue(())
     }
 }

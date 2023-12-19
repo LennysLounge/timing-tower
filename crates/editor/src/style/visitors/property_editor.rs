@@ -317,8 +317,109 @@ impl<'a> NodeVisitor for PropertyEditorVisitor<'a> {
         ControlFlow::Continue(())
     }
 
-    fn visit_clip_area(&mut self, _clip_area: &dyn DynClipArea) -> ControlFlow<()> {
-        self.ui.label("Clip Area");
+    fn visit_clip_area(&mut self, clip_area: &dyn DynClipArea) -> ControlFlow<()> {
+        let PropertyEditorVisitor {
+            ui,
+            undo_redo_manager,
+            reference_store,
+            ..
+        } = self;
+
+        let mut clip_area_edit = clip_area.clone();
+        let mut data = clip_area_edit.data_mut();
+        let mut edit_result = EditResult::None;
+
+        ui.horizontal(|ui| {
+            ui.label("Pos x:");
+            let res = ui.add(PropertyEditor::new(&mut data.position.x, reference_store));
+            if res.changed() {
+                edit_result = EditResult::FromId(res.id)
+            }
+        });
+        ui.horizontal(|ui| {
+            ui.label("Pos y:");
+            let res = ui.add(PropertyEditor::new(&mut data.position.y, reference_store));
+            if res.changed() {
+                edit_result = EditResult::FromId(res.id)
+            }
+        });
+        ui.horizontal(|ui| {
+            ui.label("Pos z:");
+            let res = ui.add(PropertyEditor::new(&mut data.position.z, reference_store));
+            if res.changed() {
+                edit_result = EditResult::FromId(res.id)
+            }
+        });
+        ui.horizontal(|ui| {
+            ui.label("Width:");
+            let res = ui.add(PropertyEditor::new(&mut data.size.x, reference_store));
+            if res.changed() {
+                edit_result = EditResult::FromId(res.id)
+            }
+        });
+        ui.horizontal(|ui| {
+            ui.label("Height:");
+            let res = ui.add(PropertyEditor::new(&mut data.size.y, reference_store));
+            if res.changed() {
+                edit_result = EditResult::FromId(res.id)
+            }
+        });
+        ui.horizontal(|ui| {
+            ui.label("Skew:");
+            let res = ui.add(PropertyEditor::new(&mut data.skew, reference_store));
+            if res.changed() {
+                edit_result = EditResult::FromId(res.id)
+            }
+        });
+        ui.label("Rounding:");
+        ui.horizontal(|ui| {
+            ui.label("top left:");
+            let res = ui.add(PropertyEditor::new(
+                &mut data.rounding.top_left,
+                reference_store,
+            ));
+            if res.changed() {
+                edit_result = EditResult::FromId(res.id)
+            }
+        });
+        ui.horizontal(|ui| {
+            ui.label("top right:");
+            let res = ui.add(PropertyEditor::new(
+                &mut data.rounding.top_right,
+                reference_store,
+            ));
+            if res.changed() {
+                edit_result = EditResult::FromId(res.id)
+            }
+        });
+        ui.horizontal(|ui| {
+            ui.label("bottom right:");
+            let res = ui.add(PropertyEditor::new(
+                &mut data.rounding.bot_right,
+                reference_store,
+            ));
+            if res.changed() {
+                edit_result = EditResult::FromId(res.id)
+            }
+        });
+        ui.horizontal(|ui| {
+            ui.label("bottom left:");
+            let res = ui.add(PropertyEditor::new(
+                &mut data.rounding.bot_left,
+                reference_store,
+            ));
+            if res.changed() {
+                edit_result = EditResult::FromId(res.id)
+            }
+        });
+
+        if let EditResult::FromId(widget_id) = edit_result {
+            undo_redo_manager.queue(EditProperty::new(
+                *clip_area.id(),
+                clip_area_edit,
+                widget_id,
+            ));
+        }
         ControlFlow::Continue(())
     }
 }

@@ -3,7 +3,10 @@ use std::ops::ControlFlow;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::value_types::{Number, Property, Vec2Property, Vec3Property};
+
 use super::{
+    cell::Rounding,
     visitor::{NodeVisitor, NodeVisitorMut, Visitable},
     StyleNode,
 };
@@ -16,6 +19,10 @@ pub struct ClipArea<T> {
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct ClipAreaData {
     pub id: Uuid,
+    pub position: Vec3Property,
+    pub size: Vec2Property,
+    pub skew: Property<Number>,
+    pub rounding: Rounding,
 }
 
 impl<T> StyleNode for ClipArea<T>
@@ -63,6 +70,7 @@ pub trait DynClipArea: StyleNode {
     fn as_style_node(&self) -> &dyn StyleNode;
     fn as_style_node_mut(&mut self) -> &mut dyn StyleNode;
     fn data(&self) -> &ClipAreaData;
+    fn data_mut(&mut self) -> &mut ClipAreaData;
 }
 impl<T> DynClipArea for ClipArea<T>
 where
@@ -78,5 +86,9 @@ where
 
     fn data(&self) -> &ClipAreaData {
         &self.data
+    }
+
+    fn data_mut(&mut self) -> &mut ClipAreaData {
+        &mut self.data
     }
 }

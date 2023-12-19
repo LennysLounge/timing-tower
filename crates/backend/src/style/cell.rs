@@ -22,7 +22,7 @@ pub struct Cell {
     pub text_position: Vec2Property,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Default)]
 pub struct Rounding {
     pub top_left: Property<Number>,
     pub top_right: Property<Number>,

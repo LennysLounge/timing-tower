@@ -122,6 +122,7 @@ fn update_row(
             // create all necessairy cells for rows.
             let columns: HashMap<Uuid, CellId> = style
                 .row
+                .inner
                 .contained_columns()
                 .iter()
                 .map(|c| (c.id, CellId::new()))
@@ -147,11 +148,11 @@ fn update_row(
 
     let row_offset = vec3(
         row_resolver
-            .property(&style.row.row_offset.x)
+            .property(&style.row.inner.row_offset.x)
             .unwrap_or_default()
             .0,
         -row_resolver
-            .property(&style.row.row_offset.y)
+            .property(&style.row.inner.row_offset.y)
             .unwrap_or_default()
             .0,
         0.0,
@@ -162,12 +163,12 @@ fn update_row(
         };
 
         row_resolver.entry = Some(entry);
-        let (row_style, column_resolver) = row_resolver.get_and_child(&style.row.cell);
+        let (row_style, column_resolver) = row_resolver.get_and_child(&style.row.inner.cell);
         row_resolver.position += row_offset + vec3(0.0, -row_style.size.y, 0.0);
         style_batcher.add(&row.cell_id, row_style);
 
         // update columns
-        for column in style.row.contained_columns() {
+        for column in style.row.inner.contained_columns() {
             let Some(cell_id) = row.columns.get(&column.id) else {
                 continue;
             };

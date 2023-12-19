@@ -152,4 +152,8 @@ impl<'a, T> NodeVisitorMut for SearchVisitorMut<'a, T> {
     fn visit_scene(&mut self, scene: &mut SceneDefinition) -> ControlFlow<()> {
         self.test(scene)
     }
+
+    fn visit_clip_area(&mut self, clip_area: &mut dyn DynClipArea) -> ControlFlow<()> {
+        self.test(clip_area.as_style_node_mut())
+    }
 }

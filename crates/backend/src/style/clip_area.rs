@@ -8,15 +8,12 @@ use super::{
     StyleNode,
 };
 
-#[derive(Serialize, Deserialize, Clone)]
-pub struct ClipArea<T>
-where
-    T: StyleNode + 'static,
-{
+#[derive(Serialize, Deserialize, Clone, Default)]
+pub struct ClipArea<T> {
     pub data: ClipAreaData,
     pub inner: T,
 }
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Default)]
 pub struct ClipAreaData {
     pub id: Uuid,
 }
@@ -64,13 +61,18 @@ where
 
 pub trait DynClipArea: StyleNode {
     fn as_style_node(&self) -> &dyn StyleNode;
+    fn as_style_node_mut(&mut self) -> &mut dyn StyleNode;
     fn data(&self) -> &ClipAreaData;
 }
 impl<T> DynClipArea for ClipArea<T>
 where
-    T: StyleNode + Clone,
+    T: StyleNode + Clone + 'static,
 {
     fn as_style_node(&self) -> &dyn StyleNode {
+        self
+    }
+
+    fn as_style_node_mut(&mut self) -> &mut dyn StyleNode {
         self
     }
 

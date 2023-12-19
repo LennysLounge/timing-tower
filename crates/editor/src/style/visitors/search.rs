@@ -75,6 +75,9 @@ impl<'a, T> NodeVisitor for SearchVisitor<'a, T> {
     fn visit_variable_folder(&mut self, folder: &VariableFolder) -> ControlFlow<()> {
         self.test(folder)
     }
+    fn visit_clip_area(&mut self, clip_area: &dyn DynClipArea) -> ControlFlow<()> {
+        self.test(clip_area.as_style_node())
+    }
 }
 
 pub struct SearchVisitorMut<'a, T> {

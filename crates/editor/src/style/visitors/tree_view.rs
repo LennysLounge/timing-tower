@@ -328,4 +328,16 @@ impl NodeVisitorMut for TreeViewVisitor<'_> {
         self.builder.close_dir();
         ControlFlow::Continue(())
     }
+
+    fn visit_clip_area(&mut self, clip_area: &mut dyn DynClipArea) -> ControlFlow<()> {
+        self.builder.dir(clip_area.id(), |ui| {
+            ui.label("Clip area");
+        });
+        ControlFlow::Continue(())
+    }
+
+    fn leave_clip_area(&mut self, _clip_area: &mut dyn DynClipArea) -> ControlFlow<()> {
+        self.builder.close_dir();
+        ControlFlow::Continue(())
+    }
 }

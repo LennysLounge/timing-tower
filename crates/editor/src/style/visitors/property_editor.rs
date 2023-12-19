@@ -316,6 +316,11 @@ impl<'a> NodeVisitor for PropertyEditorVisitor<'a> {
         }
         ControlFlow::Continue(())
     }
+
+    fn visit_clip_area(&mut self, _clip_area: &dyn DynClipArea) -> ControlFlow<()> {
+        self.ui.label("Clip Area");
+        ControlFlow::Continue(())
+    }
 }
 
 fn cell_property_editor(

@@ -2,6 +2,7 @@ use std::ops::ControlFlow;
 
 use super::{
     assets::{AssetDefinition, AssetFolder},
+    clip_area::DynClipArea,
     scene::SceneDefinition,
     timing_tower::{TimingTower, TimingTowerColumn, TimingTowerColumnFolder, TimingTowerRow},
     variables::{VariableDefinition, VariableFolder},
@@ -92,6 +93,14 @@ pub trait NodeVisitor {
     fn leave_scene(&mut self, scene: &SceneDefinition) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
+    #[allow(unused_variables)]
+    fn visit_clip_area(&mut self, clip_area: &dyn DynClipArea) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+    #[allow(unused_variables)]
+    fn leave_clip_area(&mut self, clip_area: &dyn DynClipArea) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
 }
 
 pub trait NodeVisitorMut {
@@ -167,6 +176,14 @@ pub trait NodeVisitorMut {
     }
     #[allow(unused_variables)]
     fn leave_scene(&mut self, scene: &mut SceneDefinition) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+    #[allow(unused_variables)]
+    fn visit_clip_area(&mut self, clip_area: &mut dyn DynClipArea) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+    #[allow(unused_variables)]
+    fn leave_clip_area(&mut self, clip_area: &mut dyn DynClipArea) -> ControlFlow<()> {
         ControlFlow::Continue(())
     }
 }

@@ -8,7 +8,7 @@ use crate::value_types::Vec2Property;
 use super::{
     cell::Cell,
     clip_area::ClipArea,
-    visitor::{NodeVisitor, NodeVisitorMut, Visitable},
+    visitor::{Node, NodeVisitor, NodeVisitorMut, Visitable},
     StyleNode,
 };
 
@@ -31,11 +31,11 @@ impl Visitable for TimingTower {
     }
 
     fn enter(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit_timing_tower(self)
+        visitor.visit(Node::TimingTower(self))
     }
 
     fn leave(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.leave_timing_tower(self)
+        visitor.leave(Node::TimingTower(self))
     }
 
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
@@ -87,11 +87,11 @@ impl Visitable for TimingTowerRow {
     }
 
     fn enter(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit_timing_tower_row(self)
+        visitor.visit(Node::TimingTowerRow(self))
     }
 
     fn leave(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.leave_timing_tower_row(self)
+        visitor.leave(Node::TimingTowerRow(self))
     }
 
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
@@ -139,7 +139,7 @@ impl Visitable for TimingTowerColumn {
     }
 
     fn enter(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit_timing_tower_column(self)
+        visitor.visit(Node::TimingTowerColumn(self))
     }
 
     fn leave(&self, _visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
@@ -199,11 +199,11 @@ impl Visitable for TimingTowerColumnFolder {
     }
 
     fn enter(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit_timing_tower_column_folder(self)
+        visitor.visit(Node::TimingTowerColumnFolder(self))
     }
 
     fn leave(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.leave_timing_tower_column_folder(self)
+        visitor.leave(Node::TimingTowerColumnFolder(self))
     }
 
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {

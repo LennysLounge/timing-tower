@@ -7,7 +7,8 @@ use crate::value_types::{Number, Property, Vec2Property, Vec3Property};
 
 use super::{
     cell::Rounding,
-    visitor::{NodeVisitor, NodeVisitorMut, Visitable},
+    timing_tower::TimingTowerRow,
+    visitor::{Node, NodeVisitor, NodeVisitorMut, Visitable},
     StyleNode,
 };
 
@@ -28,15 +29,13 @@ pub struct ClipAreaData {
 impl<T> StyleNode for ClipArea<T>
 where
     T: StyleNode + Clone + 'static,
+    Self: Visitable,
 {
     fn id(&self) -> &Uuid {
         &self.data.id
     }
 }
-impl<T> Visitable for ClipArea<T>
-where
-    T: StyleNode + Clone + 'static,
-{
+impl Visitable for ClipArea<TimingTowerRow> {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
         self.enter(visitor)?;
         self.inner.walk(visitor)?;
@@ -44,11 +43,11 @@ where
     }
 
     fn enter(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit_clip_area(self)
+        visitor.visit(Node::ClipArea(self))
     }
 
     fn leave(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.leave_clip_area(self)
+        visitor.leave(Node::ClipArea(self))
     }
 
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
@@ -75,6 +74,7 @@ pub trait DynClipArea: StyleNode {
 impl<T> DynClipArea for ClipArea<T>
 where
     T: StyleNode + Clone + 'static,
+    Self: Visitable,
 {
     fn as_style_node(&self) -> &dyn StyleNode {
         self

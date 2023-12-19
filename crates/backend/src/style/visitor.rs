@@ -2,7 +2,7 @@ use std::ops::ControlFlow;
 
 use super::{
     assets::{AssetDefinition, AssetFolder},
-    clip_area::DynClipArea,
+    clip_area::{ClipArea, DynClipArea},
     scene::SceneDefinition,
     timing_tower::{TimingTower, TimingTowerColumn, TimingTowerColumnFolder, TimingTowerRow},
     variables::{VariableDefinition, VariableFolder},
@@ -18,89 +18,23 @@ pub trait Visitable {
     fn leave_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()>;
 }
 
+pub enum Node<'a> {
+    Style(&'a StyleDefinition),
+    Variable(&'a VariableDefinition),
+    VariableFolder(&'a VariableFolder),
+    Asset(&'a AssetDefinition),
+    AssetFolder(&'a AssetFolder),
+    Scene(&'a SceneDefinition),
+    TimingTower(&'a TimingTower),
+    TimingTowerRow(&'a TimingTowerRow),
+    TimingTowerColumn(&'a TimingTowerColumn),
+    TimingTowerColumnFolder(&'a TimingTowerColumnFolder),
+    ClipArea(&'a ClipArea<TimingTowerRow>),
+}
+
 pub trait NodeVisitor {
-    #[allow(unused_variables)]
-    fn visit_style(&mut self, style: &StyleDefinition) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
-    #[allow(unused_variables)]
-    fn leave_style(&mut self, style: &StyleDefinition) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
-    #[allow(unused_variables)]
-    fn visit_timing_tower(&mut self, tower: &TimingTower) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
-    #[allow(unused_variables)]
-    fn leave_timing_tower(&mut self, tower: &TimingTower) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
-    #[allow(unused_variables)]
-    fn visit_timing_tower_row(&mut self, row: &TimingTowerRow) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
-    #[allow(unused_variables)]
-    fn leave_timing_tower_row(&mut self, row: &TimingTowerRow) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
-    #[allow(unused_variables)]
-    fn visit_timing_tower_column(&mut self, column: &TimingTowerColumn) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
-    #[allow(unused_variables)]
-    fn visit_timing_tower_column_folder(
-        &mut self,
-        folder: &TimingTowerColumnFolder,
-    ) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
-    #[allow(unused_variables)]
-    fn leave_timing_tower_column_folder(
-        &mut self,
-        folder: &TimingTowerColumnFolder,
-    ) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
-    #[allow(unused_variables)]
-    fn visit_asset(&mut self, asset: &AssetDefinition) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
-    #[allow(unused_variables)]
-    fn visit_asset_folder(&mut self, folder: &AssetFolder) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
-    #[allow(unused_variables)]
-    fn leave_asset_folder(&mut self, folder: &AssetFolder) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
-    #[allow(unused_variables)]
-    fn visit_variable(&mut self, variable: &VariableDefinition) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
-    #[allow(unused_variables)]
-    fn visit_variable_folder(&mut self, folder: &VariableFolder) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
-    #[allow(unused_variables)]
-    fn leave_variable_folder(&mut self, folder: &VariableFolder) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
-    #[allow(unused_variables)]
-    fn visit_scene(&mut self, scene: &SceneDefinition) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
-    #[allow(unused_variables)]
-    fn leave_scene(&mut self, scene: &SceneDefinition) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
-    #[allow(unused_variables)]
-    fn visit_clip_area(&mut self, clip_area: &dyn DynClipArea) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
-    #[allow(unused_variables)]
-    fn leave_clip_area(&mut self, clip_area: &dyn DynClipArea) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
+    fn visit(&mut self, node: Node) -> ControlFlow<()>;
+    fn leave(&mut self, node: Node) -> ControlFlow<()>;
 }
 
 pub trait NodeVisitorMut {

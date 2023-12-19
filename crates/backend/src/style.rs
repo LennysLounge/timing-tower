@@ -7,7 +7,7 @@ use uuid::Uuid;
 use self::{
     definitions::*,
     scene::SceneDefinition,
-    visitor::{NodeVisitor, NodeVisitorMut, Visitable},
+    visitor::{Node, NodeVisitor, NodeVisitorMut, Visitable},
 };
 
 pub mod assets;
@@ -51,11 +51,11 @@ impl Visitable for StyleDefinition {
     }
 
     fn enter(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit_style(self)
+        visitor.visit(Node::Style(self))
     }
 
     fn leave(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.leave_style(self)
+        visitor.leave(Node::Style(self))
     }
 
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {

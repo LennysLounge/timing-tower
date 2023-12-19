@@ -3,7 +3,7 @@ use std::{any::Any, ops::ControlFlow};
 use backend::style::{
     definitions::*,
     timing_tower::TimingTowerColumnFolder,
-    visitor::{NodeVisitor, Visitable},
+    visitor::{Node, NodeVisitor, Visitable},
 };
 
 pub struct DropAllowedVisitor<'a> {
@@ -26,30 +26,29 @@ impl<'a> DropAllowedVisitor<'a> {
     }
 }
 impl NodeVisitor for DropAllowedVisitor<'_> {
-    fn visit_asset_folder(&mut self, _folder: &AssetFolder) -> ControlFlow<()> {
-        self.drop_allowed =
-            self.dragged_node.is::<AssetDefinition>() || self.dragged_node.is::<AssetFolder>();
+    fn visit(&mut self, node: Node) -> ControlFlow<()> {
+        self.drop_allowed = match node {
+            Node::VariableFolder(_) => {
+                self.dragged_node.is::<VariableDefinition>()
+                    || self.dragged_node.is::<VariableFolder>()
+            }
+            Node::AssetFolder(_) => {
+                self.dragged_node.is::<AssetDefinition>() || self.dragged_node.is::<AssetFolder>()
+            }
+            Node::TimingTowerRow(_) => {
+                self.dragged_node.is::<TimingTowerColumn>()
+                    || self.dragged_node.is::<TimingTowerColumnFolder>()
+            }
+            Node::TimingTowerColumnFolder(_) => {
+                self.dragged_node.is::<TimingTowerColumn>()
+                    || self.dragged_node.is::<TimingTowerColumnFolder>()
+            }
+            _ => false,
+        };
         ControlFlow::Break(())
     }
 
-    fn visit_variable_folder(&mut self, _folder: &VariableFolder) -> ControlFlow<()> {
-        self.drop_allowed = self.dragged_node.is::<VariableDefinition>()
-            || self.dragged_node.is::<VariableFolder>();
-        ControlFlow::Break(())
-    }
-
-    fn visit_timing_tower_row(&mut self, _row: &TimingTowerRow) -> ControlFlow<()> {
-        self.drop_allowed = self.dragged_node.is::<TimingTowerColumn>()
-            || self.dragged_node.is::<TimingTowerColumnFolder>();
-        ControlFlow::Break(())
-    }
-
-    fn visit_timing_tower_column_folder(
-        &mut self,
-        _folder: &TimingTowerColumnFolder,
-    ) -> ControlFlow<()> {
-        self.drop_allowed = self.dragged_node.is::<TimingTowerColumn>()
-            || self.dragged_node.is::<TimingTowerColumnFolder>();
+    fn leave(&mut self, _node: Node) -> ControlFlow<()> {
         ControlFlow::Break(())
     }
 }

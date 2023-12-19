@@ -19,7 +19,7 @@ pub struct ClipArea<T> {
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct ClipAreaData {
     pub id: Uuid,
-    pub position: Vec3Property,
+    pub pos: Vec3Property,
     pub size: Vec2Property,
     pub skew: Property<Number>,
     pub rounding: Rounding,

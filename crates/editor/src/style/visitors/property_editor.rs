@@ -307,21 +307,21 @@ impl<'a> NodeVisitorMut for PropertyEditorVisitor<'a> {
 
         ui.horizontal(|ui| {
             ui.label("Pos x:");
-            let res = ui.add(PropertyEditor::new(&mut data.position.x, reference_store));
+            let res = ui.add(PropertyEditor::new(&mut data.pos.x, reference_store));
             if res.changed() {
                 edit_result = EditResult::FromId(res.id)
             }
         });
         ui.horizontal(|ui| {
             ui.label("Pos y:");
-            let res = ui.add(PropertyEditor::new(&mut data.position.y, reference_store));
+            let res = ui.add(PropertyEditor::new(&mut data.pos.y, reference_store));
             if res.changed() {
                 edit_result = EditResult::FromId(res.id)
             }
         });
         ui.horizontal(|ui| {
             ui.label("Pos z:");
-            let res = ui.add(PropertyEditor::new(&mut data.position.z, reference_store));
+            let res = ui.add(PropertyEditor::new(&mut data.pos.z, reference_store));
             if res.changed() {
                 edit_result = EditResult::FromId(res.id)
             }

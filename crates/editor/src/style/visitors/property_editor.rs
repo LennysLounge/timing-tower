@@ -1,4 +1,4 @@
-use std::{ops::ControlFlow, any::TypeId};
+use std::{any::TypeId, ops::ControlFlow};
 
 use backend::style::{
     cell::{Cell, TextAlignment},
@@ -297,7 +297,7 @@ impl<'a> NodeVisitorMut for PropertyEditorVisitor<'a> {
     fn visit_clip_area(&mut self, clip_area: &mut dyn DynClipArea) -> ControlFlow<()> {
         let PropertyEditorVisitor {
             ui,
-            undo_redo_manager,
+            undo_redo_manager: _,
             reference_store,
             ..
         } = self;
@@ -388,9 +388,15 @@ impl<'a> NodeVisitorMut for PropertyEditorVisitor<'a> {
                 edit_result = EditResult::FromId(res.id)
             }
         });
-        if ui.button("test").clicked(){
-            println!("type id of this clip_area: {:?}", clip_area.as_any().type_id());
-            println!("type id of a ClipArea<TimingTowerRow>: {:?}", TypeId::of::<ClipArea<TimingTowerRow>>());
+        if ui.button("test").clicked() {
+            println!(
+                "type id of this clip_area: {:?}",
+                clip_area.as_any().type_id()
+            );
+            println!(
+                "type id of a ClipArea<TimingTowerRow>: {:?}",
+                TypeId::of::<ClipArea<TimingTowerRow>>()
+            );
         }
 
         // if let EditResult::FromId(widget_id) = edit_result {

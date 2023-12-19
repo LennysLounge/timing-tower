@@ -142,7 +142,6 @@ fn ui(
         style,
     } = &mut *state;
     let viewport = &mut editor_camera.single_mut().0.raw_viewport;
-    let mut style_changed = false;
     DockArea::new(dock_state)
         .style(egui_dock::Style::from_egui(ctx.ctx_mut().style().as_ref()))
         .show(

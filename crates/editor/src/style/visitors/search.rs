@@ -82,14 +82,14 @@ impl<'a, T> NodeVisitor for SearchVisitor<'a, T> {
 
 pub struct SearchVisitorMut<'a, T> {
     id: Uuid,
-    action: Box<dyn FnMut(&mut dyn StyleNode) -> T + 'a>,
+    action: Option<Box<dyn FnOnce(&mut dyn StyleNode) -> T + 'a>>,
     output: Option<T>,
 }
 impl<'a, T> SearchVisitorMut<'a, T> {
-    pub fn new(id: Uuid, action: impl FnMut(&mut dyn StyleNode) -> T + 'a) -> Self {
+    pub fn new(id: Uuid, action: impl FnOnce(&mut dyn StyleNode) -> T + 'a) -> Self {
         Self {
             id,
-            action: Box::new(action),
+            action: Some(Box::new(action)),
             output: None,
         }
     }
@@ -102,7 +102,7 @@ impl<'a, T> SearchVisitorMut<'a, T> {
     }
     fn test(&mut self, node: &mut dyn StyleNode) -> ControlFlow<()> {
         if &self.id == node.id() {
-            self.output = Some((self.action)(node));
+            self.output = self.action.take().map(|action| (action)(node));
             ControlFlow::Break(())
         } else {
             ControlFlow::Continue(())

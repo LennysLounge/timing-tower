@@ -10,7 +10,7 @@ use crate::{
 
 use super::{
     variables::StaticValueProducer,
-    visitor::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut, NodeVisitorMut},
+    visitor::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
     StyleNode,
 };
 
@@ -63,8 +63,11 @@ impl NodeIterator for AssetDefinition {
     }
 }
 impl NodeIteratorMut for AssetDefinition {
-    fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.visit(self.as_node_mut(), Method::Visit)
+    fn walk_mut<F>(&mut self, f: &mut F) -> ControlFlow<()>
+    where
+        F: FnMut(NodeMut, Method) -> ControlFlow<()>,
+    {
+        f(self.as_node_mut(), Method::Visit)
     }
 }
 
@@ -118,13 +121,16 @@ impl NodeIterator for AssetFolder {
     }
 }
 impl NodeIteratorMut for AssetFolder {
-    fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.visit(self.as_node_mut(), Method::Visit)?;
-        self.content.iter_mut().try_for_each(|f| match f {
-            AssetOrFolder::Asset(o) => o.walk_mut(visitor),
-            AssetOrFolder::Folder(o) => o.walk_mut(visitor),
+    fn walk_mut<F>(&mut self, f: &mut F) -> ControlFlow<()>
+    where
+        F: FnMut(NodeMut, Method) -> ControlFlow<()>,
+    {
+        f(self.as_node_mut(), Method::Visit)?;
+        self.content.iter_mut().try_for_each(|v| match v {
+            AssetOrFolder::Asset(o) => o.walk_mut(f),
+            AssetOrFolder::Folder(o) => o.walk_mut(f),
         })?;
-        visitor.visit(self.as_node_mut(), Method::Leave)
+        f(self.as_node_mut(), Method::Leave)
     }
 }
 

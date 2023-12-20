@@ -9,7 +9,7 @@ use crate::value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, V
 use self::{condition::Condition, fixed_value::FixedValue, map::Map};
 
 use super::{
-    visitor::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut, NodeVisitorMut},
+    visitor::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
     StyleNode,
 };
 
@@ -72,8 +72,11 @@ impl NodeIterator for VariableDefinition {
     }
 }
 impl NodeIteratorMut for VariableDefinition {
-    fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.visit(self.as_node_mut(), Method::Visit)
+    fn walk_mut<F>(&mut self, f: &mut F) -> ControlFlow<()>
+    where
+        F: FnMut(NodeMut, Method) -> ControlFlow<()>,
+    {
+        f(self.as_node_mut(), Method::Visit)
     }
 }
 
@@ -137,13 +140,16 @@ impl NodeIterator for VariableFolder {
     }
 }
 impl NodeIteratorMut for VariableFolder {
-    fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.visit(self.as_node_mut(), Method::Visit)?;
-        self.content.iter_mut().try_for_each(|f| match f {
-            VariableOrFolder::Variable(o) => o.walk_mut(visitor),
-            VariableOrFolder::Folder(o) => o.walk_mut(visitor),
+    fn walk_mut<F>(&mut self, f: &mut F) -> ControlFlow<()>
+    where
+        F: FnMut(NodeMut, Method) -> ControlFlow<()>,
+    {
+        f(self.as_node_mut(), Method::Visit)?;
+        self.content.iter_mut().try_for_each(|c| match c {
+            VariableOrFolder::Variable(o) => o.walk_mut(f),
+            VariableOrFolder::Folder(o) => o.walk_mut(f),
         })?;
-        visitor.visit(self.as_node_mut(), Method::Leave)
+        f(self.as_node_mut(), Method::Leave)
     }
 }
 

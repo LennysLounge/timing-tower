@@ -36,7 +36,7 @@ use crate::{
         self,
         visitors::{
             drop_allowed::{self},
-            tree_view::{TreeViewVisitor, TreeViewVisitorResult},
+            tree_view::{self, TreeViewVisitorResult},
         },
     },
     MainCamera,
@@ -300,7 +300,7 @@ fn tree_view(
         nodes_to_add,
         nodes_to_remove,
     } = ScrollArea::vertical()
-        .show(ui, |ui| TreeViewVisitor::show(ui, base_node))
+        .show(ui, |ui| tree_view::show(ui, base_node))
         .inner;
 
     // Add nodes

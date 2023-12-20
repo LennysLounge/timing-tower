@@ -45,7 +45,9 @@ pub trait NodeIterator {
 }
 
 pub trait NodeIteratorMut {
-    fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()>;
+    fn walk_mut<F>(&mut self, f: &mut F) -> ControlFlow<()>
+    where
+        F: FnMut(NodeMut, Method) -> ControlFlow<()>;
 
     fn search_mut<T>(&mut self, node_id: &Uuid, action: impl FnOnce(NodeMut) -> T) -> Option<T> {
         Self::search_key_mut(self, |node| node.id() == node_id, action)
@@ -153,32 +155,22 @@ impl NodeMut<'_> {
     }
 }
 impl NodeIteratorMut for NodeMut<'_> {
-    fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
+    fn walk_mut<F>(&mut self, f: &mut F) -> ControlFlow<()>
+    where
+        F: FnMut(NodeMut, Method) -> ControlFlow<()>,
+    {
         match self {
-            NodeMut::Style(o) => o.walk_mut(visitor),
-            NodeMut::Variable(o) => o.walk_mut(visitor),
-            NodeMut::VariableFolder(o) => o.walk_mut(visitor),
-            NodeMut::Asset(o) => o.walk_mut(visitor),
-            NodeMut::AssetFolder(o) => o.walk_mut(visitor),
-            NodeMut::Scene(o) => o.walk_mut(visitor),
-            NodeMut::TimingTower(o) => o.walk_mut(visitor),
-            NodeMut::TimingTowerRow(o) => o.walk_mut(visitor),
-            NodeMut::TimingTowerColumn(o) => o.walk_mut(visitor),
-            NodeMut::TimingTowerColumnFolder(o) => o.walk_mut(visitor),
-            NodeMut::ClipArea(o) => o.walk_mut(visitor),
+            NodeMut::Style(o) => o.walk_mut(f),
+            NodeMut::Variable(o) => o.walk_mut(f),
+            NodeMut::VariableFolder(o) => o.walk_mut(f),
+            NodeMut::Asset(o) => o.walk_mut(f),
+            NodeMut::AssetFolder(o) => o.walk_mut(f),
+            NodeMut::Scene(o) => o.walk_mut(f),
+            NodeMut::TimingTower(o) => o.walk_mut(f),
+            NodeMut::TimingTowerRow(o) => o.walk_mut(f),
+            NodeMut::TimingTowerColumn(o) => o.walk_mut(f),
+            NodeMut::TimingTowerColumnFolder(o) => o.walk_mut(f),
+            NodeMut::ClipArea(o) => o.walk_mut(f),
         }
-    }
-}
-
-pub trait NodeVisitorMut {
-    fn visit(&mut self, node: NodeMut, method: Method) -> ControlFlow<()>;
-}
-
-impl<T> NodeVisitorMut for T
-where
-    T: FnMut(NodeMut, Method) -> ControlFlow<()>,
-{
-    fn visit(&mut self, node: NodeMut, method: Method) -> ControlFlow<()> {
-        (self)(node, method)
     }
 }

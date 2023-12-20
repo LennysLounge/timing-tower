@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 use super::{
     definitions::TimingTower,
-    visitor::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut, NodeVisitorMut},
+    visitor::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
     StyleNode,
 };
 
@@ -38,9 +38,12 @@ impl NodeIterator for SceneDefinition {
     }
 }
 impl NodeIteratorMut for SceneDefinition {
-    fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.visit(self.as_node_mut(), Method::Visit)?;
-        self.timing_tower.walk_mut(visitor)?;
-        visitor.visit(self.as_node_mut(), Method::Leave)
+    fn walk_mut<F>(&mut self, f: &mut F) -> ControlFlow<()>
+    where
+        F: FnMut(NodeMut, Method) -> ControlFlow<()>,
+    {
+        f(self.as_node_mut(), Method::Visit)?;
+        self.timing_tower.walk_mut(f)?;
+        f(self.as_node_mut(), Method::Leave)
     }
 }

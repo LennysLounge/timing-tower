@@ -7,7 +7,7 @@ use uuid::Uuid;
 use self::{
     definitions::*,
     scene::SceneDefinition,
-    visitor::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut, NodeVisitorMut},
+    visitor::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
 };
 
 pub mod assets;
@@ -60,12 +60,15 @@ impl NodeIterator for StyleDefinition {
     }
 }
 impl NodeIteratorMut for StyleDefinition {
-    fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.visit(self.as_node_mut(), Method::Visit)?;
-        self.assets.walk_mut(visitor)?;
-        self.vars.walk_mut(visitor)?;
-        self.scene.walk_mut(visitor)?;
-        visitor.visit(self.as_node_mut(), Method::Leave)
+    fn walk_mut<F>(&mut self, f: &mut F) -> ControlFlow<()>
+    where
+        F: FnMut(NodeMut, Method) -> ControlFlow<()>,
+    {
+        f(self.as_node_mut(), Method::Visit)?;
+        self.assets.walk_mut(f)?;
+        self.vars.walk_mut(f)?;
+        self.scene.walk_mut(f)?;
+        f(self.as_node_mut(), Method::Leave)
     }
 }
 

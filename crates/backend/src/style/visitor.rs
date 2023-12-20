@@ -17,14 +17,9 @@ pub enum Method {
     Leave,
 }
 
-pub trait Visitable {
+pub trait NodeIterator {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()>;
-}
-pub trait VisitableMut {
-    fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()>;
-}
 
-pub trait NodeIterator: Visitable {
     fn search<T>(&self, node_id: &Uuid, action: impl FnOnce(Node) -> T) -> Option<T> {
         Self::search_key(&self, |node| node.id() == node_id, action)
     }
@@ -46,9 +41,10 @@ pub trait NodeIterator: Visitable {
         output
     }
 }
-impl<T: Visitable> NodeIterator for T {}
 
-pub trait NodeIteratorMut: VisitableMut {
+pub trait NodeIteratorMut {
+    fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()>;
+
     fn search_mut<T>(&mut self, node_id: &Uuid, action: impl FnOnce(NodeMut) -> T) -> Option<T> {
         Self::search_key_mut(self, |node| node.id() == node_id, action)
     }
@@ -70,7 +66,6 @@ pub trait NodeIteratorMut: VisitableMut {
         output
     }
 }
-impl<T: VisitableMut> NodeIteratorMut for T {}
 
 #[derive(Clone, Copy)]
 pub enum Node<'a> {
@@ -104,7 +99,7 @@ impl Node<'_> {
         }
     }
 }
-impl Visitable for Node<'_> {
+impl NodeIterator for Node<'_> {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
         match self {
             Node::Style(o) => o.walk(visitor),
@@ -152,7 +147,7 @@ impl NodeMut<'_> {
         }
     }
 }
-impl VisitableMut for NodeMut<'_> {
+impl NodeIteratorMut for NodeMut<'_> {
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
         match self {
             NodeMut::Style(o) => o.walk_mut(visitor),

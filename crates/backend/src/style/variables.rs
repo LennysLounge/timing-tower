@@ -9,7 +9,7 @@ use crate::value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, V
 use self::{condition::Condition, fixed_value::FixedValue, map::Map};
 
 use super::{
-    visitor::{Method, Node, NodeMut, NodeVisitor, NodeVisitorMut, Visitable, VisitableMut},
+    visitor::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut, NodeVisitor, NodeVisitorMut},
     StyleNode,
 };
 
@@ -63,12 +63,12 @@ impl StyleNode for VariableDefinition {
         NodeMut::Variable(self)
     }
 }
-impl Visitable for VariableDefinition {
+impl NodeIterator for VariableDefinition {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
         visitor.visit(self.as_node(), Method::Visit)
     }
 }
-impl VisitableMut for VariableDefinition {
+impl NodeIteratorMut for VariableDefinition {
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
         visitor.visit(self.as_node_mut())
     }
@@ -120,7 +120,7 @@ impl StyleNode for VariableFolder {
         NodeMut::VariableFolder(self)
     }
 }
-impl Visitable for VariableFolder {
+impl NodeIterator for VariableFolder {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
         visitor.visit(self.as_node(), Method::Visit)?;
         self.content.iter().try_for_each(|f| match f {
@@ -130,7 +130,7 @@ impl Visitable for VariableFolder {
         visitor.visit(self.as_node(), Method::Leave)
     }
 }
-impl VisitableMut for VariableFolder {
+impl NodeIteratorMut for VariableFolder {
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
         visitor.visit(self.as_node_mut())?;
         self.content.iter_mut().try_for_each(|f| match f {

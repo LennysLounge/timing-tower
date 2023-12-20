@@ -2,7 +2,7 @@ use std::ops::ControlFlow;
 
 use backend::style::{
     definitions::*,
-    visitor::{NodeMut, NodeVisitorMut, VisitableMut},
+    visitor::{NodeIteratorMut, NodeMut, NodeVisitorMut},
     StyleNode,
 };
 use bevy_egui::egui::Ui;

@@ -10,7 +10,7 @@ use crate::{
 
 use super::{
     variables::StaticValueProducer,
-    visitor::{Method, Node, NodeMut, NodeVisitor, NodeVisitorMut, Visitable, VisitableMut},
+    visitor::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut, NodeVisitor, NodeVisitorMut},
     StyleNode,
 };
 
@@ -54,12 +54,12 @@ impl StyleNode for AssetDefinition {
         NodeMut::Asset(self)
     }
 }
-impl Visitable for AssetDefinition {
+impl NodeIterator for AssetDefinition {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
         visitor.visit(self.as_node(), Method::Visit)
     }
 }
-impl VisitableMut for AssetDefinition {
+impl NodeIteratorMut for AssetDefinition {
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
         visitor.visit(self.as_node_mut())
     }
@@ -101,7 +101,7 @@ impl StyleNode for AssetFolder {
         NodeMut::AssetFolder(self)
     }
 }
-impl Visitable for AssetFolder {
+impl NodeIterator for AssetFolder {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
         visitor.visit(self.as_node(), Method::Visit)?;
         self.content.iter().try_for_each(|f| match f {
@@ -111,7 +111,7 @@ impl Visitable for AssetFolder {
         visitor.visit(self.as_node(), Method::Leave)
     }
 }
-impl VisitableMut for AssetFolder {
+impl NodeIteratorMut for AssetFolder {
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
         visitor.visit(self.as_node_mut())?;
         self.content.iter_mut().try_for_each(|f| match f {

@@ -1,8 +1,8 @@
 use std::{any::Any, ops::BitOrAssign, time::Instant};
 
 use backend::style::{
-    visitor::{NodeIterator, NodeMut},
-    StyleDefinition,
+    visitor::{NodeIteratorMut, NodeMut},
+    StyleDefinition, StyleNode,
 };
 use bevy_egui::egui::{self, Response};
 use uuid::Uuid;
@@ -30,6 +30,7 @@ impl EditProperty {
 
     pub fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
         style
+            .as_node_mut()
             .search_mut(&self.node_id, |node| {
                 let old_value = match node {
                     NodeMut::Style(o) => apply_edit(o, self.value),

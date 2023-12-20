@@ -1,4 +1,4 @@
-use backend::style::{visitor::NodeIterator, StyleDefinition};
+use backend::style::{visitor::NodeIteratorMut, StyleDefinition, StyleNode};
 use egui_ltreeview::DropPosition;
 use uuid::Uuid;
 
@@ -14,7 +14,7 @@ pub struct MoveNode {
 impl MoveNode {
     pub fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
         remove::remove_node(&self.id, style).map(|removed_node| {
-            style.search_mut(&self.target_id, |node| {
+            style.as_node_mut().search_mut(&self.target_id, |node| {
                 insert::insert(node, self.position, removed_node.node.to_any());
             });
             MoveNode {

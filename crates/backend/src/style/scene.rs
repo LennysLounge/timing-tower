@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 use super::{
     definitions::TimingTower,
-    visitor::{Node, NodeMut, NodeVisitor, NodeVisitorMut, Visitable, Method},
+    visitor::{Node, NodeMut, NodeVisitor, NodeVisitorMut, Visitable, Method, VisitableMut},
     StyleNode,
 };
 
@@ -33,7 +33,8 @@ impl Visitable for SceneDefinition {
         self.timing_tower.walk(visitor)?;
         visitor.visit(self.as_node(), Method::Leave)
     }
-
+}
+impl VisitableMut for SceneDefinition {
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
         visitor.visit(self.as_node_mut())?;
         self.timing_tower.walk_mut(visitor)?;

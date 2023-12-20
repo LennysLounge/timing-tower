@@ -2,7 +2,7 @@ use std::ops::ControlFlow;
 
 use backend::style::{
     definitions::*,
-    visitor::{NodeMut, NodeVisitorMut},
+    visitor::{NodeMut, NodeVisitorMut, VisitableMut},
     StyleNode,
 };
 use bevy_egui::egui::Ui;
@@ -28,7 +28,7 @@ impl TreeViewVisitor<'_> {
             ui,
             ui.make_persistent_id("element_tree_view"),
             |root| {
-                style_node.walk_mut(&mut TreeViewVisitor {
+                style_node.as_node_mut().walk_mut(&mut TreeViewVisitor {
                     builder: root,
                     nodes_to_add: &mut nodes_to_add,
                     nodes_to_remove: &mut nodes_to_remove,

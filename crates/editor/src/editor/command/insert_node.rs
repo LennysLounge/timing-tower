@@ -1,7 +1,7 @@
 use egui_ltreeview::DropPosition;
 use uuid::Uuid;
 
-use backend::style::{definitions::*, visitor::NodeIterator, StyleNode};
+use backend::style::{definitions::*, visitor::NodeIteratorMut, StyleNode};
 
 use crate::style::visitors::{insert, remove};
 
@@ -15,7 +15,7 @@ pub struct InsertNode {
 impl InsertNode {
     pub fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
         let id = *self.node.id();
-        style.search_mut(&self.target_node, |node| {
+        style.as_node_mut().search_mut(&self.target_node, |node| {
             insert::insert(node, self.position, self.node.clone().to_any())
         });
         Some(InsertNodeUndo { id }.into())

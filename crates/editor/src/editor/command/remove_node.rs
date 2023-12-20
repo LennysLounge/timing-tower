@@ -1,6 +1,6 @@
 use uuid::Uuid;
 
-use backend::style::{definitions::*, visitor::NodeIterator};
+use backend::style::{definitions::*, visitor::NodeIteratorMut, StyleNode};
 
 use crate::style::visitors::{
     insert,
@@ -36,7 +36,7 @@ impl RemoveNodeUndo {
             position,
         } = self.removed_node;
         let node_id = *node.id();
-        style.search_mut(&parent_id, |parent_node| {
+        style.as_node_mut().search_mut(&parent_id, |parent_node| {
             insert::insert(parent_node, position, node.to_any())
         });
         Some(RemoveNode { id: node_id }.into())

@@ -19,6 +19,8 @@ pub enum Method {
 
 pub trait Visitable {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()>;
+}
+pub trait VisitableMut {
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()>;
 }
 
@@ -43,6 +45,10 @@ pub trait NodeIterator: Visitable {
         });
         output
     }
+}
+impl<T: Visitable> NodeIterator for T {}
+
+pub trait NodeIteratorMut: VisitableMut {
     fn search_mut<T>(&mut self, node_id: &Uuid, action: impl FnOnce(NodeMut) -> T) -> Option<T> {
         Self::search_key_mut(self, |node| node.id() == node_id, action)
     }
@@ -64,7 +70,7 @@ pub trait NodeIterator: Visitable {
         output
     }
 }
-impl<T: Visitable> NodeIterator for T {}
+impl<T: VisitableMut> NodeIteratorMut for T {}
 
 #[derive(Clone, Copy)]
 pub enum Node<'a> {
@@ -98,6 +104,24 @@ impl Node<'_> {
         }
     }
 }
+impl Visitable for Node<'_> {
+    fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
+        match self {
+            Node::Style(o) => o.walk(visitor),
+            Node::Variable(o) => o.walk(visitor),
+            Node::VariableFolder(o) => o.walk(visitor),
+            Node::Asset(o) => o.walk(visitor),
+            Node::AssetFolder(o) => o.walk(visitor),
+            Node::Scene(o) => o.walk(visitor),
+            Node::TimingTower(o) => o.walk(visitor),
+            Node::TimingTowerRow(o) => o.walk(visitor),
+            Node::TimingTowerColumn(o) => o.walk(visitor),
+            Node::TimingTowerColumnFolder(o) => o.walk(visitor),
+            Node::ClipArea(o) => o.walk(visitor),
+        }
+    }
+}
+
 pub enum NodeMut<'a> {
     Style(&'a mut StyleDefinition),
     Variable(&'a mut VariableDefinition),
@@ -111,7 +135,6 @@ pub enum NodeMut<'a> {
     TimingTowerColumnFolder(&'a mut TimingTowerColumnFolder),
     ClipArea(&'a mut ClipArea<TimingTowerRow>),
 }
-
 impl NodeMut<'_> {
     pub fn id(&self) -> &Uuid {
         match self {
@@ -126,6 +149,23 @@ impl NodeMut<'_> {
             NodeMut::TimingTowerColumn(o) => &o.id,
             NodeMut::TimingTowerColumnFolder(o) => &o.id,
             NodeMut::ClipArea(o) => &o.data.id,
+        }
+    }
+}
+impl VisitableMut for NodeMut<'_> {
+    fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
+        match self {
+            NodeMut::Style(o) => o.walk_mut(visitor),
+            NodeMut::Variable(o) => o.walk_mut(visitor),
+            NodeMut::VariableFolder(o) => o.walk_mut(visitor),
+            NodeMut::Asset(o) => o.walk_mut(visitor),
+            NodeMut::AssetFolder(o) => o.walk_mut(visitor),
+            NodeMut::Scene(o) => o.walk_mut(visitor),
+            NodeMut::TimingTower(o) => o.walk_mut(visitor),
+            NodeMut::TimingTowerRow(o) => o.walk_mut(visitor),
+            NodeMut::TimingTowerColumn(o) => o.walk_mut(visitor),
+            NodeMut::TimingTowerColumnFolder(o) => o.walk_mut(visitor),
+            NodeMut::ClipArea(o) => o.walk_mut(visitor),
         }
     }
 }

@@ -1,7 +1,7 @@
 use std::ops::ControlFlow;
 
 use backend::style::{
-    visitor::{NodeMut, Visitable},
+    visitor::{NodeMut, VisitableMut},
     StyleNode,
 };
 use egui_ltreeview::DropPosition;
@@ -13,7 +13,7 @@ pub struct RemovedNode {
     pub position: DropPosition,
 }
 
-pub fn remove_node<V: Visitable>(node_id: &Uuid, visitable: &mut V) -> Option<RemovedNode> {
+pub fn remove_node<V: VisitableMut>(node_id: &Uuid, visitable: &mut V) -> Option<RemovedNode> {
     let mut removed_node = None;
     visitable.walk_mut(&mut |node: NodeMut| match node {
         NodeMut::AssetFolder(folder) => {

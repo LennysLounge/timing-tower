@@ -8,7 +8,7 @@ use crate::value_types::Vec2Property;
 use super::{
     cell::Cell,
     clip_area::ClipArea,
-    visitor::{Method, Node, NodeMut, NodeVisitor, NodeVisitorMut, Visitable},
+    visitor::{Method, Node, NodeMut, NodeVisitor, NodeVisitorMut, Visitable, VisitableMut},
     StyleNode,
 };
 
@@ -35,7 +35,8 @@ impl Visitable for TimingTower {
         self.row.walk(visitor)?;
         visitor.visit(self.as_node(), Method::Leave)
     }
-
+}
+impl VisitableMut for TimingTower {
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
         visitor.visit(self.as_node_mut())?;
         self.row.walk_mut(visitor)?;
@@ -81,7 +82,8 @@ impl Visitable for TimingTowerRow {
         })?;
         visitor.visit(self.as_node(), Method::Leave)
     }
-
+}
+impl VisitableMut for TimingTowerRow {
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
         visitor.visit(self.as_node_mut())?;
         self.columns.iter_mut().try_for_each(|c| match c {
@@ -123,7 +125,8 @@ impl Visitable for TimingTowerColumn {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
         visitor.visit(self.as_node(), Method::Visit)
     }
-
+}
+impl VisitableMut for TimingTowerColumn {
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
         visitor.visit(self.as_node_mut())
     }
@@ -173,7 +176,8 @@ impl Visitable for TimingTowerColumnFolder {
         })?;
         visitor.visit(self.as_node(), Method::Leave)
     }
-
+}
+impl VisitableMut for TimingTowerColumnFolder {
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
         visitor.visit(self.as_node_mut())?;
         self.content.iter_mut().try_for_each(|f| match f {

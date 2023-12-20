@@ -5,7 +5,10 @@ use std::{fs::File, io::Write};
 
 use backend::{
     savefile::{Savefile, SavefileChanged},
-    style::{visitor::NodeIterator, StyleDefinition, StyleNode},
+    style::{
+        visitor::{NodeIterator, NodeIteratorMut},
+        StyleDefinition, StyleNode,
+    },
 };
 use bevy::{
     app::First,
@@ -357,7 +360,7 @@ fn property_editor(
     ScrollArea::vertical()
         .auto_shrink([false, false])
         .show(ui, |ui| {
-            style.search_mut(*&selected_id, |node| {
+            style.as_node_mut().search_mut(*&selected_id, |node| {
                 style::visitors::property_editor::property_editor(
                     ui,
                     node,

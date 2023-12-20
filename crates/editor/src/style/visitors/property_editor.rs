@@ -2,7 +2,7 @@ use backend::style::{
     cell::{Cell, TextAlignment},
     definitions::*,
     variables::{condition::Condition, fixed_value::FixedValue, map::Map, VariableBehavior},
-    visitor::NodeMut,
+    iterator::NodeMut,
 };
 use bevy_egui::egui::{ComboBox, DragValue, Ui};
 

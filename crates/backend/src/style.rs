@@ -7,7 +7,7 @@ use uuid::Uuid;
 use self::{
     definitions::*,
     scene::SceneDefinition,
-    visitor::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
+    iterator::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
 };
 
 pub mod assets;
@@ -16,7 +16,7 @@ pub mod clip_area;
 pub mod scene;
 pub mod timing_tower;
 pub mod variables;
-pub mod visitor;
+pub mod iterator;
 
 pub mod definitions {
     pub use self::super::{

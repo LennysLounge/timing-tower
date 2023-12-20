@@ -9,7 +9,7 @@ use crate::value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, V
 use self::{condition::Condition, fixed_value::FixedValue, map::Map};
 
 use super::{
-    visitor::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
+    iterator::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
     StyleNode,
 };
 

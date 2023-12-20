@@ -8,7 +8,7 @@ use crate::value_types::{Number, Property, Vec2Property, Vec3Property};
 use super::{
     cell::Rounding,
     timing_tower::TimingTowerRow,
-    visitor::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
+    iterator::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
     StyleNode,
 };
 

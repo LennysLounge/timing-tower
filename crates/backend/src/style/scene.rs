@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 use super::{
     definitions::TimingTower,
-    visitor::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
+    iterator::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
     StyleNode,
 };
 

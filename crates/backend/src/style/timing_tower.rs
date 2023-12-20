@@ -8,7 +8,7 @@ use crate::value_types::Vec2Property;
 use super::{
     cell::Cell,
     clip_area::ClipArea,
-    visitor::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
+    iterator::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
     StyleNode,
 };
 

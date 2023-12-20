@@ -1,7 +1,7 @@
 use std::{any::Any, ops::BitOrAssign, time::Instant};
 
 use backend::style::{
-    visitor::{NodeIteratorMut, NodeMut},
+    iterator::{NodeIteratorMut, NodeMut},
     StyleDefinition, StyleNode,
 };
 use bevy_egui::egui::{self, Response};

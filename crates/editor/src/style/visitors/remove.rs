@@ -1,7 +1,7 @@
 use std::ops::ControlFlow;
 
 use backend::style::{
-    visitor::{Method, NodeIteratorMut, NodeMut},
+    iterator::{Method, NodeIteratorMut, NodeMut},
     StyleNode,
 };
 use egui_ltreeview::DropPosition;

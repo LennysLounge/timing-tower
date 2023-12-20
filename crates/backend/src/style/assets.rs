@@ -10,7 +10,7 @@ use crate::{
 
 use super::{
     variables::StaticValueProducer,
-    visitor::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
+    iterator::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
     StyleNode,
 };
 

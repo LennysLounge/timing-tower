@@ -1,4 +1,4 @@
-use backend::style::visitor::Node;
+use backend::style::iterator::Node;
 
 pub fn drop_allowed(target: Node, dragged: Node) -> bool {
     match (target, dragged) {

@@ -1,4 +1,4 @@
-use backend::style::{visitor::NodeIteratorMut, StyleDefinition, StyleNode};
+use backend::style::{iterator::NodeIteratorMut, StyleDefinition, StyleNode};
 use egui_ltreeview::DropPosition;
 use uuid::Uuid;
 

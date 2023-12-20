@@ -6,7 +6,7 @@ use std::{fs::File, io::Write};
 use backend::{
     savefile::{Savefile, SavefileChanged},
     style::{
-        visitor::{NodeIterator, NodeIteratorMut},
+        iterator::{NodeIterator, NodeIteratorMut},
         StyleDefinition, StyleNode,
     },
 };

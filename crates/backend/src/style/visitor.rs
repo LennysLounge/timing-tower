@@ -18,7 +18,9 @@ pub enum Method {
 }
 
 pub trait NodeIterator {
-    fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()>;
+    fn walk<F>(&self, f: &mut F) -> ControlFlow<()>
+    where
+        F: FnMut(Node, Method) -> ControlFlow<()>;
 
     fn search<T>(&self, node_id: &Uuid, action: impl FnOnce(Node) -> T) -> Option<T> {
         Self::search_key(&self, |node| node.id() == node_id, action)
@@ -100,19 +102,22 @@ impl Node<'_> {
     }
 }
 impl NodeIterator for Node<'_> {
-    fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
+    fn walk<F>(&self, f: &mut F) -> ControlFlow<()>
+    where
+        F: FnMut(Node, Method) -> ControlFlow<()>,
+    {
         match self {
-            Node::Style(o) => o.walk(visitor),
-            Node::Variable(o) => o.walk(visitor),
-            Node::VariableFolder(o) => o.walk(visitor),
-            Node::Asset(o) => o.walk(visitor),
-            Node::AssetFolder(o) => o.walk(visitor),
-            Node::Scene(o) => o.walk(visitor),
-            Node::TimingTower(o) => o.walk(visitor),
-            Node::TimingTowerRow(o) => o.walk(visitor),
-            Node::TimingTowerColumn(o) => o.walk(visitor),
-            Node::TimingTowerColumnFolder(o) => o.walk(visitor),
-            Node::ClipArea(o) => o.walk(visitor),
+            Node::Style(o) => o.walk(f),
+            Node::Variable(o) => o.walk(f),
+            Node::VariableFolder(o) => o.walk(f),
+            Node::Asset(o) => o.walk(f),
+            Node::AssetFolder(o) => o.walk(f),
+            Node::Scene(o) => o.walk(f),
+            Node::TimingTower(o) => o.walk(f),
+            Node::TimingTowerRow(o) => o.walk(f),
+            Node::TimingTowerColumn(o) => o.walk(f),
+            Node::TimingTowerColumnFolder(o) => o.walk(f),
+            Node::ClipArea(o) => o.walk(f),
         }
     }
 }
@@ -165,22 +170,9 @@ impl NodeIteratorMut for NodeMut<'_> {
     }
 }
 
-pub trait NodeVisitor {
-    fn visit(&mut self, node: Node, method: Method) -> ControlFlow<()>;
-}
-
 pub trait NodeVisitorMut {
     fn visit(&mut self, node: NodeMut) -> ControlFlow<()>;
     fn leave(&mut self, node: NodeMut) -> ControlFlow<()>;
-}
-
-impl<T> NodeVisitor for T
-where
-    T: FnMut(Node, Method) -> ControlFlow<()>,
-{
-    fn visit(&mut self, node: Node, method: Method) -> ControlFlow<()> {
-        (self)(node, method)
-    }
 }
 
 impl<T> NodeVisitorMut for T

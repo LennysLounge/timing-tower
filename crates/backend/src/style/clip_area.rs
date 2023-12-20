@@ -8,7 +8,7 @@ use crate::value_types::{Number, Property, Vec2Property, Vec3Property};
 use super::{
     cell::Rounding,
     timing_tower::TimingTowerRow,
-    visitor::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut, NodeVisitor, NodeVisitorMut},
+    visitor::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut, NodeVisitorMut},
     StyleNode,
 };
 
@@ -38,10 +38,13 @@ impl StyleNode for ClipArea<TimingTowerRow> {
     }
 }
 impl NodeIterator for ClipArea<TimingTowerRow> {
-    fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit(self.as_node(), Method::Visit)?;
-        self.inner.walk(visitor)?;
-        visitor.visit(self.as_node(), Method::Leave)
+    fn walk<F>(&self, f: &mut F) -> ControlFlow<()>
+    where
+        F: FnMut(Node, Method) -> ControlFlow<()>,
+    {
+        f(self.as_node(), Method::Visit)?;
+        self.inner.walk(f)?;
+        f(self.as_node(), Method::Leave)
     }
 }
 impl NodeIteratorMut for ClipArea<TimingTowerRow> {

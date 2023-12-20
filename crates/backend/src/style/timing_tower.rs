@@ -8,7 +8,7 @@ use crate::value_types::Vec2Property;
 use super::{
     cell::Cell,
     clip_area::ClipArea,
-    visitor::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut, NodeVisitor, NodeVisitorMut},
+    visitor::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut, NodeVisitorMut},
     StyleNode,
 };
 
@@ -30,10 +30,13 @@ impl StyleNode for TimingTower {
     }
 }
 impl NodeIterator for TimingTower {
-    fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit(self.as_node(), Method::Visit)?;
-        self.row.walk(visitor)?;
-        visitor.visit(self.as_node(), Method::Leave)
+    fn walk<F>(&self, f: &mut F) -> ControlFlow<()>
+    where
+        F: FnMut(Node, Method) -> ControlFlow<()>,
+    {
+        f(self.as_node(), Method::Visit)?;
+        self.row.walk(f)?;
+        f(self.as_node(), Method::Leave)
     }
 }
 impl NodeIteratorMut for TimingTower {
@@ -74,13 +77,16 @@ impl StyleNode for TimingTowerRow {
     }
 }
 impl NodeIterator for TimingTowerRow {
-    fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit(self.as_node(), Method::Visit)?;
+    fn walk<F>(&self, f: &mut F) -> ControlFlow<()>
+    where
+        F: FnMut(Node, Method) -> ControlFlow<()>,
+    {
+        f(self.as_node(), Method::Visit)?;
         self.columns.iter().try_for_each(|c| match c {
-            ColumnOrFolder::Column(o) => o.walk(visitor),
-            ColumnOrFolder::Folder(o) => o.walk(visitor),
+            ColumnOrFolder::Column(o) => o.walk(f),
+            ColumnOrFolder::Folder(o) => o.walk(f),
         })?;
-        visitor.visit(self.as_node(), Method::Leave)
+        f(self.as_node(), Method::Leave)
     }
 }
 impl NodeIteratorMut for TimingTowerRow {
@@ -122,8 +128,11 @@ impl StyleNode for TimingTowerColumn {
     }
 }
 impl NodeIterator for TimingTowerColumn {
-    fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit(self.as_node(), Method::Visit)
+    fn walk<F>(&self, f: &mut F) -> ControlFlow<()>
+    where
+        F: FnMut(Node, Method) -> ControlFlow<()>,
+    {
+        f(self.as_node(), Method::Visit)
     }
 }
 impl NodeIteratorMut for TimingTowerColumn {
@@ -168,13 +177,16 @@ impl StyleNode for TimingTowerColumnFolder {
     }
 }
 impl NodeIterator for TimingTowerColumnFolder {
-    fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit(self.as_node(), Method::Visit)?;
-        self.content.iter().try_for_each(|f| match f {
-            ColumnOrFolder::Column(o) => o.walk(visitor),
-            ColumnOrFolder::Folder(o) => o.walk(visitor),
+    fn walk<F>(&self, f: &mut F) -> ControlFlow<()>
+    where
+        F: FnMut(Node, Method) -> ControlFlow<()>,
+    {
+        f(self.as_node(), Method::Visit)?;
+        self.content.iter().try_for_each(|v| match v {
+            ColumnOrFolder::Column(o) => o.walk(f),
+            ColumnOrFolder::Folder(o) => o.walk(f),
         })?;
-        visitor.visit(self.as_node(), Method::Leave)
+        f(self.as_node(), Method::Leave)
     }
 }
 impl NodeIteratorMut for TimingTowerColumnFolder {

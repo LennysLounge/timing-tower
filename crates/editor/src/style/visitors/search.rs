@@ -8,14 +8,14 @@ use uuid::Uuid;
 
 pub struct SearchVisitor<'a, T> {
     id: Uuid,
-    action: Box<dyn FnMut(&dyn StyleNode) -> T + 'a>,
+    action: Option<Box<dyn FnOnce(Node) -> T + 'a>>,
     output: Option<T>,
 }
 impl<'a, T> SearchVisitor<'a, T> {
-    pub fn new(id: Uuid, action: impl FnMut(&dyn StyleNode) -> T + 'a) -> Self {
+    pub fn new(id: Uuid, action: impl FnOnce(Node) -> T + 'a) -> Self {
         Self {
             id,
-            action: Box::new(action),
+            action: Some(Box::new(action)),
             output: None,
         }
     }
@@ -26,29 +26,14 @@ impl<'a, T> SearchVisitor<'a, T> {
         node.walk(&mut self);
         self.output
     }
-    fn test(&mut self, node: &dyn StyleNode) -> ControlFlow<()> {
-        if &self.id == node.id() {
-            self.output = Some((self.action)(node));
-            ControlFlow::Break(())
-        } else {
-            ControlFlow::Continue(())
-        }
-    }
 }
 impl<'a, T> NodeVisitor for SearchVisitor<'a, T> {
     fn visit(&mut self, node: Node) -> ControlFlow<()> {
-        match node {
-            Node::Style(o) => self.test(o),
-            Node::Variable(o) => self.test(o),
-            Node::VariableFolder(o) => self.test(o),
-            Node::Asset(o) => self.test(o),
-            Node::AssetFolder(o) => self.test(o),
-            Node::Scene(o) => self.test(o),
-            Node::TimingTower(o) => self.test(o),
-            Node::TimingTowerRow(o) => self.test(o),
-            Node::TimingTowerColumn(o) => self.test(o),
-            Node::TimingTowerColumnFolder(o) => self.test(o),
-            Node::ClipArea(o) => self.test(o),
+        if &self.id == node.id() {
+            self.output = self.action.take().map(|action| (action)(node));
+            ControlFlow::Break(())
+        } else {
+            ControlFlow::Continue(())
         }
     }
 

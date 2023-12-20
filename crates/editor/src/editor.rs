@@ -30,7 +30,7 @@ use uuid::Uuid;
 use crate::{
     reference_store::{ReferenceStore, ReferenceStorePlugin},
     style::visitors::{
-        drop_allowed::DropAllowedVisitor,
+        drop_allowed::{self},
         property_editor::PropertyEditorVisitor,
         search::{SearchVisitor, SearchVisitorMut},
         tree_view::{TreeViewVisitor, TreeViewVisitorResult},
@@ -319,7 +319,7 @@ fn tree_view(
     if let Some(drop_action) = &response.drag_drop_action {
         let drop_allowed = SearchVisitor::new(drop_action.drag_id, |dragged| {
             SearchVisitor::new(drop_action.drop_id, |dropped| {
-                DropAllowedVisitor::new(dragged.as_any()).test(dropped)
+                drop_allowed::drop_allowed(dropped, dragged)
             })
             .search_in(base_node)
         })

@@ -1,5 +1,7 @@
 use std::ops::ControlFlow;
 
+use uuid::Uuid;
+
 use super::{
     assets::{AssetDefinition, AssetFolder},
     clip_area::ClipArea,
@@ -32,6 +34,24 @@ pub enum Node<'a> {
     ClipArea(&'a ClipArea<TimingTowerRow>),
 }
 
+impl Node<'_> {
+    pub fn id(&self) -> &Uuid {
+        match self {
+            Node::Style(o) => &o.id,
+            Node::Variable(o) => &o.id,
+            Node::VariableFolder(o) => &o.id,
+            Node::Asset(o) => &o.id,
+            Node::AssetFolder(o) => &o.id,
+            Node::Scene(o) => &o.id,
+            Node::TimingTower(o) => &o.id,
+            Node::TimingTowerRow(o) => &o.id,
+            Node::TimingTowerColumn(o) => &o.id,
+            Node::TimingTowerColumnFolder(o) => &o.id,
+            Node::ClipArea(o) => &o.data.id,
+        }
+    }
+}
+
 pub enum NodeMut<'a> {
     Style(&'a mut StyleDefinition),
     Variable(&'a mut VariableDefinition),
@@ -44,6 +64,24 @@ pub enum NodeMut<'a> {
     TimingTowerColumn(&'a mut TimingTowerColumn),
     TimingTowerColumnFolder(&'a mut TimingTowerColumnFolder),
     ClipArea(&'a mut ClipArea<TimingTowerRow>),
+}
+
+impl NodeMut<'_> {
+    pub fn id(&self) -> &Uuid {
+        match self {
+            NodeMut::Style(o) => &o.id,
+            NodeMut::Variable(o) => &o.id,
+            NodeMut::VariableFolder(o) => &o.id,
+            NodeMut::Asset(o) => &o.id,
+            NodeMut::AssetFolder(o) => &o.id,
+            NodeMut::Scene(o) => &o.id,
+            NodeMut::TimingTower(o) => &o.id,
+            NodeMut::TimingTowerRow(o) => &o.id,
+            NodeMut::TimingTowerColumn(o) => &o.id,
+            NodeMut::TimingTowerColumnFolder(o) => &o.id,
+            NodeMut::ClipArea(o) => &o.data.id,
+        }
+    }
 }
 
 pub trait NodeVisitor {

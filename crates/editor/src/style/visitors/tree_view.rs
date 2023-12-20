@@ -1,6 +1,10 @@
 use std::ops::ControlFlow;
 
-use backend::style::{definitions::*, visitor::NodeVisitorMut, StyleNode};
+use backend::style::{
+    definitions::*,
+    visitor::{NodeMut, NodeVisitorMut},
+    StyleNode,
+};
 use bevy_egui::egui::Ui;
 use egui_ltreeview::{DropPosition, TreeViewBuilder, TreeViewResponse};
 use uuid::Uuid;
@@ -40,304 +44,299 @@ impl TreeViewVisitor<'_> {
     }
 }
 impl NodeVisitorMut for TreeViewVisitor<'_> {
-    fn visit_style(&mut self, style: &mut StyleDefinition) -> ControlFlow<()> {
-        self.stack.push(style.id);
-        self.builder.dir(&style.id, |ui| {
-            ui.label("Style");
-        });
-        ControlFlow::Continue(())
-    }
+    fn visit(&mut self, node: NodeMut) -> ControlFlow<()> {
+        match node {
+            NodeMut::Style(style) => {
+                self.stack.push(style.id);
+                self.builder.dir(&style.id, |ui| {
+                    ui.label("Style");
+                });
+                ControlFlow::Continue(())
+            }
 
-    fn leave_style(&mut self, _style: &mut StyleDefinition) -> ControlFlow<()> {
-        self.stack.pop();
-        self.builder.close_dir();
-        ControlFlow::Continue(())
-    }
+            NodeMut::TimingTower(tower) => {
+                self.stack.push(tower.id);
+                self.builder.dir(&tower.id, |ui| {
+                    ui.label("Timing tower");
+                });
+                ControlFlow::Continue(())
+            }
 
-    fn visit_timing_tower(&mut self, tower: &mut TimingTower) -> ControlFlow<()> {
-        self.stack.push(tower.id);
-        self.builder.dir(&tower.id, |ui| {
-            ui.label("Timing tower");
-        });
-        ControlFlow::Continue(())
-    }
+            NodeMut::TimingTowerRow(row) => {
+                self.stack.push(row.id);
+                let res = self.builder.dir(&row.id, |ui| {
+                    ui.label("Row");
+                });
 
-    fn leave_timing_tower(&mut self, _tower: &mut TimingTower) -> ControlFlow<()> {
-        self.stack.pop();
-        self.builder.close_dir();
-        ControlFlow::Continue(())
-    }
-
-    fn visit_timing_tower_row(&mut self, row: &mut TimingTowerRow) -> ControlFlow<()> {
-        self.stack.push(row.id);
-        let res = self.builder.dir(&row.id, |ui| {
-            ui.label("Row");
-        });
-
-        if let Some(res) = res {
-            res.context_menu(|ui| {
-                if ui.button("add column").clicked() {
-                    self.nodes_to_add.push((
-                        row.id,
-                        DropPosition::Last,
-                        Box::new(TimingTowerColumn::new()),
-                    ));
-                    ui.close_menu();
+                if let Some(res) = res {
+                    res.context_menu(|ui| {
+                        if ui.button("add column").clicked() {
+                            self.nodes_to_add.push((
+                                row.id,
+                                DropPosition::Last,
+                                Box::new(TimingTowerColumn::new()),
+                            ));
+                            ui.close_menu();
+                        }
+                        if ui.button("add group").clicked() {
+                            self.nodes_to_add.push((
+                                row.id,
+                                DropPosition::Last,
+                                Box::new(TimingTowerColumnFolder::new()),
+                            ));
+                            ui.close_menu();
+                        }
+                    });
                 }
-                if ui.button("add group").clicked() {
-                    self.nodes_to_add.push((
-                        row.id,
-                        DropPosition::Last,
-                        Box::new(TimingTowerColumnFolder::new()),
-                    ));
-                    ui.close_menu();
+
+                ControlFlow::Continue(())
+            }
+
+            NodeMut::TimingTowerColumn(column) => {
+                let res = self.builder.leaf(&column.id, |ui| {
+                    ui.label(&column.name);
+                });
+                if let Some(res) = res {
+                    res.context_menu(|ui| {
+                        if ui.button("add column").clicked() {
+                            self.nodes_to_add.push((
+                                *self
+                                    .stack
+                                    .last()
+                                    .expect("There should always be a parent node"),
+                                DropPosition::After(column.id),
+                                Box::new(TimingTowerColumn::new()),
+                            ));
+                            ui.close_menu();
+                        }
+                        if ui.button("add group").clicked() {
+                            self.nodes_to_add.push((
+                                *self
+                                    .stack
+                                    .last()
+                                    .expect("There should always be a parent node"),
+                                DropPosition::Last,
+                                Box::new(TimingTowerColumnFolder::new()),
+                            ));
+                            ui.close_menu();
+                        }
+                        if ui.button("delete").clicked() {
+                            self.nodes_to_remove.push(column.id);
+                            ui.close_menu();
+                        }
+                    });
                 }
-            });
+                ControlFlow::Continue(())
+            }
+
+            NodeMut::TimingTowerColumnFolder(folder) => {
+                let res = self.builder.dir(&folder.id, |ui| {
+                    ui.label(&folder.name);
+                });
+                if let Some(res) = res {
+                    res.context_menu(|ui| {
+                        if ui.button("add column").clicked() {
+                            self.nodes_to_add.push((
+                                *folder.id(),
+                                DropPosition::Last,
+                                Box::new(TimingTowerColumn::new()),
+                            ));
+                            ui.close_menu();
+                        }
+                        if ui.button("add group").clicked() {
+                            self.nodes_to_add.push((
+                                *folder.id(),
+                                DropPosition::Last,
+                                Box::new(TimingTowerColumnFolder::new()),
+                            ));
+                            ui.close_menu();
+                        }
+                    });
+                }
+                ControlFlow::Continue(())
+            }
+
+            NodeMut::Asset(asset) => {
+                let res = self.builder.leaf(&asset.id, |ui| {
+                    ui.label(&asset.name);
+                });
+                if let Some(res) = res {
+                    res.context_menu(|ui| {
+                        if ui.button("add image").clicked() {
+                            self.nodes_to_add.push((
+                                *self
+                                    .stack
+                                    .last()
+                                    .expect("There should always be a parent node"),
+                                DropPosition::After(asset.id),
+                                Box::new(AssetDefinition::new()),
+                            ));
+                            ui.close_menu();
+                        }
+                        if ui.button("add group").clicked() {
+                            self.nodes_to_add.push((
+                                *self
+                                    .stack
+                                    .last()
+                                    .expect("There should always be a parent node"),
+                                DropPosition::Last,
+                                Box::new(AssetFolder::new()),
+                            ));
+                            ui.close_menu();
+                        }
+                        if ui.button("delete").clicked() {
+                            self.nodes_to_remove.push(asset.id);
+                            ui.close_menu();
+                        }
+                    });
+                }
+                ControlFlow::Continue(())
+            }
+
+            NodeMut::AssetFolder(folder) => {
+                let res = self.builder.dir(&folder.id, |ui| {
+                    ui.label(&folder.name);
+                });
+                if let Some(res) = res {
+                    res.context_menu(|ui| {
+                        if ui.button("add image").clicked() {
+                            self.nodes_to_add.push((
+                                *folder.id(),
+                                DropPosition::Last,
+                                Box::new(AssetDefinition::new()),
+                            ));
+                            ui.close_menu();
+                        }
+                        if ui.button("add group").clicked() {
+                            self.nodes_to_add.push((
+                                *folder.id(),
+                                DropPosition::Last,
+                                Box::new(AssetFolder::new()),
+                            ));
+                            ui.close_menu();
+                        }
+                    });
+                }
+                ControlFlow::Continue(())
+            }
+
+            NodeMut::Variable(variable) => {
+                let res = self.builder.leaf(&variable.id, |ui| {
+                    ui.label(&variable.name);
+                });
+                if let Some(res) = res {
+                    res.context_menu(|ui| {
+                        if ui.button("add variable").clicked() {
+                            self.nodes_to_add.push((
+                                *self
+                                    .stack
+                                    .last()
+                                    .expect("There should always be a parent node"),
+                                DropPosition::After(variable.id),
+                                Box::new(VariableDefinition::new()),
+                            ));
+                            ui.close_menu();
+                        }
+                        if ui.button("add group").clicked() {
+                            self.nodes_to_add.push((
+                                *self
+                                    .stack
+                                    .last()
+                                    .expect("There should always be a parent node"),
+                                DropPosition::Last,
+                                Box::new(VariableFolder::new()),
+                            ));
+                            ui.close_menu();
+                        }
+                        if ui.button("delete").clicked() {
+                            self.nodes_to_remove.push(variable.id);
+                            ui.close_menu();
+                        }
+                    });
+                }
+                ControlFlow::Continue(())
+            }
+
+            NodeMut::VariableFolder(folder) => {
+                let res = self.builder.dir(&folder.id, |ui| {
+                    ui.label(&folder.name);
+                });
+                if let Some(res) = res {
+                    res.context_menu(|ui| {
+                        if ui.button("add variable").clicked() {
+                            self.nodes_to_add.push((
+                                *folder.id(),
+                                DropPosition::Last,
+                                Box::new(VariableDefinition::new()),
+                            ));
+                            ui.close_menu();
+                        }
+                        if ui.button("add group").clicked() {
+                            self.nodes_to_add.push((
+                                *folder.id(),
+                                DropPosition::Last,
+                                Box::new(VariableFolder::new()),
+                            ));
+                            ui.close_menu();
+                        }
+                    });
+                }
+                ControlFlow::Continue(())
+            }
+
+            NodeMut::Scene(scene) => {
+                self.builder.dir(&scene.id, |ui| {
+                    ui.label("Scene");
+                });
+                ControlFlow::Continue(())
+            }
+
+            NodeMut::ClipArea(clip_area) => {
+                self.builder.dir(clip_area.id(), |ui| {
+                    ui.label("Clip area");
+                });
+                ControlFlow::Continue(())
+            }
         }
-
-        ControlFlow::Continue(())
     }
-
-    fn leave_timing_tower_row(&mut self, _row: &mut TimingTowerRow) -> ControlFlow<()> {
-        self.stack.pop();
-        self.builder.close_dir();
-        ControlFlow::Continue(())
-    }
-
-    fn visit_timing_tower_column(&mut self, column: &mut TimingTowerColumn) -> ControlFlow<()> {
-        let res = self.builder.leaf(&column.id, |ui| {
-            ui.label(&column.name);
-        });
-        if let Some(res) = res {
-            res.context_menu(|ui| {
-                if ui.button("add column").clicked() {
-                    self.nodes_to_add.push((
-                        *self
-                            .stack
-                            .last()
-                            .expect("There should always be a parent node"),
-                        DropPosition::After(column.id),
-                        Box::new(TimingTowerColumn::new()),
-                    ));
-                    ui.close_menu();
-                }
-                if ui.button("add group").clicked() {
-                    self.nodes_to_add.push((
-                        *self
-                            .stack
-                            .last()
-                            .expect("There should always be a parent node"),
-                        DropPosition::Last,
-                        Box::new(TimingTowerColumnFolder::new()),
-                    ));
-                    ui.close_menu();
-                }
-                if ui.button("delete").clicked() {
-                    self.nodes_to_remove.push(column.id);
-                    ui.close_menu();
-                }
-            });
+    fn leave(&mut self, node: NodeMut) -> ControlFlow<()> {
+        match node {
+            NodeMut::Style(_) => {
+                self.stack.pop();
+                self.builder.close_dir();
+                ControlFlow::Continue(())
+            }
+            NodeMut::TimingTower(_) => {
+                self.stack.pop();
+                self.builder.close_dir();
+                ControlFlow::Continue(())
+            }
+            NodeMut::TimingTowerRow(_) => {
+                self.stack.pop();
+                self.builder.close_dir();
+                ControlFlow::Continue(())
+            }
+            NodeMut::TimingTowerColumnFolder(_) => {
+                self.builder.close_dir();
+                ControlFlow::Continue(())
+            }
+            NodeMut::AssetFolder(_) => {
+                self.builder.close_dir();
+                ControlFlow::Continue(())
+            }
+            NodeMut::VariableFolder(_) => {
+                self.builder.close_dir();
+                ControlFlow::Continue(())
+            }
+            NodeMut::Scene(_) => {
+                self.builder.close_dir();
+                ControlFlow::Continue(())
+            }
+            NodeMut::ClipArea(_) => {
+                self.builder.close_dir();
+                ControlFlow::Continue(())
+            }
+            _ => ControlFlow::Continue(()),
         }
-        ControlFlow::Continue(())
-    }
-
-    fn visit_timing_tower_column_folder(
-        &mut self,
-        folder: &mut TimingTowerColumnFolder,
-    ) -> ControlFlow<()> {
-        let res = self.builder.dir(&folder.id, |ui| {
-            ui.label(&folder.name);
-        });
-        if let Some(res) = res {
-            res.context_menu(|ui| {
-                if ui.button("add column").clicked() {
-                    self.nodes_to_add.push((
-                        *folder.id(),
-                        DropPosition::Last,
-                        Box::new(TimingTowerColumn::new()),
-                    ));
-                    ui.close_menu();
-                }
-                if ui.button("add group").clicked() {
-                    self.nodes_to_add.push((
-                        *folder.id(),
-                        DropPosition::Last,
-                        Box::new(TimingTowerColumnFolder::new()),
-                    ));
-                    ui.close_menu();
-                }
-            });
-        }
-        ControlFlow::Continue(())
-    }
-
-    fn leave_timing_tower_column_folder(
-        &mut self,
-        _folder: &mut TimingTowerColumnFolder,
-    ) -> ControlFlow<()> {
-        self.builder.close_dir();
-        ControlFlow::Continue(())
-    }
-
-    fn visit_asset(&mut self, asset: &mut AssetDefinition) -> ControlFlow<()> {
-        let res = self.builder.leaf(&asset.id, |ui| {
-            ui.label(&asset.name);
-        });
-        if let Some(res) = res {
-            res.context_menu(|ui| {
-                if ui.button("add image").clicked() {
-                    self.nodes_to_add.push((
-                        *self
-                            .stack
-                            .last()
-                            .expect("There should always be a parent node"),
-                        DropPosition::After(asset.id),
-                        Box::new(AssetDefinition::new()),
-                    ));
-                    ui.close_menu();
-                }
-                if ui.button("add group").clicked() {
-                    self.nodes_to_add.push((
-                        *self
-                            .stack
-                            .last()
-                            .expect("There should always be a parent node"),
-                        DropPosition::Last,
-                        Box::new(AssetFolder::new()),
-                    ));
-                    ui.close_menu();
-                }
-                if ui.button("delete").clicked() {
-                    self.nodes_to_remove.push(asset.id);
-                    ui.close_menu();
-                }
-            });
-        }
-        ControlFlow::Continue(())
-    }
-
-    fn visit_asset_folder(&mut self, folder: &mut AssetFolder) -> ControlFlow<()> {
-        let res = self.builder.dir(&folder.id, |ui| {
-            ui.label(&folder.name);
-        });
-        if let Some(res) = res {
-            res.context_menu(|ui| {
-                if ui.button("add image").clicked() {
-                    self.nodes_to_add.push((
-                        *folder.id(),
-                        DropPosition::Last,
-                        Box::new(AssetDefinition::new()),
-                    ));
-                    ui.close_menu();
-                }
-                if ui.button("add group").clicked() {
-                    self.nodes_to_add.push((
-                        *folder.id(),
-                        DropPosition::Last,
-                        Box::new(AssetFolder::new()),
-                    ));
-                    ui.close_menu();
-                }
-            });
-        }
-        ControlFlow::Continue(())
-    }
-
-    fn leave_asset_folder(&mut self, _folder: &mut AssetFolder) -> ControlFlow<()> {
-        self.builder.close_dir();
-        ControlFlow::Continue(())
-    }
-
-    fn visit_variable(&mut self, variable: &mut VariableDefinition) -> ControlFlow<()> {
-        let res = self.builder.leaf(&variable.id, |ui| {
-            ui.label(&variable.name);
-        });
-        if let Some(res) = res {
-            res.context_menu(|ui| {
-                if ui.button("add variable").clicked() {
-                    self.nodes_to_add.push((
-                        *self
-                            .stack
-                            .last()
-                            .expect("There should always be a parent node"),
-                        DropPosition::After(variable.id),
-                        Box::new(VariableDefinition::new()),
-                    ));
-                    ui.close_menu();
-                }
-                if ui.button("add group").clicked() {
-                    self.nodes_to_add.push((
-                        *self
-                            .stack
-                            .last()
-                            .expect("There should always be a parent node"),
-                        DropPosition::Last,
-                        Box::new(VariableFolder::new()),
-                    ));
-                    ui.close_menu();
-                }
-                if ui.button("delete").clicked() {
-                    self.nodes_to_remove.push(variable.id);
-                    ui.close_menu();
-                }
-            });
-        }
-        ControlFlow::Continue(())
-    }
-
-    fn visit_variable_folder(&mut self, folder: &mut VariableFolder) -> ControlFlow<()> {
-        let res = self.builder.dir(&folder.id, |ui| {
-            ui.label(&folder.name);
-        });
-        if let Some(res) = res {
-            res.context_menu(|ui| {
-                if ui.button("add variable").clicked() {
-                    self.nodes_to_add.push((
-                        *folder.id(),
-                        DropPosition::Last,
-                        Box::new(VariableDefinition::new()),
-                    ));
-                    ui.close_menu();
-                }
-                if ui.button("add group").clicked() {
-                    self.nodes_to_add.push((
-                        *folder.id(),
-                        DropPosition::Last,
-                        Box::new(VariableFolder::new()),
-                    ));
-                    ui.close_menu();
-                }
-            });
-        }
-        ControlFlow::Continue(())
-    }
-
-    fn leave_variable_folder(&mut self, _folder: &mut VariableFolder) -> ControlFlow<()> {
-        self.builder.close_dir();
-        ControlFlow::Continue(())
-    }
-
-    fn visit_scene(&mut self, scene: &mut SceneDefinition) -> ControlFlow<()> {
-        self.builder.dir(&scene.id, |ui| {
-            ui.label("Scene");
-        });
-        ControlFlow::Continue(())
-    }
-
-    fn leave_scene(&mut self, _scene: &mut SceneDefinition) -> ControlFlow<()> {
-        self.builder.close_dir();
-        ControlFlow::Continue(())
-    }
-
-    fn visit_clip_area(&mut self, clip_area: &mut dyn DynClipArea) -> ControlFlow<()> {
-        self.builder.dir(clip_area.id(), |ui| {
-            ui.label("Clip area");
-        });
-        ControlFlow::Continue(())
-    }
-
-    fn leave_clip_area(&mut self, _clip_area: &mut dyn DynClipArea) -> ControlFlow<()> {
-        self.builder.close_dir();
-        ControlFlow::Continue(())
     }
 }

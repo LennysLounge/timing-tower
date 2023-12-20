@@ -10,7 +10,7 @@ use crate::{
 
 use super::{
     variables::StaticValueProducer,
-    visitor::{Node, NodeVisitor, NodeVisitorMut, Visitable},
+    visitor::{Node, NodeMut, NodeVisitor, NodeVisitorMut, Visitable},
     StyleNode,
 };
 
@@ -65,7 +65,7 @@ impl Visitable for AssetDefinition {
     }
 
     fn enter_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.visit_asset(self)
+        visitor.visit(NodeMut::Asset(self))
     }
 
     fn leave_mut(&mut self, _visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
@@ -130,11 +130,11 @@ impl Visitable for AssetFolder {
     }
 
     fn enter_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.visit_asset_folder(self)
+        visitor.visit(NodeMut::AssetFolder(self))
     }
 
     fn leave_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.leave_asset_folder(self)
+        visitor.leave(NodeMut::AssetFolder(self))
     }
 }
 

@@ -1,8 +1,7 @@
 use std::ops::ControlFlow;
 
 use backend::style::{
-    definitions::*,
-    visitor::{Node, NodeVisitor, NodeVisitorMut},
+    visitor::{Node, NodeMut, NodeVisitor, NodeVisitorMut},
     StyleNode,
 };
 use uuid::Uuid;
@@ -88,50 +87,22 @@ impl<'a, T> SearchVisitorMut<'a, T> {
     }
 }
 impl<'a, T> NodeVisitorMut for SearchVisitorMut<'a, T> {
-    fn visit_style(&mut self, style: &mut StyleDefinition) -> ControlFlow<()> {
-        self.test(style)
+    fn visit(&mut self, node: NodeMut) -> ControlFlow<()> {
+        match node {
+            NodeMut::Style(o) => self.test(o),
+            NodeMut::Variable(o) => self.test(o),
+            NodeMut::VariableFolder(o) => self.test(o),
+            NodeMut::Asset(o) => self.test(o),
+            NodeMut::AssetFolder(o) => self.test(o),
+            NodeMut::Scene(o) => self.test(o),
+            NodeMut::TimingTower(o) => self.test(o),
+            NodeMut::TimingTowerRow(o) => self.test(o),
+            NodeMut::TimingTowerColumn(o) => self.test(o),
+            NodeMut::TimingTowerColumnFolder(o) => self.test(o),
+            NodeMut::ClipArea(o) => self.test(o),
+        }
     }
-
-    fn visit_timing_tower(&mut self, tower: &mut TimingTower) -> ControlFlow<()> {
-        self.test(tower)
-    }
-
-    fn visit_timing_tower_row(&mut self, row: &mut TimingTowerRow) -> ControlFlow<()> {
-        self.test(row)
-    }
-
-    fn visit_timing_tower_column(&mut self, column: &mut TimingTowerColumn) -> ControlFlow<()> {
-        self.test(column)
-    }
-
-    fn visit_timing_tower_column_folder(
-        &mut self,
-        folder: &mut TimingTowerColumnFolder,
-    ) -> ControlFlow<()> {
-        self.test(folder)
-    }
-
-    fn visit_asset(&mut self, asset: &mut AssetDefinition) -> ControlFlow<()> {
-        self.test(asset)
-    }
-
-    fn visit_asset_folder(&mut self, folder: &mut AssetFolder) -> ControlFlow<()> {
-        self.test(folder)
-    }
-
-    fn visit_variable(&mut self, variable: &mut VariableDefinition) -> ControlFlow<()> {
-        self.test(variable)
-    }
-
-    fn visit_variable_folder(&mut self, folder: &mut VariableFolder) -> ControlFlow<()> {
-        self.test(folder)
-    }
-
-    fn visit_scene(&mut self, scene: &mut SceneDefinition) -> ControlFlow<()> {
-        self.test(scene)
-    }
-
-    fn visit_clip_area(&mut self, clip_area: &mut dyn DynClipArea) -> ControlFlow<()> {
-        self.test(clip_area.as_style_node_mut())
+    fn leave(&mut self, _node: NodeMut) -> ControlFlow<()> {
+        ControlFlow::Continue(())
     }
 }

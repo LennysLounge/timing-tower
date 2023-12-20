@@ -1,8 +1,8 @@
-use backend::style::StyleDefinition;
+use backend::style::{visitor::NodeIterator, StyleDefinition};
 use egui_ltreeview::DropPosition;
 use uuid::Uuid;
 
-use crate::style::visitors::{insert::InsertNodeVisitor, remove::RemoveNodeVisitor};
+use crate::style::visitors::{insert, remove::RemoveNodeVisitor};
 
 use super::EditorCommand;
 
@@ -16,8 +16,9 @@ impl MoveNode {
         RemoveNodeVisitor::new(self.id)
             .remove_from(style)
             .map(|removed_node| {
-                InsertNodeVisitor::new(self.target_id, self.position, removed_node.node)
-                    .insert_into(style);
+                style.search_mut(&self.target_id, |node| {
+                    insert::insert(node, self.position, removed_node.node.to_any());
+                });
                 MoveNode {
                     id: self.id,
                     target_id: removed_node.parent_id,

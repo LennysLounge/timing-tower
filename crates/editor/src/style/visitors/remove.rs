@@ -14,16 +14,12 @@ pub struct RemovedNode {
 }
 
 pub fn remove_node<V: NodeIteratorMut>(node_id: &Uuid, visitable: &mut V) -> Option<RemovedNode> {
-    let mut removed_node = None;
-    visitable.walk_mut(&mut |node: NodeMut, method: Method| {
-        if let ControlFlow::Break(removed) = remove(node, method, node_id) {
-            removed_node = Some(removed);
-            ControlFlow::Break(())
-        } else {
-            ControlFlow::Continue(())
-        }
-    });
-    removed_node
+    let output =
+        visitable.walk_mut(&mut |node: NodeMut, method: Method| remove(node, method, node_id));
+    match output {
+        ControlFlow::Continue(_) => None,
+        ControlFlow::Break(x) => Some(x),
+    }
 }
 
 fn remove(node: NodeMut, method: Method, node_id: &Uuid) -> ControlFlow<RemovedNode> {

@@ -49,9 +49,9 @@ impl NodeIterator for ClipArea<TimingTowerRow> {
 }
 impl NodeIteratorMut for ClipArea<TimingTowerRow> {
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.visit(self.as_node_mut())?;
+        visitor.visit(self.as_node_mut(), Method::Visit)?;
         self.inner.walk_mut(visitor)?;
-        visitor.leave(self.as_node_mut())
+        visitor.visit(self.as_node_mut(), Method::Leave)
     }
 }
 

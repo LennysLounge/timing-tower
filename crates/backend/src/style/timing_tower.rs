@@ -41,9 +41,9 @@ impl NodeIterator for TimingTower {
 }
 impl NodeIteratorMut for TimingTower {
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.visit(self.as_node_mut())?;
+        visitor.visit(self.as_node_mut(), Method::Visit)?;
         self.row.walk_mut(visitor)?;
-        visitor.leave(self.as_node_mut())
+        visitor.visit(self.as_node_mut(), Method::Leave)
     }
 }
 
@@ -91,12 +91,12 @@ impl NodeIterator for TimingTowerRow {
 }
 impl NodeIteratorMut for TimingTowerRow {
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.visit(self.as_node_mut())?;
+        visitor.visit(self.as_node_mut(), Method::Visit)?;
         self.columns.iter_mut().try_for_each(|c| match c {
             ColumnOrFolder::Column(o) => o.walk_mut(visitor),
             ColumnOrFolder::Folder(o) => o.walk_mut(visitor),
         })?;
-        visitor.leave(self.as_node_mut())
+        visitor.visit(self.as_node_mut(), Method::Leave)
     }
 }
 
@@ -137,7 +137,7 @@ impl NodeIterator for TimingTowerColumn {
 }
 impl NodeIteratorMut for TimingTowerColumn {
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.visit(self.as_node_mut())
+        visitor.visit(self.as_node_mut(), Method::Visit)
     }
 }
 
@@ -191,12 +191,12 @@ impl NodeIterator for TimingTowerColumnFolder {
 }
 impl NodeIteratorMut for TimingTowerColumnFolder {
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.visit(self.as_node_mut())?;
+        visitor.visit(self.as_node_mut(), Method::Visit)?;
         self.content.iter_mut().try_for_each(|f| match f {
             ColumnOrFolder::Column(o) => o.walk_mut(visitor),
             ColumnOrFolder::Folder(o) => o.walk_mut(visitor),
         })?;
-        visitor.leave(self.as_node_mut())
+        visitor.visit(self.as_node_mut(), Method::Leave)
     }
 }
 

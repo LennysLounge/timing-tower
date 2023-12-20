@@ -2,7 +2,7 @@ use std::ops::ControlFlow;
 
 use backend::style::{
     definitions::*,
-    visitor::{NodeIteratorMut, NodeMut, NodeVisitorMut},
+    visitor::{Method, NodeIteratorMut, NodeMut, NodeVisitorMut},
     StyleNode,
 };
 use bevy_egui::egui::Ui;
@@ -44,25 +44,35 @@ impl TreeViewVisitor<'_> {
     }
 }
 impl NodeVisitorMut for TreeViewVisitor<'_> {
-    fn visit(&mut self, node: NodeMut) -> ControlFlow<()> {
-        match node {
-            NodeMut::Style(style) => {
+    fn visit(&mut self, node: NodeMut, method: Method) -> ControlFlow<()> {
+        match (method, node) {
+            (Method::Visit, NodeMut::Style(style)) => {
                 self.stack.push(style.id);
                 self.builder.dir(&style.id, |ui| {
                     ui.label("Style");
                 });
                 ControlFlow::Continue(())
             }
+            (Method::Leave, NodeMut::Style(_)) => {
+                self.stack.pop();
+                self.builder.close_dir();
+                ControlFlow::Continue(())
+            }
 
-            NodeMut::TimingTower(tower) => {
+            (Method::Visit, NodeMut::TimingTower(tower)) => {
                 self.stack.push(tower.id);
                 self.builder.dir(&tower.id, |ui| {
                     ui.label("Timing tower");
                 });
                 ControlFlow::Continue(())
             }
+            (Method::Leave, NodeMut::TimingTower(_)) => {
+                self.stack.pop();
+                self.builder.close_dir();
+                ControlFlow::Continue(())
+            }
 
-            NodeMut::TimingTowerRow(row) => {
+            (Method::Visit, NodeMut::TimingTowerRow(row)) => {
                 self.stack.push(row.id);
                 let res = self.builder.dir(&row.id, |ui| {
                     ui.label("Row");
@@ -91,8 +101,13 @@ impl NodeVisitorMut for TreeViewVisitor<'_> {
 
                 ControlFlow::Continue(())
             }
+            (Method::Leave, NodeMut::TimingTowerRow(_)) => {
+                self.stack.pop();
+                self.builder.close_dir();
+                ControlFlow::Continue(())
+            }
 
-            NodeMut::TimingTowerColumn(column) => {
+            (Method::Visit, NodeMut::TimingTowerColumn(column)) => {
                 let res = self.builder.leaf(&column.id, |ui| {
                     ui.label(&column.name);
                 });
@@ -129,7 +144,7 @@ impl NodeVisitorMut for TreeViewVisitor<'_> {
                 ControlFlow::Continue(())
             }
 
-            NodeMut::TimingTowerColumnFolder(folder) => {
+            (Method::Visit, NodeMut::TimingTowerColumnFolder(folder)) => {
                 let res = self.builder.dir(&folder.id, |ui| {
                     ui.label(&folder.name);
                 });
@@ -155,8 +170,12 @@ impl NodeVisitorMut for TreeViewVisitor<'_> {
                 }
                 ControlFlow::Continue(())
             }
+            (Method::Leave, NodeMut::TimingTowerColumnFolder(_)) => {
+                self.builder.close_dir();
+                ControlFlow::Continue(())
+            }
 
-            NodeMut::Asset(asset) => {
+            (Method::Visit, NodeMut::Asset(asset)) => {
                 let res = self.builder.leaf(&asset.id, |ui| {
                     ui.label(&asset.name);
                 });
@@ -193,7 +212,7 @@ impl NodeVisitorMut for TreeViewVisitor<'_> {
                 ControlFlow::Continue(())
             }
 
-            NodeMut::AssetFolder(folder) => {
+            (Method::Visit, NodeMut::AssetFolder(folder)) => {
                 let res = self.builder.dir(&folder.id, |ui| {
                     ui.label(&folder.name);
                 });
@@ -219,8 +238,12 @@ impl NodeVisitorMut for TreeViewVisitor<'_> {
                 }
                 ControlFlow::Continue(())
             }
+            (Method::Leave, NodeMut::AssetFolder(_)) => {
+                self.builder.close_dir();
+                ControlFlow::Continue(())
+            }
 
-            NodeMut::Variable(variable) => {
+            (Method::Visit, NodeMut::Variable(variable)) => {
                 let res = self.builder.leaf(&variable.id, |ui| {
                     ui.label(&variable.name);
                 });
@@ -257,7 +280,7 @@ impl NodeVisitorMut for TreeViewVisitor<'_> {
                 ControlFlow::Continue(())
             }
 
-            NodeMut::VariableFolder(folder) => {
+            (Method::Visit, NodeMut::VariableFolder(folder)) => {
                 let res = self.builder.dir(&folder.id, |ui| {
                     ui.label(&folder.name);
                 });
@@ -283,59 +306,33 @@ impl NodeVisitorMut for TreeViewVisitor<'_> {
                 }
                 ControlFlow::Continue(())
             }
+            (Method::Leave, NodeMut::VariableFolder(_)) => {
+                self.builder.close_dir();
+                ControlFlow::Continue(())
+            }
 
-            NodeMut::Scene(scene) => {
+            (Method::Visit, NodeMut::Scene(scene)) => {
                 self.builder.dir(&scene.id, |ui| {
                     ui.label("Scene");
                 });
                 ControlFlow::Continue(())
             }
+            (Method::Leave, NodeMut::Scene(_)) => {
+                self.builder.close_dir();
+                ControlFlow::Continue(())
+            }
 
-            NodeMut::ClipArea(clip_area) => {
+            (Method::Visit, NodeMut::ClipArea(clip_area)) => {
                 self.builder.dir(clip_area.id(), |ui| {
                     ui.label("Clip area");
                 });
                 ControlFlow::Continue(())
             }
-        }
-    }
-    fn leave(&mut self, node: NodeMut) -> ControlFlow<()> {
-        match node {
-            NodeMut::Style(_) => {
-                self.stack.pop();
+            (Method::Leave, NodeMut::ClipArea(_)) => {
                 self.builder.close_dir();
                 ControlFlow::Continue(())
             }
-            NodeMut::TimingTower(_) => {
-                self.stack.pop();
-                self.builder.close_dir();
-                ControlFlow::Continue(())
-            }
-            NodeMut::TimingTowerRow(_) => {
-                self.stack.pop();
-                self.builder.close_dir();
-                ControlFlow::Continue(())
-            }
-            NodeMut::TimingTowerColumnFolder(_) => {
-                self.builder.close_dir();
-                ControlFlow::Continue(())
-            }
-            NodeMut::AssetFolder(_) => {
-                self.builder.close_dir();
-                ControlFlow::Continue(())
-            }
-            NodeMut::VariableFolder(_) => {
-                self.builder.close_dir();
-                ControlFlow::Continue(())
-            }
-            NodeMut::Scene(_) => {
-                self.builder.close_dir();
-                ControlFlow::Continue(())
-            }
-            NodeMut::ClipArea(_) => {
-                self.builder.close_dir();
-                ControlFlow::Continue(())
-            }
+
             _ => ControlFlow::Continue(()),
         }
     }

@@ -57,8 +57,8 @@ pub trait NodeIteratorMut {
     ) -> Option<T> {
         let mut action = Some(action);
         let mut output = None;
-        self.walk_mut(&mut |node: NodeMut| {
-            if key(&node) {
+        self.walk_mut(&mut |node: NodeMut, method: Method| {
+            if method == Method::Visit && key(&node) {
                 output = action.take().map(|action| (action)(node));
                 ControlFlow::Break(())
             } else {
@@ -171,19 +171,14 @@ impl NodeIteratorMut for NodeMut<'_> {
 }
 
 pub trait NodeVisitorMut {
-    fn visit(&mut self, node: NodeMut) -> ControlFlow<()>;
-    fn leave(&mut self, node: NodeMut) -> ControlFlow<()>;
+    fn visit(&mut self, node: NodeMut, method: Method) -> ControlFlow<()>;
 }
 
 impl<T> NodeVisitorMut for T
 where
-    T: FnMut(NodeMut) -> ControlFlow<()>,
+    T: FnMut(NodeMut, Method) -> ControlFlow<()>,
 {
-    fn visit(&mut self, node: NodeMut) -> ControlFlow<()> {
-        (self)(node)
-    }
-
-    fn leave(&mut self, _node: NodeMut) -> ControlFlow<()> {
-        ControlFlow::Continue(())
+    fn visit(&mut self, node: NodeMut, method: Method) -> ControlFlow<()> {
+        (self)(node, method)
     }
 }

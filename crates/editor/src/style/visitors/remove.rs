@@ -1,7 +1,7 @@
 use std::ops::ControlFlow;
 
 use backend::style::{
-    visitor::{NodeIteratorMut, NodeMut},
+    visitor::{Method, NodeIteratorMut, NodeMut},
     StyleNode,
 };
 use egui_ltreeview::DropPosition;
@@ -15,8 +15,8 @@ pub struct RemovedNode {
 
 pub fn remove_node<V: NodeIteratorMut>(node_id: &Uuid, visitable: &mut V) -> Option<RemovedNode> {
     let mut removed_node = None;
-    visitable.walk_mut(&mut |node: NodeMut| match node {
-        NodeMut::AssetFolder(folder) => {
+    visitable.walk_mut(&mut |node: NodeMut, method: Method| match (method, node) {
+        (Method::Visit, NodeMut::AssetFolder(folder)) => {
             if let Some(index) = folder.content.iter().position(|s| s.id() == node_id) {
                 removed_node =
                     Some(RemovedNode {
@@ -34,7 +34,7 @@ pub fn remove_node<V: NodeIteratorMut>(node_id: &Uuid, visitable: &mut V) -> Opt
                 ControlFlow::Continue(())
             }
         }
-        NodeMut::VariableFolder(folder) => {
+        (Method::Visit, NodeMut::VariableFolder(folder)) => {
             if let Some(index) = folder.content.iter().position(|s| s.id() == node_id) {
                 removed_node =
                     Some(RemovedNode {
@@ -53,7 +53,7 @@ pub fn remove_node<V: NodeIteratorMut>(node_id: &Uuid, visitable: &mut V) -> Opt
             }
         }
 
-        NodeMut::TimingTowerRow(row) => {
+        (Method::Visit, NodeMut::TimingTowerRow(row)) => {
             if let Some(index) = row.columns.iter().position(|s| s.id() == node_id) {
                 removed_node =
                     Some(RemovedNode {
@@ -72,7 +72,7 @@ pub fn remove_node<V: NodeIteratorMut>(node_id: &Uuid, visitable: &mut V) -> Opt
             }
         }
 
-        NodeMut::TimingTowerColumnFolder(folder) => {
+        (Method::Visit, NodeMut::TimingTowerColumnFolder(folder)) => {
             if let Some(index) = folder.content.iter().position(|s| s.id() == node_id) {
                 removed_node =
                     Some(RemovedNode {

@@ -61,11 +61,11 @@ impl NodeIterator for StyleDefinition {
 }
 impl NodeIteratorMut for StyleDefinition {
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.visit(self.as_node_mut())?;
+        visitor.visit(self.as_node_mut(), Method::Visit)?;
         self.assets.walk_mut(visitor)?;
         self.vars.walk_mut(visitor)?;
         self.scene.walk_mut(visitor)?;
-        visitor.leave(self.as_node_mut())
+        visitor.visit(self.as_node_mut(), Method::Leave)
     }
 }
 

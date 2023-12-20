@@ -73,7 +73,7 @@ impl NodeIterator for VariableDefinition {
 }
 impl NodeIteratorMut for VariableDefinition {
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.visit(self.as_node_mut())
+        visitor.visit(self.as_node_mut(), Method::Visit)
     }
 }
 
@@ -138,12 +138,12 @@ impl NodeIterator for VariableFolder {
 }
 impl NodeIteratorMut for VariableFolder {
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.visit(self.as_node_mut())?;
+        visitor.visit(self.as_node_mut(), Method::Visit)?;
         self.content.iter_mut().try_for_each(|f| match f {
             VariableOrFolder::Variable(o) => o.walk_mut(visitor),
             VariableOrFolder::Folder(o) => o.walk_mut(visitor),
         })?;
-        visitor.leave(self.as_node_mut())
+        visitor.visit(self.as_node_mut(), Method::Leave)
     }
 }
 

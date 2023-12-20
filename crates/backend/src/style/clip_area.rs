@@ -8,7 +8,7 @@ use crate::value_types::{Number, Property, Vec2Property, Vec3Property};
 use super::{
     cell::Rounding,
     timing_tower::TimingTowerRow,
-    visitor::{Node, NodeVisitor, NodeVisitorMut, Visitable, NodeMut},
+    visitor::{Node, NodeMut, NodeVisitor, NodeVisitorMut, Visitable},
     StyleNode,
 };
 
@@ -26,13 +26,15 @@ pub struct ClipAreaData {
     pub rounding: Rounding,
 }
 
-impl<T> StyleNode for ClipArea<T>
-where
-    T: StyleNode + Clone + 'static,
-    Self: Visitable,
-{
+impl StyleNode for ClipArea<TimingTowerRow> {
     fn id(&self) -> &Uuid {
         &self.data.id
+    }
+    fn as_node<'a>(&'a self) -> Node<'a> {
+        Node::ClipArea(self)
+    }
+    fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
+        NodeMut::ClipArea(self)
     }
 }
 impl Visitable for ClipArea<TimingTowerRow> {
@@ -71,11 +73,7 @@ pub trait DynClipArea: StyleNode {
     fn data(&self) -> &ClipAreaData;
     fn data_mut(&mut self) -> &mut ClipAreaData;
 }
-impl<T> DynClipArea for ClipArea<T>
-where
-    T: StyleNode + Clone + 'static,
-    Self: Visitable,
-{
+impl DynClipArea for ClipArea<TimingTowerRow> {
     fn as_style_node(&self) -> &dyn StyleNode {
         self
     }

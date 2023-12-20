@@ -22,6 +22,12 @@ impl StyleNode for TimingTower {
     fn id(&self) -> &Uuid {
         &self.id
     }
+    fn as_node<'a>(&'a self) -> Node<'a> {
+        Node::TimingTower(self)
+    }
+    fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
+        NodeMut::TimingTower(self)
+    }
 }
 impl Visitable for TimingTower {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
@@ -74,6 +80,12 @@ impl TimingTowerRow {
 impl StyleNode for TimingTowerRow {
     fn id(&self) -> &Uuid {
         &self.id
+    }
+    fn as_node<'a>(&'a self) -> Node<'a> {
+        Node::TimingTowerRow(self)
+    }
+    fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
+        NodeMut::TimingTowerRow(self)
     }
 }
 impl Visitable for TimingTowerRow {
@@ -132,6 +144,12 @@ impl StyleNode for TimingTowerColumn {
     fn id(&self) -> &Uuid {
         &self.id
     }
+    fn as_node<'a>(&'a self) -> Node<'a> {
+        Node::TimingTowerColumn(self)
+    }
+    fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
+        NodeMut::TimingTowerColumn(self)
+    }
 }
 impl Visitable for TimingTowerColumn {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
@@ -186,6 +204,12 @@ impl TimingTowerColumnFolder {
 impl StyleNode for TimingTowerColumnFolder {
     fn id(&self) -> &Uuid {
         &self.id
+    }
+    fn as_node<'a>(&'a self) -> Node<'a> {
+        Node::TimingTowerColumnFolder(self)
+    }
+    fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
+        NodeMut::TimingTowerColumnFolder(self)
     }
 }
 impl Visitable for TimingTowerColumnFolder {

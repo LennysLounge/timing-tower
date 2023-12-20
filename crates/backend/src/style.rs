@@ -40,6 +40,12 @@ impl StyleNode for StyleDefinition {
     fn id(&self) -> &Uuid {
         &self.id
     }
+    fn as_node<'a>(&'a self) -> Node<'a> {
+        Node::Style(self)
+    }
+    fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
+        NodeMut::Style(self)
+    }
 }
 impl Visitable for StyleDefinition {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
@@ -78,6 +84,8 @@ impl Visitable for StyleDefinition {
 /// Base trait for all elements in the style definition.
 pub trait StyleNode: ToAny + Visitable + Sync + Send + DynClone {
     fn id(&self) -> &Uuid;
+    fn as_node<'a>(&'a self) -> Node<'a>;
+    fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a>;
 }
 
 dyn_clone::clone_trait_object!(StyleNode);

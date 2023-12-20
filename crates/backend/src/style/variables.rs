@@ -56,6 +56,12 @@ impl StyleNode for VariableDefinition {
     fn id(&self) -> &Uuid {
         &self.id
     }
+    fn as_node<'a>(&'a self) -> Node<'a> {
+        Node::Variable(self)
+    }
+    fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
+        NodeMut::Variable(self)
+    }
 }
 impl Visitable for VariableDefinition {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
@@ -120,6 +126,13 @@ impl VariableFolder {
 impl StyleNode for VariableFolder {
     fn id(&self) -> &Uuid {
         &self.id
+    }
+
+    fn as_node<'a>(&'a self) -> Node<'a> {
+        Node::VariableFolder(self)
+    }
+    fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
+        NodeMut::VariableFolder(self)
     }
 }
 impl Visitable for VariableFolder {

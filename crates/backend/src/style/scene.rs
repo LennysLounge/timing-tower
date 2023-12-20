@@ -20,6 +20,12 @@ impl StyleNode for SceneDefinition {
     fn id(&self) -> &Uuid {
         &self.id
     }
+    fn as_node<'a>(&'a self) -> Node<'a> {
+        Node::Scene(self)
+    }
+    fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
+        NodeMut::Scene(self)
+    }
 }
 impl Visitable for SceneDefinition {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {

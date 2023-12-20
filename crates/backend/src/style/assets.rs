@@ -46,6 +46,14 @@ impl StyleNode for AssetDefinition {
     fn id(&self) -> &Uuid {
         &self.id
     }
+
+    fn as_node<'a>(&'a self) -> Node<'a> {
+        Node::Asset(self)
+    }
+    fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
+        NodeMut::Asset(self)
+    }
+    
 }
 impl Visitable for AssetDefinition {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
@@ -100,6 +108,13 @@ impl AssetFolder {
 impl StyleNode for AssetFolder {
     fn id(&self) -> &Uuid {
         &self.id
+    }
+
+    fn as_node<'a>(&'a self) -> Node<'a> {
+        Node::AssetFolder(self)
+    }
+    fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
+        NodeMut::AssetFolder(self)
     }
 }
 impl Visitable for AssetFolder {

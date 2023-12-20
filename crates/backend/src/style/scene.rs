@@ -28,9 +28,9 @@ impl StyleNode for SceneDefinition {
     }
 }
 impl NodeIterator for SceneDefinition {
-    fn walk<F>(&self, f: &mut F) -> ControlFlow<()>
+    fn walk<F, R>(&self, f: &mut F) -> ControlFlow<R>
     where
-        F: FnMut(Node, Method) -> ControlFlow<()>,
+        F: FnMut(Node, Method) -> ControlFlow<R>,
     {
         f(self.as_node(), Method::Visit)?;
         self.timing_tower.walk(f)?;

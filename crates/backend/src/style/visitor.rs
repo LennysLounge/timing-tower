@@ -18,9 +18,9 @@ pub enum Method {
 }
 
 pub trait NodeIterator {
-    fn walk<F>(&self, f: &mut F) -> ControlFlow<()>
+    fn walk<F, R>(&self, f: &mut F) -> ControlFlow<R>
     where
-        F: FnMut(Node, Method) -> ControlFlow<()>;
+        F: FnMut(Node, Method) -> ControlFlow<R>;
 
     fn search<T>(&self, node_id: &Uuid, action: impl FnOnce(Node) -> T) -> Option<T> {
         Self::search_key(&self, |node| node.id() == node_id, action)
@@ -31,16 +31,17 @@ pub trait NodeIterator {
         action: impl FnOnce(Node) -> T,
     ) -> Option<T> {
         let mut action = Some(action);
-        let mut output = None;
-        self.walk(&mut |node: Node, method: Method| {
+        let output = self.walk(&mut |node: Node, method: Method| {
             if method == Method::Visit && key(&node) {
-                output = action.take().map(|action| (action)(node));
-                ControlFlow::Break(())
+                ControlFlow::Break(action.take().map(|action| (action)(node)))
             } else {
                 ControlFlow::Continue(())
             }
         });
-        output
+        match output {
+            ControlFlow::Continue(_) => None,
+            ControlFlow::Break(x) => x,
+        }
     }
 }
 
@@ -104,9 +105,9 @@ impl Node<'_> {
     }
 }
 impl NodeIterator for Node<'_> {
-    fn walk<F>(&self, f: &mut F) -> ControlFlow<()>
+    fn walk<F, R>(&self, f: &mut F) -> ControlFlow<R>
     where
-        F: FnMut(Node, Method) -> ControlFlow<()>,
+        F: FnMut(Node, Method) -> ControlFlow<R>,
     {
         match self {
             Node::Style(o) => o.walk(f),

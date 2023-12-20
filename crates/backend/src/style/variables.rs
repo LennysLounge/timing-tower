@@ -64,9 +64,9 @@ impl StyleNode for VariableDefinition {
     }
 }
 impl NodeIterator for VariableDefinition {
-    fn walk<F>(&self, f: &mut F) -> ControlFlow<()>
+    fn walk<F, R>(&self, f: &mut F) -> ControlFlow<R>
     where
-        F: FnMut(Node, Method) -> ControlFlow<()>,
+        F: FnMut(Node, Method) -> ControlFlow<R>,
     {
         f(self.as_node(), Method::Visit)
     }
@@ -127,9 +127,9 @@ impl StyleNode for VariableFolder {
     }
 }
 impl NodeIterator for VariableFolder {
-    fn walk<F>(&self, f: &mut F) -> ControlFlow<()>
+    fn walk<F, R>(&self, f: &mut F) -> ControlFlow<R>
     where
-        F: FnMut(Node, Method) -> ControlFlow<()>,
+        F: FnMut(Node, Method) -> ControlFlow<R>,
     {
         f(self.as_node(), Method::Visit)?;
         self.content.iter().try_for_each(|v| match v {

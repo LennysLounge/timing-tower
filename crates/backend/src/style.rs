@@ -48,9 +48,9 @@ impl StyleNode for StyleDefinition {
     }
 }
 impl NodeIterator for StyleDefinition {
-    fn walk<F>(&self, f: &mut F) -> ControlFlow<()>
+    fn walk<F,R>(&self, f: &mut F) -> ControlFlow<R>
     where
-        F: FnMut(Node, Method) -> ControlFlow<()>,
+        F: FnMut(Node, Method) -> ControlFlow<R>,
     {
         f(self.as_node(), Method::Visit)?;
         self.assets.walk(f)?;

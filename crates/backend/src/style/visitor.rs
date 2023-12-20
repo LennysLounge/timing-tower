@@ -16,6 +16,32 @@ pub trait Visitable {
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()>;
 }
 
+pub trait NodeIterator: Visitable {
+    fn search(&self, node_id: &Uuid, action: impl FnOnce(Node)) {
+        let mut action = Some(action);
+        self.walk(&mut |node: Node| {
+            if node.id() == node_id {
+                action.take().map(|action| (action)(node));
+                ControlFlow::Break(())
+            } else {
+                ControlFlow::Continue(())
+            }
+        });
+    }
+    fn search_mut(&mut self, node_id: &Uuid, action: impl FnOnce(NodeMut)) {
+        let mut action = Some(action);
+        self.walk_mut(&mut |node: NodeMut| {
+            if node.id() == node_id {
+                action.take().map(|action| (action)(node));
+                ControlFlow::Break(())
+            } else {
+                ControlFlow::Continue(())
+            }
+        });
+    }
+}
+impl<T: Visitable> NodeIterator for T {}
+
 pub enum Node<'a> {
     Style(&'a StyleDefinition),
     Variable(&'a VariableDefinition),
@@ -88,4 +114,30 @@ pub trait NodeVisitor {
 pub trait NodeVisitorMut {
     fn visit(&mut self, node: NodeMut) -> ControlFlow<()>;
     fn leave(&mut self, node: NodeMut) -> ControlFlow<()>;
+}
+
+impl<T> NodeVisitor for T
+where
+    T: FnMut(Node) -> ControlFlow<()>,
+{
+    fn visit(&mut self, node: Node) -> ControlFlow<()> {
+        (self)(node)
+    }
+
+    fn leave(&mut self, _node: Node) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
+}
+
+impl<T> NodeVisitorMut for T
+where
+    T: FnMut(NodeMut) -> ControlFlow<()>,
+{
+    fn visit(&mut self, node: NodeMut) -> ControlFlow<()> {
+        (self)(node)
+    }
+
+    fn leave(&mut self, _node: NodeMut) -> ControlFlow<()> {
+        ControlFlow::Continue(())
+    }
 }

@@ -1,8 +1,7 @@
 use backend::style::{
     cell::{Cell, TextAlignment},
-    definitions::*,
-    variables::{condition::Condition, fixed_value::FixedValue, map::Map, VariableBehavior},
     iterator::NodeMut,
+    variables::{condition::Condition, fixed_value::FixedValue, map::Map, VariableBehavior},
 };
 use bevy_egui::egui::{ComboBox, DragValue, Ui};
 
@@ -206,7 +205,7 @@ pub fn property_editor(
         }
 
         NodeMut::ClipArea(clip_area) => {
-            let data = clip_area.data_mut();
+            let data = &mut clip_area.data;
             let mut edit_result = EditResult::None;
 
             ui.horizontal(|ui| {

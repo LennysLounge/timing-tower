@@ -7,8 +7,8 @@ use crate::value_types::{Number, Property, Vec2Property, Vec3Property};
 
 use super::{
     cell::Rounding,
-    timing_tower::TimingTowerRow,
     iterator::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
+    timing_tower::TimingTowerRow,
     StyleNode,
 };
 
@@ -55,29 +55,5 @@ impl NodeIteratorMut for ClipArea<TimingTowerRow> {
         f(self.as_node_mut(), Method::Visit)?;
         self.inner.walk_mut(f)?;
         f(self.as_node_mut(), Method::Leave)
-    }
-}
-
-pub trait DynClipArea: StyleNode {
-    fn as_style_node(&self) -> &dyn StyleNode;
-    fn as_style_node_mut(&mut self) -> &mut dyn StyleNode;
-    fn data(&self) -> &ClipAreaData;
-    fn data_mut(&mut self) -> &mut ClipAreaData;
-}
-impl DynClipArea for ClipArea<TimingTowerRow> {
-    fn as_style_node(&self) -> &dyn StyleNode {
-        self
-    }
-
-    fn as_style_node_mut(&mut self) -> &mut dyn StyleNode {
-        self
-    }
-
-    fn data(&self) -> &ClipAreaData {
-        &self.data
-    }
-
-    fn data_mut(&mut self) -> &mut ClipAreaData {
-        &mut self.data
     }
 }

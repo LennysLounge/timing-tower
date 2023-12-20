@@ -6,22 +6,22 @@ use uuid::Uuid;
 
 use self::{
     definitions::*,
-    scene::SceneDefinition,
     iterator::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
+    scene::SceneDefinition,
 };
 
 pub mod assets;
 pub mod cell;
 pub mod clip_area;
+pub mod iterator;
 pub mod scene;
 pub mod timing_tower;
 pub mod variables;
-pub mod iterator;
 
 pub mod definitions {
     pub use self::super::{
         assets::{AssetDefinition, AssetFolder},
-        clip_area::{ClipArea, ClipAreaData, DynClipArea},
+        clip_area::{ClipArea, ClipAreaData},
         scene::SceneDefinition,
         timing_tower::{TimingTower, TimingTowerColumn, TimingTowerColumnFolder, TimingTowerRow},
         variables::{VariableDefinition, VariableFolder},
@@ -48,7 +48,7 @@ impl StyleNode for StyleDefinition {
     }
 }
 impl NodeIterator for StyleDefinition {
-    fn walk<F,R>(&self, f: &mut F) -> ControlFlow<R>
+    fn walk<F, R>(&self, f: &mut F) -> ControlFlow<R>
     where
         F: FnMut(Node, Method) -> ControlFlow<R>,
     {

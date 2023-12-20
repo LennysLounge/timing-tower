@@ -1,10 +1,11 @@
 use std::{any::Any, ops::BitOrAssign, time::Instant};
 
-use backend::style::{visitor::NodeMut, StyleDefinition};
+use backend::style::{
+    visitor::{NodeIterator, NodeMut},
+    StyleDefinition,
+};
 use bevy_egui::egui::{self, Response};
 use uuid::Uuid;
-
-use crate::style::visitors::search::SearchVisitorMut;
 
 use super::EditorCommand;
 
@@ -28,29 +29,29 @@ impl EditProperty {
     }
 
     pub fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
-        SearchVisitorMut::new(self.node_id, |style_node| {
-            let old_value = match style_node.as_node_mut() {
-                NodeMut::Style(o) => apply_edit(o, self.value),
-                NodeMut::Variable(o) => apply_edit(o, self.value),
-                NodeMut::VariableFolder(o) => apply_edit(o, self.value),
-                NodeMut::Asset(o) => apply_edit(o, self.value),
-                NodeMut::AssetFolder(o) => apply_edit(o, self.value),
-                NodeMut::Scene(o) => apply_edit(o, self.value),
-                NodeMut::TimingTower(o) => apply_edit(o, self.value),
-                NodeMut::TimingTowerRow(o) => apply_edit(o, self.value),
-                NodeMut::TimingTowerColumn(o) => apply_edit(o, self.value),
-                NodeMut::TimingTowerColumnFolder(o) => apply_edit(o, self.value),
-                NodeMut::ClipArea(o) => apply_edit(o, self.value),
-            };
-            EditProperty {
-                timestamp: self.timestamp,
-                node_id: self.node_id,
-                widget_id: self.widget_id,
-                value: old_value,
-            }
-        })
-        .search_in(style)
-        .map(|c| c.into())
+        style
+            .search_mut(&self.node_id, |node| {
+                let old_value = match node {
+                    NodeMut::Style(o) => apply_edit(o, self.value),
+                    NodeMut::Variable(o) => apply_edit(o, self.value),
+                    NodeMut::VariableFolder(o) => apply_edit(o, self.value),
+                    NodeMut::Asset(o) => apply_edit(o, self.value),
+                    NodeMut::AssetFolder(o) => apply_edit(o, self.value),
+                    NodeMut::Scene(o) => apply_edit(o, self.value),
+                    NodeMut::TimingTower(o) => apply_edit(o, self.value),
+                    NodeMut::TimingTowerRow(o) => apply_edit(o, self.value),
+                    NodeMut::TimingTowerColumn(o) => apply_edit(o, self.value),
+                    NodeMut::TimingTowerColumnFolder(o) => apply_edit(o, self.value),
+                    NodeMut::ClipArea(o) => apply_edit(o, self.value),
+                };
+                EditProperty {
+                    timestamp: self.timestamp,
+                    node_id: self.node_id,
+                    widget_id: self.widget_id,
+                    value: old_value,
+                }
+            })
+            .map(|c| c.into())
     }
 
     pub fn can_merge_with(&self, other: &EditProperty) -> bool {

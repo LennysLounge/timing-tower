@@ -30,16 +30,18 @@ pub trait NodeIterator: Visitable {
         });
         output
     }
-    fn search_mut(&mut self, node_id: &Uuid, action: impl FnOnce(NodeMut)) {
+    fn search_mut<T>(&mut self, node_id: &Uuid, action: impl FnOnce(NodeMut) -> T) -> Option<T> {
         let mut action = Some(action);
+        let mut output = None;
         self.walk_mut(&mut |node: NodeMut| {
             if node.id() == node_id {
-                action.take().map(|action| (action)(node));
+                output = action.take().map(|action| (action)(node));
                 ControlFlow::Break(())
             } else {
                 ControlFlow::Continue(())
             }
         });
+        output
     }
 }
 impl<T: Visitable> NodeIterator for T {}

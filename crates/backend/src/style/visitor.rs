@@ -18,10 +18,17 @@ pub trait Visitable {
 
 pub trait NodeIterator: Visitable {
     fn search<T>(&self, node_id: &Uuid, action: impl FnOnce(Node) -> T) -> Option<T> {
+        Self::search_key(&self, |node| node.id() == node_id, action)
+    }
+    fn search_key<T>(
+        &self,
+        mut key: impl FnMut(&Node) -> bool,
+        action: impl FnOnce(Node) -> T,
+    ) -> Option<T> {
         let mut action = Some(action);
         let mut output = None;
         self.walk(&mut |node: Node| {
-            if node.id() == node_id {
+            if key(&node) {
                 output = action.take().map(|action| (action)(node));
                 ControlFlow::Break(())
             } else {
@@ -31,10 +38,17 @@ pub trait NodeIterator: Visitable {
         output
     }
     fn search_mut<T>(&mut self, node_id: &Uuid, action: impl FnOnce(NodeMut) -> T) -> Option<T> {
+        Self::search_key_mut(self, |node| node.id() == node_id, action)
+    }
+    fn search_key_mut<T>(
+        &mut self,
+        mut key: impl FnMut(&NodeMut) -> bool,
+        action: impl FnOnce(NodeMut) -> T,
+    ) -> Option<T> {
         let mut action = Some(action);
         let mut output = None;
         self.walk_mut(&mut |node: NodeMut| {
-            if node.id() == node_id {
+            if key(&node) {
                 output = action.take().map(|action| (action)(node));
                 ControlFlow::Break(())
             } else {
@@ -46,6 +60,7 @@ pub trait NodeIterator: Visitable {
 }
 impl<T: Visitable> NodeIterator for T {}
 
+#[derive(Clone, Copy)]
 pub enum Node<'a> {
     Style(&'a StyleDefinition),
     Variable(&'a VariableDefinition),
@@ -77,7 +92,6 @@ impl Node<'_> {
         }
     }
 }
-
 pub enum NodeMut<'a> {
     Style(&'a mut StyleDefinition),
     Variable(&'a mut VariableDefinition),

@@ -11,6 +11,12 @@ use super::{
     StyleDefinition,
 };
 
+#[derive(PartialEq, Eq)]
+pub enum Method {
+    Visit,
+    Leave,
+}
+
 pub trait Visitable {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()>;
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()>;
@@ -27,8 +33,8 @@ pub trait NodeIterator: Visitable {
     ) -> Option<T> {
         let mut action = Some(action);
         let mut output = None;
-        self.walk(&mut |node: Node| {
-            if key(&node) {
+        self.walk(&mut |node: Node, method: Method| {
+            if method == Method::Visit && key(&node) {
                 output = action.take().map(|action| (action)(node));
                 ControlFlow::Break(())
             } else {
@@ -125,8 +131,7 @@ impl NodeMut<'_> {
 }
 
 pub trait NodeVisitor {
-    fn visit(&mut self, node: Node) -> ControlFlow<()>;
-    fn leave(&mut self, node: Node) -> ControlFlow<()>;
+    fn visit(&mut self, node: Node, method: Method) -> ControlFlow<()>;
 }
 
 pub trait NodeVisitorMut {
@@ -136,14 +141,10 @@ pub trait NodeVisitorMut {
 
 impl<T> NodeVisitor for T
 where
-    T: FnMut(Node) -> ControlFlow<()>,
+    T: FnMut(Node, Method) -> ControlFlow<()>,
 {
-    fn visit(&mut self, node: Node) -> ControlFlow<()> {
-        (self)(node)
-    }
-
-    fn leave(&mut self, _node: Node) -> ControlFlow<()> {
-        ControlFlow::Continue(())
+    fn visit(&mut self, node: Node, method: Method) -> ControlFlow<()> {
+        (self)(node, method)
     }
 }
 

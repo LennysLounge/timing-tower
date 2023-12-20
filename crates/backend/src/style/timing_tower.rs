@@ -8,7 +8,7 @@ use crate::value_types::Vec2Property;
 use super::{
     cell::Cell,
     clip_area::ClipArea,
-    visitor::{Node, NodeMut, NodeVisitor, NodeVisitorMut, Visitable},
+    visitor::{Method, Node, NodeMut, NodeVisitor, NodeVisitorMut, Visitable},
     StyleNode,
 };
 
@@ -31,9 +31,9 @@ impl StyleNode for TimingTower {
 }
 impl Visitable for TimingTower {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit(self.as_node())?;
+        visitor.visit(self.as_node(), Method::Visit)?;
         self.row.walk(visitor)?;
-        visitor.leave(self.as_node())
+        visitor.visit(self.as_node(), Method::Leave)
     }
 
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
@@ -74,12 +74,12 @@ impl StyleNode for TimingTowerRow {
 }
 impl Visitable for TimingTowerRow {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit(self.as_node())?;
+        visitor.visit(self.as_node(), Method::Visit)?;
         self.columns.iter().try_for_each(|c| match c {
             ColumnOrFolder::Column(o) => o.walk(visitor),
             ColumnOrFolder::Folder(o) => o.walk(visitor),
         })?;
-        visitor.leave(self.as_node())
+        visitor.visit(self.as_node(), Method::Leave)
     }
 
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
@@ -121,7 +121,7 @@ impl StyleNode for TimingTowerColumn {
 }
 impl Visitable for TimingTowerColumn {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit(self.as_node())
+        visitor.visit(self.as_node(), Method::Visit)
     }
 
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
@@ -166,12 +166,12 @@ impl StyleNode for TimingTowerColumnFolder {
 }
 impl Visitable for TimingTowerColumnFolder {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit(self.as_node())?;
+        visitor.visit(self.as_node(), Method::Visit)?;
         self.content.iter().try_for_each(|f| match f {
             ColumnOrFolder::Column(o) => o.walk(visitor),
             ColumnOrFolder::Folder(o) => o.walk(visitor),
         })?;
-        visitor.leave(self.as_node())
+        visitor.visit(self.as_node(), Method::Leave)
     }
 
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {

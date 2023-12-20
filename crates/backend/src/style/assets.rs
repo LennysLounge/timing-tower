@@ -10,7 +10,7 @@ use crate::{
 
 use super::{
     variables::StaticValueProducer,
-    visitor::{Node, NodeMut, NodeVisitor, NodeVisitorMut, Visitable},
+    visitor::{Method, Node, NodeMut, NodeVisitor, NodeVisitorMut, Visitable},
     StyleNode,
 };
 
@@ -56,7 +56,7 @@ impl StyleNode for AssetDefinition {
 }
 impl Visitable for AssetDefinition {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit(self.as_node())
+        visitor.visit(self.as_node(), Method::Visit)
     }
 
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
@@ -102,12 +102,12 @@ impl StyleNode for AssetFolder {
 }
 impl Visitable for AssetFolder {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit(self.as_node())?;
+        visitor.visit(self.as_node(), Method::Visit)?;
         self.content.iter().try_for_each(|f| match f {
             AssetOrFolder::Asset(o) => o.walk(visitor),
             AssetOrFolder::Folder(o) => o.walk(visitor),
         })?;
-        visitor.leave(self.as_node())
+        visitor.visit(self.as_node(), Method::Leave)
     }
 
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {

@@ -9,7 +9,7 @@ use crate::value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, V
 use self::{condition::Condition, fixed_value::FixedValue, map::Map};
 
 use super::{
-    visitor::{Node, NodeMut, NodeVisitor, NodeVisitorMut, Visitable},
+    visitor::{Method, Node, NodeMut, NodeVisitor, NodeVisitorMut, Visitable},
     StyleNode,
 };
 
@@ -65,7 +65,7 @@ impl StyleNode for VariableDefinition {
 }
 impl Visitable for VariableDefinition {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit(self.as_node())
+        visitor.visit(self.as_node(), Method::Visit)
     }
 
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
@@ -121,12 +121,12 @@ impl StyleNode for VariableFolder {
 }
 impl Visitable for VariableFolder {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit(self.as_node())?;
+        visitor.visit(self.as_node(), Method::Visit)?;
         self.content.iter().try_for_each(|f| match f {
             VariableOrFolder::Variable(o) => o.walk(visitor),
             VariableOrFolder::Folder(o) => o.walk(visitor),
         })?;
-        visitor.leave(self.as_node())
+        visitor.visit(self.as_node(), Method::Leave)
     }
 
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {

@@ -37,7 +37,7 @@ impl<'a> PropertyEditorVisitor<'a> {
         }
     }
     pub fn apply_to(mut self, node: &mut dyn StyleNode) {
-        node.enter_mut(&mut self);
+        self.visit(node.as_node_mut());
     }
 }
 impl<'a> NodeVisitorMut for PropertyEditorVisitor<'a> {

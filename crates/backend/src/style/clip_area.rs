@@ -39,31 +39,15 @@ impl StyleNode for ClipArea<TimingTowerRow> {
 }
 impl Visitable for ClipArea<TimingTowerRow> {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        self.enter(visitor)?;
+        visitor.visit(self.as_node())?;
         self.inner.walk(visitor)?;
-        self.leave(visitor)
-    }
-
-    fn enter(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit(Node::ClipArea(self))
-    }
-
-    fn leave(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.leave(Node::ClipArea(self))
+        visitor.leave(self.as_node())
     }
 
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        self.enter_mut(visitor)?;
+        visitor.visit(self.as_node_mut())?;
         self.inner.walk_mut(visitor)?;
-        self.leave_mut(visitor)
-    }
-
-    fn enter_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.visit(NodeMut::ClipArea(self))
-    }
-
-    fn leave_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.leave(NodeMut::ClipArea(self))
+        visitor.leave(self.as_node_mut())
     }
 }
 

@@ -49,35 +49,18 @@ impl StyleNode for StyleDefinition {
 }
 impl Visitable for StyleDefinition {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        self.enter(visitor)?;
+        visitor.visit(self.as_node())?;
         self.assets.walk(visitor)?;
         self.vars.walk(visitor)?;
         self.scene.walk(visitor)?;
-        self.leave(visitor)
+        visitor.leave(self.as_node())
     }
-
-    fn enter(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit(Node::Style(self))
-    }
-
-    fn leave(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.leave(Node::Style(self))
-    }
-
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        self.enter_mut(visitor)?;
+        visitor.visit(self.as_node_mut())?;
         self.assets.walk_mut(visitor)?;
         self.vars.walk_mut(visitor)?;
         self.scene.walk_mut(visitor)?;
-        self.leave_mut(visitor)
-    }
-
-    fn enter_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.visit(NodeMut::Style(self))
-    }
-
-    fn leave_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.leave(NodeMut::Style(self))
+        visitor.leave(self.as_node_mut())
     }
 }
 

@@ -65,27 +65,11 @@ impl StyleNode for VariableDefinition {
 }
 impl Visitable for VariableDefinition {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        self.enter(visitor)
-    }
-
-    fn enter(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit(Node::Variable(self))
-    }
-
-    fn leave(&self, _visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        ControlFlow::Continue(())
+        visitor.visit(self.as_node())
     }
 
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        self.enter_mut(visitor)
-    }
-
-    fn enter_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.visit(NodeMut::Variable(self))
-    }
-
-    fn leave_mut(&mut self, _visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        ControlFlow::Continue(())
+        visitor.visit(self.as_node_mut())
     }
 }
 
@@ -137,37 +121,21 @@ impl StyleNode for VariableFolder {
 }
 impl Visitable for VariableFolder {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        self.enter(visitor)?;
+        visitor.visit(self.as_node())?;
         self.content.iter().try_for_each(|f| match f {
             VariableOrFolder::Variable(o) => o.walk(visitor),
             VariableOrFolder::Folder(o) => o.walk(visitor),
         })?;
-        self.leave(visitor)
-    }
-
-    fn enter(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit(Node::VariableFolder(self))
-    }
-
-    fn leave(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.leave(Node::VariableFolder(self))
+        visitor.leave(self.as_node())
     }
 
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        self.enter_mut(visitor)?;
+        visitor.visit(self.as_node_mut())?;
         self.content.iter_mut().try_for_each(|f| match f {
             VariableOrFolder::Variable(o) => o.walk_mut(visitor),
             VariableOrFolder::Folder(o) => o.walk_mut(visitor),
         })?;
-        self.leave_mut(visitor)
-    }
-
-    fn enter_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.visit(NodeMut::VariableFolder(self))
-    }
-
-    fn leave_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.leave(NodeMut::VariableFolder(self))
+        visitor.leave(self.as_node_mut())
     }
 }
 

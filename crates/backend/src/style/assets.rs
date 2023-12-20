@@ -53,31 +53,14 @@ impl StyleNode for AssetDefinition {
     fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
         NodeMut::Asset(self)
     }
-    
 }
 impl Visitable for AssetDefinition {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        self.enter(visitor)
-    }
-
-    fn enter(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit(Node::Asset(self))
-    }
-
-    fn leave(&self, _visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        ControlFlow::Continue(())
+        visitor.visit(self.as_node())
     }
 
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        self.enter_mut(visitor)
-    }
-
-    fn enter_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.visit(NodeMut::Asset(self))
-    }
-
-    fn leave_mut(&mut self, _visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        ControlFlow::Continue(())
+        visitor.visit(self.as_node_mut())
     }
 }
 
@@ -119,37 +102,21 @@ impl StyleNode for AssetFolder {
 }
 impl Visitable for AssetFolder {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        self.enter(visitor)?;
+        visitor.visit(self.as_node())?;
         self.content.iter().try_for_each(|f| match f {
             AssetOrFolder::Asset(o) => o.walk(visitor),
             AssetOrFolder::Folder(o) => o.walk(visitor),
         })?;
-        self.leave(visitor)
-    }
-
-    fn enter(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit(Node::AssetFolder(self))
-    }
-
-    fn leave(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.leave(Node::AssetFolder(self))
+        visitor.leave(self.as_node())
     }
 
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        self.enter_mut(visitor)?;
+        visitor.visit(self.as_node_mut())?;
         self.content.iter_mut().try_for_each(|f| match f {
             AssetOrFolder::Asset(o) => o.walk_mut(visitor),
             AssetOrFolder::Folder(o) => o.walk_mut(visitor),
         })?;
-        self.leave_mut(visitor)
-    }
-
-    fn enter_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.visit(NodeMut::AssetFolder(self))
-    }
-
-    fn leave_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.leave(NodeMut::AssetFolder(self))
+        visitor.leave(self.as_node_mut())
     }
 }
 

@@ -31,31 +31,15 @@ impl StyleNode for TimingTower {
 }
 impl Visitable for TimingTower {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        self.enter(visitor)?;
+        visitor.visit(self.as_node())?;
         self.row.walk(visitor)?;
-        self.leave(visitor)
-    }
-
-    fn enter(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit(Node::TimingTower(self))
-    }
-
-    fn leave(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.leave(Node::TimingTower(self))
+        visitor.leave(self.as_node())
     }
 
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        self.enter_mut(visitor)?;
+        visitor.visit(self.as_node_mut())?;
         self.row.walk_mut(visitor)?;
-        self.leave_mut(visitor)
-    }
-
-    fn enter_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.visit(NodeMut::TimingTower(self))
-    }
-
-    fn leave_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.leave(NodeMut::TimingTower(self))
+        visitor.leave(self.as_node_mut())
     }
 }
 
@@ -90,37 +74,21 @@ impl StyleNode for TimingTowerRow {
 }
 impl Visitable for TimingTowerRow {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        self.enter(visitor)?;
+        visitor.visit(self.as_node())?;
         self.columns.iter().try_for_each(|c| match c {
             ColumnOrFolder::Column(o) => o.walk(visitor),
             ColumnOrFolder::Folder(o) => o.walk(visitor),
         })?;
-        self.leave(visitor)
-    }
-
-    fn enter(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit(Node::TimingTowerRow(self))
-    }
-
-    fn leave(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.leave(Node::TimingTowerRow(self))
+        visitor.leave(self.as_node())
     }
 
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        self.enter_mut(visitor)?;
+        visitor.visit(self.as_node_mut())?;
         self.columns.iter_mut().try_for_each(|c| match c {
             ColumnOrFolder::Column(o) => o.walk_mut(visitor),
             ColumnOrFolder::Folder(o) => o.walk_mut(visitor),
         })?;
-        self.leave_mut(visitor)
-    }
-
-    fn enter_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.visit(NodeMut::TimingTowerRow(self))
-    }
-
-    fn leave_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.leave(NodeMut::TimingTowerRow(self))
+        visitor.leave(self.as_node_mut())
     }
 }
 
@@ -153,27 +121,11 @@ impl StyleNode for TimingTowerColumn {
 }
 impl Visitable for TimingTowerColumn {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        self.enter(visitor)
-    }
-
-    fn enter(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit(Node::TimingTowerColumn(self))
-    }
-
-    fn leave(&self, _visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        ControlFlow::Continue(())
+        visitor.visit(self.as_node())
     }
 
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        self.enter_mut(visitor)
-    }
-
-    fn enter_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.visit(NodeMut::TimingTowerColumn(self))
-    }
-
-    fn leave_mut(&mut self, _visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        ControlFlow::Continue(())
+        visitor.visit(self.as_node_mut())
     }
 }
 
@@ -214,37 +166,21 @@ impl StyleNode for TimingTowerColumnFolder {
 }
 impl Visitable for TimingTowerColumnFolder {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        self.enter(visitor)?;
+        visitor.visit(self.as_node())?;
         self.content.iter().try_for_each(|f| match f {
             ColumnOrFolder::Column(o) => o.walk(visitor),
             ColumnOrFolder::Folder(o) => o.walk(visitor),
         })?;
-        self.leave(visitor)
-    }
-
-    fn enter(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.visit(Node::TimingTowerColumnFolder(self))
-    }
-
-    fn leave(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()> {
-        visitor.leave(Node::TimingTowerColumnFolder(self))
+        visitor.leave(self.as_node())
     }
 
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        self.enter_mut(visitor)?;
+        visitor.visit(self.as_node_mut())?;
         self.content.iter_mut().try_for_each(|f| match f {
             ColumnOrFolder::Column(o) => o.walk_mut(visitor),
             ColumnOrFolder::Folder(o) => o.walk_mut(visitor),
         })?;
-        self.leave_mut(visitor)
-    }
-
-    fn enter_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.visit(NodeMut::TimingTowerColumnFolder(self))
-    }
-
-    fn leave_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()> {
-        visitor.leave(NodeMut::TimingTowerColumnFolder(self))
+        visitor.leave(self.as_node_mut())
     }
 }
 

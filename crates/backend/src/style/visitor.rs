@@ -13,11 +13,7 @@ use super::{
 
 pub trait Visitable {
     fn walk(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()>;
-    fn enter(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()>;
-    fn leave(&self, visitor: &mut dyn NodeVisitor) -> ControlFlow<()>;
     fn walk_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()>;
-    fn enter_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()>;
-    fn leave_mut(&mut self, visitor: &mut dyn NodeVisitorMut) -> ControlFlow<()>;
 }
 
 pub enum Node<'a> {

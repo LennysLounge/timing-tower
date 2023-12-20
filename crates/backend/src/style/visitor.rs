@@ -17,16 +17,18 @@ pub trait Visitable {
 }
 
 pub trait NodeIterator: Visitable {
-    fn search(&self, node_id: &Uuid, action: impl FnOnce(Node)) {
+    fn search<T>(&self, node_id: &Uuid, action: impl FnOnce(Node) -> T) -> Option<T> {
         let mut action = Some(action);
+        let mut output = None;
         self.walk(&mut |node: Node| {
             if node.id() == node_id {
-                action.take().map(|action| (action)(node));
+                output = action.take().map(|action| (action)(node));
                 ControlFlow::Break(())
             } else {
                 ControlFlow::Continue(())
             }
         });
+        output
     }
     fn search_mut(&mut self, node_id: &Uuid, action: impl FnOnce(NodeMut)) {
         let mut action = Some(action);

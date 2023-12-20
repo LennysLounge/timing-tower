@@ -33,7 +33,6 @@ use crate::{
         self,
         visitors::{
             drop_allowed::{self},
-            search::SearchVisitor,
             tree_view::{TreeViewVisitor, TreeViewVisitorResult},
         },
     },
@@ -319,15 +318,14 @@ fn tree_view(
     }
 
     if let Some(drop_action) = &response.drag_drop_action {
-        let drop_allowed = SearchVisitor::new(drop_action.drag_id, |dragged| {
-            SearchVisitor::new(drop_action.drop_id, |dropped| {
-                drop_allowed::drop_allowed(dropped, dragged)
+        let drop_allowed = base_node
+            .search(&drop_action.drag_id, |dragged| {
+                base_node.search(&drop_action.drop_id, |dropped| {
+                    drop_allowed::drop_allowed(dropped, dragged)
+                })
             })
-            .search_in(base_node)
-        })
-        .search_in(base_node)
-        .flatten()
-        .unwrap_or(false);
+            .flatten()
+            .unwrap_or(false);
 
         if !drop_allowed {
             response.remove_drop_marker(ui);

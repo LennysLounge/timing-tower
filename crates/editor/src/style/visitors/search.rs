@@ -1,46 +1,10 @@
 use std::ops::ControlFlow;
 
 use backend::style::{
-    visitor::{Node, NodeMut, NodeVisitor, NodeVisitorMut},
+    visitor::{NodeMut, NodeVisitorMut},
     StyleNode,
 };
 use uuid::Uuid;
-
-pub struct SearchVisitor<'a, T> {
-    id: Uuid,
-    action: Option<Box<dyn FnOnce(Node) -> T + 'a>>,
-    output: Option<T>,
-}
-impl<'a, T> SearchVisitor<'a, T> {
-    pub fn new(id: Uuid, action: impl FnOnce(Node) -> T + 'a) -> Self {
-        Self {
-            id,
-            action: Some(Box::new(action)),
-            output: None,
-        }
-    }
-    pub fn search_in<V>(mut self, node: &V) -> Option<T>
-    where
-        V: StyleNode,
-    {
-        node.walk(&mut self);
-        self.output
-    }
-}
-impl<'a, T> NodeVisitor for SearchVisitor<'a, T> {
-    fn visit(&mut self, node: Node) -> ControlFlow<()> {
-        if &self.id == node.id() {
-            self.output = self.action.take().map(|action| (action)(node));
-            ControlFlow::Break(())
-        } else {
-            ControlFlow::Continue(())
-        }
-    }
-
-    fn leave(&mut self, _node: Node) -> ControlFlow<()> {
-        ControlFlow::Continue(())
-    }
-}
 
 pub struct SearchVisitorMut<'a, T> {
     id: Uuid,

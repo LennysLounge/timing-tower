@@ -63,9 +63,9 @@ impl NodeIterator for AssetDefinition {
     }
 }
 impl NodeIteratorMut for AssetDefinition {
-    fn walk_mut<F>(&mut self, f: &mut F) -> ControlFlow<()>
+    fn walk_mut<F, R>(&mut self, f: &mut F) -> ControlFlow<R>
     where
-        F: FnMut(NodeMut, Method) -> ControlFlow<()>,
+        F: FnMut(NodeMut, Method) -> ControlFlow<R>,
     {
         f(self.as_node_mut(), Method::Visit)
     }
@@ -121,9 +121,9 @@ impl NodeIterator for AssetFolder {
     }
 }
 impl NodeIteratorMut for AssetFolder {
-    fn walk_mut<F>(&mut self, f: &mut F) -> ControlFlow<()>
+    fn walk_mut<F, R>(&mut self, f: &mut F) -> ControlFlow<R>
     where
-        F: FnMut(NodeMut, Method) -> ControlFlow<()>,
+        F: FnMut(NodeMut, Method) -> ControlFlow<R>,
     {
         f(self.as_node_mut(), Method::Visit)?;
         self.content.iter_mut().try_for_each(|v| match v {

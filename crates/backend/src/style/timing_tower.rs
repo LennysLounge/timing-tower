@@ -40,9 +40,9 @@ impl NodeIterator for TimingTower {
     }
 }
 impl NodeIteratorMut for TimingTower {
-    fn walk_mut<F>(&mut self, f: &mut F) -> ControlFlow<()>
+    fn walk_mut<F, R>(&mut self, f: &mut F) -> ControlFlow<R>
     where
-        F: FnMut(NodeMut, Method) -> ControlFlow<()>,
+        F: FnMut(NodeMut, Method) -> ControlFlow<R>,
     {
         f(self.as_node_mut(), Method::Visit)?;
         self.row.walk_mut(f)?;
@@ -93,9 +93,9 @@ impl NodeIterator for TimingTowerRow {
     }
 }
 impl NodeIteratorMut for TimingTowerRow {
-    fn walk_mut<F>(&mut self, f: &mut F) -> ControlFlow<()>
+    fn walk_mut<F, R>(&mut self, f: &mut F) -> ControlFlow<R>
     where
-        F: FnMut(NodeMut, Method) -> ControlFlow<()>,
+        F: FnMut(NodeMut, Method) -> ControlFlow<R>,
     {
         f(self.as_node_mut(), Method::Visit)?;
         self.columns.iter_mut().try_for_each(|c| match c {
@@ -142,9 +142,9 @@ impl NodeIterator for TimingTowerColumn {
     }
 }
 impl NodeIteratorMut for TimingTowerColumn {
-    fn walk_mut<F>(&mut self, f: &mut F) -> ControlFlow<()>
+    fn walk_mut<F, R>(&mut self, f: &mut F) -> ControlFlow<R>
     where
-        F: FnMut(NodeMut, Method) -> ControlFlow<()>,
+        F: FnMut(NodeMut, Method) -> ControlFlow<R>,
     {
         f(self.as_node_mut(), Method::Visit)
     }
@@ -199,9 +199,9 @@ impl NodeIterator for TimingTowerColumnFolder {
     }
 }
 impl NodeIteratorMut for TimingTowerColumnFolder {
-    fn walk_mut<F>(&mut self, f: &mut F) -> ControlFlow<()>
+    fn walk_mut<F, R>(&mut self, f: &mut F) -> ControlFlow<R>
     where
-        F: FnMut(NodeMut, Method) -> ControlFlow<()>,
+        F: FnMut(NodeMut, Method) -> ControlFlow<R>,
     {
         f(self.as_node_mut(), Method::Visit)?;
         self.content.iter_mut().try_for_each(|c| match c {

@@ -98,7 +98,7 @@ impl NodeVisitorMut for RemoveNodeVisitor {
                     ControlFlow::Continue(())
                 }
             }
-            _ => ControlFlow::Break(()),
+            _ => ControlFlow::Continue(()),
         }
     }
     fn leave(&mut self, _node: NodeMut) -> ControlFlow<()> {

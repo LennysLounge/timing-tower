@@ -173,7 +173,7 @@ impl NodeVisitorMut for InsertNodeVisitor {
                 }
                 ControlFlow::Break(())
             }
-            _ => ControlFlow::Break(()),
+            _ => ControlFlow::Continue(()),
         }
     }
 

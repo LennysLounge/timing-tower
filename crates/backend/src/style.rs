@@ -67,7 +67,7 @@ impl VisitableMut for StyleDefinition {
 }
 
 /// Base trait for all elements in the style definition.
-pub trait StyleNode: ToAny + Visitable + Sync + Send + DynClone {
+pub trait StyleNode: ToAny + Sync + Send + DynClone {
     fn id(&self) -> &Uuid;
     fn as_node<'a>(&'a self) -> Node<'a>;
     fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a>;

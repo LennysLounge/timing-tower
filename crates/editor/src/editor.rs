@@ -322,8 +322,9 @@ fn tree_view(
 
     if let Some(drop_action) = &response.drag_drop_action {
         let drop_allowed = base_node
+            .as_node()
             .search(&drop_action.drag_id, |dragged| {
-                base_node.search(&drop_action.drop_id, |dropped| {
+                base_node.as_node().search(&drop_action.drop_id, |dropped| {
                     drop_allowed::drop_allowed(dropped, dragged)
                 })
             })

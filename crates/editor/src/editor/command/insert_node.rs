@@ -10,9 +10,7 @@ use backend::style::{
     StyleNode,
 };
 
-use crate::style::visitors::remove;
-
-use super::EditorCommand;
+use super::{remove_node::remove_node, EditorCommand};
 
 pub struct InsertNode {
     pub target_node: Uuid,
@@ -40,7 +38,7 @@ pub struct InsertNodeUndo {
 }
 impl InsertNodeUndo {
     pub fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
-        remove::remove_node(&self.id, style).map(|removed_node| {
+        remove_node(&self.id, style).map(|removed_node| {
             InsertNode {
                 target_node: removed_node.parent_id,
                 position: removed_node.position,

@@ -29,11 +29,13 @@ use uuid::Uuid;
 
 use crate::{
     reference_store::{ReferenceStore, ReferenceStorePlugin},
-    style::visitors::{
-        drop_allowed::{self},
-        property_editor::PropertyEditorVisitor,
-        search::{SearchVisitor, SearchVisitorMut},
-        tree_view::{TreeViewVisitor, TreeViewVisitorResult},
+    style::{
+        self,
+        visitors::{
+            drop_allowed::{self},
+            search::{SearchVisitor, SearchVisitorMut},
+            tree_view::{TreeViewVisitor, TreeViewVisitorResult},
+        },
     },
     MainCamera,
 };
@@ -358,8 +360,12 @@ fn property_editor(
         .auto_shrink([false, false])
         .show(ui, |ui| {
             SearchVisitorMut::new(*selected_id, |selected_node| {
-                PropertyEditorVisitor::new(ui, reference_store, undo_redo_manager)
-                    .apply_to(selected_node)
+                style::visitors::property_editor::property_editor(
+                    ui,
+                    selected_node.as_node_mut(),
+                    reference_store,
+                    undo_redo_manager,
+                );
             })
             .search_in(style);
         });

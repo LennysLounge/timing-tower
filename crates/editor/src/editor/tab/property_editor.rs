@@ -1,9 +1,11 @@
 use backend::style::{
     cell::{Cell, TextAlignment},
-    iterator::NodeMut,
+    iterator::{NodeIteratorMut, NodeMut},
     variables::{condition::Condition, fixed_value::FixedValue, map::Map, VariableBehavior},
+    StyleDefinition, StyleNode,
 };
-use bevy_egui::egui::{ComboBox, DragValue, Ui};
+use bevy_egui::egui::{ComboBox, DragValue, ScrollArea, Ui};
+use uuid::Uuid;
 
 use crate::{
     editor::command::{
@@ -16,6 +18,26 @@ use crate::{
 };
 
 pub fn property_editor(
+    ui: &mut Ui,
+    selected_id: &mut Option<Uuid>,
+    style: &mut StyleDefinition,
+    reference_store: &ReferenceStore,
+    undo_redo_manager: &mut UndoRedoManager,
+) {
+    let Some(selected_id) = selected_id else {
+        return;
+    };
+
+    ScrollArea::vertical()
+        .auto_shrink([false, false])
+        .show(ui, |ui| {
+            style.as_node_mut().search_mut(*&selected_id, |node| {
+                edit_node(ui, node, reference_store, undo_redo_manager);
+            });
+        });
+}
+
+pub fn edit_node(
     ui: &mut Ui,
     node: NodeMut,
     reference_store: &ReferenceStore,

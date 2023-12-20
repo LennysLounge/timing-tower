@@ -1,14 +1,12 @@
 pub mod camera;
 pub mod command;
+pub mod tab;
 
 use std::{fs::File, io::Write};
 
 use backend::{
     savefile::{Savefile, SavefileChanged},
-    style::{
-        iterator::{NodeIterator, NodeIteratorMut},
-        StyleDefinition, StyleNode,
-    },
+    style::StyleDefinition,
 };
 use bevy::{
     app::First,
@@ -23,30 +21,21 @@ use bevy::{
     transform::components::Transform,
 };
 use bevy_egui::{
-    egui::{self, Rect, ScrollArea, Ui},
+    egui::{self},
     EguiContexts,
 };
-use egui_dock::{DockArea, DockState, NodeIndex, TabViewer};
+use egui_dock::{DockArea, DockState, NodeIndex};
 use tracing::error;
 use uuid::Uuid;
 
 use crate::{
     reference_store::{ReferenceStore, ReferenceStorePlugin},
-    style::{
-        self,
-        visitors::{
-            drop_allowed::{self},
-            tree_view::{self, TreeViewVisitorResult},
-        },
-    },
     MainCamera,
 };
 
 use self::{
     camera::{EditorCamera, EditorCameraPlugin},
-    command::{
-        insert_node::InsertNode, move_node::MoveNode, remove_node::RemoveNode, UndoRedoManager,
-    },
+    command::UndoRedoManager,
 };
 
 pub struct EditorPlugin;
@@ -72,21 +61,21 @@ fn setup(mut ctx: EguiContexts) {
 
 #[derive(Resource)]
 pub struct EditorState {
-    dock_state: DockState<Tab>,
+    dock_state: DockState<tab::Tab>,
     selected_node: Option<Uuid>,
     style: StyleDefinition,
 }
 impl EditorState {
     pub fn new() -> Self {
-        let mut state = DockState::new(vec![Tab::SceneView]);
+        let mut state = DockState::new(vec![tab::Tab::SceneView]);
         let tree = state.main_surface_mut();
         let [scene, _tree_view] = tree.split_left(
             NodeIndex::root(),
             0.15,
-            vec![Tab::Elements, Tab::Variables, Tab::Assets],
+            vec![tab::Tab::Elements, tab::Tab::Variables, tab::Tab::Assets],
         );
-        let [scene, _tree_view] = tree.split_right(scene, 0.8, vec![Tab::PropertyEditor]);
-        let [_scene, _undo_redo] = tree.split_right(scene, 0.8, vec![Tab::UndoRedo]);
+        let [scene, _tree_view] = tree.split_right(scene, 0.8, vec![tab::Tab::PropertyEditor]);
+        let [_scene, _undo_redo] = tree.split_right(scene, 0.8, vec![tab::Tab::UndoRedo]);
 
         Self {
             selected_node: None,
@@ -150,7 +139,7 @@ fn ui(
         .style(egui_dock::Style::from_egui(ctx.ctx_mut().style().as_ref()))
         .show(
             ctx.ctx_mut(),
-            &mut EditorTabViewer {
+            &mut tab::EditorTabViewer {
                 viewport,
                 selected_node,
                 style: style,
@@ -180,93 +169,6 @@ fn savefile_changed(
     editor_state.style = savefile.style().clone();
 }
 
-enum Tab {
-    SceneView,
-    Elements,
-    Variables,
-    Assets,
-    PropertyEditor,
-    UndoRedo,
-}
-
-struct EditorTabViewer<'a> {
-    viewport: &'a mut Rect,
-    selected_node: &'a mut Option<Uuid>,
-    style: &'a mut StyleDefinition,
-    reference_store: &'a ReferenceStore,
-    undo_redo_manager: &'a mut UndoRedoManager,
-}
-impl<'a> TabViewer for EditorTabViewer<'a> {
-    type Tab = Tab;
-
-    fn title(&mut self, tab: &mut Self::Tab) -> egui::WidgetText {
-        match tab {
-            Tab::SceneView => "Scene view".into(),
-            Tab::Elements => "Elements".into(),
-            Tab::PropertyEditor => "Style".into(),
-            Tab::Variables => "Variables".into(),
-            Tab::Assets => "Assets".into(),
-            Tab::UndoRedo => "Undo/Redo".into(),
-        }
-    }
-
-    fn ui(&mut self, ui: &mut egui::Ui, tab: &mut Self::Tab) {
-        match tab {
-            Tab::SceneView => {
-                *self.viewport = ui.clip_rect();
-            }
-            Tab::Elements => {
-                tree_view(
-                    ui,
-                    self.selected_node,
-                    &mut self.style.scene,
-                    self.undo_redo_manager,
-                );
-            }
-            Tab::PropertyEditor => {
-                property_editor(
-                    ui,
-                    self.selected_node,
-                    self.style,
-                    self.reference_store,
-                    self.undo_redo_manager,
-                );
-            }
-            Tab::Variables => {
-                tree_view(
-                    ui,
-                    self.selected_node,
-                    &mut self.style.vars,
-                    self.undo_redo_manager,
-                );
-            }
-            Tab::Assets => {
-                tree_view(
-                    ui,
-                    self.selected_node,
-                    &mut self.style.assets,
-                    self.undo_redo_manager,
-                );
-            }
-            Tab::UndoRedo => {
-                undo_redo(ui, &mut self.undo_redo_manager);
-            }
-        }
-    }
-
-    fn scroll_bars(&self, _tab: &Self::Tab) -> [bool; 2] {
-        [false; 2]
-    }
-
-    fn closeable(&mut self, _tab: &mut Self::Tab) -> bool {
-        false
-    }
-
-    fn clear_background(&self, tab: &Self::Tab) -> bool {
-        !matches!(tab, Tab::SceneView)
-    }
-}
-
 fn save_style(style: &StyleDefinition) {
     let s = match serde_json::to_string_pretty(style) {
         Ok(s) => s,
@@ -286,115 +188,4 @@ fn save_style(style: &StyleDefinition) {
         error!("Cannot write to file: {e}");
         return;
     }
-}
-
-fn tree_view(
-    ui: &mut Ui,
-    _selected_node: &mut Option<Uuid>,
-    base_node: &mut impl StyleNode,
-    undo_redo_manager: &mut UndoRedoManager,
-) -> bool {
-    let mut changed = false;
-    let TreeViewVisitorResult {
-        response,
-        nodes_to_add,
-        nodes_to_remove,
-    } = ScrollArea::vertical()
-        .show(ui, |ui| tree_view::show(ui, base_node))
-        .inner;
-
-    // Add nodes
-    for (target_node, position, node) in nodes_to_add {
-        undo_redo_manager.queue(InsertNode {
-            target_node,
-            position,
-            node,
-        });
-    }
-    // remove nodes
-    for id in nodes_to_remove {
-        undo_redo_manager.queue(RemoveNode { id });
-    }
-
-    if response.selected_node.is_some() {
-        *_selected_node = response.selected_node;
-    }
-
-    if let Some(drop_action) = &response.drag_drop_action {
-        let drop_allowed = base_node
-            .as_node()
-            .search(&drop_action.drag_id, |dragged| {
-                base_node.as_node().search(&drop_action.drop_id, |dropped| {
-                    drop_allowed::drop_allowed(dropped, dragged)
-                })
-            })
-            .flatten()
-            .unwrap_or(false);
-
-        if !drop_allowed {
-            response.remove_drop_marker(ui);
-        }
-
-        if response.dropped && drop_allowed {
-            undo_redo_manager.queue(MoveNode {
-                id: drop_action.drag_id,
-                target_id: drop_action.drop_id,
-                position: drop_action.position,
-            });
-            changed = true;
-        }
-    }
-    changed
-}
-
-fn property_editor(
-    ui: &mut Ui,
-    selected_id: &mut Option<Uuid>,
-    style: &mut StyleDefinition,
-    reference_store: &ReferenceStore,
-    undo_redo_manager: &mut UndoRedoManager,
-) {
-    let Some(selected_id) = selected_id else {
-        return;
-    };
-
-    ScrollArea::vertical()
-        .auto_shrink([false, false])
-        .show(ui, |ui| {
-            style.as_node_mut().search_mut(*&selected_id, |node| {
-                style::visitors::property_editor::property_editor(
-                    ui,
-                    node,
-                    reference_store,
-                    undo_redo_manager,
-                );
-            });
-        });
-}
-
-fn undo_redo(ui: &mut Ui, undo_redo_manager: &mut UndoRedoManager) {
-    ui.horizontal(|ui| {
-        if ui.button("Undo").clicked() {
-            undo_redo_manager.queue(command::EditorCommand::Undo);
-        }
-        if ui.button("Redo").clicked() {
-            undo_redo_manager.queue(command::EditorCommand::Redo);
-        }
-    });
-    ui.scope(|ui| {
-        ui.spacing_mut().item_spacing.y = 0.0;
-        for future_command in undo_redo_manager.redo_list().iter() {
-            ui.horizontal(|ui| {
-                ui.add_space(17.0);
-                ui.label(future_command.name());
-            });
-        }
-        ui.label(">> Now");
-        for past_command in undo_redo_manager.undo_list().iter().rev() {
-            ui.horizontal(|ui| {
-                ui.add_space(17.0);
-                ui.label(past_command.name());
-            });
-        }
-    });
 }

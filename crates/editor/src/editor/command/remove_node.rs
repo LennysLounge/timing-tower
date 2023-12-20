@@ -4,7 +4,7 @@ use backend::style::{definitions::*, visitor::NodeIterator};
 
 use crate::style::visitors::{
     insert,
-    remove::{RemoveNodeVisitor, RemovedNode},
+    remove::{self, RemovedNode},
 };
 
 use super::EditorCommand;
@@ -14,10 +14,8 @@ pub struct RemoveNode {
 }
 impl RemoveNode {
     pub fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
-        let Some(removed_node) = RemoveNodeVisitor::new(self.id).remove_from(style) else {
-            return None;
-        };
-        Some(RemoveNodeUndo { removed_node }.into())
+        remove::remove_node(&self.id, style)
+            .map(|removed_node| RemoveNodeUndo { removed_node }.into())
     }
 }
 

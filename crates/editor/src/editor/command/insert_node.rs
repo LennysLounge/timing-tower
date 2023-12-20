@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use backend::style::{definitions::*, visitor::NodeIterator, StyleNode};
 
-use crate::style::visitors::{insert, remove::RemoveNodeVisitor};
+use crate::style::visitors::{insert, remove};
 
 use super::EditorCommand;
 
@@ -33,16 +33,14 @@ pub struct InsertNodeUndo {
 }
 impl InsertNodeUndo {
     pub fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
-        RemoveNodeVisitor::new(self.id)
-            .remove_from(style)
-            .map(|removed_node| {
-                InsertNode {
-                    target_node: removed_node.parent_id,
-                    position: removed_node.position,
-                    node: removed_node.node,
-                }
-                .into()
-            })
+        remove::remove_node(&self.id, style).map(|removed_node| {
+            InsertNode {
+                target_node: removed_node.parent_id,
+                position: removed_node.position,
+                node: removed_node.node,
+            }
+            .into()
+        })
     }
 }
 impl From<InsertNodeUndo> for EditorCommand {

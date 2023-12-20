@@ -1,20 +1,17 @@
 pub mod camera;
 pub mod command;
 
-use std::{fs::File, io::Write, ops::ControlFlow};
+use std::{fs::File, io::Write};
 
 use backend::{
     savefile::{Savefile, SavefileChanged},
-    style::{
-        visitor::{Node, NodeIterator, Visitable},
-        StyleDefinition, StyleNode,
-    },
+    style::{visitor::NodeIterator, StyleDefinition, StyleNode},
 };
 use bevy::{
     app::First,
     ecs::{
         event::{EventReader, EventWriter},
-        system::{Local, Res},
+        system::Res,
     },
     math::vec3,
     prelude::{
@@ -28,7 +25,7 @@ use bevy_egui::{
 };
 use egui_dock::{DockArea, DockState, NodeIndex, TabViewer};
 use tracing::error;
-use uuid::{uuid, Uuid};
+use uuid::Uuid;
 
 use crate::{
     reference_store::{ReferenceStore, ReferenceStorePlugin},
@@ -36,7 +33,7 @@ use crate::{
         self,
         visitors::{
             drop_allowed::{self},
-            search::{SearchVisitor, SearchVisitorMut},
+            search::SearchVisitor,
             tree_view::{TreeViewVisitor, TreeViewVisitorResult},
         },
     },
@@ -173,54 +170,12 @@ fn savefile_changed(
     savefile: Res<Savefile>,
     mut editor_state: ResMut<EditorState>,
     mut savefile_changed_event: EventReader<SavefileChanged>,
-    mut once: Local<bool>,
 ) {
     if savefile_changed_event.is_empty() {
         return;
     }
     savefile_changed_event.clear();
     editor_state.style = savefile.style().clone();
-
-    if *once == false {
-        *once = true;
-
-        println!("savefile changed");
-        editor_state.style.walk(&mut |node: Node| {
-            match node {
-                Node::Style(_) => println!("Style"),
-                Node::Variable(_) => println!("Variable"),
-                Node::VariableFolder(_) => println!("VariableFolder"),
-                Node::Asset(_) => println!("Asset"),
-                Node::AssetFolder(_) => println!("AssetFolder"),
-                Node::Scene(_) => println!("Scene"),
-                Node::TimingTower(_) => println!("TimingTower"),
-                Node::TimingTowerRow(_) => println!("TimingTowerRow"),
-                Node::TimingTowerColumn(_) => println!("TimingTowerColumn"),
-                Node::TimingTowerColumnFolder(_) => println!("TimingTowerColumnFolder"),
-                Node::ClipArea(_) => println!("ClipArea"),
-            }
-            ControlFlow::Continue(())
-        });
-        editor_state.style.search(
-            &uuid!("12b0a701-6b31-4027-8bbb-0c3011998f4c"),
-            |node: Node| {
-                println!("Found it!");
-                match node {
-                    Node::Style(_) => println!("Style"),
-                    Node::Variable(_) => println!("Variable"),
-                    Node::VariableFolder(_) => println!("VariableFolder"),
-                    Node::Asset(_) => println!("Asset"),
-                    Node::AssetFolder(_) => println!("AssetFolder"),
-                    Node::Scene(_) => println!("Scene"),
-                    Node::TimingTower(_) => println!("TimingTower"),
-                    Node::TimingTowerRow(_) => println!("TimingTowerRow"),
-                    Node::TimingTowerColumn(_) => println!("TimingTowerColumn"),
-                    Node::TimingTowerColumnFolder(_) => println!("TimingTowerColumnFolder"),
-                    Node::ClipArea(_) => println!("ClipArea"),
-                }
-            },
-        )
-    }
 }
 
 enum Tab {
@@ -404,15 +359,14 @@ fn property_editor(
     ScrollArea::vertical()
         .auto_shrink([false, false])
         .show(ui, |ui| {
-            SearchVisitorMut::new(*selected_id, |selected_node| {
+            style.search_mut(*&selected_id, |node| {
                 style::visitors::property_editor::property_editor(
                     ui,
-                    selected_node.as_node_mut(),
+                    node,
                     reference_store,
                     undo_redo_manager,
                 );
-            })
-            .search_in(style);
+            });
         });
 }
 

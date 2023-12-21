@@ -3,7 +3,7 @@ use backend::value_types::{
 };
 use bevy_egui::egui::{ComboBox, DragValue, Response, TextEdit, Ui, Widget};
 
-use crate::editor::reference_store::ReferenceStore;
+use crate::reference_store::ReferenceStore;
 
 pub struct PropertyEditor<'a, T> {
     property: &'a mut Property<T>,

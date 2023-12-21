@@ -11,7 +11,7 @@ use crate::{
         edit_property::{EditProperty, EditResult},
         UndoRedoManager,
     },
-    editor::reference_store::ReferenceStore,
+    reference_store::ReferenceStore,
 };
 
 use self::property::PropertyEditor;

@@ -307,3 +307,36 @@ fn savefile_changed(
     info!("Reload reference store");
     reference_store.reload(&savefile.style().vars, &savefile.style().assets);
 }
+
+mod style {
+    use backend::style::{
+        definitions::AssetDefinition,
+        variables::{VariableBehavior, VariableDefinition},
+    };
+
+    use super::{IntoProducerData, ProducerData};
+
+    impl IntoProducerData for VariableDefinition {
+        fn producer_data(&self) -> ProducerData {
+            ProducerData {
+                id: self.id,
+                name: self.name.clone(),
+                value_type: match &self.behavior {
+                    VariableBehavior::FixedValue(o) => o.output_type(),
+                    VariableBehavior::Condition(o) => o.output_type(),
+                    VariableBehavior::Map(o) => o.output_type(),
+                },
+            }
+        }
+    }
+
+    impl IntoProducerData for AssetDefinition {
+        fn producer_data(&self) -> ProducerData {
+            ProducerData {
+                id: self.id.clone(),
+                name: self.name.clone(),
+                value_type: self.value_type.clone(),
+            }
+        }
+    }
+}

@@ -18,12 +18,13 @@ use bevy::{
 use bevy_egui::EguiPlugin;
 use camera::EditorCameraPlugin;
 use cell_manager::CellManagerPlugin;
+use command::CommandPlugin;
 use common::communication::{CellStyle, TextAlignment};
-use editor::EditorPlugin;
 use frontend::{
     cell::{init_cell, SetStyle},
     FrontendPlugin,
 };
+use reference_store::ReferenceStorePlugin;
 use std::env;
 use ui::EditorUiPlugin;
 use uuid::uuid;
@@ -34,8 +35,7 @@ mod asset_path_store;
 mod camera;
 mod cell_manager;
 mod command;
-mod editor;
-mod style;
+mod reference_store;
 mod ui;
 
 fn main() {
@@ -47,9 +47,10 @@ fn main() {
         .add_plugins((
             EditorAssetPathStorePlugin,
             CellManagerPlugin,
-            EditorPlugin,
             EditorUiPlugin,
             EditorCameraPlugin,
+            CommandPlugin,
+            ReferenceStorePlugin,
         ))
         .add_plugins(DefaultPlugins)
         .add_plugins(FrameTimeDiagnosticsPlugin)

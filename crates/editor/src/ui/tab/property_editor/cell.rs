@@ -1,7 +1,7 @@
 use backend::style::cell::{Cell, TextAlignment};
 use bevy_egui::egui::{ComboBox, Ui};
 
-use crate::{command::edit_property::EditResult, editor::reference_store::ReferenceStore};
+use crate::{command::edit_property::EditResult, reference_store::ReferenceStore};
 
 use super::property::PropertyEditor;
 

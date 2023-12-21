@@ -33,6 +33,7 @@ use unified_sim_model::Adapter;
 mod asset_path_store;
 mod camera;
 mod cell_manager;
+mod command;
 mod editor;
 mod style;
 mod ui;

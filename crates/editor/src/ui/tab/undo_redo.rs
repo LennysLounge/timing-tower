@@ -1,6 +1,6 @@
 use bevy_egui::egui::Ui;
 
-use crate::editor::command::{self, UndoRedoManager};
+use crate::command::{self, UndoRedoManager};
 
 pub fn undo_redo(ui: &mut Ui, undo_redo_manager: &mut UndoRedoManager) {
     ui.horizontal(|ui| {

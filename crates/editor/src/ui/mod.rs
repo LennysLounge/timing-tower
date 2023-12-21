@@ -25,9 +25,9 @@ use egui_dock::{DockArea, DockState, NodeIndex};
 use tracing::error;
 use uuid::Uuid;
 
-use crate::{camera::EditorCamera, MainCamera};
+use crate::{camera::EditorCamera, command::UndoRedoManager, MainCamera};
 
-use crate::editor::{command::UndoRedoManager, reference_store::ReferenceStore};
+use crate::editor::reference_store::ReferenceStore;
 
 use self::tab::Tab;
 

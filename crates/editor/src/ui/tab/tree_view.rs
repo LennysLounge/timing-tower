@@ -9,7 +9,7 @@ use bevy_egui::egui::{ScrollArea, Ui};
 use egui_ltreeview::{DropPosition, TreeViewBuilder, TreeViewResponse};
 use uuid::Uuid;
 
-use crate::editor::command::{
+use crate::command::{
     insert_node::InsertNode, move_node::MoveNode, remove_node::RemoveNode, UndoRedoManager,
 };
 

@@ -7,7 +7,10 @@ use backend::{
     savefile::{Savefile, SavefileChanged},
     style::StyleDefinition,
 };
-use bevy::ecs::{event::EventWriter, system::Resource};
+use bevy::{
+    app::Plugin,
+    ecs::{event::EventWriter, system::Resource},
+};
 
 use self::{
     edit_property::EditProperty,
@@ -15,6 +18,13 @@ use self::{
     move_node::MoveNode,
     remove_node::{RemoveNode, RemoveNodeUndo},
 };
+
+pub struct CommandPlugin;
+impl Plugin for CommandPlugin {
+    fn build(&self, app: &mut bevy::prelude::App) {
+        app.insert_resource(UndoRedoManager::default());
+    }
+}
 
 pub enum EditorCommand {
     Undo,

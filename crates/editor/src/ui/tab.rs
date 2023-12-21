@@ -7,7 +7,7 @@ use bevy_egui::egui::{self, Rect};
 use egui_dock::TabViewer;
 use uuid::Uuid;
 
-use crate::editor::{command::UndoRedoManager, reference_store::ReferenceStore};
+use crate::{command::UndoRedoManager, editor::reference_store::ReferenceStore};
 
 pub enum Tab {
     SceneView,

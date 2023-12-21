@@ -6,12 +6,12 @@ use backend::style::{
 use bevy_egui::egui::{ComboBox, DragValue, ScrollArea, Ui};
 use uuid::Uuid;
 
-use crate::editor::{
+use crate::{
     command::{
         edit_property::{EditProperty, EditResult},
         UndoRedoManager,
     },
-    reference_store::ReferenceStore,
+    editor::reference_store::ReferenceStore,
 };
 
 use self::property::PropertyEditor;

@@ -16,6 +16,7 @@ use bevy::{
     DefaultPlugins,
 };
 use bevy_egui::EguiPlugin;
+use camera::EditorCameraPlugin;
 use cell_manager::CellManagerPlugin;
 use common::communication::{CellStyle, TextAlignment};
 use editor::EditorPlugin;
@@ -24,14 +25,17 @@ use frontend::{
     FrontendPlugin,
 };
 use std::env;
+use ui::EditorUiPlugin;
 use uuid::uuid;
 
 use unified_sim_model::Adapter;
 
 mod asset_path_store;
+mod camera;
 mod cell_manager;
 mod editor;
 mod style;
+mod ui;
 
 fn main() {
     env::set_var("RUST_BACKTRACE", "1");
@@ -39,9 +43,13 @@ fn main() {
         .insert_resource(ClearColor(Color::rgba(0.1, 0.1, 0.1, 0.0)))
         .insert_resource(SimpleTimer(Timer::from_seconds(1.0, TimerMode::Repeating)))
         .add_plugins(BackendPlugin)
-        .add_plugins(EditorAssetPathStorePlugin)
-        .add_plugins(CellManagerPlugin)
-        .add_plugins(EditorPlugin)
+        .add_plugins((
+            EditorAssetPathStorePlugin,
+            CellManagerPlugin,
+            EditorPlugin,
+            EditorUiPlugin,
+            EditorCameraPlugin,
+        ))
         .add_plugins(DefaultPlugins)
         .add_plugins(FrameTimeDiagnosticsPlugin)
         .add_plugins(EguiPlugin)

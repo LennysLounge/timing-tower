@@ -1,8 +1,8 @@
 use bevy_egui::egui::{vec2, ComboBox, InnerResponse, Response, Ui};
 
-use crate::editor::{
-    reference_store::ReferenceStore,
-    tab::property_editor::property::{PropertyEditor, ValueTypeEditor},
+use crate::{
+    editor::reference_store::ReferenceStore,
+    ui::tab::property_editor::property::{PropertyEditor, ValueTypeEditor},
 };
 use backend::{
     style::variables::map::{Input, Map, NumberComparator, Output, TextComparator, UntypedOutput},

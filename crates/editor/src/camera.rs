@@ -5,6 +5,7 @@ use bevy::{
         component::Component,
         event::EventReader,
         query::With,
+        schedule::IntoSystemConfigs,
         system::{Commands, Query, Res},
     },
     input::{
@@ -25,7 +26,7 @@ impl Plugin for EditorCameraPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_systems(Startup, setup)
             .add_systems(Update, camera_drag)
-            .add_systems(PostUpdate, set_camera_viewport);
+            .add_systems(PostUpdate, set_camera_viewport.after(crate::ui::UiSystem));
     }
 }
 
@@ -109,7 +110,7 @@ fn camera_drag(
 }
 
 // make camera only render to view not obstructed by UI
-pub fn set_camera_viewport(
+fn set_camera_viewport(
     primary_window: Query<&mut Window, With<PrimaryWindow>>,
     egui_settings: Res<bevy_egui::EguiSettings>,
     mut cameras: Query<(&mut Camera, &EditorCamera), With<MainCamera>>,

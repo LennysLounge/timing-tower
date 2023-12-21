@@ -1,5 +1,6 @@
-use crate::reference_store::{IntoProducerData, ProducerData};
 use backend::style::assets::AssetDefinition;
+
+use crate::editor::reference_store::{IntoProducerData, ProducerData};
 
 impl IntoProducerData for AssetDefinition {
     fn producer_data(&self) -> ProducerData {

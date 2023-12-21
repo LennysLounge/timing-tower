@@ -4,7 +4,7 @@ use backend::{
 };
 use bevy_egui::egui::{ComboBox, DragValue, Ui};
 
-use crate::reference_store::ReferenceStore;
+use crate::editor::reference_store::ReferenceStore;
 
 pub fn property_editor(
     ui: &mut Ui,

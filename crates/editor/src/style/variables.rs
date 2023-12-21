@@ -1,10 +1,6 @@
-use unified_sim_model::model::Entry;
+use backend::style::variables::{VariableBehavior, VariableDefinition};
 
-use crate::reference_store::{IntoProducerData, ProducerData};
-use backend::{
-    style::variables::{VariableBehavior, VariableDefinition},
-    value_store::{ValueProducer, ValueStore},
-};
+use crate::editor::reference_store::{IntoProducerData, ProducerData};
 
 impl IntoProducerData for VariableDefinition {
     fn producer_data(&self) -> ProducerData {
@@ -17,15 +13,5 @@ impl IntoProducerData for VariableDefinition {
                 VariableBehavior::Map(o) => o.output_type(),
             },
         }
-    }
-}
-
-pub struct StaticValueProducer<T>(pub T);
-impl<T> ValueProducer<T> for StaticValueProducer<T>
-where
-    T: Clone,
-{
-    fn get(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<T> {
-        Some(self.0.clone())
     }
 }

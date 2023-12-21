@@ -1,5 +1,6 @@
 pub mod camera;
 pub mod command;
+pub mod reference_store;
 pub mod tab;
 
 use std::{fs::File, io::Write};
@@ -28,14 +29,12 @@ use egui_dock::{DockArea, DockState, NodeIndex};
 use tracing::error;
 use uuid::Uuid;
 
-use crate::{
-    reference_store::{ReferenceStore, ReferenceStorePlugin},
-    MainCamera,
-};
+use crate::MainCamera;
 
 use self::{
     camera::{EditorCamera, EditorCameraPlugin},
     command::UndoRedoManager,
+    reference_store::{ReferenceStore, ReferenceStorePlugin},
 };
 
 pub struct EditorPlugin;

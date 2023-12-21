@@ -7,8 +7,8 @@ use backend::style::{
 use bevy_egui::egui::{ComboBox, DragValue, ScrollArea, Ui};
 use uuid::Uuid;
 
-use crate::{
-    editor::command::{
+use crate::editor::{
+    command::{
         edit_property::{EditProperty, EditResult},
         UndoRedoManager,
     },

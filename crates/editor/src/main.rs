@@ -31,7 +31,6 @@ use unified_sim_model::Adapter;
 mod asset_path_store;
 mod cell_manager;
 mod editor;
-mod reference_store;
 mod style;
 
 fn main() {

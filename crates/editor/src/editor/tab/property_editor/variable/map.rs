@@ -1,7 +1,7 @@
 use bevy_egui::egui::{vec2, ComboBox, InnerResponse, Response, Ui};
 
 use crate::{
-    property_editor::{PropertyEditor, ValueTypeEditor},
+    editor::tab::property_editor::property::{PropertyEditor, ValueTypeEditor},
     reference_store::ReferenceStore,
 };
 use backend::{

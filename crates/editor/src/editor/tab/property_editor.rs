@@ -12,10 +12,13 @@ use crate::{
         edit_property::{EditProperty, EditResult},
         UndoRedoManager,
     },
-    property_editor::PropertyEditor,
     reference_store::ReferenceStore,
-    style::variables,
 };
+
+use self::property::PropertyEditor;
+
+mod property;
+mod variable;
 
 pub fn property_editor(
     ui: &mut Ui,
@@ -167,21 +170,21 @@ pub fn edit_node(
             ui.separator();
             edit_result |= match &mut variable.behavior {
                 VariableBehavior::FixedValue(value) => {
-                    if variables::fixed_value::property_editor(ui, value, reference_store) {
+                    if variable::fixed_value::property_editor(ui, value, reference_store) {
                         EditResult::FromId(ui.make_persistent_id("Fixed_value_edit"))
                     } else {
                         EditResult::None
                     }
                 }
                 VariableBehavior::Condition(value) => {
-                    if variables::condition::property_editor(ui, value, reference_store) {
+                    if variable::condition::property_editor(ui, value, reference_store) {
                         EditResult::FromId(ui.make_persistent_id("condition_value_edit"))
                     } else {
                         EditResult::None
                     }
                 }
                 VariableBehavior::Map(value) => {
-                    if variables::map::property_editor(ui, value, reference_store) {
+                    if variable::map::property_editor(ui, value, reference_store) {
                         EditResult::FromId(ui.make_persistent_id("map_value_edit"))
                     } else {
                         EditResult::None

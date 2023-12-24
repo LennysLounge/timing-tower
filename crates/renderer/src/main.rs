@@ -22,7 +22,7 @@ use cell_manager::CellManagerPlugin;
 use common::communication::{CellStyle, ToControllerMessage};
 use framerate::FrameratePlugin;
 use frontend::{
-    cell::{init_cell, SetStyle},
+    cell::{CreateCell, SetStyle},
     FrontendPlugin,
 };
 
@@ -53,7 +53,7 @@ fn main() {
 
 #[allow(unused)]
 fn setup_cell(mut commands: Commands, mut set_style: EventWriter<SetStyle>) {
-    let cell_id = commands.spawn_empty().add(init_cell).id();
+    let cell_id = commands.spawn_empty().add(CreateCell).id();
     set_style.send(SetStyle {
         entity: cell_id,
         style: CellStyle {

@@ -11,7 +11,7 @@ use bevy::{
     },
 };
 use common::communication::StyleCommand;
-use frontend::cell::{init_cell, SetStyle};
+use frontend::cell::{CreateCell, SetStyle};
 use uuid::Uuid;
 
 pub struct CellManagerPlugin;
@@ -33,7 +33,7 @@ fn execute_style_commands(
             StyleCommand::Style { id, style } => {
                 let cell_id = known_cells
                     .entry(id)
-                    .or_insert_with(|| commands.spawn_empty().add(init_cell).id());
+                    .or_insert_with(|| commands.spawn_empty().add(CreateCell).id());
 
                 set_style.send(SetStyle {
                     entity: *cell_id,

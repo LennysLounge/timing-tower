@@ -10,7 +10,7 @@ use bevy::{
     },
 };
 use common::communication::{StyleCommand, ToRendererMessage};
-use frontend::cell::{init_cell, CellSystem, SetStyle};
+use frontend::cell::{CellSystem, CreateCell, SetStyle};
 use uuid::Uuid;
 
 use crate::{framerate::FrameCounter, websocket::ReceivedMessage};
@@ -43,7 +43,7 @@ fn spawn_cells(
             StyleCommand::Style { id, style } => {
                 let cell_id = known_cells
                     .entry(*id)
-                    .or_insert_with(|| commands.spawn_empty().add(init_cell).id());
+                    .or_insert_with(|| commands.spawn_empty().add(CreateCell).id());
 
                 frame_counter.inc();
                 set_style.send(SetStyle {

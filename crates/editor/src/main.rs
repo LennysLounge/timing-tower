@@ -21,7 +21,7 @@ use cell_manager::CellManagerPlugin;
 use command::CommandPlugin;
 use common::communication::{CellStyle, TextAlignment};
 use frontend::{
-    cell::{init_cell, SetStyle},
+    cell::{CreateCell, SetStyle},
     FrontendPlugin,
 };
 use reference_store::ReferenceStorePlugin;
@@ -103,7 +103,7 @@ fn setup(
 
     let background_id = commands
         .spawn_empty()
-        .add(init_cell)
+        .add(CreateCell)
         .insert(BackgroundImage)
         .id();
     set_style_event.send(SetStyle {

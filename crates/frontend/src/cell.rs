@@ -4,12 +4,12 @@ use bevy::{
         entity::Entity,
         event::Event,
         schedule::{IntoSystemConfigs, SystemSet},
-        system::Resource,
+        system::{EntityCommand, Resource},
     },
     math::{vec2, vec3, Vec2, Vec4},
     prelude::{
-        Assets, BuildWorldChildren, Color, Component, EntityWorldMut, EventReader, Handle, Mesh,
-        Plugin, Query, SpatialBundle, Transform, Vec3, Visibility, With,
+        Assets, BuildWorldChildren, Color, Component, EventReader, Handle, Mesh, Plugin, Query,
+        SpatialBundle, Transform, Vec3, Visibility, With,
     },
     render::{mesh::Indices, primitives::Aabb, render_resource::PrimitiveTopology},
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
@@ -58,66 +58,74 @@ struct CellMesh {
     mesh: Mesh2dHandle,
 }
 
-pub fn init_cell(mut entity: EntityWorldMut) {
-    let (foreground_id, background_id) = entity.world_scope(|world| {
-        if !world.contains_resource::<CellMesh>() {
-            let mut meshes = world.resource_mut::<Assets<Mesh>>();
-            let mesh = meshes.add(create_mesh()).into();
-            world.insert_resource(CellMesh { mesh });
-        }
-        let mesh = world.resource::<CellMesh>().mesh.clone();
+pub struct CreateCell;
+impl EntityCommand for CreateCell {
+    fn apply(self, id: Entity, world: &mut bevy::prelude::World) {
+        let background_id = create_background(world);
+        let foreground_id = create_foreground(world);
 
-        let material = world
-            .resource_mut::<Assets<CellMaterial>>()
-            .add(CellMaterial {
-                color: Color::PURPLE,
-                gradient: Gradient::None,
-                texture: None,
-                size: Vec2::ZERO,
-                skew: 0.0,
-                rounding: Vec4::ZERO,
-            });
-
-        let background_id = world
-            .spawn((
-                MaterialMesh2dBundle {
-                    mesh,
-                    material,
+        world
+            .entity_mut(id)
+            .insert((
+                SpatialBundle {
+                    visibility: Visibility::Inherited,
                     ..Default::default()
                 },
-                Aabb::default(),
+                Background(background_id),
+                Foreground(foreground_id),
+                CellMarker,
             ))
-            .id();
+            .add_child(background_id)
+            .add_child(foreground_id);
+    }
+}
 
-        let foreground_id = world
-            .spawn(Text2dBundle {
-                text: Text::from_section(
-                    "World",
-                    TextStyle {
-                        font: Handle::<Font>::default(),
-                        font_size: 20.0,
-                        color: Color::WHITE,
-                    },
-                ),
-                transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
-                ..Default::default()
-            })
-            .id();
-        (foreground_id, background_id)
-    });
+fn create_background(world: &mut bevy::prelude::World) -> Entity {
+    if !world.contains_resource::<CellMesh>() {
+        let mut meshes = world.resource_mut::<Assets<Mesh>>();
+        let mesh = meshes.add(create_mesh()).into();
+        world.insert_resource(CellMesh { mesh });
+    }
+    let mesh = world.resource::<CellMesh>().mesh.clone();
 
-    entity
-        .insert((
-            SpatialBundle {
-                visibility: Visibility::Inherited,
+    let material = world
+        .resource_mut::<Assets<CellMaterial>>()
+        .add(CellMaterial {
+            color: Color::PURPLE,
+            gradient: Gradient::None,
+            texture: None,
+            size: Vec2::ZERO,
+            skew: 0.0,
+            rounding: Vec4::ZERO,
+        });
+
+    world
+        .spawn((
+            MaterialMesh2dBundle {
+                mesh,
+                material,
                 ..Default::default()
             },
-            Background(background_id),
-            Foreground(foreground_id),
-            CellMarker,
+            Aabb::default(),
         ))
-        .add_child(background_id)
-        .add_child(foreground_id);
+        .id()
+}
+
+fn create_foreground(world: &mut bevy::prelude::World) -> Entity {
+    world
+        .spawn(Text2dBundle {
+            text: Text::from_section(
+                "World",
+                TextStyle {
+                    font: Handle::<Font>::default(),
+                    font_size: 20.0,
+                    color: Color::WHITE,
+                },
+            ),
+            transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
+            ..Default::default()
+        })
+        .id()
 }
 
 fn create_mesh() -> Mesh {

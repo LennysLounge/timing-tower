@@ -3,13 +3,11 @@
   "assets": {
     "id": "b97dba75-b71c-4cce-b761-c1689ea33585",
     "name": "Assets",
-    "renameable": false,
     "content": [
       {
         "element_type": "Folder",
         "id": "bd6a3f41-6897-41d6-94ed-b02beaca3762",
         "name": "Constructors",
-        "renameable": true,
         "content": [
           {
             "element_type": "Asset",
@@ -215,8 +213,7 @@
                   "alpha": 1.0
                 }
               }
-            ],
-            "renameable": true
+            ]
           },
           {
             "element_type": "Variable",
@@ -257,8 +254,7 @@
               "alpha": 1.0
             }
           }
-        ],
-        "renameable": true
+        ]
       },
       {
         "element_type": "Variable",
@@ -520,8 +516,7 @@
           "ValueRef": "62823f7e-db28-4087-a148-79d943b6ecfc"
         }
       }
-    ],
-    "renameable": false
+    ]
   },
   "scene": {
     "id": "8c2bc3a0-4c3c-409a-a811-f70e3648fa9c",
@@ -560,7 +555,7 @@
           "x": 100.0,
           "y": 100.0
         },
-        "skew": 3.0,
+        "skew": 0.0,
         "visible": true,
         "rounding": {
           "top_left": 0.0,
@@ -578,15 +573,15 @@
         "data": {
           "id": "44e1324b-9507-411c-8582-56623bd05488",
           "pos": {
-            "x": 350.0,
-            "y": 55.0,
+            "x": 0.0,
+            "y": 0.0,
             "z": 0.0
           },
           "size": {
-            "x": 100.0,
-            "y": 100.0
+            "x": 300.0,
+            "y": 245.0
           },
-          "skew": 3.0,
+          "skew": 0.0,
           "rounding": {
             "top_left": 0.0,
             "top_right": 0.0,
@@ -597,10 +592,6 @@
         },
         "inner": {
           "id": "23c20135-9036-4628-9c86-5a8f2b39871b",
-          "row_offset": {
-            "x": 0.0,
-            "y": 2.0
-          },
           "cell": {
             "text": "",
             "text_color": {
@@ -643,6 +634,10 @@
               "x": 0.0,
               "y": 0.0
             }
+          },
+          "row_offset": {
+            "x": 0.0,
+            "y": 2.0
           },
           "columns": [
             {

@@ -89,11 +89,10 @@ pub fn update_tower(
         };
 
         let cell = resolver.cell(&tower_style.cell);
-        let clip_area = resolver.clip_area(&tower_style.row.data);
+        let row_resolver = resolver.with_position(cell.pos);
 
-        let mut row_resolver = resolver
-            .with_position(cell.pos)
-            .with_render_layer(clip_area.render_layer);
+        let clip_area = row_resolver.clip_area(&tower_style.row.data);
+        let mut row_resolver = row_resolver.with_render_layer(clip_area.render_layer);
 
         batcher.add(&cell_id, cell);
         batcher.add_clip_area(&clip_area_cell_id, clip_area);
@@ -200,7 +199,7 @@ impl<'a> StyleResolver<'a> {
                     .get_property(&clip_area.pos.y, self.entry)
                     .unwrap_or_default()
                     .0
-                    + -1.0,
+                    * -1.0,
                 self.value_store
                     .get_property(&clip_area.pos.z, self.entry)
                     .unwrap_or_default()

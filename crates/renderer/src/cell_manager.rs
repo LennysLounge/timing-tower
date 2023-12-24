@@ -51,6 +51,9 @@ fn spawn_cells(
                     style: style.clone(),
                 });
             }
+            StyleCommand::ClipArea { id: _, style: _ } => {
+                todo!()
+            }
             StyleCommand::Remove { id } => {
                 if let Some(cell_id) = known_cells.remove(&id) {
                     commands.entity(cell_id).despawn();

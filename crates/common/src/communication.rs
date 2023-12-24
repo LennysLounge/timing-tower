@@ -23,6 +23,7 @@ pub enum ToControllerMessage {
 #[derive(Serialize, Deserialize, Clone)]
 pub enum StyleCommand {
     Style { id: Uuid, style: CellStyle },
+    ClipArea { id: Uuid, style: ClipAreaStyle },
     Remove { id: Uuid },
 }
 
@@ -48,4 +49,12 @@ pub enum TextAlignment {
     Left,
     Center,
     Right,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct ClipAreaStyle {
+    pub pos: Vec3,
+    pub size: Vec2,
+    pub skew: f32,
+    pub rounding: [f32; 4],
 }

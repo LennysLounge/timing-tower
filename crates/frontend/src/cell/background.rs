@@ -3,7 +3,7 @@ use bevy::{
     ecs::system::Res,
     math::vec3,
     prelude::{Assets, Component, Entity, EventReader, Handle, Query, ResMut},
-    render::primitives::Aabb,
+    render::{primitives::Aabb, view::RenderLayers},
 };
 
 use crate::{
@@ -20,7 +20,7 @@ pub fn update_style(
     mut events: EventReader<SetStyle>,
     mut materials_assets: ResMut<Assets<CellMaterial>>,
     cells: Query<&Background>,
-    mut background: Query<(&Handle<CellMaterial>, &mut Aabb)>,
+    mut background: Query<(&Handle<CellMaterial>, &mut Aabb, &mut RenderLayers)>,
     asset_server: Res<AssetServer>,
     asset_path_store: ResMut<AssetPathStore>,
 ) {
@@ -28,7 +28,9 @@ pub fn update_style(
         let Ok(background_hadle) = cells.get(event.entity) else {
             continue;
         };
-        let Ok((material_handle, mut aabb)) = background.get_mut(background_hadle.0) else {
+        let Ok((material_handle, mut aabb, mut render_layers)) =
+            background.get_mut(background_hadle.0)
+        else {
             continue;
         };
         let Some(material) = materials_assets.get_mut(material_handle) else {
@@ -55,5 +57,7 @@ pub fn update_style(
             vec3(min_skew, -event.style.size.y, 0.0),
             vec3(event.style.size.x + max_skew, 0.0, 0.0),
         );
+
+        *render_layers = RenderLayers::layer(event.style.render_layer);
     }
 }

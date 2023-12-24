@@ -11,7 +11,9 @@ use bevy::{
         Assets, BuildWorldChildren, Color, Component, EventReader, Handle, Mesh, Plugin, Query,
         SpatialBundle, Transform, Vec3, Visibility, With,
     },
-    render::{mesh::Indices, primitives::Aabb, render_resource::PrimitiveTopology},
+    render::{
+        mesh::Indices, primitives::Aabb, render_resource::PrimitiveTopology, view::RenderLayers,
+    },
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
     text::{Font, Text, Text2dBundle, TextStyle},
 };
@@ -71,6 +73,7 @@ impl EntityCommand for CreateCell {
                     visibility: Visibility::Inherited,
                     ..Default::default()
                 },
+                RenderLayers::layer(0),
                 Background(background_id),
                 Foreground(foreground_id),
                 CellMarker,
@@ -92,6 +95,7 @@ impl EntityCommand for CreateClipArea {
                     visibility: Visibility::Inherited,
                     ..Default::default()
                 },
+                RenderLayers::layer(0),
                 Background(background_id),
                 CellMarker,
             ))
@@ -126,6 +130,7 @@ fn create_background(world: &mut bevy::prelude::World) -> Entity {
                 ..Default::default()
             },
             Aabb::default(),
+            RenderLayers::layer(0),
         ))
         .id()
 }
@@ -144,6 +149,7 @@ fn create_foreground(world: &mut bevy::prelude::World) -> Entity {
             transform: Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)),
             ..Default::default()
         })
+        .insert(RenderLayers::layer(0))
         .id()
 }
 
@@ -177,10 +183,10 @@ fn create_mesh() -> Mesh {
 
 fn update_style(
     mut events: EventReader<SetStyle>,
-    mut cells: Query<(&mut Transform, &mut Visibility), With<CellMarker>>,
+    mut cells: Query<(&mut Transform, &mut Visibility, &mut RenderLayers), With<CellMarker>>,
 ) {
     for SetStyle { entity, style } in events.read() {
-        let Ok((mut transform, mut visibility)) = cells.get_mut(*entity) else {
+        let Ok((mut transform, mut visibility, mut render_layers)) = cells.get_mut(*entity) else {
             println!("Cell not found for update");
             continue;
         };
@@ -190,5 +196,6 @@ fn update_style(
             *visibility = Visibility::Hidden;
         }
         transform.translation = style.pos;
+        *render_layers = RenderLayers::layer(style.render_layer);
     }
 }

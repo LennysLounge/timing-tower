@@ -27,7 +27,7 @@ pub enum StyleCommand {
     Remove { id: Uuid },
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Default)]
 pub struct CellStyle {
     pub text: String,
     pub text_color: Color,

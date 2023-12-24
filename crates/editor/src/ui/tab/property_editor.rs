@@ -317,9 +317,13 @@ pub fn edit_node(
                 }
             });
 
-            // if let EditResult::FromId(widget_id) = edit_result {
-            //     undo_redo_manager.queue(EditProperty::new(*clip_area.id(), clip_area, widget_id));
-            // }
+            if let EditResult::FromId(widget_id) = edit_result {
+                undo_redo_manager.queue(EditProperty::new(
+                    *clip_area.id(),
+                    clip_area.clone(),
+                    widget_id,
+                ));
+            }
         }
         NodeMut::Style(_) => (),
     }

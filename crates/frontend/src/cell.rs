@@ -80,6 +80,25 @@ impl EntityCommand for CreateCell {
     }
 }
 
+pub struct CreateClipArea;
+impl EntityCommand for CreateClipArea {
+    fn apply(self, id: Entity, world: &mut bevy::prelude::World) {
+        let background_id = create_background(world);
+
+        world
+            .entity_mut(id)
+            .insert((
+                SpatialBundle {
+                    visibility: Visibility::Inherited,
+                    ..Default::default()
+                },
+                Background(background_id),
+                CellMarker,
+            ))
+            .add_child(background_id);
+    }
+}
+
 fn create_background(world: &mut bevy::prelude::World) -> Entity {
     if !world.contains_resource::<CellMesh>() {
         let mut meshes = world.resource_mut::<Assets<Mesh>>();

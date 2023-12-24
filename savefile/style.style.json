@@ -575,7 +575,7 @@
         }
       },
       "row": {
-        "data":{
+        "data": {
           "id": "44e1324b-9507-411c-8582-56623bd05488",
           "pos": {
             "x": 350.0,
@@ -592,9 +592,10 @@
             "top_right": 0.0,
             "bot_left": 0.0,
             "bot_right": 0.0
-          }
+          },
+          "render_layer": 1
         },
-        "inner":{
+        "inner": {
           "id": "23c20135-9036-4628-9c86-5a8f2b39871b",
           "row_offset": {
             "x": 0.0,

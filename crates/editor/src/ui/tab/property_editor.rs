@@ -234,6 +234,13 @@ pub fn edit_node(
             let mut edit_result = EditResult::None;
 
             ui.horizontal(|ui| {
+                ui.label("Layer:");
+                let res = ui.add(DragValue::new(&mut data.render_layer).clamp_range(0..=31));
+                if res.changed() {
+                    edit_result = EditResult::FromId(res.id)
+                }
+            });
+            ui.horizontal(|ui| {
                 ui.label("Pos x:");
                 let res = ui.add(PropertyEditor::new(&mut data.pos.x, reference_store));
                 if res.changed() {

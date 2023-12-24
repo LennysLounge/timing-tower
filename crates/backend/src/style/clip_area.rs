@@ -24,6 +24,7 @@ pub struct ClipAreaData {
     pub size: Vec2Property,
     pub skew: Property<Number>,
     pub rounding: Rounding,
+    pub render_layer: u8,
 }
 
 impl StyleNode for ClipArea<TimingTowerRow> {

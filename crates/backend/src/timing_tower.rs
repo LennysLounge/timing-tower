@@ -239,7 +239,7 @@ impl<'a> StyleResolver<'a> {
                     .unwrap_or(Number(0.0))
                     .0,
             ],
-            render_layer: self.render_layer,
+            render_layer: clip_area.render_layer,
         }
     }
 

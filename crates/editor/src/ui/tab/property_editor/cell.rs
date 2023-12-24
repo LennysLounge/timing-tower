@@ -1,5 +1,6 @@
-use backend::style::cell::{Cell, TextAlignment};
+use backend::style::cell::Cell;
 use bevy_egui::egui::{ComboBox, Ui};
+use common::communication::TextAlignment;
 
 use crate::{command::edit_property::EditResult, reference_store::ReferenceStore};
 

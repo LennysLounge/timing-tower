@@ -1,4 +1,5 @@
 use bevy::prelude::Color;
+use common::communication::TextAlignment;
 use serde::{Deserialize, Serialize};
 
 use crate::value_types::{
@@ -28,14 +29,6 @@ pub struct Rounding {
     pub top_right: Property<Number>,
     pub bot_left: Property<Number>,
     pub bot_right: Property<Number>,
-}
-
-#[derive(Serialize, Deserialize, Clone, Default, PartialEq, Eq)]
-pub enum TextAlignment {
-    #[default]
-    Left,
-    Center,
-    Right,
 }
 
 impl Default for Cell {

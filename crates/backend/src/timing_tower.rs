@@ -223,13 +223,7 @@ fn create_cell_style(cell: &Cell, vars: &ValueStore, entry: Option<&Entry>) -> C
             .get_property(&cell.text_size, entry)
             .unwrap_or(Number(20.0))
             .0,
-        text_alignment: match cell.text_alginment {
-            crate::style::cell::TextAlignment::Left => common::communication::TextAlignment::Left,
-            crate::style::cell::TextAlignment::Center => {
-                common::communication::TextAlignment::Center
-            }
-            crate::style::cell::TextAlignment::Right => common::communication::TextAlignment::Right,
-        },
+        text_alignment: cell.text_alginment.clone(),
         text_position: Vec2::new(
             vars.get_property(&cell.text_position.x, entry)
                 .unwrap_or(Number(0.0))

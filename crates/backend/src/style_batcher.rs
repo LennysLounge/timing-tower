@@ -16,7 +16,7 @@ use bevy::{
         system::{ResMut, Resource},
     },
 };
-use common::communication::{CellStyle, StyleCommand};
+use common::communication::{CellStyle, ClipAreaStyle, StyleCommand};
 use uuid::Uuid;
 
 pub struct StyleBatcherPlugin;
@@ -33,16 +33,37 @@ pub struct PrepareBatcher;
 
 #[derive(Resource, Default)]
 pub struct StyleBatcher {
-    last_styles: HashMap<Uuid, (Weak<()>, CellStyle)>,
+    last_styles: HashMap<Uuid, RememberedStyle>,
     commands: Vec<StyleCommand>,
 }
 impl StyleBatcher {
-    /// Add a style to the batch
+    /// Add a style for a cell.
     pub fn add(&mut self, cell_id: &CellId, style: CellStyle) {
         // TODO: implement the change detection
-        self.last_styles
-            .insert(cell_id.id, (cell_id.weak(), style.clone()));
+        self.last_styles.insert(
+            cell_id.id,
+            RememberedStyle {
+                id_ref: cell_id.weak(),
+                _style: CellType::Cell(style.clone()),
+            },
+        );
         self.commands.push(StyleCommand::Style {
+            id: cell_id.id,
+            style,
+        });
+    }
+
+    /// Add a style command for a clip area.
+    pub fn add_clip_area(&mut self, cell_id: &CellId, style: ClipAreaStyle) {
+        // TODO: implement change detection.
+        self.last_styles.insert(
+            cell_id.id,
+            RememberedStyle {
+                id_ref: cell_id.weak(),
+                _style: CellType::ClipArea(style.clone()),
+            },
+        );
+        self.commands.push(StyleCommand::ClipArea {
             id: cell_id.id,
             style,
         });
@@ -62,13 +83,25 @@ fn prepare_batcher(mut batcher: ResMut<StyleBatcher>) {
     let dead_cells: Vec<_> = batcher
         .last_styles
         .iter()
-        .filter_map(|(id, (reference, _))| (reference.strong_count() == 0).then_some(*id))
+        .filter_map(|(id, remembered_style)| {
+            (remembered_style.id_ref.strong_count() == 0).then_some(*id)
+        })
         .collect();
 
     dead_cells.into_iter().for_each(|cell_id| {
         batcher.last_styles.remove(&cell_id);
         batcher.commands.push(StyleCommand::Remove { id: cell_id });
     });
+}
+
+struct RememberedStyle {
+    id_ref: Weak<()>,
+    _style: CellType,
+}
+
+enum CellType {
+    Cell(CellStyle),
+    ClipArea(ClipAreaStyle),
 }
 
 /// Identifies a cell by a unique id.

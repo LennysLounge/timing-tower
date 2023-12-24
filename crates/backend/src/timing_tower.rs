@@ -94,6 +94,7 @@ pub fn update_tower(
             session: current_session,
             entry: Some(entry),
             position: Vec3::ZERO,
+            render_layer: 0,
         };
 
         let clip_area = style_resolver.clip_area(&style_def.scene.timing_tower.row.data);
@@ -188,16 +189,17 @@ struct StyleResolver<'a> {
     session: &'a Session,
     entry: Option<&'a Entry>,
     position: Vec3,
+    render_layer: u8,
 }
 impl<'a> StyleResolver<'a> {
     fn cell(&self, cell: &Cell) -> CellStyle {
-        let mut style = create_cell_style(cell, self.value_store, self.entry);
+        let mut style = self.create_cell_style(cell);
         style.pos += self.position;
         style
     }
 
     fn clip_area(&self, clip_area: &ClipAreaData) -> ClipAreaStyle {
-        let mut style = create_clip_area_style(clip_area, self.value_store, self.entry);
+        let mut style = self.create_clip_area_style(clip_area);
         style.pos += self.position;
         style
     }
@@ -217,128 +219,158 @@ impl<'a> StyleResolver<'a> {
             session: self.session,
             entry: self.entry,
             position: style.pos + vec3(0.0, 0.0, 1.0),
+            render_layer: self.render_layer,
         };
         (style, resolver)
     }
-}
-fn create_clip_area_style(
-    clip_area: &ClipAreaData,
-    vars: &ValueStore,
-    entry: Option<&Entry>,
-) -> ClipAreaStyle {
-    ClipAreaStyle {
-        pos: Vec3::new(
-            vars.get_property(&clip_area.pos.x, entry)
-                .unwrap_or_default()
-                .0,
-            vars.get_property(&clip_area.pos.y, entry)
-                .unwrap_or_default()
-                .0,
-            vars.get_property(&clip_area.pos.z, entry)
-                .unwrap_or_default()
-                .0,
-        ),
-        size: Vec2::new(
-            vars.get_property(&clip_area.size.x, entry)
-                .unwrap_or_default()
-                .0,
-            vars.get_property(&clip_area.size.y, entry)
-                .unwrap_or_default()
-                .0,
-        ),
-        skew: vars
-            .get_property(&clip_area.skew, entry)
-            .unwrap_or_default()
-            .0,
-        rounding: [
-            vars.get_property(&clip_area.rounding.top_left, entry)
-                .unwrap_or(Number(0.0))
-                .0,
-            vars.get_property(&clip_area.rounding.top_right, entry)
-                .unwrap_or(Number(0.0))
-                .0,
-            vars.get_property(&clip_area.rounding.bot_right, entry)
-                .unwrap_or(Number(0.0))
-                .0,
-            vars.get_property(&clip_area.rounding.bot_left, entry)
-                .unwrap_or(Number(0.0))
-                .0,
-        ],
-    }
-}
 
-fn create_cell_style(cell: &Cell, vars: &ValueStore, entry: Option<&Entry>) -> CellStyle {
-    CellStyle {
-        text: vars
-            .get_property(&cell.text, entry)
-            .unwrap_or_else(|| Text("unavailable".to_string()))
-            .0,
-        text_color: vars
-            .get_property(&cell.text_color, entry)
-            .unwrap_or(Tint(Color::BLACK))
-            .0,
-        text_size: vars
-            .get_property(&cell.text_size, entry)
-            .unwrap_or(Number(20.0))
-            .0,
-        text_alignment: cell.text_alginment.clone(),
-        text_position: Vec2::new(
-            vars.get_property(&cell.text_position.x, entry)
+    fn create_clip_area_style(&self, clip_area: &ClipAreaData) -> ClipAreaStyle {
+        ClipAreaStyle {
+            pos: Vec3::new(
+                self.value_store
+                    .get_property(&clip_area.pos.x, self.entry)
+                    .unwrap_or_default()
+                    .0,
+                self.value_store
+                    .get_property(&clip_area.pos.y, self.entry)
+                    .unwrap_or_default()
+                    .0,
+                self.value_store
+                    .get_property(&clip_area.pos.z, self.entry)
+                    .unwrap_or_default()
+                    .0,
+            ),
+            size: Vec2::new(
+                self.value_store
+                    .get_property(&clip_area.size.x, self.entry)
+                    .unwrap_or_default()
+                    .0,
+                self.value_store
+                    .get_property(&clip_area.size.y, self.entry)
+                    .unwrap_or_default()
+                    .0,
+            ),
+            skew: self
+                .value_store
+                .get_property(&clip_area.skew, self.entry)
+                .unwrap_or_default()
+                .0,
+            rounding: [
+                self.value_store
+                    .get_property(&clip_area.rounding.top_left, self.entry)
+                    .unwrap_or(Number(0.0))
+                    .0,
+                self.value_store
+                    .get_property(&clip_area.rounding.top_right, self.entry)
+                    .unwrap_or(Number(0.0))
+                    .0,
+                self.value_store
+                    .get_property(&clip_area.rounding.bot_right, self.entry)
+                    .unwrap_or(Number(0.0))
+                    .0,
+                self.value_store
+                    .get_property(&clip_area.rounding.bot_left, self.entry)
+                    .unwrap_or(Number(0.0))
+                    .0,
+            ],
+            render_layer: self.render_layer,
+        }
+    }
+
+    fn create_cell_style(&self, cell: &Cell) -> CellStyle {
+        CellStyle {
+            text: self
+                .value_store
+                .get_property(&cell.text, self.entry)
+                .unwrap_or_else(|| Text("unavailable".to_string()))
+                .0,
+            text_color: self
+                .value_store
+                .get_property(&cell.text_color, self.entry)
+                .unwrap_or(Tint(Color::BLACK))
+                .0,
+            text_size: self
+                .value_store
+                .get_property(&cell.text_size, self.entry)
+                .unwrap_or(Number(20.0))
+                .0,
+            text_alignment: cell.text_alginment.clone(),
+            text_position: Vec2::new(
+                self.value_store
+                    .get_property(&cell.text_position.x, self.entry)
+                    .unwrap_or(Number(0.0))
+                    .0,
+                self.value_store
+                    .get_property(&cell.text_position.y, self.entry)
+                    .unwrap_or(Number(0.0))
+                    .0,
+            ),
+            color: self
+                .value_store
+                .get_property(&cell.color, self.entry)
+                .unwrap_or(Tint(Color::RED))
+                .0,
+            texture: self
+                .value_store
+                .get_property(&cell.image, self.entry)
+                .and_then(|t| match t {
+                    Texture::None => None,
+                    Texture::Handle(handle) => Some(handle),
+                }),
+            pos: Vec3::new(
+                self.value_store
+                    .get_property(&cell.pos.x, self.entry)
+                    .unwrap_or(Number(0.0))
+                    .0,
+                self.value_store
+                    .get_property(&cell.pos.y, self.entry)
+                    .unwrap_or(Number(0.0))
+                    .0
+                    * -1.0,
+                self.value_store
+                    .get_property(&cell.pos.z, self.entry)
+                    .unwrap_or(Number(0.0))
+                    .0,
+            ),
+            size: Vec2::new(
+                self.value_store
+                    .get_property(&cell.size.x, self.entry)
+                    .unwrap_or(Number(0.0))
+                    .0,
+                self.value_store
+                    .get_property(&cell.size.y, self.entry)
+                    .unwrap_or(Number(0.0))
+                    .0,
+            ),
+            skew: self
+                .value_store
+                .get_property(&cell.skew, self.entry)
                 .unwrap_or(Number(0.0))
                 .0,
-            vars.get_property(&cell.text_position.y, entry)
-                .unwrap_or(Number(0.0))
+            visible: self
+                .value_store
+                .get_property(&cell.visible, self.entry)
+                .unwrap_or(Boolean(true))
                 .0,
-        ),
-        color: vars
-            .get_property(&cell.color, entry)
-            .unwrap_or(Tint(Color::RED))
-            .0,
-        texture: vars.get_property(&cell.image, entry).and_then(|t| match t {
-            Texture::None => None,
-            Texture::Handle(handle) => Some(handle),
-        }),
-        pos: Vec3::new(
-            vars.get_property(&cell.pos.x, entry)
-                .unwrap_or(Number(0.0))
-                .0,
-            vars.get_property(&cell.pos.y, entry)
-                .unwrap_or(Number(0.0))
-                .0
-                * -1.0,
-            vars.get_property(&cell.pos.z, entry)
-                .unwrap_or(Number(0.0))
-                .0,
-        ),
-        size: Vec2::new(
-            vars.get_property(&cell.size.x, entry)
-                .unwrap_or(Number(0.0))
-                .0,
-            vars.get_property(&cell.size.y, entry)
-                .unwrap_or(Number(0.0))
-                .0,
-        ),
-        skew: vars
-            .get_property(&cell.skew, entry)
-            .unwrap_or(Number(0.0))
-            .0,
-        visible: vars
-            .get_property(&cell.visible, entry)
-            .unwrap_or(Boolean(true))
-            .0,
-        rounding: [
-            vars.get_property(&cell.rounding.top_left, entry)
-                .unwrap_or(Number(0.0))
-                .0,
-            vars.get_property(&cell.rounding.top_right, entry)
-                .unwrap_or(Number(0.0))
-                .0,
-            vars.get_property(&cell.rounding.bot_right, entry)
-                .unwrap_or(Number(0.0))
-                .0,
-            vars.get_property(&cell.rounding.bot_left, entry)
-                .unwrap_or(Number(0.0))
-                .0,
-        ],
+            rounding: [
+                self.value_store
+                    .get_property(&cell.rounding.top_left, self.entry)
+                    .unwrap_or(Number(0.0))
+                    .0,
+                self.value_store
+                    .get_property(&cell.rounding.top_right, self.entry)
+                    .unwrap_or(Number(0.0))
+                    .0,
+                self.value_store
+                    .get_property(&cell.rounding.bot_right, self.entry)
+                    .unwrap_or(Number(0.0))
+                    .0,
+                self.value_store
+                    .get_property(&cell.rounding.bot_left, self.entry)
+                    .unwrap_or(Number(0.0))
+                    .0,
+            ],
+            render_layer: self.render_layer,
+        }
     }
 }

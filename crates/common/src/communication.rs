@@ -41,6 +41,7 @@ pub struct CellStyle {
     pub skew: f32,
     pub visible: bool,
     pub rounding: [f32; 4],
+    pub render_layer: u8,
 }
 
 #[derive(Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
@@ -57,4 +58,5 @@ pub struct ClipAreaStyle {
     pub size: Vec2,
     pub skew: f32,
     pub rounding: [f32; 4],
+    pub render_layer: u8,
 }

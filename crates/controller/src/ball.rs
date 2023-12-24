@@ -80,6 +80,7 @@ fn update(mut balls: Query<(&mut Ball, &mut Transform)>, mut style_batcher: ResM
                 skew: 0.0,
                 visible: true,
                 rounding: [15.0; 4],
+                render_layer: 0,
             },
         );
     }

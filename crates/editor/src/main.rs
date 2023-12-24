@@ -121,6 +121,7 @@ fn setup(
             skew: 0.0,
             visible: true,
             rounding: [0.0, 0.0, 0.0, 0.0],
+            render_layer: 0,
         },
     });
     commands.spawn(TimingTower::new(adapter));

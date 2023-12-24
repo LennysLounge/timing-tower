@@ -69,6 +69,7 @@ fn setup_cell(mut commands: Commands, mut set_style: EventWriter<SetStyle>) {
             skew: 0.0,
             visible: true,
             rounding: [100.0, 200.0, 50.0, 150.0],
+            render_layer: 0,
         },
     });
 }

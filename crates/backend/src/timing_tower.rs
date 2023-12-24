@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::style;
+use crate::style::{self, clip_area::ClipAreaData};
 
 use super::{
     savefile::Savefile,
@@ -14,7 +14,7 @@ use bevy::{
     math::vec3,
     prelude::{Color, Component, Plugin, Query, Res, Update, Vec2, Vec3},
 };
-use common::communication::CellStyle;
+use common::communication::{CellStyle, ClipAreaStyle};
 use unified_sim_model::{
     model::{Entry, EntryId, Session},
     Adapter,
@@ -31,6 +31,7 @@ impl Plugin for TimingTowerPlugin {
 #[derive(Component)]
 pub struct TimingTower {
     pub cell_id: CellId,
+    pub clip_area_cell_id: CellId,
     pub adapter: Adapter,
     pub table: Table,
 }
@@ -38,6 +39,7 @@ impl TimingTower {
     pub fn new(adapter: Adapter) -> Self {
         Self {
             cell_id: CellId::new(),
+            clip_area_cell_id: CellId::new(),
             adapter,
             table: Table {
                 cell_id: CellId::new(),
@@ -70,6 +72,7 @@ pub fn update_tower(
     for mut tower in towers.iter_mut() {
         let TimingTower {
             cell_id,
+            clip_area_cell_id,
             adapter,
             table,
         } = tower.as_mut();
@@ -93,8 +96,11 @@ pub fn update_tower(
             position: Vec3::ZERO,
         };
 
+        let clip_area = style_resolver.clip_area(&style_def.scene.timing_tower.row.data);
+        style_batcher.add_clip_area(&clip_area_cell_id, clip_area);
+
         let (cell_style, row_resolver) =
-            style_resolver.get_and_child(&style_def.scene.timing_tower.cell);
+            style_resolver.cell_and_child(&style_def.scene.timing_tower.cell);
         style_batcher.add(&cell_id, cell_style);
 
         // Update table
@@ -163,7 +169,7 @@ fn update_row(
         };
 
         row_resolver.entry = Some(entry);
-        let (row_style, column_resolver) = row_resolver.get_and_child(&style.row.inner.cell);
+        let (row_style, column_resolver) = row_resolver.cell_and_child(&style.row.inner.cell);
         row_resolver.position += row_offset + vec3(0.0, -row_style.size.y, 0.0);
         style_batcher.add(&row.cell_id, row_style);
 
@@ -172,7 +178,7 @@ fn update_row(
             let Some(cell_id) = row.columns.get(&column.id) else {
                 continue;
             };
-            style_batcher.add(cell_id, column_resolver.get(&column.cell));
+            style_batcher.add(cell_id, column_resolver.cell(&column.cell));
         }
     }
 }
@@ -184,11 +190,18 @@ struct StyleResolver<'a> {
     position: Vec3,
 }
 impl<'a> StyleResolver<'a> {
-    fn get(&self, cell: &Cell) -> CellStyle {
+    fn cell(&self, cell: &Cell) -> CellStyle {
         let mut style = create_cell_style(cell, self.value_store, self.entry);
         style.pos += self.position;
         style
     }
+
+    fn clip_area(&self, clip_area: &ClipAreaData) -> ClipAreaStyle {
+        let mut style = create_clip_area_style(clip_area, self.value_store, self.entry);
+        style.pos += self.position;
+        style
+    }
+
     fn property<T>(&self, property: &Property<T>) -> Option<T>
     where
         ValueStore: TypedValueResolver<T>,
@@ -197,8 +210,8 @@ impl<'a> StyleResolver<'a> {
         self.value_store.get_property(property, self.entry)
     }
 
-    fn get_and_child(&self, cell: &Cell) -> (CellStyle, StyleResolver<'a>) {
-        let style = self.get(cell);
+    fn cell_and_child(&self, cell: &Cell) -> (CellStyle, StyleResolver<'a>) {
+        let style = self.cell(cell);
         let resolver = StyleResolver {
             value_store: self.value_store,
             session: self.session,
@@ -206,6 +219,51 @@ impl<'a> StyleResolver<'a> {
             position: style.pos + vec3(0.0, 0.0, 1.0),
         };
         (style, resolver)
+    }
+}
+fn create_clip_area_style(
+    clip_area: &ClipAreaData,
+    vars: &ValueStore,
+    entry: Option<&Entry>,
+) -> ClipAreaStyle {
+    ClipAreaStyle {
+        pos: Vec3::new(
+            vars.get_property(&clip_area.pos.x, entry)
+                .unwrap_or_default()
+                .0,
+            vars.get_property(&clip_area.pos.y, entry)
+                .unwrap_or_default()
+                .0,
+            vars.get_property(&clip_area.pos.z, entry)
+                .unwrap_or_default()
+                .0,
+        ),
+        size: Vec2::new(
+            vars.get_property(&clip_area.size.x, entry)
+                .unwrap_or_default()
+                .0,
+            vars.get_property(&clip_area.size.y, entry)
+                .unwrap_or_default()
+                .0,
+        ),
+        skew: vars
+            .get_property(&clip_area.skew, entry)
+            .unwrap_or_default()
+            .0,
+        rounding: [
+            vars.get_property(&clip_area.rounding.top_left, entry)
+                .unwrap_or(Number(0.0))
+                .0,
+            vars.get_property(&clip_area.rounding.top_right, entry)
+                .unwrap_or(Number(0.0))
+                .0,
+            vars.get_property(&clip_area.rounding.bot_right, entry)
+                .unwrap_or(Number(0.0))
+                .0,
+            vars.get_property(&clip_area.rounding.bot_left, entry)
+                .unwrap_or(Number(0.0))
+                .0,
+        ],
     }
 }
 

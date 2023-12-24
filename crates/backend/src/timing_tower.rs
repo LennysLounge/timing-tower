@@ -89,10 +89,13 @@ pub fn update_tower(
         };
 
         let cell = resolver.cell(&tower_style.cell);
-        let mut row_resolver = resolver.with_position(cell.pos);
-        batcher.add(&cell_id, cell);
-
         let clip_area = resolver.clip_area(&tower_style.row.data);
+
+        let mut row_resolver = resolver
+            .with_position(cell.pos)
+            .with_render_layer(clip_area.render_layer);
+
+        batcher.add(&cell_id, cell);
         batcher.add_clip_area(&clip_area_cell_id, clip_area);
 
         // Create rows for each new entry
@@ -175,6 +178,13 @@ impl<'a> StyleResolver<'a> {
     fn with_position(&self, position: Vec3) -> Self {
         Self {
             position: position + vec3(0.0, 0.0, 1.0),
+            ..*self
+        }
+    }
+
+    fn with_render_layer(&self, layer: u8) -> Self {
+        Self {
+            render_layer: layer,
             ..*self
         }
     }

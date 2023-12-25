@@ -125,12 +125,8 @@ fn execute_style_commands(
                     });
                 }
                 if let Ok(mut camera) = cameras.get_mut(*camera_id) {
-                    camera.translation = style.pos
-                        + vec3(
-                            (style.size.x / 2.0).floor(),
-                            (-style.size.y / 2.0).floor(),
-                            0.0,
-                        );
+                    camera.translation =
+                        style.pos + vec3(style.size.x / 2.0, -style.size.y / 2.0, 0.0);
                 }
 
                 set_style.send(SetStyle {

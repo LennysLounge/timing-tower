@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use backend::style_batcher::{PrepareBatcher, StyleBatcher};
 use bevy::{
-    app::{Plugin, PostUpdate},
+    app::{Plugin, Update},
     asset::{AssetServer, Assets, Handle},
     core_pipeline::core_2d::Camera2dBundle,
     ecs::{
@@ -13,6 +13,7 @@ use bevy::{
         system::{Commands, Local, Query, Res, ResMut},
     },
     hierarchy::DespawnRecursiveExt,
+    math::vec3,
     render::{
         camera::{Camera, RenderTarget},
         color::Color,
@@ -22,7 +23,7 @@ use bevy::{
         texture::Image,
         view::RenderLayers,
     },
-    transform::components::Transform, math::vec3,
+    transform::components::Transform,
 };
 use common::communication::StyleCommand;
 use frontend::{
@@ -34,7 +35,7 @@ use uuid::Uuid;
 pub struct CellManagerPlugin;
 impl Plugin for CellManagerPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_systems(PostUpdate, execute_style_commands.after(PrepareBatcher));
+        app.add_systems(Update, execute_style_commands.after(PrepareBatcher));
     }
 }
 
@@ -124,8 +125,12 @@ fn execute_style_commands(
                     });
                 }
                 if let Ok(mut camera) = cameras.get_mut(*camera_id) {
-                    camera.translation =
-                        style.pos + vec3(style.size.x / 2.0, -style.size.y / 2.0, 0.0);
+                    camera.translation = style.pos
+                        + vec3(
+                            (style.size.x / 2.0).floor(),
+                            (-style.size.y / 2.0).floor(),
+                            0.0,
+                        );
                 }
 
                 set_style.send(SetStyle {

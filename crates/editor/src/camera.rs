@@ -1,5 +1,5 @@
 use bevy::{
-    app::{Plugin, PostUpdate, Startup, Update},
+    app::{Plugin, Startup, Update},
     core_pipeline::core_2d::Camera2dBundle,
     ecs::{
         component::Component,
@@ -26,7 +26,7 @@ impl Plugin for EditorCameraPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_systems(Startup, setup)
             .add_systems(Update, camera_drag)
-            .add_systems(PostUpdate, set_camera_viewport.after(crate::ui::UiSystem));
+            .add_systems(Update, set_camera_viewport.after(crate::ui::UiSystem));
     }
 }
 

@@ -10,7 +10,10 @@ use super::{
     value_types::{Boolean, Number, Property, Text, Texture, Tint},
 };
 use bevy::{
-    ecs::system::ResMut,
+    ecs::{
+        schedule::{IntoSystemConfigs, SystemSet},
+        system::ResMut,
+    },
     math::vec3,
     prelude::{Color, Component, Plugin, Query, Res, Update, Vec2, Vec3},
 };
@@ -24,9 +27,12 @@ use uuid::Uuid;
 pub struct TimingTowerPlugin;
 impl Plugin for TimingTowerPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_systems(Update, update_tower);
+        app.add_systems(Update, update_tower.in_set(StyleElementUpdate));
     }
 }
+
+#[derive(SystemSet, Hash, Debug, PartialEq, Eq, Clone)]
+pub struct StyleElementUpdate;
 
 #[derive(Component)]
 pub struct TimingTower {

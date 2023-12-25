@@ -10,7 +10,7 @@ use std::{
 };
 
 use bevy::{
-    app::{First, Plugin, PostUpdate},
+    app::{First, Plugin, Update},
     ecs::{
         schedule::{IntoSystemConfigs, SystemSet},
         system::{ResMut, Resource},
@@ -19,12 +19,19 @@ use bevy::{
 use common::communication::{CellStyle, ClipAreaStyle, StyleCommand};
 use uuid::Uuid;
 
+use crate::timing_tower::StyleElementUpdate;
+
 pub struct StyleBatcherPlugin;
 impl Plugin for StyleBatcherPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.init_resource::<StyleBatcher>()
             .add_systems(First, clear_style_batcher)
-            .add_systems(PostUpdate, prepare_batcher.in_set(PrepareBatcher));
+            .add_systems(
+                Update,
+                prepare_batcher
+                    .in_set(PrepareBatcher)
+                    .after(StyleElementUpdate),
+            );
     }
 }
 

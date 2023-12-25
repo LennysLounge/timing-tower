@@ -3,16 +3,20 @@ use std::collections::HashMap;
 use backend::style_batcher::{PrepareBatcher, StyleBatcher};
 use bevy::{
     app::{Plugin, PostUpdate},
+    asset::AssetServer,
     ecs::{
         entity::Entity,
         event::EventWriter,
         schedule::IntoSystemConfigs,
-        system::{Commands, Local, ResMut},
+        system::{Commands, Local, Res, ResMut},
     },
     render::color::Color,
 };
-use common::communication::{CellStyle, StyleCommand};
-use frontend::cell::{CreateCell, CreateClipArea, SetStyle};
+use common::communication::StyleCommand;
+use frontend::{
+    asset_path_store::{AssetPathProvider, AssetPathStore},
+    cell::{CreateCell, CreateClipArea, SetStyle},
+};
 use uuid::Uuid;
 
 pub struct CellManagerPlugin;
@@ -27,6 +31,8 @@ fn execute_style_commands(
     mut known_cells: Local<HashMap<Uuid, Entity>>,
     mut set_style: EventWriter<SetStyle>,
     mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    asset_path_store: ResMut<AssetPathStore>,
 ) {
     let style_commands = style_batcher.drain();
     for command in style_commands.into_iter() {
@@ -38,7 +44,25 @@ fn execute_style_commands(
 
                 set_style.send(SetStyle {
                     entity: *cell_id,
-                    style,
+                    style: frontend::cell::CellStyle {
+                        text: style.text.clone(),
+                        text_color: style.text_color,
+                        text_size: style.text_size,
+                        text_alignment: style.text_alignment,
+                        text_position: style.text_position,
+                        color: style.color,
+                        texture: style
+                            .texture
+                            .as_ref()
+                            .and_then(|id| asset_path_store.get(id))
+                            .and_then(|path| Some(asset_server.load(path))),
+                        pos: style.pos,
+                        size: style.size,
+                        skew: style.skew,
+                        visible: style.visible,
+                        rounding: style.rounding,
+                        render_layer: style.render_layer,
+                    },
                 });
             }
             StyleCommand::ClipArea { id, style } => {
@@ -48,12 +72,11 @@ fn execute_style_commands(
 
                 set_style.send(SetStyle {
                     entity: *clip_area_id,
-                    style: CellStyle {
+                    style: frontend::cell::CellStyle {
                         pos: style.pos,
                         size: style.size,
                         skew: style.skew,
                         rounding: style.rounding,
-                        // Other
                         color: Color::WHITE,
                         visible: true,
                         ..Default::default()

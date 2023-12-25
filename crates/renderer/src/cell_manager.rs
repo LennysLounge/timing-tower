@@ -2,15 +2,19 @@ use std::collections::HashMap;
 
 use bevy::{
     app::{Plugin, Update},
+    asset::AssetServer,
     ecs::{
         entity::Entity,
         event::{EventReader, EventWriter},
         schedule::IntoSystemConfigs,
-        system::{Commands, Local, ResMut},
+        system::{Commands, Local, Res, ResMut},
     },
 };
 use common::communication::{StyleCommand, ToRendererMessage};
-use frontend::cell::{CellSystem, CreateCell, SetStyle};
+use frontend::{
+    asset_path_store::{AssetPathProvider, AssetPathStore},
+    cell::{CellSystem, CreateCell, SetStyle},
+};
 use uuid::Uuid;
 
 use crate::{framerate::FrameCounter, websocket::ReceivedMessage};
@@ -28,6 +32,8 @@ fn spawn_cells(
     mut set_style: EventWriter<SetStyle>,
     mut known_cells: Local<HashMap<Uuid, Entity>>,
     mut frame_counter: ResMut<FrameCounter>,
+    asset_server: Res<AssetServer>,
+    asset_path_store: ResMut<AssetPathStore>,
 ) {
     let style_commands: Vec<&StyleCommand> = received_messages
         .read()
@@ -48,7 +54,25 @@ fn spawn_cells(
                 frame_counter.inc();
                 set_style.send(SetStyle {
                     entity: *cell_id,
-                    style: style.clone(),
+                    style: frontend::cell::CellStyle {
+                        text: style.text.clone(),
+                        text_color: style.text_color,
+                        text_size: style.text_size,
+                        text_alignment: style.text_alignment,
+                        text_position: style.text_position,
+                        color: style.color,
+                        texture: style
+                            .texture
+                            .as_ref()
+                            .and_then(|id| asset_path_store.get(id))
+                            .and_then(|path| Some(asset_server.load(path))),
+                        pos: style.pos,
+                        size: style.size,
+                        skew: style.skew,
+                        visible: style.visible,
+                        rounding: style.rounding,
+                        render_layer: style.render_layer,
+                    },
                 });
             }
             StyleCommand::ClipArea { id: _, style: _ } => {

@@ -12,13 +12,13 @@ use bevy::{
         SpatialBundle, Transform, Vec3, Visibility, With,
     },
     render::{
-        mesh::Indices, primitives::Aabb, render_resource::PrimitiveTopology, view::RenderLayers,
+        mesh::Indices, primitives::Aabb, render_resource::PrimitiveTopology, texture::Image,
+        view::RenderLayers,
     },
     sprite::{MaterialMesh2dBundle, Mesh2dHandle},
     text::{Font, Text, Text2dBundle, TextStyle},
 };
-
-use common::communication::CellStyle;
+use common::communication::TextAlignment;
 
 use crate::cell_material::{CellMaterial, Gradient};
 
@@ -50,6 +50,22 @@ impl Plugin for CellPlugin {
 pub struct SetStyle {
     pub entity: Entity,
     pub style: CellStyle,
+}
+#[derive(Default)]
+pub struct CellStyle {
+    pub text: String,
+    pub text_color: Color,
+    pub text_size: f32,
+    pub text_alignment: TextAlignment,
+    pub text_position: Vec2,
+    pub color: Color,
+    pub texture: Option<Handle<Image>>,
+    pub pos: Vec3,
+    pub size: Vec2,
+    pub skew: f32,
+    pub visible: bool,
+    pub rounding: [f32; 4],
+    pub render_layer: u8,
 }
 
 #[derive(Component)]

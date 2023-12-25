@@ -101,29 +101,29 @@ fn setup(
 
     savefile.load("../../savefile/style.style.json", savefile_changed_event);
 
-    let background_id = commands
-        .spawn_empty()
-        .add(CreateCell)
-        .insert(BackgroundImage)
-        .id();
-    set_style_event.send(SetStyle {
-        entity: background_id,
-        style: CellStyle {
-            text: "".to_string(),
-            text_color: Color::BLACK,
-            text_size: 20.0,
-            text_alignment: TextAlignment::Center,
-            text_position: Vec2::ZERO,
-            color: Color::WHITE,
-            texture: Some(uuid!("819d2f30-0d03-413a-8f09-9a0afa58b3ed")),
-            pos: Vec3::new(0.0, 0.0, 0.0),
-            size: Vec2::new(1920.0, 1080.0),
-            skew: 0.0,
-            visible: true,
-            rounding: [0.0, 0.0, 0.0, 0.0],
-            render_layer: 0,
-        },
-    });
+    // let background_id = commands
+    //     .spawn_empty()
+    //     .add(CreateCell)
+    //     .insert(BackgroundImage)
+    //     .id();
+    // set_style_event.send(SetStyle {
+    //     entity: background_id,
+    //     style: frontend::cell::CellStyle {
+    //         text: "".to_string(),
+    //         text_color: Color::BLACK,
+    //         text_size: 20.0,
+    //         text_alignment: TextAlignment::Center,
+    //         text_position: Vec2::ZERO,
+    //         color: Color::WHITE,
+    //         texture: Some(uuid!("819d2f30-0d03-413a-8f09-9a0afa58b3ed")),
+    //         pos: Vec3::new(0.0, 0.0, 0.0),
+    //         size: Vec2::new(1920.0, 1080.0),
+    //         skew: 0.0,
+    //         visible: true,
+    //         rounding: [0.0, 0.0, 0.0, 0.0],
+    //         render_layer: 0,
+    //     },
+    // });
     commands.spawn(TimingTower::new(adapter));
 }
 

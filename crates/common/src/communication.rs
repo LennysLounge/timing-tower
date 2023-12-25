@@ -44,7 +44,7 @@ pub struct CellStyle {
     pub render_layer: u8,
 }
 
-#[derive(Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TextAlignment {
     #[default]
     Left,

@@ -3,14 +3,26 @@ use std::collections::HashMap;
 use backend::style_batcher::{PrepareBatcher, StyleBatcher};
 use bevy::{
     app::{Plugin, PostUpdate},
-    asset::AssetServer,
+    asset::{AssetServer, Assets, Handle},
+    core_pipeline::core_2d::Camera2dBundle,
     ecs::{
         entity::Entity,
         event::EventWriter,
+        query::With,
         schedule::IntoSystemConfigs,
-        system::{Commands, Local, Res, ResMut},
+        system::{Commands, Local, Query, Res, ResMut},
     },
-    render::color::Color,
+    hierarchy::DespawnRecursiveExt,
+    render::{
+        camera::{Camera, RenderTarget},
+        color::Color,
+        render_resource::{
+            Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
+        },
+        texture::Image,
+        view::RenderLayers,
+    },
+    transform::components::Transform, math::vec3,
 };
 use common::communication::StyleCommand;
 use frontend::{
@@ -29,8 +41,11 @@ impl Plugin for CellManagerPlugin {
 fn execute_style_commands(
     mut style_batcher: ResMut<StyleBatcher>,
     mut known_cells: Local<HashMap<Uuid, Entity>>,
+    mut known_clip_areas: Local<HashMap<Uuid, (Entity, Handle<Image>, Entity)>>,
     mut set_style: EventWriter<SetStyle>,
     mut commands: Commands,
+    mut images: ResMut<Assets<Image>>,
+    mut cameras: Query<&mut Transform, With<Camera>>,
     asset_server: Res<AssetServer>,
     asset_path_store: ResMut<AssetPathStore>,
 ) {
@@ -66,9 +81,52 @@ fn execute_style_commands(
                 });
             }
             StyleCommand::ClipArea { id, style } => {
-                let clip_area_id = known_cells
-                    .entry(id)
-                    .or_insert_with(|| commands.spawn_empty().add(CreateClipArea).id());
+                let (clip_area_id, texture, camera_id) =
+                    known_clip_areas.entry(id).or_insert_with(|| {
+                        let image = Image {
+                            texture_descriptor: TextureDescriptor {
+                                label: None,
+                                size: Extent3d::default(),
+                                mip_level_count: 1,
+                                sample_count: 1,
+                                dimension: TextureDimension::D2,
+                                format: TextureFormat::Bgra8UnormSrgb,
+                                usage: TextureUsages::TEXTURE_BINDING
+                                    | TextureUsages::COPY_DST
+                                    | TextureUsages::RENDER_ATTACHMENT,
+                                view_formats: &[],
+                            },
+                            ..Default::default()
+                        };
+                        let image_handle = images.add(image);
+                        (
+                            commands.spawn_empty().add(CreateClipArea).id(),
+                            image_handle.clone(),
+                            commands
+                                .spawn(Camera2dBundle {
+                                    camera: Camera {
+                                        order: -1,
+                                        target: RenderTarget::Image(image_handle),
+                                        ..Default::default()
+                                    },
+                                    ..Default::default()
+                                })
+                                .insert(RenderLayers::layer(style.render_layer))
+                                .id(),
+                        )
+                    });
+
+                if let Some(image) = images.get_mut(texture.id()) {
+                    image.resize(Extent3d {
+                        width: style.size.x as u32,
+                        height: style.size.y as u32,
+                        ..Default::default()
+                    });
+                }
+                if let Ok(mut camera) = cameras.get_mut(*camera_id) {
+                    camera.translation =
+                        style.pos + vec3(style.size.x / 2.0, -style.size.y / 2.0, 0.0);
+                }
 
                 set_style.send(SetStyle {
                     entity: *clip_area_id,
@@ -79,13 +137,19 @@ fn execute_style_commands(
                         rounding: style.rounding,
                         color: Color::WHITE,
                         visible: true,
+                        texture: Some(texture.clone()),
                         ..Default::default()
                     },
                 });
             }
             StyleCommand::Remove { id } => {
                 if let Some(cell_id) = known_cells.remove(&id) {
-                    commands.entity(cell_id).despawn();
+                    commands.entity(cell_id).despawn_recursive();
+                }
+
+                if let Some((cell_id, _, camera_id)) = known_clip_areas.remove(&id) {
+                    commands.entity(cell_id).despawn_recursive();
+                    commands.entity(camera_id).despawn();
                 }
             }
         }

@@ -539,10 +539,10 @@
         "text_size": 20.0,
         "color": {
           "Rgba": {
-            "red": 0.16911542,
-            "green": 0.061904784,
-            "blue": 1.0,
-            "alpha": 0.3
+            "red": 0.0,
+            "green": 0.0,
+            "blue": 0.0,
+            "alpha": 0.0
           }
         },
         "image": "None",
@@ -579,7 +579,7 @@
           },
           "size": {
             "x": 300.0,
-            "y": 245.0
+            "y": 380.0
           },
           "skew": 0.0,
           "rounding": {

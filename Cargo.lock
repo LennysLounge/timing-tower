@@ -1787,6 +1787,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7e962a19be5cfc3f3bf6dd8f61eb50107f356ad6270fbb3ed41476571db78be5"
 
 [[package]]
+name = "dear_egui"
+version = "0.1.0"
+source = "git+https://github.com/LennysLounge/dear_egui.git#dd55cbbde4b970f713395a823b59d4ee91fc08b2"
+dependencies = [
+ "egui",
+]
+
+[[package]]
 name = "deflate"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1878,6 +1886,7 @@ dependencies = [
  "bevy",
  "bevy_egui",
  "common",
+ "dear_egui",
  "dyn-clone",
  "egui_dock",
  "egui_ltreeview",
@@ -4936,7 +4945,7 @@ version = "1.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
- "cfg-if 0.1.10",
+ "cfg-if 1.0.0",
  "static_assertions",
 ]
 

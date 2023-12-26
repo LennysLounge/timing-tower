@@ -9,7 +9,7 @@ edition = "2021"
 bevy = { workspace = true, features = ["dynamic_linking"] }
 bevy_egui = { workspace = true }
 egui_dock = { workspace = true }
-serde = { workspace = true, features = ["rc"] }
+serde = { workspace = true}
 frontend = { path = "../frontend" }
 backend = { path = "../backend" }
 common = { path = "../common" }

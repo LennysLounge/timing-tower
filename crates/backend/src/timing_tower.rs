@@ -33,13 +33,14 @@ pub struct StyleElementUpdate;
 
 #[derive(Component)]
 pub struct TimingTower {
-    pub cell_id: CellId,
-    pub clip_area_cell_id: CellId,
-    pub rows: HashMap<EntryId, Row>,
+    cell_id: CellId,
+    clip_area_cell_id: CellId,
+    rows: HashMap<EntryId, Row>,
+    scroll_position: f32,
 }
 pub struct Row {
-    pub cell_id: CellId,
-    pub columns: HashMap<Uuid, CellId>,
+    cell_id: CellId,
+    columns: HashMap<Uuid, CellId>,
 }
 impl TimingTower {
     pub fn new() -> Self {
@@ -47,11 +48,12 @@ impl TimingTower {
             cell_id: CellId::new(),
             clip_area_cell_id: CellId::new(),
             rows: HashMap::new(),
+            scroll_position: 0.0,
         }
     }
 }
 
-pub fn update_tower(
+fn update_tower(
     savefile: Option<Res<Savefile>>,
     value_store: Res<ValueStore>,
     game_adapter: Res<GameAdapterResource>,
@@ -68,6 +70,7 @@ pub fn update_tower(
             cell_id,
             clip_area_cell_id,
             rows,
+            scroll_position,
         } = tower.as_mut();
 
         let Ok(model) = adapter.model.read() else {
@@ -146,8 +149,10 @@ pub fn update_tower(
             let rows_to_skip = (focused_entry_index as f32 - 12.0)
                 .max(0.0)
                 .min(entries.len() as f32 - 23.0);
-            row_resolver.position -= row_offset * rows_to_skip;
+            *scroll_position = *scroll_position - (*scroll_position - rows_to_skip) * 0.1;
         }
+
+        row_resolver.position -= row_offset * *scroll_position;
 
         // Update row and columns
         for entry in entries {

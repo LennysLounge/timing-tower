@@ -116,6 +116,9 @@ fn update_tower(
             });
         }
 
+        // Remove entries that dont exist anymore
+        rows.retain(|entry_id, _| resolver.session.entries.contains_key(entry_id));
+
         // Update the rows
         let row_offset = vec3(
             row_resolver
@@ -147,8 +150,8 @@ fn update_tower(
         // Move rows to make sure the focused entry is visible
         if let Some(focused_entry_index) = entries.iter().position(|entry| entry.focused) {
             let rows_to_skip = (focused_entry_index as f32 - 12.0)
-                .max(0.0)
-                .min(entries.len() as f32 - 23.0);
+                .min(entries.len() as f32 - 23.0)
+                .max(0.0);
             *scroll_position = *scroll_position - (*scroll_position - rows_to_skip) * 0.1;
         }
 

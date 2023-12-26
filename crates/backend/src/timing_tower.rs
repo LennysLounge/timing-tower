@@ -152,7 +152,7 @@ fn update_tower(
             let rows_to_skip = (focused_entry_index as f32 - 12.0)
                 .min(entries.len() as f32 - 23.0)
                 .max(0.0);
-            *scroll_position = *scroll_position - (*scroll_position - rows_to_skip) * 0.1;
+            *scroll_position = *scroll_position - (*scroll_position - rows_to_skip) * 0.2;
         }
 
         row_resolver.position -= row_offset * *scroll_position;

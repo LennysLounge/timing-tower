@@ -1,3 +1,4 @@
+pub mod adapter_command;
 pub mod edit_property;
 pub mod insert_node;
 pub mod move_node;
@@ -11,8 +12,10 @@ use bevy::{
     app::Plugin,
     ecs::{event::EventWriter, system::Resource},
 };
+use unified_sim_model::Adapter;
 
 use self::{
+    adapter_command::AdapterCommand,
     edit_property::EditProperty,
     insert_node::{InsertNode, InsertNodeUndo},
     move_node::MoveNode,
@@ -35,6 +38,7 @@ pub enum EditorCommand {
     RemoveNodeUndo(RemoveNodeUndo),
     MoveNode(MoveNode),
     EditProperty(EditProperty),
+    AdapterCommand(AdapterCommand),
 }
 
 impl EditorCommand {
@@ -48,6 +52,7 @@ impl EditorCommand {
             EditorCommand::RemoveNodeUndo(_) => "Remove node",
             EditorCommand::MoveNode(_) => "Move node",
             EditorCommand::EditProperty(_) => "Edit property",
+            EditorCommand::AdapterCommand(_) => "Adapter command",
         }
     }
 
@@ -61,10 +66,11 @@ impl EditorCommand {
             EditorCommand::RemoveNodeUndo(_) => "EditorCommand::RemoveNodeUndo",
             EditorCommand::MoveNode(_) => "EditorCommand::MoveNode",
             EditorCommand::EditProperty(_) => "EditorCommand::EditProperty",
+            EditorCommand::AdapterCommand(_) => "EditorCommand::AdapterCommand",
         }
     }
 
-    fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
+    fn execute(self, style: &mut StyleDefinition, adapter: &mut Adapter) -> Option<EditorCommand> {
         match self {
             EditorCommand::Undo => unreachable!("Undo command should never be executed"),
             EditorCommand::Redo => unreachable!("Redo command should never be executed"),
@@ -74,6 +80,10 @@ impl EditorCommand {
             EditorCommand::RemoveNodeUndo(o) => o.execute(style),
             EditorCommand::MoveNode(o) => o.execute(style),
             EditorCommand::EditProperty(o) => o.execute(style),
+            EditorCommand::AdapterCommand(o) => {
+                o.execute(adapter);
+                None
+            }
         }
     }
 }
@@ -89,6 +99,7 @@ impl UndoRedoManager {
         &mut self,
         savefile: &mut Savefile,
         mut savefile_changed_event: EventWriter<SavefileChanged>,
+        adapter: &mut Adapter,
     ) {
         if self.queue.is_empty() {
             return;
@@ -101,17 +112,17 @@ impl UndoRedoManager {
                 EditorCommand::Undo => {
                     self.undo
                         .pop()
-                        .and_then(|undo| undo.execute(&mut style))
+                        .and_then(|undo| undo.execute(&mut style, adapter))
                         .map(|redo| self.redo.push(redo));
                 }
                 EditorCommand::Redo => {
                     self.redo
                         .pop()
-                        .and_then(|redo| redo.execute(&mut style))
+                        .and_then(|redo| redo.execute(&mut style, adapter))
                         .map(|undo| self.undo.push(undo));
                 }
                 command => {
-                    command.execute(&mut style).map(|undo| {
+                    command.execute(&mut style, adapter).map(|undo| {
                         self.add_to_undo_list(undo);
                         self.redo.clear();
                     });

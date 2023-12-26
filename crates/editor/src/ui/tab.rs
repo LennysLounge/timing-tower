@@ -5,6 +5,7 @@ mod undo_redo;
 use backend::style::StyleDefinition;
 use bevy_egui::egui::{self, Rect};
 use egui_dock::TabViewer;
+use unified_sim_model::Adapter;
 use uuid::Uuid;
 
 use crate::{command::UndoRedoManager, reference_store::ReferenceStore};
@@ -24,6 +25,7 @@ pub struct EditorTabViewer<'a> {
     pub style: &'a mut StyleDefinition,
     pub reference_store: &'a ReferenceStore,
     pub undo_redo_manager: &'a mut UndoRedoManager,
+    pub game_adapter: &'a Adapter,
 }
 impl<'a> TabViewer for EditorTabViewer<'a> {
     type Tab = Tab;
@@ -59,6 +61,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     self.style,
                     self.reference_store,
                     self.undo_redo_manager,
+                    self.game_adapter,
                 );
             }
             Tab::Variables => {

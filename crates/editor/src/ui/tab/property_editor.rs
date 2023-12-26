@@ -4,10 +4,13 @@ use backend::style::{
     StyleDefinition, StyleNode,
 };
 use bevy_egui::egui::{ComboBox, DragValue, ScrollArea, Ui};
+use rand::{seq::IteratorRandom, thread_rng};
+use unified_sim_model::{games::dummy::DummyCommands, Adapter, GameAdapterCommand};
 use uuid::Uuid;
 
 use crate::{
     command::{
+        adapter_command::AdapterCommand,
         edit_property::{EditProperty, EditResult},
         UndoRedoManager,
     },
@@ -26,6 +29,7 @@ pub fn property_editor(
     style: &mut StyleDefinition,
     reference_store: &ReferenceStore,
     undo_redo_manager: &mut UndoRedoManager,
+    game_adapter: &Adapter,
 ) {
     let Some(selected_id) = selected_id else {
         return;
@@ -35,7 +39,7 @@ pub fn property_editor(
         .auto_shrink([false, false])
         .show(ui, |ui| {
             style.as_node_mut().search_mut(*&selected_id, |node| {
-                edit_node(ui, node, reference_store, undo_redo_manager);
+                edit_node(ui, node, reference_store, game_adapter, undo_redo_manager);
             });
         });
 }
@@ -44,6 +48,7 @@ pub fn edit_node(
     ui: &mut Ui,
     node: NodeMut,
     reference_store: &ReferenceStore,
+    game_adapter: &Adapter,
     undo_redo_manager: &mut UndoRedoManager,
 ) {
     match node {
@@ -227,6 +232,38 @@ pub fn edit_node(
             if let EditResult::FromId(widget_id) = edit_result {
                 undo_redo_manager.queue(EditProperty::new(scene.id, scene.clone(), widget_id));
             }
+
+            ui.separator();
+            if ui.button("Change focus to random entry").clicked() {
+                let model = game_adapter
+                    .model
+                    .read()
+                    .expect("Cannot lock model for reading");
+                if let Some(random_entry) = model
+                    .current_session()
+                    .and_then(|session| session.entries.values().choose(&mut thread_rng()))
+                {
+                    undo_redo_manager.queue(AdapterCommand {
+                        command: unified_sim_model::AdapterCommand::FocusOnCar(random_entry.id),
+                    });
+                }
+            }
+            ui.horizontal(|ui| {
+                ui.label("Set entry amount:");
+                let amount_id = ui.make_persistent_id("entry_amount");
+                let mut amount = ui
+                    .data_mut(|d| d.get_persisted(amount_id))
+                    .unwrap_or(10usize);
+                ui.add(DragValue::new(&mut amount).clamp_range(1..=usize::MAX));
+                ui.data_mut(|d| d.insert_persisted(amount_id, amount));
+                if ui.button("set").clicked() {
+                    undo_redo_manager.queue(AdapterCommand {
+                        command: unified_sim_model::AdapterCommand::Game(
+                            GameAdapterCommand::Dummy(DummyCommands::SetEntryAmount(amount)),
+                        ),
+                    });
+                }
+            });
         }
 
         NodeMut::ClipArea(clip_area) => {

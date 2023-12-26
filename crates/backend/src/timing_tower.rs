@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{cmp::min, collections::HashMap};
 
 use crate::style::clip_area::ClipAreaData;
 
@@ -126,11 +126,15 @@ pub fn update_tower(
             -row_resolver
                 .property(&tower_style.row.inner.row_offset.y)
                 .unwrap_or_default()
-                .0,
+                .0
+                - row_resolver
+                    .property(&tower_style.row.inner.cell.size.y)
+                    .unwrap_or_default()
+                    .0,
             0.0,
         );
 
-        // Update the rows
+        // Get entries sorted by position
         let mut entries: Vec<&Entry> = row_resolver.session.entries.values().collect();
         entries.sort_by(|e1, e2| {
             let is_connected = e2.connected.cmp(&e1.connected);
@@ -140,6 +144,20 @@ pub fn update_tower(
                 .unwrap_or(std::cmp::Ordering::Equal);
             is_connected.then(position)
         });
+
+        // Move rows to make sure the focused entry is visible
+        if let Some(focused_entry_index) = entries.iter().position(|entry| entry.focused) {
+            let mut rows_to_skip = focused_entry_index as f32 - 12.0;
+            if rows_to_skip < 0.0 {
+                rows_to_skip = 0.0;
+            }
+            if rows_to_skip > entries.len() as f32 - 23.0 {
+                rows_to_skip = entries.len() as f32 - 23.0;
+            }
+            row_resolver.position -= row_offset * rows_to_skip;
+        }
+
+        // Update row and columns
         for entry in entries {
             let Some(row) = rows.get(&entry.id) else {
                 continue;
@@ -147,11 +165,7 @@ pub fn update_tower(
 
             row_resolver.entry = Some(entry);
             let cell = row_resolver.cell(&tower_style.row.inner.cell);
-
             let column_resolver = row_resolver.with_position(cell.pos);
-
-            row_resolver.position += row_offset + vec3(0.0, -cell.size.y, 0.0);
-            batcher.add(&row.cell_id, cell);
 
             // update columns
             for column in tower_style.row.inner.contained_columns() {
@@ -160,6 +174,9 @@ pub fn update_tower(
                 };
                 batcher.add(cell_id, column_resolver.cell(&column.cell));
             }
+
+            batcher.add(&row.cell_id, cell);
+            row_resolver.position += row_offset;
         }
     }
 }

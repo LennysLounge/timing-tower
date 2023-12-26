@@ -9,12 +9,11 @@ edition = "2021"
 bevy = { workspace = true, features = ["dynamic_linking"] }
 bevy_egui = { workspace = true }
 egui_dock = { workspace = true }
-serde = { workspace = true}
+serde = { workspace = true }
 frontend = { path = "../frontend" }
 backend = { path = "../backend" }
 common = { path = "../common" }
 unified_sim_model = { path = "../../../unified_sim_model/unified_sim_model" }
-dear_egui = { path = "../dear_egui" }
 egui_ltreeview = { git = "https://github.com/LennysLounge/egui_ltreeview.git" }
 serde_json = "1.0.107"
 tracing = "0.1.37"

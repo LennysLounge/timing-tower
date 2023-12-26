@@ -44,8 +44,8 @@ impl Plugin for EditorUiPlugin {
 #[derive(SystemSet, Hash, Debug, PartialEq, Eq, Clone)]
 pub struct UiSystem;
 
-fn set_theme(mut ctx: EguiContexts) {
-    dear_egui::set_theme(ctx.ctx_mut(), dear_egui::SKY);
+fn set_theme(mut _ctx: EguiContexts) {
+    //dear_egui::set_theme(ctx.ctx_mut(), dear_egui::SKY);
 }
 
 #[derive(Resource)]

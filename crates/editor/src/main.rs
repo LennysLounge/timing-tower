@@ -2,7 +2,7 @@ use asset_path_store::EditorAssetPathStorePlugin;
 use backend::{
     savefile::{Savefile, SavefileChanged},
     timing_tower::TimingTower,
-    BackendPlugin,
+    BackendPlugin, GameAdapterResource,
 };
 use bevy::{
     diagnostic::FrameTimeDiagnosticsPlugin,
@@ -67,12 +67,6 @@ struct SimpleTimer(Timer);
 #[derive(Resource)]
 pub struct DefaultFont(pub Handle<Font>);
 
-#[derive(Resource)]
-#[allow(unused)]
-pub struct GameAdapterResource {
-    adapter: Adapter,
-}
-
 #[derive(Component)]
 pub struct MainCamera;
 
@@ -129,7 +123,7 @@ fn setup(
             render_layer: 0,
         },
     });
-    commands.spawn(TimingTower::new(adapter));
+    commands.spawn(TimingTower::new());
 }
 
 pub trait SpawnAndInitWorld {

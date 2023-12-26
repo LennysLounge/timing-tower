@@ -1,6 +1,6 @@
-use std::{cmp::min, collections::HashMap};
+use std::collections::HashMap;
 
-use crate::style::clip_area::ClipAreaData;
+use crate::{style::clip_area::ClipAreaData, GameAdapterResource};
 
 use super::{
     savefile::Savefile,
@@ -18,10 +18,7 @@ use bevy::{
     prelude::{Color, Component, Plugin, Query, Res, Update, Vec2, Vec3},
 };
 use common::communication::{CellStyle, ClipAreaStyle};
-use unified_sim_model::{
-    model::{Entry, EntryId, Session},
-    Adapter,
-};
+use unified_sim_model::model::{Entry, EntryId, Session};
 use uuid::Uuid;
 
 pub struct TimingTowerPlugin;
@@ -38,7 +35,6 @@ pub struct StyleElementUpdate;
 pub struct TimingTower {
     pub cell_id: CellId,
     pub clip_area_cell_id: CellId,
-    pub adapter: Adapter,
     pub rows: HashMap<EntryId, Row>,
 }
 pub struct Row {
@@ -46,11 +42,10 @@ pub struct Row {
     pub columns: HashMap<Uuid, CellId>,
 }
 impl TimingTower {
-    pub fn new(adapter: Adapter) -> Self {
+    pub fn new() -> Self {
         Self {
             cell_id: CellId::new(),
             clip_area_cell_id: CellId::new(),
-            adapter,
             rows: HashMap::new(),
         }
     }
@@ -59,18 +54,19 @@ impl TimingTower {
 pub fn update_tower(
     savefile: Option<Res<Savefile>>,
     value_store: Res<ValueStore>,
+    game_adapter: Res<GameAdapterResource>,
     mut towers: Query<&mut TimingTower>,
     mut batcher: ResMut<StyleBatcher>,
 ) {
     let Some(tower_style) = savefile.as_ref().map(|s| &s.style().scene.timing_tower) else {
         return;
     };
+    let GameAdapterResource { adapter } = game_adapter.as_ref();
 
     for mut tower in towers.iter_mut() {
         let TimingTower {
             cell_id,
             clip_area_cell_id,
-            adapter,
             rows,
         } = tower.as_mut();
 
@@ -147,13 +143,9 @@ pub fn update_tower(
 
         // Move rows to make sure the focused entry is visible
         if let Some(focused_entry_index) = entries.iter().position(|entry| entry.focused) {
-            let mut rows_to_skip = focused_entry_index as f32 - 12.0;
-            if rows_to_skip < 0.0 {
-                rows_to_skip = 0.0;
-            }
-            if rows_to_skip > entries.len() as f32 - 23.0 {
-                rows_to_skip = entries.len() as f32 - 23.0;
-            }
+            let rows_to_skip = (focused_entry_index as f32 - 12.0)
+                .max(0.0)
+                .min(entries.len() as f32 - 23.0);
             row_resolver.position -= row_offset * rows_to_skip;
         }
 

@@ -1,7 +1,8 @@
-use bevy::app::Plugin;
+use bevy::{app::Plugin, ecs::system::Resource};
 use savefile::SavefilePlugin;
 use style_batcher::StyleBatcherPlugin;
 use timing_tower::TimingTowerPlugin;
+use unified_sim_model::Adapter;
 use value_store::ValueStorePlugin;
 
 pub mod game_sources;
@@ -20,4 +21,10 @@ impl Plugin for BackendPlugin {
             .add_plugins(SavefilePlugin)
             .add_plugins(TimingTowerPlugin);
     }
+}
+
+#[derive(Resource)]
+#[allow(unused)]
+pub struct GameAdapterResource {
+    pub adapter: Adapter,
 }

@@ -4,23 +4,23 @@ use bevy::{
     asset::AssetPath,
     ecs::{
         event::EventReader,
-        system::{Res, ResMut},
+        system::{Res, ResMut, Resource},
     },
     utils::HashMap,
 };
-use frontend::asset_path_store::{AssetPathProvider, AssetPathStore};
+use frontend::AssetPathProvider;
 use tracing::info;
 use uuid::Uuid;
 
 pub struct EditorAssetPathStorePlugin;
 impl Plugin for EditorAssetPathStorePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.insert_resource(AssetPathStore::new(EditorAssetPathStore::default()))
+        app.insert_resource(EditorAssetPathStore::default())
             .add_systems(First, savefile_changed);
     }
 }
 
-#[derive(Default)]
+#[derive(Resource, Default)]
 pub struct EditorAssetPathStore {
     map: HashMap<Uuid, AssetPath<'static>>,
 }
@@ -32,7 +32,7 @@ impl AssetPathProvider for EditorAssetPathStore {
 
 fn savefile_changed(
     savefile: Res<Savefile>,
-    mut asset_path_store: ResMut<AssetPathStore>,
+    mut store: ResMut<EditorAssetPathStore>,
     mut savefile_changed_event: EventReader<SavefileChanged>,
 ) {
     if savefile_changed_event.is_empty() {
@@ -42,16 +42,14 @@ fn savefile_changed(
 
     info!("Reload asset path store");
 
-    let mut map = HashMap::new();
+    store.map.clear();
     for asset in savefile.style().assets.contained_assets() {
         let asset_path = savefile.base_path().join(&asset.path);
-        map.insert(
+        store.map.insert(
             asset.id,
             AssetPath::from_path(&asset_path)
                 .clone_owned()
                 .with_source("savefile"),
         );
     }
-
-    *asset_path_store = AssetPathStore::new(EditorAssetPathStore { map });
 }

@@ -15,8 +15,8 @@ use common::communication::StyleCommand;
 use uuid::Uuid;
 
 use crate::{
-    asset_path_store::{AssetPathProvider, AssetPathStore},
     cell::{CellStyle, CreateCell, CreateClipArea, SetStyle},
+    AssetPathProvider,
 };
 
 #[derive(Default)]
@@ -35,7 +35,7 @@ impl CellManager {
         mut images: ResMut<Assets<Image>>,
         mut cameras: Query<&mut Transform, With<Camera>>,
         asset_server: Res<AssetServer>,
-        asset_path_store: ResMut<AssetPathStore>,
+        asset_path_store: &impl AssetPathProvider,
     ) {
         for command in style_commands.into_iter() {
             match command {

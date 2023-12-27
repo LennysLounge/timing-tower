@@ -1,6 +1,8 @@
 use backend::style_batcher::{PrepareBatcher, StyleBatcher};
 use bevy::prelude::*;
-use frontend::{asset_path_store::AssetPathStore, cell::SetStyle, cell_manager::CellManager};
+use frontend::{cell::SetStyle, cell_manager::CellManager};
+
+use crate::asset_path_store::EditorAssetPathStore;
 
 pub struct CellManagerPlugin;
 impl Plugin for CellManagerPlugin {
@@ -17,7 +19,7 @@ fn execute_style_commands(
     images: ResMut<Assets<Image>>,
     cameras: Query<&mut Transform, With<Camera>>,
     asset_server: Res<AssetServer>,
-    asset_path_store: ResMut<AssetPathStore>,
+    asset_path_store: ResMut<EditorAssetPathStore>,
 ) {
     let style_commands = style_batcher.drain();
     cell_manager.apply_commands(
@@ -27,6 +29,6 @@ fn execute_style_commands(
         images,
         cameras,
         asset_server,
-        asset_path_store,
+        asset_path_store.as_ref(),
     );
 }

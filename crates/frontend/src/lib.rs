@@ -1,19 +1,20 @@
-use asset_path_store::AssetPathStorePlugin;
-use bevy::app::Plugin;
+use bevy::{asset::AssetPath, prelude::*};
 use cell::CellPlugin;
 use cell_material::CellMaterialPlugin;
+use uuid::Uuid;
 
-pub mod asset_path_store;
 pub mod cell;
+pub mod cell_manager;
 pub mod cell_material;
 pub mod gradient_material;
-pub mod cell_manager;
 
 pub struct FrontendPlugin;
 impl Plugin for FrontendPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_plugins(CellPlugin)
-            .add_plugins(CellMaterialPlugin)
-            .add_plugins(AssetPathStorePlugin);
+        app.add_plugins(CellPlugin).add_plugins(CellMaterialPlugin);
     }
+}
+
+pub trait AssetPathProvider {
+    fn get(&self, id: &Uuid) -> Option<&AssetPath>;
 }

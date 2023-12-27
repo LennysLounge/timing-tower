@@ -12,12 +12,14 @@ use bevy::{
 };
 use common::communication::{StyleCommand, ToRendererMessage};
 use frontend::{
-    asset_path_store::{AssetPathProvider, AssetPathStore},
     cell::{CellSystem, CreateCell, SetStyle},
+    AssetPathProvider,
 };
 use uuid::Uuid;
 
-use crate::{framerate::FrameCounter, websocket::ReceivedMessage};
+use crate::{
+    asset_path_store::WebAssetPathStore, framerate::FrameCounter, websocket::ReceivedMessage,
+};
 
 pub struct CellManagerPlugin;
 impl Plugin for CellManagerPlugin {
@@ -33,7 +35,7 @@ fn spawn_cells(
     mut known_cells: Local<HashMap<Uuid, Entity>>,
     mut frame_counter: ResMut<FrameCounter>,
     asset_server: Res<AssetServer>,
-    asset_path_store: ResMut<AssetPathStore>,
+    asset_path_store: ResMut<WebAssetPathStore>,
 ) {
     let style_commands: Vec<&StyleCommand> = received_messages
         .read()

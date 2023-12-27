@@ -1610,6 +1610,7 @@ dependencies = [
  "rand 0.8.5",
  "rouille",
  "tracing",
+ "unified_sim_model",
  "uuid",
  "websocket",
 ]

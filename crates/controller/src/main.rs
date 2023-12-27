@@ -1,14 +1,15 @@
 use backend::{
     savefile::{Savefile, SavefileChanged},
     style_batcher::{PrepareBatcher, StyleBatcher},
-    BackendPlugin,
+    BackendPlugin, GameAdapterResource, timing_tower::TimingTower,
 };
 use ball::Ball;
 use bevy::{
-    app::{Startup, PostUpdate},
+    app::{PostUpdate, Startup},
     ecs::{
         event::EventWriter,
-        system::{Commands, Query}, schedule::IntoSystemConfigs,
+        schedule::IntoSystemConfigs,
+        system::{Commands, Query},
     },
     prelude::{App, ResMut, Resource},
     time::{Timer, TimerMode},
@@ -17,6 +18,7 @@ use bevy::{
 };
 
 use common::communication::ToRendererMessage;
+use unified_sim_model::Adapter;
 use webserver::WebserverPlugin;
 use websocket::{ClientState, WebsocketClient, WebsocketPlugin};
 
@@ -37,7 +39,7 @@ fn main() {
             0.001,
             TimerMode::Repeating,
         )))
-        .add_systems(Startup, (load_savefile, spawn_balls))
+        .add_systems(Startup, (setup, spawn_balls))
         .add_systems(PostUpdate, send_style_commands.after(PrepareBatcher))
         .run();
 }
@@ -45,11 +47,17 @@ fn main() {
 #[derive(Resource)]
 struct RenderTimer(Timer);
 
-fn load_savefile(
+fn setup(
+    mut commands: Commands,
     mut savefile: ResMut<Savefile>,
     savefile_changed_event: EventWriter<SavefileChanged>,
 ) {
-    savefile.load("../../savefile/style.style.json", savefile_changed_event);
+    savefile.load("../../savefile/style.json", savefile_changed_event);
+
+    commands.insert_resource(GameAdapterResource {
+        adapter: Adapter::new_dummy(),
+    });
+    commands.spawn(TimingTower::new());
 }
 
 fn spawn_balls(mut commands: Commands) {

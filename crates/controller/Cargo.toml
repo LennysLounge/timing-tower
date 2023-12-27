@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 common = { path = "../common" }
 backend = { path = "../backend" }
+unified_sim_model = { path = "../../../unified_sim_model/unified_sim_model" }
 
 bevy = { workspace = true }
 postcard = { workspace = true, features = ["alloc"] }

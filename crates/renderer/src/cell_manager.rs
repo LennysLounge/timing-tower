@@ -1,21 +1,20 @@
-use std::collections::HashMap;
-
 use bevy::{
     app::{Plugin, Update},
-    asset::AssetServer,
+    asset::{AssetServer, Assets},
     ecs::{
-        entity::Entity,
         event::{EventReader, EventWriter},
+        query::With,
         schedule::IntoSystemConfigs,
-        system::{Commands, Local, Res, ResMut},
+        system::{Commands, Local, Query, Res, ResMut},
     },
+    render::{camera::Camera, texture::Image},
+    transform::components::Transform,
 };
-use common::communication::{StyleCommand, ToRendererMessage};
+use common::communication::ToRendererMessage;
 use frontend::{
-    cell::{CellSystem, CreateCell, SetStyle},
-    AssetPathProvider,
+    cell::{CellSystem, SetStyle},
+    cell_manager::CellManager,
 };
-use uuid::Uuid;
 
 use crate::{
     asset_path_store::WebAssetPathStore, framerate::FrameCounter, websocket::ReceivedMessage,
@@ -29,62 +28,37 @@ impl Plugin for CellManagerPlugin {
 }
 
 fn spawn_cells(
-    mut commands: Commands,
+    mut cell_manager: Local<CellManager>,
     mut received_messages: EventReader<ReceivedMessage>,
-    mut set_style: EventWriter<SetStyle>,
-    mut known_cells: Local<HashMap<Uuid, Entity>>,
     mut frame_counter: ResMut<FrameCounter>,
+    commands: Commands,
+    set_style: EventWriter<SetStyle>,
+    images: ResMut<Assets<Image>>,
+    cameras: Query<&mut Transform, With<Camera>>,
     asset_server: Res<AssetServer>,
     asset_path_store: ResMut<WebAssetPathStore>,
 ) {
-    let style_commands: Vec<&StyleCommand> = received_messages
+    let style_commands: Vec<_> = received_messages
         .read()
         .filter_map(|ReceivedMessage { message }| match message {
             ToRendererMessage::Style(styles) => Some(styles),
             _ => None,
         })
         .flat_map(|styles| styles.iter())
+        .map(|x| x.clone())
+        .map(|x| {
+            frame_counter.inc();
+            x
+        })
         .collect();
 
-    for command in style_commands.into_iter() {
-        match command {
-            StyleCommand::Style { id, style } => {
-                let cell_id = known_cells
-                    .entry(*id)
-                    .or_insert_with(|| commands.spawn_empty().add(CreateCell).id());
-
-                frame_counter.inc();
-                set_style.send(SetStyle {
-                    entity: *cell_id,
-                    style: frontend::cell::CellStyle {
-                        text: style.text.clone(),
-                        text_color: style.text_color,
-                        text_size: style.text_size,
-                        text_alignment: style.text_alignment,
-                        text_position: style.text_position,
-                        color: style.color,
-                        texture: style
-                            .texture
-                            .as_ref()
-                            .and_then(|id| asset_path_store.get(id))
-                            .and_then(|path| Some(asset_server.load(path))),
-                        pos: style.pos,
-                        size: style.size,
-                        skew: style.skew,
-                        visible: style.visible,
-                        rounding: style.rounding,
-                        render_layer: style.render_layer,
-                    },
-                });
-            }
-            StyleCommand::ClipArea { id: _, style: _ } => {
-                todo!()
-            }
-            StyleCommand::Remove { id } => {
-                if let Some(cell_id) = known_cells.remove(&id) {
-                    commands.entity(cell_id).despawn();
-                }
-            }
-        }
-    }
+    cell_manager.apply_commands(
+        style_commands,
+        set_style,
+        commands,
+        images,
+        cameras,
+        asset_server,
+        asset_path_store.as_ref(),
+    );
 }

@@ -3,8 +3,8 @@ use bevy_egui::egui::{ComboBox, InnerResponse, Sense, Ui, Vec2};
 use crate::{reference_store::ReferenceStore, ui::tab::property_editor::property::PropertyEditor};
 use backend::{
     style::variables::condition::{
-        BooleanComparator, BooleanComparison, Comparison, Condition, NumberComparator,
-        NumberComparison, Output, TextComparator, TextComparison, UntypedOutput,
+        BooleanComparator, Comparison, Condition, NumberComparator, Output, TextComparator,
+        UntypedOutput,
     },
     value_types::ValueType,
 };
@@ -59,7 +59,7 @@ pub fn property_editor(ui: &mut Ui, value: &mut Condition, asset_repo: &Referenc
     ui.horizontal(|ui| {
         ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
         match &mut value.comparison {
-            Comparison::Number(NumberComparison { comparator, .. }) => {
+            Comparison::Number { comparator, .. } => {
                 changed |= ComboBox::from_id_source(ui.next_auto_id())
                     .width(50.0)
                     .choose(
@@ -82,13 +82,13 @@ pub fn property_editor(ui: &mut Ui, value: &mut Condition, asset_repo: &Referenc
                     NumberComparator::LessEqual => ui.label("to"),
                 };
             }
-            Comparison::Text(TextComparison { comparator: c, .. }) => {
+            Comparison::Text { comparator: c, .. } => {
                 changed |= ComboBox::from_id_source(ui.next_auto_id())
                     .width(50.0)
                     .choose(ui, c, vec![(TextComparator::Like, "like")])
                     .changed();
             }
-            Comparison::Boolean(BooleanComparison { comparator: c, .. }) => {
+            Comparison::Boolean { comparator: c, .. } => {
                 changed |= ComboBox::from_id_source(ui.next_auto_id())
                     .width(50.0)
                     .choose(
@@ -109,13 +109,13 @@ pub fn property_editor(ui: &mut Ui, value: &mut Condition, asset_repo: &Referenc
         // show select for right side
         changed |= ui
             .horizontal(|ui| match &mut value.comparison {
-                Comparison::Number(NumberComparison { right, .. }) => {
+                Comparison::Number { right, .. } => {
                     ui.add(PropertyEditor::new(right, asset_repo)).changed()
                 }
-                Comparison::Text(TextComparison { right, .. }) => {
+                Comparison::Text { right, .. } => {
                     ui.add(PropertyEditor::new(right, asset_repo)).changed()
                 }
-                Comparison::Boolean(BooleanComparison { right, .. }) => {
+                Comparison::Boolean { right, .. } => {
                     ui.add(PropertyEditor::new(right, asset_repo)).changed()
                 }
             })

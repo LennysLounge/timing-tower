@@ -20,11 +20,11 @@ pub struct Condition {
 impl Default for Condition {
     fn default() -> Self {
         Self {
-            comparison: Comparison::Number(NumberComparison {
+            comparison: Comparison::Number {
                 left: ValueRef::default(),
                 comparator: NumberComparator::Equal,
                 right: Property::default(),
-            }),
+            },
             output: UntypedOutput::Number(Output::default()),
         }
     }
@@ -80,24 +80,36 @@ impl Condition {
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(tag = "comparison_type")]
 pub enum Comparison {
-    Number(NumberComparison),
-    Text(TextComparison),
-    Boolean(BooleanComparison),
+    Number {
+        left: ValueRef<Number>,
+        comparator: NumberComparator,
+        right: Property<Number>,
+    },
+    Text {
+        left: ValueRef<Text>,
+        comparator: TextComparator,
+        right: Property<Text>,
+    },
+    Boolean {
+        left: ValueRef<Boolean>,
+        comparator: BooleanComparator,
+        right: Property<Boolean>,
+    },
 }
 
 impl Comparison {
     pub fn left_side_id(&self) -> &Uuid {
         match self {
-            Comparison::Number(n) => &n.left.id,
-            Comparison::Text(n) => &n.left.id,
-            Comparison::Boolean(n) => &n.left.id,
+            Comparison::Number { left, .. } => &left.id,
+            Comparison::Text { left, .. } => &left.id,
+            Comparison::Boolean { left, .. } => &left.id,
         }
     }
     pub fn value_type(&self) -> ValueType {
         match self {
-            Comparison::Number(_) => ValueType::Number,
-            Comparison::Text(_) => ValueType::Text,
-            Comparison::Boolean(_) => ValueType::Boolean,
+            Comparison::Number { .. } => ValueType::Number,
+            Comparison::Text { .. } => ValueType::Text,
+            Comparison::Boolean { .. } => ValueType::Boolean,
         }
     }
 
@@ -105,58 +117,33 @@ impl Comparison {
         if self.value_type() == new_untyped_ref.value_type {
             // Update the left side if the types are the same.
             match self {
-                Comparison::Number(number_comparison) => {
-                    number_comparison.left = new_untyped_ref.typed()
-                }
-                Comparison::Boolean(boolean_comparison) => {
-                    boolean_comparison.left = new_untyped_ref.typed()
-                }
-                Comparison::Text(text_comparison) => text_comparison.left = new_untyped_ref.typed(),
+                Comparison::Number { left, .. } => *left = new_untyped_ref.typed(),
+                Comparison::Boolean { left, .. } => *left = new_untyped_ref.typed(),
+                Comparison::Text { left, .. } => *left = new_untyped_ref.typed(),
             }
         } else {
             // Otherwise change the type of the entire comparison.
             *self = match new_untyped_ref.value_type {
-                ValueType::Number => Comparison::Number(NumberComparison {
+                ValueType::Number => Comparison::Number {
                     left: new_untyped_ref.typed(),
                     comparator: NumberComparator::Equal,
                     right: Property::default(),
-                }),
-                ValueType::Text => Comparison::Text(TextComparison {
+                },
+                ValueType::Text => Comparison::Text {
                     left: new_untyped_ref.typed(),
                     comparator: TextComparator::Like,
                     right: Property::default(),
-                }),
-                ValueType::Boolean => Comparison::Boolean(BooleanComparison {
+                },
+                ValueType::Boolean => Comparison::Boolean {
                     left: new_untyped_ref.typed(),
                     comparator: BooleanComparator::Is,
                     right: Property::default(),
-                }),
+                },
                 value_type @ _ => {
                     unreachable!("Type {} is not allowd for if condition", value_type.name())
                 }
             }
         }
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct NumberComparison {
-    pub left: ValueRef<Number>,
-    pub comparator: NumberComparator,
-    pub right: Property<Number>,
-}
-
-impl NumberComparison {
-    fn evaluate(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
-        let left = vars.get(&self.left, entry)?.0;
-        let right = vars.get_property(&self.right, entry)?.0;
-        Some(match self.comparator {
-            NumberComparator::Equal => left == right,
-            NumberComparator::Greater => left > right,
-            NumberComparator::GreaterEqual => left >= right,
-            NumberComparator::Less => left < right,
-            NumberComparator::LessEqual => left <= right,
-        })
     }
 }
 
@@ -169,43 +156,9 @@ pub enum NumberComparator {
     LessEqual,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
-pub struct TextComparison {
-    pub left: ValueRef<Text>,
-    pub comparator: TextComparator,
-    pub right: Property<Text>,
-}
-
-impl TextComparison {
-    fn evaluate(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
-        let left = vars.get(&self.left, entry)?.0;
-        let right = vars.get_property(&self.right, entry)?.0;
-        Some(match self.comparator {
-            TextComparator::Like => left == right,
-        })
-    }
-}
-
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub enum TextComparator {
     Like,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub struct BooleanComparison {
-    pub left: ValueRef<Boolean>,
-    pub comparator: BooleanComparator,
-    pub right: Property<Boolean>,
-}
-impl BooleanComparison {
-    fn evaluate(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
-        let left = vars.get(&self.left, entry)?.0;
-        let right = vars.get_property(&self.right, entry)?.0;
-        Some(match self.comparator {
-            BooleanComparator::Is => left == right,
-            BooleanComparator::IsNot => left != right,
-        })
-    }
 }
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
@@ -238,9 +191,44 @@ struct ConditionProducer<T> {
 impl<T> ConditionProducer<T> {
     fn evaluate_condition(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
         match &self.comparison {
-            Comparison::Number(n) => n.evaluate(vars, entry),
-            Comparison::Text(t) => t.evaluate(vars, entry),
-            Comparison::Boolean(b) => b.evaluate(vars, entry),
+            Comparison::Number {
+                left,
+                comparator,
+                right,
+            } => {
+                let left = vars.get(&left, entry)?.0;
+                let right = vars.get_property(&right, entry)?.0;
+                Some(match comparator {
+                    NumberComparator::Equal => left == right,
+                    NumberComparator::Greater => left > right,
+                    NumberComparator::GreaterEqual => left >= right,
+                    NumberComparator::Less => left < right,
+                    NumberComparator::LessEqual => left <= right,
+                })
+            }
+            Comparison::Text {
+                left,
+                comparator,
+                right,
+            } => {
+                let left = vars.get(&left, entry)?.0;
+                let right = vars.get_property(&right, entry)?.0;
+                Some(match comparator {
+                    TextComparator::Like => left == right,
+                })
+            }
+            Comparison::Boolean {
+                left,
+                comparator,
+                right,
+            } => {
+                let left = vars.get(&left, entry)?.0;
+                let right = vars.get_property(&right, entry)?.0;
+                Some(match comparator {
+                    BooleanComparator::Is => left == right,
+                    BooleanComparator::IsNot => left != right,
+                })
+            }
         }
     }
 }

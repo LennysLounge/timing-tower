@@ -1,9 +1,12 @@
-use backend::style_batcher::{CellId, StyleBatcher};
+use backend::{
+    savefile::Savefile,
+    style_batcher::{CellId, StyleBatcher},
+};
 use bevy::{
     app::{Plugin, Update},
     ecs::{
         component::Component,
-        system::{Query, ResMut},
+        system::{Query, Res, ResMut},
     },
     math::{vec2, Vec2, Vec3},
     render::color::Color,
@@ -31,7 +34,7 @@ impl Ball {
             id: CellId::new(),
             velocity: Vec3::new(
                 rand::random::<f32>() * 5.0,
-                rand::random::<f32>() * 5.0,
+                -rand::random::<f32>() * 5.0,
                 0.0,
             ),
             color: Color::Hsla {
@@ -44,7 +47,13 @@ impl Ball {
     }
 }
 
-fn update(mut balls: Query<(&mut Ball, &mut Transform)>, mut style_batcher: ResMut<StyleBatcher>) {
+fn update(
+    mut balls: Query<(&mut Ball, &mut Transform)>,
+    mut style_batcher: ResMut<StyleBatcher>,
+    savefile: Res<Savefile>,
+) {
+    let scene_size = &savefile.style().scene.prefered_size;
+
     for (mut ball, mut transform) in balls.iter_mut() {
         transform.translation += ball.velocity;
 
@@ -52,16 +61,16 @@ fn update(mut balls: Query<(&mut Ball, &mut Transform)>, mut style_batcher: ResM
             transform.translation.x *= -1.0;
             ball.velocity.x *= -1.0;
         }
-        if transform.translation.y <= 0.0 {
+        if transform.translation.y >= 0.0 {
             transform.translation.y *= -1.0;
             ball.velocity.y *= -1.0;
         }
-        if transform.translation.x >= 1280.0 {
-            transform.translation.x -= (transform.translation.x - 1280.0) * 2.0;
+        if transform.translation.x >= scene_size.x {
+            transform.translation.x -= (transform.translation.x - scene_size.x) * 1.0;
             ball.velocity.x *= -1.0;
         }
-        if transform.translation.y >= 720.0 {
-            transform.translation.y -= (transform.translation.y - 720.0) * 2.0;
+        if transform.translation.y <= -scene_size.y {
+            transform.translation.y -= (transform.translation.y + scene_size.y) * 1.0;
             ball.velocity.y *= -1.0;
         }
 

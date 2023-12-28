@@ -1,9 +1,10 @@
-use bevy_egui::egui::{ComboBox, Response, Ui, Widget};
+use bevy_egui::egui::{ComboBox, Id, Response, Ui, Widget};
 
 pub struct LComboBox<'a, T> {
     subject: &'a mut T,
     options: Vec<(T, &'static str)>,
     comparison_func: fn(&T, &T) -> bool,
+    id: Option<Id>,
 }
 impl<'a, T> LComboBox<'a, T>
 where
@@ -15,6 +16,7 @@ where
             subject,
             options: Vec::new(),
             comparison_func: |a, b| a == b,
+            id: None,
         }
     }
 }
@@ -25,6 +27,7 @@ impl<'a, T> LComboBox<'a, T> {
             subject,
             options: Vec::new(),
             comparison_func,
+            id: None,
         }
     }
 }
@@ -34,12 +37,16 @@ impl<T> LComboBox<'_, T> {
         self.options.push((value, label));
         self
     }
+    pub fn with_id(mut self, id: Id) -> Self {
+        self.id = Some(id);
+        self
+    }
 }
 
 impl<T> Widget for LComboBox<'_, T> {
     fn ui(self, ui: &mut Ui) -> Response {
         let mut changed = false;
-        let mut response = ComboBox::new(ui.next_auto_id(), "")
+        let mut response = ComboBox::from_id_source(self.id.unwrap_or_else(|| ui.next_auto_id()))
             .selected_text(
                 self.options
                     .iter()

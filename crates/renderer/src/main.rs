@@ -18,7 +18,7 @@ use bevy::{
     math::{vec2, vec3, Vec2},
     prelude::{App, Camera2dBundle, ClearColor, Color, EventReader, Startup},
     transform::components::Transform,
-    window::{PrimaryWindow, Window, WindowPlugin},
+    window::{PrimaryWindow, Window, WindowPlugin, WindowResized},
     DefaultPlugins,
 };
 use cell_manager::CellManagerPlugin;
@@ -52,7 +52,10 @@ fn main() {
         .add_systems(Startup, setup_camera)
         //.add_systems(Startup, setup_cell)
         .init_resource::<SceneDefinition>()
-        .add_systems(Update, (mouse_click_send_message, init_scene, gizmos))
+        .add_systems(
+            Update,
+            (mouse_click_send_message, init_scene, gizmos, update_camera),
+        )
         .run();
 }
 
@@ -82,17 +85,8 @@ fn setup_cell(mut commands: Commands, mut set_style: EventWriter<SetStyle>) {
 #[derive(Component)]
 struct MainCamera;
 
-fn setup_camera(mut commands: Commands, window: Query<&Window, With<PrimaryWindow>>) {
-    let window = window.single();
-    let x = window.physical_width() / 2;
-    let y = window.physical_height() / 2;
-    commands
-        .spawn(Camera2dBundle {
-            transform: Transform::from_translation(vec3(x as f32, y as f32, 0.0))
-                .with_scale(vec3(2.0, 2.0, 1.0)),
-            ..Default::default()
-        })
-        .insert(MainCamera);
+fn setup_camera(mut commands: Commands) {
+    commands.spawn(Camera2dBundle::default()).insert(MainCamera);
 }
 
 fn mouse_click_send_message(
@@ -116,6 +110,7 @@ fn init_scene(
     mut scene: ResMut<SceneDefinition>,
     mut received_messages: EventReader<ReceivedMessage>,
     mut cameras: Query<&mut Transform, With<MainCamera>>,
+    window: Query<&Window, With<PrimaryWindow>>,
 ) {
     let Some(prefered_size) = received_messages
         .read()
@@ -130,11 +125,10 @@ fn init_scene(
     scene.prefered_size = prefered_size;
 
     for mut camera in cameras.iter_mut() {
-        camera.translation = vec3(
-            scene.prefered_size.x * 0.5,
-            scene.prefered_size.y * -0.5,
-            0.0,
-        );
+        let window = window.single();
+        let x = window.physical_width() as f32 * 0.5;
+        let y = window.physical_height() as f32 * -0.5;
+        camera.translation = vec3(x, y, 0.0);
     }
 }
 
@@ -145,4 +139,22 @@ fn gizmos(mut gizmos: Gizmos, scene: Res<SceneDefinition>) {
         scene.prefered_size,
         Color::BLUE,
     );
+}
+
+fn update_camera(
+    mut resized: EventReader<WindowResized>,
+    mut cameras: Query<&mut Transform, With<MainCamera>>,
+    window: Query<&Window, With<PrimaryWindow>>,
+) {
+    if resized.is_empty() {
+        return;
+    }
+    resized.clear();
+
+    for mut camera in cameras.iter_mut() {
+        let window = window.single();
+        let x = window.physical_width() as f32 * 0.5;
+        let y = window.physical_height() as f32 * -0.5;
+        camera.translation = vec3(x, y, 0.0);
+    }
 }

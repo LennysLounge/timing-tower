@@ -148,7 +148,7 @@ fn make_assets_message(savefile: &Savefile) -> ToRendererMessage {
         .into_iter()
         .map(|asset| (asset.id, asset_to_uuid_asset_path(asset).into()))
         .collect();
-    ToRendererMessage::Assets { images }
+    ToRendererMessage::Init { images }
 }
 
 /// Turn an asset into an String representing an `AssetPath`

@@ -8,7 +8,7 @@ use uuid::Uuid;
 /// Messages that are send by the controller to renderers.
 #[derive(Serialize, Deserialize)]
 pub enum ToRendererMessage {
-    Assets { images: Vec<(Uuid, String)> },
+    Init { images: Vec<(Uuid, String)> },
     Style(Vec<StyleCommand>),
 }
 

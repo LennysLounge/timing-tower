@@ -1,4 +1,5 @@
 mod tab;
+pub mod combo_box;
 
 use std::{fs::File, io::Write};
 

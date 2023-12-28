@@ -82,6 +82,7 @@ fn update(
                 text_size: 40.0,
                 text_alignment: TextAlignment::Center,
                 text_position: Vec2::ZERO,
+                font: None,
                 color: ball.color.clone(),
                 texture: None,
                 pos: transform.translation,

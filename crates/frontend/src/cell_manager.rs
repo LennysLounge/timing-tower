@@ -53,6 +53,11 @@ impl CellManager {
                             text_size: style.text_size,
                             text_alignment: style.text_alignment,
                             text_position: style.text_position,
+                            font: style
+                                .font
+                                .as_ref()
+                                .and_then(|id| asset_path_store.get(id))
+                                .and_then(|path| Some(asset_server.load(path))),
                             color: style.color,
                             texture: style
                                 .texture

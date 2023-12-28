@@ -544,6 +544,7 @@
           }
         },
         "text_size": 20.0,
+        "font": "Default",
         "color": {
           "Rgba": {
             "red": 0.0,
@@ -610,6 +611,7 @@
               }
             },
             "text_size": 20.0,
+            "font": "Default",
             "color": {
               "Rgba": {
                 "red": 0.0,
@@ -663,6 +665,7 @@
                   }
                 },
                 "text_size": 19.5,
+                "font": "Default",
                 "color": {
                   "ValueRef": "e86a2ae3-6486-4941-bee9-b063f3ff0152"
                 },
@@ -708,6 +711,7 @@
                   }
                 },
                 "text_size": 19.5,
+                "font": "Default",
                 "color": {
                   "Rgba": {
                     "red": 0.0,
@@ -756,6 +760,7 @@
                   }
                 },
                 "text_size": 20.0,
+                "font": "Default",
                 "color": {
                   "ValueRef": "e41f142f-2026-4126-9dc4-bed03fecd31e"
                 },
@@ -799,6 +804,7 @@
                   }
                 },
                 "text_size": 20.0,
+                "font": "Default",
                 "color": {
                   "ValueRef": "e41f142f-2026-4126-9dc4-bed03fecd31e"
                 },
@@ -841,6 +847,7 @@
                   "ValueRef": "925dacee-265f-45ee-baf8-668e3005a03d"
                 },
                 "text_size": 20.0,
+                "font": "Default",
                 "color": {
                   "ValueRef": "8536ebf5-82e1-41e3-bc37-b713534a7780"
                 },
@@ -884,6 +891,7 @@
                   }
                 },
                 "text_size": 12.0,
+                "font": "Default",
                 "color": {
                   "Rgba": {
                     "red": 1.0,

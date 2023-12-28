@@ -70,6 +70,7 @@ fn setup_cell(mut commands: Commands, mut set_style: EventWriter<SetStyle>) {
             text_size: 40.0,
             text_alignment: common::communication::TextAlignment::Center,
             text_position: vec2(0.0, 0.0),
+            font: None,
             color: Color::BLUE,
             texture: None,
             pos: vec3(320.0, 540.0, 0.0),

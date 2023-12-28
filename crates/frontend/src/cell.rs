@@ -58,6 +58,7 @@ pub struct CellStyle {
     pub text_size: f32,
     pub text_alignment: TextAlignment,
     pub text_position: Vec2,
+    pub font: Option<Handle<Font>>,
     pub color: Color,
     pub texture: Option<Handle<Image>>,
     pub pos: Vec3,

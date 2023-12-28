@@ -113,6 +113,7 @@ fn setup(
             text_size: 20.0,
             text_alignment: TextAlignment::Center,
             text_position: Vec2::ZERO,
+            font: None,
             color: Color::WHITE,
             texture: Some(asset_server.load("../../../savefile/acc6.PNG")),
             pos: Vec3::new(0.0, 0.0, 0.0),

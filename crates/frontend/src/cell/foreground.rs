@@ -29,7 +29,10 @@ pub fn update_style(
         *text = Text::from_section(
             event.style.text.clone(),
             TextStyle {
-                font: Handle::<Font>::default(),
+                font: match event.style.font.as_ref() {
+                    Some(handle) => handle.clone(),
+                    None => Handle::<Font>::default(),
+                },
                 font_size: event.style.text_size,
                 color: event.style.text_color,
             },

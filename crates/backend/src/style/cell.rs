@@ -3,7 +3,7 @@ use common::communication::TextAlignment;
 use serde::{Deserialize, Serialize};
 
 use crate::value_types::{
-    Boolean, Number, Property, Text, Texture, Tint, Vec2Property, Vec3Property,
+    Boolean, Font, Number, Property, Text, Texture, Tint, Vec2Property, Vec3Property,
 };
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -11,8 +11,8 @@ pub struct Cell {
     pub text: Property<Text>,
     pub text_color: Property<Tint>,
     pub text_size: Property<Number>,
+    pub font: Property<Font>,
     pub color: Property<Tint>,
-    #[serde(default)]
     pub image: Property<Texture>,
     pub pos: Vec3Property,
     pub size: Vec2Property,
@@ -37,6 +37,7 @@ impl Default for Cell {
             text: Property::Fixed(Text("Column".to_string())),
             text_color: Property::Fixed(Tint(Color::BLACK)),
             text_size: Property::Fixed(Number(20.0)),
+            font: Property::Fixed(Font::Default),
             color: Property::Fixed(Tint(Color::PURPLE)),
             pos: Vec3Property {
                 x: Property::Fixed(Number(10.0)),

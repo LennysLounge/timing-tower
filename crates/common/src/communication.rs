@@ -37,6 +37,7 @@ pub struct CellStyle {
     pub text_size: f32,
     pub text_alignment: TextAlignment,
     pub text_position: Vec2,
+    pub font: Option<Uuid>,
     pub color: Color,
     pub texture: Option<Uuid>,
     pub pos: Vec3,

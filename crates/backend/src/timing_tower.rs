@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{style::clip_area::ClipAreaData, GameAdapterResource};
+use crate::{style::clip_area::ClipAreaData, value_types::Font, GameAdapterResource};
 
 use super::{
     savefile::Savefile,
@@ -293,6 +293,13 @@ impl<'a> StyleResolver<'a> {
                     .unwrap_or(Number(0.0))
                     .0,
             ),
+            font: self
+                .value_store
+                .get_property(&cell.font, self.entry)
+                .and_then(|f| match f {
+                    Font::Default => None,
+                    Font::Handle(handle) => Some(handle),
+                }),
             color: self
                 .value_store
                 .get_property(&cell.color, self.entry)

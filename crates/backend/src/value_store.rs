@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::{
     game_sources,
     savefile::{Savefile, SavefileChanged},
-    value_types::{Boolean, Number, Property, Text, Texture, Tint, ValueRef, Font},
+    value_types::{Boolean, Font, Number, Property, Text, Texture, Tint, ValueRef},
 };
 use bevy::{
     app::{First, Plugin},
@@ -134,6 +134,14 @@ impl TypedValueResolver<Texture> for ValueStore {
     fn get_typed(&self, producer: &TypedValueProducer, entry: Option<&Entry>) -> Option<Texture> {
         match producer {
             TypedValueProducer::Texture(p) => p.get(self, entry),
+            _ => None,
+        }
+    }
+}
+impl TypedValueResolver<Font> for ValueStore {
+    fn get_typed(&self, producer: &TypedValueProducer, entry: Option<&Entry>) -> Option<Font> {
+        match producer {
+            TypedValueProducer::Font(p) => p.get(self, entry),
             _ => None,
         }
     }

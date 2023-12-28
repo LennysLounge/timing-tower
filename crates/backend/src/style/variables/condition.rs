@@ -116,34 +116,42 @@ impl Comparison {
     }
 
     pub fn set_left_side(&mut self, new_untyped_ref: UntypedValueRef) {
-        if self.value_type() == new_untyped_ref.value_type {
-            // Update the left side if the types are the same.
-            match self {
-                Comparison::Number { left, .. } => *left = new_untyped_ref.typed(),
-                Comparison::Boolean { left, .. } => *left = new_untyped_ref.typed(),
-                Comparison::Text { left, .. } => *left = new_untyped_ref.typed(),
+        match (self, new_untyped_ref.value_type) {
+            // If the new value is of the same type as the comparison then we only
+            // need to update the reference.
+            (Comparison::Number { left, .. }, ValueType::Number) => *left = new_untyped_ref.typed(),
+            (Comparison::Text { left, .. }, ValueType::Text) => *left = new_untyped_ref.typed(),
+            (Comparison::Boolean { left, .. }, ValueType::Boolean) => {
+                *left = new_untyped_ref.typed()
             }
-        } else {
-            // Otherwise change the type of the entire comparison.
-            *self = match new_untyped_ref.value_type {
-                ValueType::Number => Comparison::Number {
+            // Otherwise we have to change the type of the comparision
+            (me @ _, ValueType::Number) => {
+                *me = Comparison::Number {
                     left: new_untyped_ref.typed(),
                     comparator: NumberComparator::Equal,
                     right: Property::default(),
-                },
-                ValueType::Text => Comparison::Text {
+                }
+            }
+            (me @ _, ValueType::Text) => {
+                *me = Comparison::Text {
                     left: new_untyped_ref.typed(),
                     comparator: TextComparator::Like,
                     right: Property::default(),
-                },
-                ValueType::Boolean => Comparison::Boolean {
+                }
+            }
+            (me @ _, ValueType::Boolean) => {
+                *me = Comparison::Boolean {
                     left: new_untyped_ref.typed(),
                     comparator: BooleanComparator::Is,
                     right: Property::default(),
-                },
-                value_type @ _ => {
-                    unreachable!("Type {} is not allowd for if condition", value_type.name())
                 }
+            }
+            // Any other value types are not allowed for this comparison
+            (_, value_type @ _) => {
+                // TODO: This isnt unreachable based on this method alone and should
+                // probably be an error. Otherwise this method could be moved somewhere
+                // where this condition is actually unreachable.
+                unreachable!("Type {} is not allowd for if condition", value_type.name())
             }
         }
     }

@@ -44,11 +44,9 @@ pub fn property_editor(ui: &mut Ui, value: &mut Map, asset_repo: &ReferenceStore
                         input: new_untyped_ref.typed(),
                         cases: Vec::new(),
                     },
-                    ValueType::Tint => unreachable!("Type Color not allowed in comparison"),
-                    ValueType::Boolean => {
-                        unreachable!("Type Boolean not allowed in comparison")
+                    value_type @ _ => {
+                        unreachable!("Type {} not allowed in comparison", value_type.name())
                     }
-                    ValueType::Texture => unreachable!("Type Image not allowed in comparison"),
                 };
                 value.output.clear();
             }

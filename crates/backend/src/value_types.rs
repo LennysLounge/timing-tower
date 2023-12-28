@@ -23,6 +23,13 @@ pub enum Texture {
     Handle(Uuid),
 }
 
+#[derive(Serialize, Deserialize, Clone, Default)]
+pub enum Font {
+    #[default]
+    Default,
+    Handle(Uuid),
+}
+
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug, Default, Copy)]
 pub enum ValueType {
     #[default]
@@ -31,6 +38,7 @@ pub enum ValueType {
     Tint,
     Boolean,
     Texture,
+    Font,
 }
 impl ValueType {
     pub fn can_cast_to(&self, target: &ValueType) -> bool {
@@ -50,6 +58,7 @@ impl ValueType {
             ValueType::Tint => "Color",
             ValueType::Boolean => "Boolean",
             ValueType::Texture => "Image",
+            ValueType::Font => "Font",
         }
     }
 }
@@ -81,6 +90,11 @@ impl ValueTypeOf<Boolean> for ValueType {
 impl ValueTypeOf<Texture> for ValueType {
     fn get() -> Self {
         ValueType::Texture
+    }
+}
+impl ValueTypeOf<Font> for ValueType {
+    fn get() -> Self {
+        ValueType::Font
     }
 }
 

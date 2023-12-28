@@ -131,9 +131,8 @@ impl Comparison {
                     comparator: BooleanComparator::Is,
                     right: Property::default(),
                 }),
-                ValueType::Tint => unreachable!("Type color not allowed for if condition"),
-                ValueType::Texture => {
-                    unreachable!("Type image not allowed for if condition")
+                value_type @ _ => {
+                    unreachable!("Type {} is not allowd for if condition", value_type.name())
                 }
             }
         }

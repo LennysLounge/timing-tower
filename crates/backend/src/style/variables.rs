@@ -167,3 +167,49 @@ impl VariableOrFolder {
         }
     }
 }
+
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
+pub enum NumberComparator {
+    Equal,
+    Greater,
+    GreaterEqual,
+    Less,
+    LessEqual,
+}
+impl NumberComparator {
+    fn compare(&self, n1: f32, n2: f32) -> bool {
+        match self {
+            NumberComparator::Equal => n1 == n2,
+            NumberComparator::Greater => n1 > n2,
+            NumberComparator::GreaterEqual => n1 >= n2,
+            NumberComparator::Less => n1 < n2,
+            NumberComparator::LessEqual => n1 <= n2,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
+pub enum TextComparator {
+    Like,
+}
+impl TextComparator {
+    fn compare(&self, t1: &String, t2: &String) -> bool {
+        match self {
+            TextComparator::Like => t1 == t2,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
+pub enum BooleanComparator {
+    Is,
+    IsNot,
+}
+impl BooleanComparator {
+    fn compare(&self, b1: bool, b2: bool) -> bool {
+        match self {
+            BooleanComparator::Is => b1 == b2,
+            BooleanComparator::IsNot => b1 != b2,
+        }
+    }
+}

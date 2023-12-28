@@ -9,6 +9,8 @@ use crate::{
     },
 };
 
+use super::{BooleanComparator, NumberComparator, TextComparator};
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Condition {
     #[serde(flatten)]
@@ -147,26 +149,6 @@ impl Comparison {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
-pub enum NumberComparator {
-    Equal,
-    Greater,
-    GreaterEqual,
-    Less,
-    LessEqual,
-}
-
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
-pub enum TextComparator {
-    Like,
-}
-
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
-pub enum BooleanComparator {
-    Is,
-    IsNot,
-}
-
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(tag = "output_type")]
 pub enum UntypedOutput {
@@ -195,40 +177,26 @@ impl<T> ConditionProducer<T> {
                 left,
                 comparator,
                 right,
-            } => {
-                let left = vars.get(&left, entry)?.0;
-                let right = vars.get_property(&right, entry)?.0;
-                Some(match comparator {
-                    NumberComparator::Equal => left == right,
-                    NumberComparator::Greater => left > right,
-                    NumberComparator::GreaterEqual => left >= right,
-                    NumberComparator::Less => left < right,
-                    NumberComparator::LessEqual => left <= right,
-                })
-            }
+            } => Some(comparator.compare(
+                vars.get(&left, entry)?.0,
+                vars.get_property(&right, entry)?.0,
+            )),
             Comparison::Text {
                 left,
                 comparator,
                 right,
-            } => {
-                let left = vars.get(&left, entry)?.0;
-                let right = vars.get_property(&right, entry)?.0;
-                Some(match comparator {
-                    TextComparator::Like => left == right,
-                })
-            }
+            } => Some(comparator.compare(
+                &vars.get(&left, entry)?.0,
+                &vars.get_property(&right, entry)?.0,
+            )),
             Comparison::Boolean {
                 left,
                 comparator,
                 right,
-            } => {
-                let left = vars.get(&left, entry)?.0;
-                let right = vars.get_property(&right, entry)?.0;
-                Some(match comparator {
-                    BooleanComparator::Is => left == right,
-                    BooleanComparator::IsNot => left != right,
-                })
-            }
+            } => Some(comparator.compare(
+                vars.get(&left, entry)?.0,
+                vars.get_property(&right, entry)?.0,
+            )),
         }
     }
 }

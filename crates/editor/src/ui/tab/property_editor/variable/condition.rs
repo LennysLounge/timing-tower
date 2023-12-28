@@ -2,9 +2,9 @@ use bevy_egui::egui::{ComboBox, InnerResponse, Sense, Ui, Vec2};
 
 use crate::{reference_store::ReferenceStore, ui::tab::property_editor::property::PropertyEditor};
 use backend::{
-    style::variables::condition::{
-        BooleanComparator, Comparison, Condition, NumberComparator, Output, TextComparator,
-        UntypedOutput,
+    style::variables::{
+        condition::{Comparison, Condition, Output, UntypedOutput},
+        BooleanComparator, NumberComparator, TextComparator,
     },
     value_types::ValueType,
 };

@@ -89,6 +89,13 @@ pub fn cell_property_editor(
         }
     });
     ui.horizontal(|ui| {
+        ui.label("Font:");
+        let res = ui.add(PropertyEditor::new(&mut cell.font, reference_store));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
+    });
+    ui.horizontal(|ui| {
         ui.label("Background color:");
         let res = ui.add(PropertyEditor::new(&mut cell.color, reference_store));
         if res.changed() {

@@ -665,7 +665,9 @@
                   }
                 },
                 "text_size": 19.5,
-                "font": "Default",
+                "font": {
+                  "ValueRef": "28fc93a6-a776-4b91-b0f1-89e09f4a771f"
+                },
                 "color": {
                   "ValueRef": "e86a2ae3-6486-4941-bee9-b063f3ff0152"
                 },
@@ -711,7 +713,9 @@
                   }
                 },
                 "text_size": 19.5,
-                "font": "Default",
+                "font": {
+                  "ValueRef": "28fc93a6-a776-4b91-b0f1-89e09f4a771f"
+                },
                 "color": {
                   "Rgba": {
                     "red": 0.0,
@@ -847,7 +851,9 @@
                   "ValueRef": "925dacee-265f-45ee-baf8-668e3005a03d"
                 },
                 "text_size": 20.0,
-                "font": "Default",
+                "font": {
+                  "ValueRef": "28fc93a6-a776-4b91-b0f1-89e09f4a771f"
+                },
                 "color": {
                   "ValueRef": "8536ebf5-82e1-41e3-bc37-b713534a7780"
                 },
@@ -891,7 +897,9 @@
                   }
                 },
                 "text_size": 12.0,
-                "font": "Default",
+                "font": {
+                  "ValueRef": "28fc93a6-a776-4b91-b0f1-89e09f4a771f"
+                },
                 "color": {
                   "Rgba": {
                     "red": 1.0,

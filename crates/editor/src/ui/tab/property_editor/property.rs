@@ -1,5 +1,5 @@
 use backend::value_types::{
-    Boolean, Number, Property, Text, Texture, Tint, ValueType, ValueTypeOf,
+    Boolean, Font, Number, Property, Text, Texture, Tint, ValueType, ValueTypeOf,
 };
 use bevy_egui::egui::{ComboBox, DragValue, Response, TextEdit, Ui, Widget};
 
@@ -100,5 +100,10 @@ impl ValueTypeEditor for Boolean {
 impl ValueTypeEditor for Texture {
     fn editor(&mut self, ui: &mut Ui) -> Response {
         ui.label("None")
+    }
+}
+impl ValueTypeEditor for Font {
+    fn editor(&mut self, ui: &mut Ui) -> Response {
+        ui.label("Default")
     }
 }

@@ -16,7 +16,7 @@ use bevy::{
     prelude::{App, Camera2dBundle, ClearColor, Color, EventReader, Startup},
     transform::components::Transform,
     window::{PrimaryWindow, Window, WindowPlugin},
-    DefaultPlugins,
+    DefaultPlugins, asset::AssetMetaCheck,
 };
 use cell_manager::CellManagerPlugin;
 use common::communication::ToControllerMessage;
@@ -30,6 +30,7 @@ use websocket::{SendMessage, WebsocketPlugin};
 
 fn main() {
     App::new()
+        .insert_resource(AssetMetaCheck::Never)
         .insert_resource(ClearColor(Color::rgb(0.5, 0.5, 0.9)))
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {

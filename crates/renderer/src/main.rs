@@ -8,6 +8,7 @@ use bevy::{
     app::{PluginGroup, Update},
     asset::AssetMetaCheck,
     ecs::{
+        component::Component,
         event::EventWriter,
         query::With,
         system::{Commands, Query, Res, ResMut, Resource},
@@ -78,15 +79,20 @@ fn setup_cell(mut commands: Commands, mut set_style: EventWriter<SetStyle>) {
     });
 }
 
+#[derive(Component)]
+struct MainCamera;
+
 fn setup_camera(mut commands: Commands, window: Query<&Window, With<PrimaryWindow>>) {
     let window = window.single();
     let x = window.physical_width() / 2;
     let y = window.physical_height() / 2;
-    commands.spawn(Camera2dBundle {
-        transform: Transform::from_translation(vec3(x as f32, y as f32, 0.0))
-            .with_scale(vec3(2.0, 2.0, 1.0)),
-        ..Default::default()
-    });
+    commands
+        .spawn(Camera2dBundle {
+            transform: Transform::from_translation(vec3(x as f32, y as f32, 0.0))
+                .with_scale(vec3(2.0, 2.0, 1.0)),
+            ..Default::default()
+        })
+        .insert(MainCamera);
 }
 
 fn mouse_click_send_message(
@@ -109,6 +115,7 @@ struct SceneDefinition {
 fn init_scene(
     mut scene: ResMut<SceneDefinition>,
     mut received_messages: EventReader<ReceivedMessage>,
+    mut cameras: Query<&mut Transform, With<MainCamera>>,
 ) {
     let Some(prefered_size) = received_messages
         .read()
@@ -121,6 +128,14 @@ fn init_scene(
         return;
     };
     scene.prefered_size = prefered_size;
+
+    for mut camera in cameras.iter_mut() {
+        camera.translation = vec3(
+            scene.prefered_size.x * 0.5,
+            scene.prefered_size.y * -0.5,
+            0.0,
+        );
+    }
 }
 
 fn gizmos(mut gizmos: Gizmos, scene: Res<SceneDefinition>) {

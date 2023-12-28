@@ -168,8 +168,9 @@ impl VariableOrFolder {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 pub enum NumberComparator {
+    #[default]
     Equal,
     Greater,
     GreaterEqual,
@@ -188,8 +189,9 @@ impl NumberComparator {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 pub enum TextComparator {
+    #[default]
     Like,
 }
 impl TextComparator {
@@ -200,8 +202,9 @@ impl TextComparator {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
 pub enum BooleanComparator {
+    #[default]
     Is,
     IsNot,
 }

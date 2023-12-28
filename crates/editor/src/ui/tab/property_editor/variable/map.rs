@@ -5,7 +5,10 @@ use crate::{
     ui::tab::property_editor::property::{PropertyEditor, ValueTypeEditor},
 };
 use backend::{
-    style::variables::map::{Input, Map, NumberComparator, Output, TextComparator, UntypedOutput},
+    style::variables::{
+        map::{Input, Map, Output, UntypedOutput},
+        NumberComparator, TextComparator,
+    },
     value_types::{ValueType, ValueTypeOf},
 };
 
@@ -30,19 +33,23 @@ pub fn property_editor(ui: &mut Ui, value: &mut Map, asset_repo: &ReferenceStore
             // Only update the actual input reference
             if new_untyped_ref.value_type == value.input.value_type() {
                 match &mut value.input {
-                    Input::Number { input, .. } => *input = new_untyped_ref.typed(),
-                    Input::Text { input, .. } => *input = new_untyped_ref.typed(),
+                    Input::Number {
+                        input_ref: input, ..
+                    } => *input = new_untyped_ref.typed(),
+                    Input::Text {
+                        input_ref: input, ..
+                    } => *input = new_untyped_ref.typed(),
                 }
             } else {
                 // Change the entire type of the input to match the new reference.
                 value.input = match new_untyped_ref.value_type {
                     ValueType::Number => Input::Number {
-                        input: new_untyped_ref.typed(),
-                        cases: Vec::new(),
+                        input_ref: new_untyped_ref.typed(),
+                        input_cases: Vec::new(),
                     },
                     ValueType::Text => Input::Text {
-                        input: new_untyped_ref.typed(),
-                        cases: Vec::new(),
+                        input_ref: new_untyped_ref.typed(),
+                        input_cases: Vec::new(),
                     },
                     value_type @ _ => {
                         unreachable!("Type {} not allowed in comparison", value_type.name())
@@ -126,7 +133,9 @@ fn input_edit_case(
 ) -> bool {
     let mut changed = false;
     match me {
-        Input::Number { cases, .. } => {
+        Input::Number {
+            input_cases: cases, ..
+        } => {
             let case = cases.get_mut(index).expect("the case index must be valid");
             ui.label("If input is");
             changed |= ComboBox::from_id_source(ui.next_auto_id())
@@ -149,7 +158,9 @@ fn input_edit_case(
                     .changed()
             });
         }
-        Input::Text { cases, .. } => {
+        Input::Text {
+            input_cases: cases, ..
+        } => {
             let case = cases.get_mut(index).expect("the case index must be valid");
             ui.label("If input is");
             changed |= ComboBox::from_id_source(ui.next_auto_id())

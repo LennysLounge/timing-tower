@@ -7,6 +7,8 @@ use crate::{
     value_types::{Boolean, Number, Property, Text, Texture, Tint, ValueRef, ValueType},
 };
 
+use super::{NumberComparator, TextComparator};
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Map {
     #[serde(flatten)]
@@ -19,8 +21,8 @@ impl Default for Map {
     fn default() -> Self {
         Self {
             input: Input::Number {
-                input: ValueRef::default(),
-                cases: Vec::new(),
+                input_ref: ValueRef::default(),
+                input_cases: Vec::new(),
             },
             output: UntypedOutput::Number(Output::default()),
         }
@@ -66,13 +68,19 @@ impl Map {
 
     fn generate_cases(&self) -> Vec<CaseComparison> {
         match &self.input {
-            Input::Number { input, cases } => cases
+            Input::Number {
+                input_ref: input,
+                input_cases: cases,
+            } => cases
                 .iter()
                 .map(|c| {
                     CaseComparison::Number((input.clone(), c.comparator.clone(), c.right.clone()))
                 })
                 .collect(),
-            Input::Text { input, cases } => cases
+            Input::Text {
+                input_ref: input,
+                input_cases: cases,
+            } => cases
                 .iter()
                 .map(|c| {
                     CaseComparison::Text((input.clone(), c.comparator.clone(), c.right.clone()))
@@ -86,16 +94,12 @@ impl Map {
 #[serde(tag = "input_type")]
 pub enum Input {
     Number {
-        #[serde(rename = "input_ref")]
-        input: ValueRef<Number>,
-        #[serde(rename = "input_cases")]
-        cases: Vec<NumberCase>,
+        input_ref: ValueRef<Number>,
+        input_cases: Vec<NumberCase>,
     },
     Text {
-        #[serde(rename = "input_ref")]
-        input: ValueRef<Text>,
-        #[serde(rename = "input_cases")]
-        cases: Vec<TextCase>,
+        input_ref: ValueRef<Text>,
+        input_cases: Vec<TextCase>,
     },
 }
 
@@ -108,28 +112,44 @@ impl Input {
     }
     pub fn input_id(&self) -> Uuid {
         match self {
-            Input::Number { input, .. } => input.id,
-            Input::Text { input, .. } => input.id,
+            Input::Number {
+                input_ref: input, ..
+            } => input.id,
+            Input::Text {
+                input_ref: input, ..
+            } => input.id,
         }
     }
     pub fn case_count(&self) -> usize {
         match self {
-            Input::Number { cases, .. } => cases.len(),
-            Input::Text { cases, .. } => cases.len(),
+            Input::Number {
+                input_cases: cases, ..
+            } => cases.len(),
+            Input::Text {
+                input_cases: cases, ..
+            } => cases.len(),
         }
     }
 
     pub fn remove(&mut self, index: usize) {
         match self {
-            Input::Number { cases, .. } => _ = cases.remove(index),
-            Input::Text { cases, .. } => _ = cases.remove(index),
+            Input::Number {
+                input_cases: cases, ..
+            } => _ = cases.remove(index),
+            Input::Text {
+                input_cases: cases, ..
+            } => _ = cases.remove(index),
         }
     }
 
     pub fn push(&mut self) {
         match self {
-            Input::Number { cases, .. } => cases.push(NumberCase::default()),
-            Input::Text { cases, .. } => cases.push(TextCase::default()),
+            Input::Number {
+                input_cases: cases, ..
+            } => cases.push(NumberCase::default()),
+            Input::Text {
+                input_cases: cases, ..
+            } => cases.push(TextCase::default()),
         }
     }
 }
@@ -140,44 +160,10 @@ pub struct NumberCase {
     pub comparator: NumberComparator,
 }
 
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
-pub enum NumberComparator {
-    #[default]
-    Equal,
-    Greater,
-    GreaterEqual,
-    Less,
-    LessEqual,
-}
-impl NumberComparator {
-    fn compare(&self, n1: f32, n2: f32) -> bool {
-        match self {
-            NumberComparator::Equal => n1 == n2,
-            NumberComparator::Greater => n1 > n2,
-            NumberComparator::GreaterEqual => n1 >= n2,
-            NumberComparator::Less => n1 < n2,
-            NumberComparator::LessEqual => n1 <= n2,
-        }
-    }
-}
-
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct TextCase {
     pub right: Property<Text>,
     pub comparator: TextComparator,
-}
-
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Default)]
-pub enum TextComparator {
-    #[default]
-    Like,
-}
-impl TextComparator {
-    fn compare(&self, t1: &String, t2: &String) -> bool {
-        match self {
-            TextComparator::Like => t1 == t2,
-        }
-    }
 }
 
 #[derive(Serialize, Deserialize, Clone)]

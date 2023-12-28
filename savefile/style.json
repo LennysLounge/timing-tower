@@ -157,6 +157,13 @@
         "name": "background",
         "value_type": "Texture",
         "path": "acc6.PNG"
+      },
+      {
+        "element_type": "Asset",
+        "id": "28fc93a6-a776-4b91-b0f1-89e09f4a771f",
+        "name": "ACC-Font",
+        "value_type": "Font",
+        "path": "cufonfonts D-DIN-Bold.otf"
       }
     ]
   },

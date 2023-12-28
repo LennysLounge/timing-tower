@@ -5,12 +5,12 @@ use uuid::Uuid;
 
 use crate::{
     value_store::{IntoValueProducer, TypedValueProducer},
-    value_types::{Texture, ValueType},
+    value_types::{Font, Texture, ValueType},
 };
 
 use super::{
-    variables::StaticValueProducer,
     iterator::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
+    variables::StaticValueProducer,
     StyleNode,
 };
 
@@ -37,7 +37,12 @@ impl IntoValueProducer for AssetDefinition {
             ValueType::Texture => {
                 TypedValueProducer::Texture(Box::new(StaticValueProducer(Texture::Handle(self.id))))
             }
-            _ => unreachable!(),
+            ValueType::Font => {
+                TypedValueProducer::Font(Box::new(StaticValueProducer(Font::Handle(self.id))))
+            }
+            value_type @ _ => {
+                unreachable!("An asset cannot have a value type of {}", value_type.name())
+            }
         };
         (self.id, typed_value_producer)
     }

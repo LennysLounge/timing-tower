@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::{
     game_sources,
     savefile::{Savefile, SavefileChanged},
-    value_types::{Boolean, Number, Property, Text, Texture, Tint, ValueRef},
+    value_types::{Boolean, Number, Property, Text, Texture, Tint, ValueRef, Font},
 };
 use bevy::{
     app::{First, Plugin},
@@ -39,6 +39,7 @@ pub enum TypedValueProducer {
     Tint(Box<dyn ValueProducer<Tint> + Send + Sync>),
     Boolean(Box<dyn ValueProducer<Boolean> + Send + Sync>),
     Texture(Box<dyn ValueProducer<Texture> + Send + Sync>),
+    Font(Box<dyn ValueProducer<Font> + Send + Sync>),
 }
 
 #[derive(Resource, Default)]

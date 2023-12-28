@@ -39,7 +39,7 @@ impl<T> LComboBox<'_, T> {
 impl<T> Widget for LComboBox<'_, T> {
     fn ui(self, ui: &mut Ui) -> Response {
         let mut changed = false;
-        let mut response = ComboBox::new(ui.next_auto_id(), "select one:")
+        let mut response = ComboBox::new(ui.next_auto_id(), "")
             .selected_text(
                 self.options
                     .iter()

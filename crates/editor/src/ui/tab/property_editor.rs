@@ -1,7 +1,10 @@
-use backend::style::{
-    iterator::{NodeIteratorMut, NodeMut},
-    variables::{condition::Condition, fixed_value::FixedValue, map::Map, VariableBehavior},
-    StyleDefinition, StyleNode,
+use backend::{
+    style::{
+        iterator::{NodeIteratorMut, NodeMut},
+        variables::{condition::Condition, fixed_value::FixedValue, map::Map, VariableBehavior},
+        StyleDefinition, StyleNode,
+    },
+    value_types::ValueType,
 };
 use bevy_egui::egui::{ComboBox, DragValue, ScrollArea, Ui};
 use rand::{seq::IteratorRandom, thread_rng};
@@ -15,6 +18,7 @@ use crate::{
         UndoRedoManager,
     },
     reference_store::ReferenceStore,
+    ui::combo_box::LComboBox,
 };
 
 use self::property::PropertyEditor;
@@ -114,6 +118,16 @@ pub fn edit_node(
             ui.label("Name");
             edit_result |= ui.text_edit_singleline(&mut asset.name).into();
             ui.separator();
+            ui.horizontal(|ui| {
+                ui.label("Type:");
+                edit_result |= ui
+                    .add(
+                        LComboBox::new(&mut asset.value_type)
+                            .add_option(ValueType::Texture, "Image")
+                            .add_option(ValueType::Font, "Font"),
+                    )
+                    .into();
+            });
             ui.label("Path:");
             edit_result |= ui.text_edit_singleline(&mut asset.path).into();
 

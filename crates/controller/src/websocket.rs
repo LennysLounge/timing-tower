@@ -148,7 +148,10 @@ fn make_assets_message(savefile: &Savefile) -> ToRendererMessage {
         .into_iter()
         .map(|asset| (asset.id, asset_to_uuid_asset_path(asset).into()))
         .collect();
-    ToRendererMessage::Init { images }
+    ToRendererMessage::Init {
+        images,
+        prefered_size: savefile.style().scene.prefered_size,
+    }
 }
 
 /// Turn an asset into an String representing an `AssetPath`

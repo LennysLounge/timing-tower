@@ -33,7 +33,7 @@ fn assets_received(
     let Some(images) = received_messages
         .read()
         .filter_map(|ReceivedMessage { message }| match message {
-            ToRendererMessage::Init { images } => Some(images),
+            ToRendererMessage::Init { images, .. } => Some(images),
             _ => None,
         })
         .last()

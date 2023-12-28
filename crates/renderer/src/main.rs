@@ -6,27 +6,29 @@ mod websocket;
 use asset_path_store::WebAssetPathStorePlugin;
 use bevy::{
     app::{PluginGroup, Update},
+    asset::AssetMetaCheck,
     ecs::{
         event::EventWriter,
         query::With,
-        system::{Commands, Query},
+        system::{Commands, Query, Res, ResMut, Resource},
     },
+    gizmos::gizmos::Gizmos,
     input::mouse::MouseButtonInput,
-    math::{vec2, vec3},
+    math::{vec2, vec3, Vec2},
     prelude::{App, Camera2dBundle, ClearColor, Color, EventReader, Startup},
     transform::components::Transform,
     window::{PrimaryWindow, Window, WindowPlugin},
-    DefaultPlugins, asset::AssetMetaCheck,
+    DefaultPlugins,
 };
 use cell_manager::CellManagerPlugin;
-use common::communication::ToControllerMessage;
+use common::communication::{ToControllerMessage, ToRendererMessage};
 use framerate::FrameratePlugin;
 use frontend::{
     cell::{CreateCell, SetStyle},
     FrontendPlugin,
 };
 
-use websocket::{SendMessage, WebsocketPlugin};
+use websocket::{ReceivedMessage, SendMessage, WebsocketPlugin};
 
 fn main() {
     App::new()
@@ -48,7 +50,8 @@ fn main() {
         ))
         .add_systems(Startup, setup_camera)
         //.add_systems(Startup, setup_cell)
-        .add_systems(Update, mouse_click_send_message)
+        .init_resource::<SceneDefinition>()
+        .add_systems(Update, (mouse_click_send_message, init_scene, gizmos))
         .run();
 }
 
@@ -97,4 +100,34 @@ fn mouse_click_send_message(
             });
         }
     }
+}
+
+#[derive(Resource, Default)]
+struct SceneDefinition {
+    prefered_size: Vec2,
+}
+fn init_scene(
+    mut scene: ResMut<SceneDefinition>,
+    mut received_messages: EventReader<ReceivedMessage>,
+) {
+    let Some(prefered_size) = received_messages
+        .read()
+        .filter_map(|x| match x.message {
+            ToRendererMessage::Init { prefered_size, .. } => Some(prefered_size),
+            _ => None,
+        })
+        .last()
+    else {
+        return;
+    };
+    scene.prefered_size = prefered_size;
+}
+
+fn gizmos(mut gizmos: Gizmos, scene: Res<SceneDefinition>) {
+    gizmos.rect_2d(
+        scene.prefered_size * vec2(0.5, -0.5),
+        0.0,
+        scene.prefered_size,
+        Color::BLUE,
+    );
 }

@@ -1,5 +1,5 @@
-mod tab;
 pub mod combo_box;
+mod tab;
 
 use std::{fs::File, io::Write};
 
@@ -69,8 +69,8 @@ impl EditorState {
             0.15,
             vec![Tab::Elements, Tab::Variables, Tab::Assets],
         );
-        let [scene, _tree_view] = tree.split_right(scene, 0.8, vec![Tab::PropertyEditor]);
-        let [_scene, _undo_redo] = tree.split_right(scene, 0.8, vec![Tab::UndoRedo]);
+        let [_scene, _tree_view] =
+            tree.split_right(scene, 0.7, vec![Tab::PropertyEditor, Tab::UndoRedo]);
 
         Self {
             selected_node: None,

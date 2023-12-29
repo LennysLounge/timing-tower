@@ -31,7 +31,7 @@ where
     T: Default + ValueTypeEditor,
 {
     fn ui(self, ui: &mut Ui) -> Response {
-        match self.property {
+        ui.scope(|ui| match self.property {
             Property::Fixed(c) => {
                 let value_res = c.editor(ui);
 
@@ -52,7 +52,8 @@ where
                 }
                 Response::union(&editor_res, button_res)
             }
-        }
+        })
+        .inner
     }
 }
 

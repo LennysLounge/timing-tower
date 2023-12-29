@@ -1,3 +1,4 @@
+use backend::savefile::{Savefile, SavefileChanged};
 use bevy::{
     app::{Plugin, Startup, Update},
     core_pipeline::core_2d::Camera2dBundle,
@@ -27,7 +28,7 @@ pub struct EditorCameraPlugin;
 impl Plugin for EditorCameraPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_systems(Startup, setup)
-            .add_systems(Update, camera_drag)
+            .add_systems(Update, (camera_drag, savefile_changed))
             .add_systems(Update, set_camera_viewport.after(crate::ui::UiSystem));
     }
 }
@@ -47,7 +48,7 @@ impl EditorCamera {
     fn new() -> Self {
         Self {
             drag_position: None,
-            scale_exponent: 1.0,
+            scale_exponent: 0.0,
             scale: 1.0,
             raw_viewport: Rect::NOTHING,
         }
@@ -132,4 +133,32 @@ fn set_camera_viewport(
         physical_size: UVec2::new((viewport_size.x as u32) & !1, (viewport_size.y as u32) & !1),
         depth: 0.0..1.0,
     });
+}
+
+fn savefile_changed(
+    savefile: Res<Savefile>,
+    mut savefile_changed: EventReader<SavefileChanged>,
+    mut camera: Query<(&mut EditorCamera, &mut Transform), With<MainCamera>>,
+) {
+    if !savefile_changed.read().any(|s| s.replace) {
+        return;
+    }
+
+    let (mut camera_drag, mut camera_transform) = camera.single_mut();
+
+    // Set the scale so that the entire scene is visible in the viewport.
+    let horizontal_scale = savefile.style().scene.prefered_size.x
+        / (camera_drag.raw_viewport.width() - 100.0).max(100.0);
+    let vertical_scale = savefile.style().scene.prefered_size.y
+        / (camera_drag.raw_viewport.height() - 100.0).max(100.0);
+
+    let scale = vertical_scale.max(horizontal_scale);
+    let exponent = scale.log(ZOOM_BASE);
+
+    camera_drag.scale_exponent = exponent;
+    camera_drag.scale = scale;
+    camera_transform.scale = vec3(camera_drag.scale, camera_drag.scale, 1.0);
+
+    camera_transform.translation.x = savefile.style().scene.prefered_size.x * 0.5;
+    camera_transform.translation.y = savefile.style().scene.prefered_size.y * -0.5;
 }

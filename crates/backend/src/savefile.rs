@@ -30,7 +30,9 @@ impl Plugin for SavefilePlugin {
 }
 
 #[derive(Event)]
-pub struct SavefileChanged;
+pub struct SavefileChanged {
+    pub replace: bool,
+}
 
 #[derive(Resource, Default)]
 pub struct Savefile {
@@ -91,12 +93,12 @@ impl Savefile {
         P: AsRef<Path>,
     {
         *self = Self::new(path);
-        event.send(SavefileChanged);
+        event.send(SavefileChanged { replace: true });
     }
 
     pub fn set(&mut self, new_style: StyleDefinition, event: &mut EventWriter<SavefileChanged>) {
         self.style = new_style;
-        event.send(SavefileChanged);
+        event.send(SavefileChanged { replace: false });
     }
 
     pub fn style(&self) -> &StyleDefinition {

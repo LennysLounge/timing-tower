@@ -4,7 +4,7 @@ use bevy::{
     core_pipeline::core_2d::Camera2dBundle,
     ecs::{
         component::Component,
-        event::EventReader,
+        event::{Event, EventReader},
         query::With,
         schedule::IntoSystemConfigs,
         system::{Commands, Query, Res},
@@ -28,10 +28,24 @@ pub struct EditorCameraPlugin;
 impl Plugin for EditorCameraPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_systems(Startup, setup)
-            .add_systems(Update, (camera_drag, savefile_changed))
-            .add_systems(Update, set_camera_viewport.after(crate::ui::UiSystem));
+            .add_event::<ResetCamera>()
+            .add_event::<AlignCamera>()
+            .add_systems(Update, (camera_drag, align_camera_event))
+            .add_systems(
+                Update,
+                (set_camera_viewport, savefile_changed, reset_camera_event)
+                    .after(crate::ui::UiSystem),
+            );
     }
 }
+
+/// Reset the camera to view the entire scene in the viewport.
+#[derive(Event)]
+pub struct ResetCamera;
+
+/// Algins the camera scale and position.
+#[derive(Event)]
+pub struct AlignCamera;
 
 fn setup(mut commands: Commands) {
     commands.spawn((Camera2dBundle::default(), MainCamera, EditorCamera::new()));
@@ -53,6 +67,33 @@ impl EditorCamera {
             raw_viewport: Rect::NOTHING,
         }
     }
+}
+
+fn reset(
+    savefile: Res<Savefile>,
+    mut camera: Query<(&mut EditorCamera, &mut Transform), With<MainCamera>>,
+) {
+    let (mut camera, mut camera_transform) = camera.single_mut();
+
+    // Set the scale so that the entire scene is visible in the viewport.
+    let horizontal_scale =
+        savefile.style().scene.prefered_size.x / (camera.raw_viewport.width() - 50.0).max(100.0);
+    let vertical_scale =
+        savefile.style().scene.prefered_size.y / (camera.raw_viewport.height() - 50.0).max(100.0);
+
+    let exponent = vertical_scale.max(horizontal_scale).log(ZOOM_BASE);
+    let exponent = if exponent < 0.0 {
+        exponent.floor()
+    } else {
+        exponent.ceil()
+    };
+
+    camera.scale_exponent = exponent;
+    camera.scale = ZOOM_BASE.powf(exponent);
+    camera_transform.scale = vec3(camera.scale, camera.scale, 1.0);
+
+    camera_transform.translation.x = savefile.style().scene.prefered_size.x * 0.5;
+    camera_transform.translation.y = savefile.style().scene.prefered_size.y * -0.5;
 }
 
 fn camera_drag(
@@ -138,27 +179,38 @@ fn set_camera_viewport(
 fn savefile_changed(
     savefile: Res<Savefile>,
     mut savefile_changed: EventReader<SavefileChanged>,
-    mut camera: Query<(&mut EditorCamera, &mut Transform), With<MainCamera>>,
+    camera: Query<(&mut EditorCamera, &mut Transform), With<MainCamera>>,
 ) {
     if !savefile_changed.read().any(|s| s.replace) {
         return;
     }
 
-    let (mut camera_drag, mut camera_transform) = camera.single_mut();
+    reset(savefile, camera);
+}
 
-    // Set the scale so that the entire scene is visible in the viewport.
-    let horizontal_scale = savefile.style().scene.prefered_size.x
-        / (camera_drag.raw_viewport.width() - 100.0).max(100.0);
-    let vertical_scale = savefile.style().scene.prefered_size.y
-        / (camera_drag.raw_viewport.height() - 100.0).max(100.0);
+fn reset_camera_event(
+    savefile: Res<Savefile>,
+    camera: Query<(&mut EditorCamera, &mut Transform), With<MainCamera>>,
+    mut reset_camera_event: EventReader<ResetCamera>,
+) {
+    if reset_camera_event.read().count() == 0 {
+        return;
+    }
+    reset(savefile, camera);
+}
 
-    let scale = vertical_scale.max(horizontal_scale);
-    let exponent = scale.log(ZOOM_BASE);
+fn align_camera_event(
+    mut camera: Query<(&mut EditorCamera, &mut Transform), With<MainCamera>>,
+    mut reset_camera_event: EventReader<AlignCamera>,
+) {
+    if reset_camera_event.read().count() == 0 {
+        return;
+    }
 
-    camera_drag.scale_exponent = exponent;
-    camera_drag.scale = scale;
-    camera_transform.scale = vec3(camera_drag.scale, camera_drag.scale, 1.0);
+    let (mut camera, mut transform) = camera.single_mut();
+    camera.scale_exponent = camera.scale_exponent.round();
+    camera.scale = ZOOM_BASE.powf(camera.scale_exponent);
 
-    camera_transform.translation.x = savefile.style().scene.prefered_size.x * 0.5;
-    camera_transform.translation.y = savefile.style().scene.prefered_size.y * -0.5;
+    transform.translation.x = transform.translation.x.round();
+    transform.translation.y = transform.translation.y.round();
 }

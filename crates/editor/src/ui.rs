@@ -14,7 +14,6 @@ use bevy::{
         schedule::{IntoSystemConfigs, SystemSet},
         system::Res,
     },
-    math::vec3,
     prelude::{Plugin, Query, ResMut, Resource, Startup, With},
     transform::components::Transform,
 };
@@ -27,7 +26,9 @@ use tracing::error;
 use uuid::Uuid;
 
 use crate::{
-    camera::EditorCamera, command::UndoRedoManager, reference_store::ReferenceStore,
+    camera::{AlignCamera, EditorCamera, ResetCamera},
+    command::UndoRedoManager,
+    reference_store::ReferenceStore,
     GameAdapterResource, MainCamera,
 };
 
@@ -82,11 +83,13 @@ impl EditorState {
 
 fn ui(
     reference_store: Res<ReferenceStore>,
+    savefile_changed_event: EventWriter<SavefileChanged>,
+    mut reset_camera_event: EventWriter<ResetCamera>,
+    mut align_camera_event: EventWriter<AlignCamera>,
     mut savefile: ResMut<Savefile>,
     mut ctx: EguiContexts,
     mut state: ResMut<EditorState>,
     mut editor_camera: Query<(&mut EditorCamera, &mut Transform), With<MainCamera>>,
-    savefile_changed_event: EventWriter<SavefileChanged>,
     mut undo_redo_manager: ResMut<UndoRedoManager>,
     mut game_adapter: ResMut<GameAdapterResource>,
 ) {
@@ -99,14 +102,12 @@ fn ui(
                 }
             });
             ui.menu_button("View", |ui| {
-                if ui.button("reset camera").clicked() {
-                    let (mut camera, mut transform) = editor_camera.single_mut();
-                    camera.scale = 1.0;
-                    transform.translation = vec3(
-                        transform.translation.x.round(),
-                        transform.translation.y.round(),
-                        transform.translation.z.round(),
-                    );
+                if ui.button("Reset camera").clicked() {
+                    reset_camera_event.send(ResetCamera);
+                    ui.close_menu();
+                }
+                if ui.button("Align camera").clicked() {
+                    align_camera_event.send(AlignCamera);
                     ui.close_menu();
                 }
             });

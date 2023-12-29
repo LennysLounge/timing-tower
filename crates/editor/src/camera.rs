@@ -21,6 +21,8 @@ use bevy_egui::egui::Rect;
 
 use crate::MainCamera;
 
+pub const ZOOM_BASE: f32 = 0.9;
+
 pub struct EditorCameraPlugin;
 impl Plugin for EditorCameraPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
@@ -37,6 +39,7 @@ fn setup(mut commands: Commands) {
 #[derive(Component)]
 pub struct EditorCamera {
     drag_position: Option<Vec2>,
+    pub scale_exponent: f32,
     pub scale: f32,
     pub raw_viewport: Rect,
 }
@@ -44,6 +47,7 @@ impl EditorCamera {
     fn new() -> Self {
         Self {
             drag_position: None,
+            scale_exponent: 1.0,
             scale: 1.0,
             raw_viewport: Rect::NOTHING,
         }
@@ -91,12 +95,8 @@ fn camera_drag(
     }
 
     for ev in scroll_events.read() {
-        if ev.y > 0.0 {
-            camera_drag.scale *= 0.9;
-        }
-        if ev.y < 0.0 {
-            camera_drag.scale /= 0.9;
-        }
+        camera_drag.scale_exponent += ev.y.signum();
+        camera_drag.scale = ZOOM_BASE.powf(camera_drag.scale_exponent);
         camera_transform.scale = vec3(camera_drag.scale, camera_drag.scale, 1.0);
     }
 

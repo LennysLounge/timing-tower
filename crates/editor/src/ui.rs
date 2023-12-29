@@ -118,8 +118,8 @@ fn ui(
             let zoom = 1.0 / cam.scale * 100.0;
             ui.label(format!("Zoom: {:.0}%", zoom));
             ui.separator();
-
-            ui.label(format!("Zoom raw: {:.10}", cam.scale));
+            ui.separator();
+            ui.label(format!("Zoom exponent: {:.2}", cam.scale_exponent));
             ui.separator();
             ui.label(format!("pos: {:?}", trans.translation));
         });

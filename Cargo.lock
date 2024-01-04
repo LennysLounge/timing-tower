@@ -4110,6 +4110,9 @@ version = "0.1.0"
 dependencies = [
  "bevy",
  "bytemuck",
+ "common",
+ "frontend",
+ "rand 0.8.5",
  "tracing",
 ]
 

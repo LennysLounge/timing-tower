@@ -9,3 +9,6 @@ edition = "2021"
 bevy = { workspace = true }
 tracing = { workspace = true }
 bytemuck = "1.14"
+common = { path = "../common" }
+frontend = { path = "../frontend" }
+rand = { version = "0.8.5", features = ["std"] }

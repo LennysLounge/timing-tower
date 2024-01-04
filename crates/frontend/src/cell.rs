@@ -72,9 +72,10 @@ pub struct CellStyle {
 #[derive(Component)]
 pub struct CellMarker;
 
+// TODO: make this private
 #[derive(Resource)]
-struct CellMesh {
-    mesh: Mesh2dHandle,
+pub struct CellMesh {
+    pub mesh: Mesh2dHandle,
 }
 
 pub struct CreateCell;
@@ -170,7 +171,8 @@ fn create_foreground(world: &mut bevy::prelude::World) -> Entity {
         .id()
 }
 
-fn create_mesh() -> Mesh {
+// TODO: make this private
+pub fn create_mesh() -> Mesh {
     let positions = vec![
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 0.0, 0.0),

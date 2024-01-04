@@ -52,7 +52,7 @@ impl Plugin for CellMaterialPlugin {
 
 /// A material to render a cell.
 /// Cells are rendered as instances.
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct CellMaterial {
     pub position: Vec3,
     pub scale: f32,

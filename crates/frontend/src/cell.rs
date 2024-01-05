@@ -127,9 +127,8 @@ fn create_foreground(world: &mut bevy::prelude::World) -> Entity {
         .id()
 }
 
-// TODO: make this private
 #[derive(Resource)]
-pub struct CellMesh {
+struct CellMesh {
     pub mesh: Mesh2dHandle,
 }
 
@@ -142,8 +141,7 @@ pub fn get_or_create_mesh(world: &mut World) -> Mesh2dHandle {
     world.resource::<CellMesh>().mesh.clone()
 }
 
-// TODO: make this private
-pub fn create_mesh() -> Mesh {
+fn create_mesh() -> Mesh {
     let positions = vec![
         vec3(0.0, 0.0, 0.0),
         vec3(0.0, 0.0, 0.0),

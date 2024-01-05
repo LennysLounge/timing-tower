@@ -2,6 +2,7 @@
     mesh2d_functions::{get_model_matrix, mesh2d_position_local_to_clip, mesh2d_position_world_to_clip},
     mesh2d_view_vindings::view,
 }
+#import bevy_render::instance_index::get_instance_index
 
 
 struct Vertex {
@@ -38,6 +39,8 @@ fn vertex(vertex: Vertex) -> VertexOutput {
     out.uv = vertex.uv;
     out.rounding = vertex.rounding;
     out.size = vertex.size;
+    // Workaround for: https://github.com/bevyengine/bevy/issues/10509
+    out.clip_position.x += f32(get_instance_index(0u)) * 0.00001;
     return out;
 }
 

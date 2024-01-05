@@ -12,7 +12,6 @@ use bevy::{
         entity::Entity,
         event::EventWriter,
         query::With,
-        schedule::{apply_deferred, IntoSystemConfigs},
         system::{Commands, Query, Res, ResMut, Resource},
     },
     gizmos::gizmos::Gizmos,
@@ -53,10 +52,16 @@ fn main() {
             CellManagerPlugin,
         ))
         .add_systems(Startup, setup_camera)
-        .add_systems(
-            Startup,
-            (apply_deferred, setup_cell).chain().after(setup_camera),
-        )
+        // .add_systems(
+        //     Startup,
+        //     bevy::ecs::schedule::IntoSystemConfigs::after(
+        //         bevy::ecs::schedule::IntoSystemConfigs::chain((
+        //             bevy::ecs::schedule::apply_deferred,
+        //             setup_cell,
+        //         )),
+        //         setup_camera,
+        //     ),
+        // )
         .init_resource::<SceneDefinition>()
         .add_systems(
             Update,

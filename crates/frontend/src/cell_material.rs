@@ -162,16 +162,16 @@ fn prepare_uniform_buffers(
     fallback_image: Res<FallbackImage>,
 ) {
     for (entity, material) in query.iter() {
-        let x = material.uniform.as_bind_group(
+        if let Ok(bind_group) = material.uniform.as_bind_group(
             &pipeline.uniform_data_layout,
             &render_device,
             &images,
             &fallback_image,
-        );
-        let y = x.unwrap();
-        commands
-            .entity(entity)
-            .insert(UniformBuffer { prepared: y });
+        ) {
+            commands.entity(entity).insert(UniformBuffer {
+                prepared: bind_group,
+            });
+        }
     }
 }
 

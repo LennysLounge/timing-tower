@@ -27,9 +27,9 @@ impl Plugin for TestingPlugin {
 }
 
 fn setup(mut commands: Commands) {
-    for _ in 0..200 {
-        //commands.spawn_empty().add(frontend::cell::CreateClipArea).insert(Ball);
-        commands.spawn_empty().add(CreateCustomCell).insert(Ball);
+    for _ in 0..3200 {
+        commands.spawn_empty().add(frontend::cell::CreateCell).insert(Ball);
+        //commands.spawn_empty().add(CreateCustomCell).insert(Ball);
     }
 }
 

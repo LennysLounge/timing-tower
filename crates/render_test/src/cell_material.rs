@@ -54,8 +54,9 @@ impl Plugin for CellMaterialPlugin {
 /// Cells are rendered as instances.
 #[derive(Component, Default)]
 pub struct CellMaterial {
-    pub position: Vec3,
-    pub scale: f32,
+    pub size: Vec2,
+    pub skew: f32,
+    pub rounding: [f32; 4],
     pub color: Color,
     pub texture: Option<Handle<Image>>,
 }
@@ -73,7 +74,9 @@ struct UniformData {
 #[repr(C)]
 struct InstanceData {
     position: Vec3,
-    scale: f32,
+    size: Vec2,
+    skew: f32,
+    rounding: [f32; 4],
     color: [f32; 4],
 }
 
@@ -107,9 +110,11 @@ fn extract_cell_material(
         });
 
         extracted.per_instance.push(InstanceData {
-            position: material.position + transform.translation(),
-            scale: material.scale,
-            color: material.color.clone().into(),
+            position: transform.translation(),
+            size: material.size,
+            skew: material.skew,
+            rounding: material.rounding.clone(),
+            color: material.color.as_linear_rgba_f32(),
         });
     }
     commands.insert_or_spawn_batch(groups.into_values().collect::<Vec<_>>());
@@ -266,14 +271,29 @@ impl SpecializedMeshPipeline for CellMaterialPipline {
             step_mode: VertexStepMode::Instance,
             attributes: vec![
                 VertexAttribute {
-                    format: VertexFormat::Float32x4,
+                    format: VertexFormat::Float32x3,
                     offset: 0,
                     shader_location: 3, // shader locations 0-2 are taken up by Position, Normal and UV attributes
                 },
                 VertexAttribute {
+                    format: VertexFormat::Float32x2,
+                    offset: 12,
+                    shader_location: 4, // shader locations 0-2 are taken up by Position, Normal and UV attributes
+                },
+                VertexAttribute {
+                    format: VertexFormat::Float32,
+                    offset: 20,
+                    shader_location: 5, // shader locations 0-2 are taken up by Position, Normal and UV attributes
+                },
+                VertexAttribute {
                     format: VertexFormat::Float32x4,
-                    offset: VertexFormat::Float32x4.size(),
-                    shader_location: 4,
+                    offset: 24,
+                    shader_location: 6,
+                },
+                VertexAttribute {
+                    format: VertexFormat::Float32x4,
+                    offset: 40,
+                    shader_location: 7,
                 },
             ],
         });

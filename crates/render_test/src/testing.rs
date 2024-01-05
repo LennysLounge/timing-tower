@@ -1,12 +1,13 @@
 use bevy::{
-    app::{Plugin, Startup, Update},
+    app::{Plugin, PostUpdate, Startup, Update},
     asset::Assets,
     ecs::{
         component::Component,
         entity::Entity,
-        event::EventWriter,
+        event::{EventReader, EventWriter},
         query::With,
-        system::{Commands, EntityCommand, Query},
+        schedule::IntoSystemConfigs,
+        system::{Commands, EntityCommand, Local, Query},
     },
     hierarchy::BuildWorldChildren,
     math::{vec2, vec3},
@@ -20,23 +21,26 @@ use bevy::{
     },
     window::{PrimaryWindow, Window},
 };
-use frontend::cell::{background::Background, create_mesh, CellMarker, CellMesh, CreateClipArea};
+use frontend::cell::{
+    background::Background, create_mesh, CellMarker, CellMesh, CellStyle, CellSystem, SetStyle,
+};
 use rand::random;
 
 use crate::cell_material::CellMaterial;
 
-pub struct Testing;
-impl Plugin for Testing {
+pub struct TestingPlugin;
+impl Plugin for TestingPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_systems(Startup, setup)
-            .add_systems(Update, update_ball);
+            .add_systems(Update, update_ball)
+            .add_systems(PostUpdate, update_style.in_set(CellSystem));
     }
 }
 
 fn setup(mut commands: Commands) {
-    for _ in 0..100 {
-        commands.spawn_empty().add(CreateClipArea).insert(Ball);
-        //commands.spawn_empty().add(CreateCustomCell).insert(Ball);
+    for _ in 0..200 {
+        //commands.spawn_empty().add(frontend::cell::CreateClipArea).insert(Ball);
+        commands.spawn_empty().add(CreateCustomCell).insert(Ball);
     }
 }
 
@@ -120,4 +124,39 @@ fn create_background(world: &mut bevy::prelude::World) -> Entity {
             NoAutomaticBatching,
         ))
         .id()
+}
+
+pub fn update_style(
+    mut events: EventReader<SetStyle>,
+    cells: Query<&Background>,
+    mut background: Query<(&mut CellMaterial, &mut Aabb, &mut RenderLayers)>,
+) {
+    for event in events.read() {
+        let Ok(background_hadle) = cells.get(event.entity) else {
+            continue;
+        };
+        let Ok((mut material, mut aabb, mut render_layers)) =
+            background.get_mut(background_hadle.0)
+        else {
+            continue;
+        };
+
+        material.color = event.style.color;
+        material.texture = event.style.texture.clone();
+        material.size = event.style.size;
+        material.skew = event.style.skew;
+        material.rounding = event.style.rounding.into();
+
+        let (min_skew, max_skew) = if event.style.skew > 0.0 {
+            (0.0, event.style.skew)
+        } else {
+            (event.style.skew, 0.0)
+        };
+        *aabb = Aabb::from_min_max(
+            vec3(min_skew, -event.style.size.y, 0.0),
+            vec3(event.style.size.x + max_skew, 0.0, 0.0),
+        );
+
+        *render_layers = RenderLayers::layer(event.style.render_layer);
+    }
 }

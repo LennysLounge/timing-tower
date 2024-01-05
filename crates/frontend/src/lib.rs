@@ -6,7 +6,6 @@ use uuid::Uuid;
 pub mod cell;
 pub mod cell_manager;
 pub mod cell_material;
-pub mod gradient_material;
 
 pub struct FrontendPlugin;
 impl Plugin for FrontendPlugin {

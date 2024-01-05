@@ -6,26 +6,18 @@ use bevy::{
         schedule::{IntoSystemConfigs, SystemSet},
         system::{EntityCommand, Resource},
     },
-    math::{vec2, vec3, Vec2, Vec4},
-    prelude::{
-        Assets, BuildWorldChildren, Color, Component, EventReader, Handle, Mesh, Plugin, Query,
-        SpatialBundle, Transform, Vec3, Visibility, With,
-    },
+    math::{vec2, vec3, Vec2},
+    prelude::*,
     render::{
-        mesh::Indices, primitives::Aabb, render_resource::PrimitiveTopology, texture::Image,
-        view::RenderLayers,
+        batching::NoAutomaticBatching, mesh::Indices, render_resource::PrimitiveTopology,
+        texture::Image, view::RenderLayers,
     },
-    sprite::{MaterialMesh2dBundle, Mesh2dHandle},
+    sprite::{Anchor, Mesh2dHandle},
     text::{Font, Text, Text2dBundle, TextStyle},
 };
 use common::communication::TextAlignment;
 
-use crate::cell_material::{CellMaterial, Gradient};
-
-use self::{background::Background, foreground::Foreground};
-
-pub mod background;
-pub mod foreground;
+use crate::cell_material::CellMaterial;
 
 #[derive(Debug, PartialEq, Eq, Clone, Hash, SystemSet)]
 pub struct CellSystem;
@@ -35,11 +27,7 @@ impl Plugin for CellPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_event::<SetStyle>().add_systems(
             PostUpdate,
-            (
-                update_style,
-                foreground::update_style,
-                background::update_style,
-            )
+            (update_style, update_style_foreground)
                 .in_set(CellSystem)
                 .before(bevy::text::update_text2d_layout),
         );
@@ -72,31 +60,35 @@ pub struct CellStyle {
 #[derive(Component)]
 pub struct CellMarker;
 
-// TODO: make this private
-#[derive(Resource)]
-pub struct CellMesh {
+#[derive(Bundle)]
+pub struct CellBundle {
     pub mesh: Mesh2dHandle,
+    pub material: CellMaterial,
+    pub spatial_bundle: SpatialBundle,
+    pub render_layers: RenderLayers,
+    pub no_automatic_batching: NoAutomaticBatching,
+    pub marker: CellMarker,
 }
 
 pub struct CreateCell;
 impl EntityCommand for CreateCell {
-    fn apply(self, id: Entity, world: &mut bevy::prelude::World) {
-        let background_id = create_background(world);
+    fn apply(self, id: Entity, world: &mut World) {
         let foreground_id = create_foreground(world);
+        let mesh = get_or_create_mesh(world);
 
         world
             .entity_mut(id)
             .insert((
-                SpatialBundle {
-                    visibility: Visibility::Inherited,
-                    ..Default::default()
+                CellBundle {
+                    mesh,
+                    material: CellMaterial::default(),
+                    spatial_bundle: SpatialBundle::default(),
+                    no_automatic_batching: NoAutomaticBatching,
+                    render_layers: RenderLayers::layer(0),
+                    marker: CellMarker,
                 },
-                RenderLayers::layer(0),
-                Background(background_id),
                 Foreground(foreground_id),
-                CellMarker,
             ))
-            .add_child(background_id)
             .add_child(foreground_id);
     }
 }
@@ -104,53 +96,17 @@ impl EntityCommand for CreateCell {
 pub struct CreateClipArea;
 impl EntityCommand for CreateClipArea {
     fn apply(self, id: Entity, world: &mut bevy::prelude::World) {
-        let background_id = create_background(world);
+        let mesh = get_or_create_mesh(world);
 
-        world
-            .entity_mut(id)
-            .insert((
-                SpatialBundle {
-                    visibility: Visibility::Inherited,
-                    ..Default::default()
-                },
-                RenderLayers::layer(0),
-                Background(background_id),
-                CellMarker,
-            ))
-            .add_child(background_id);
-    }
-}
-
-fn create_background(world: &mut bevy::prelude::World) -> Entity {
-    if !world.contains_resource::<CellMesh>() {
-        let mut meshes = world.resource_mut::<Assets<Mesh>>();
-        let mesh = meshes.add(create_mesh()).into();
-        world.insert_resource(CellMesh { mesh });
-    }
-    let mesh = world.resource::<CellMesh>().mesh.clone();
-
-    let material = world
-        .resource_mut::<Assets<CellMaterial>>()
-        .add(CellMaterial {
-            color: Color::PURPLE,
-            gradient: Gradient::None,
-            texture: None,
-            size: Vec2::ZERO,
-            skew: 0.0,
-            rounding: Vec4::ZERO,
+        world.entity_mut(id).insert(CellBundle {
+            mesh,
+            material: CellMaterial::default(),
+            spatial_bundle: SpatialBundle::default(),
+            no_automatic_batching: NoAutomaticBatching,
+            render_layers: RenderLayers::layer(0),
+            marker: CellMarker,
         });
-
-    world
-        .spawn((
-            MaterialMesh2dBundle {
-                mesh,
-                material,
-                ..Default::default()
-            },
-            Aabb::default(),
-            RenderLayers::layer(0),
-        ))
-        .id()
+    }
 }
 
 fn create_foreground(world: &mut bevy::prelude::World) -> Entity {
@@ -169,6 +125,21 @@ fn create_foreground(world: &mut bevy::prelude::World) -> Entity {
         })
         .insert(RenderLayers::layer(0))
         .id()
+}
+
+// TODO: make this private
+#[derive(Resource)]
+pub struct CellMesh {
+    pub mesh: Mesh2dHandle,
+}
+
+pub fn get_or_create_mesh(world: &mut World) -> Mesh2dHandle {
+    if !world.contains_resource::<CellMesh>() {
+        let mut meshes = world.resource_mut::<Assets<Mesh>>();
+        let mesh = meshes.add(create_mesh()).into();
+        world.insert_resource(CellMesh { mesh });
+    }
+    world.resource::<CellMesh>().mesh.clone()
 }
 
 // TODO: make this private
@@ -202,10 +173,20 @@ pub fn create_mesh() -> Mesh {
 
 fn update_style(
     mut events: EventReader<SetStyle>,
-    mut cells: Query<(&mut Transform, &mut Visibility, &mut RenderLayers), With<CellMarker>>,
+    mut cells: Query<
+        (
+            &mut Transform,
+            &mut Visibility,
+            &mut RenderLayers,
+            &mut CellMaterial,
+        ),
+        With<CellMarker>,
+    >,
 ) {
     for SetStyle { entity, style } in events.read() {
-        let Ok((mut transform, mut visibility, mut render_layers)) = cells.get_mut(*entity) else {
+        let Ok((mut transform, mut visibility, mut render_layers, mut material)) =
+            cells.get_mut(*entity)
+        else {
             println!("Cell not found for update");
             continue;
         };
@@ -214,7 +195,59 @@ fn update_style(
         } else {
             *visibility = Visibility::Hidden;
         }
+
+        material.color = style.color;
+        material.texture = style.texture.clone();
+        material.size = style.size;
+        material.skew = style.skew;
+        material.rounding = style.rounding.into();
+
         transform.translation = style.pos;
         *render_layers = RenderLayers::layer(style.render_layer);
+    }
+}
+
+#[derive(Component)]
+pub struct Foreground(pub Entity);
+
+pub fn update_style_foreground(
+    cells: Query<&Foreground>,
+    mut texts: Query<(&mut Text, &mut Anchor, &mut Transform, &mut RenderLayers)>,
+    mut events: EventReader<SetStyle>,
+) {
+    for event in events.read() {
+        let Ok(foreground) = cells.get(event.entity) else {
+            continue;
+        };
+
+        let Ok((mut text, mut anchor, mut transform, mut render_layers)) =
+            texts.get_mut(foreground.0)
+        else {
+            continue;
+        };
+        *text = Text::from_section(
+            event.style.text.clone(),
+            TextStyle {
+                font: match event.style.font.as_ref() {
+                    Some(handle) => handle.clone(),
+                    None => Handle::<Font>::default(),
+                },
+                font_size: event.style.text_size,
+                color: event.style.text_color,
+            },
+        );
+        *anchor = match event.style.text_alignment {
+            TextAlignment::Left => Anchor::CenterLeft,
+            TextAlignment::Center => Anchor::Center,
+            TextAlignment::Right => Anchor::CenterRight,
+        };
+
+        transform.translation = Vec3::new(
+            event.style.text_position.x,
+            -event.style.text_position.y,
+            1.0,
+        );
+
+        *render_layers = RenderLayers::layer(event.style.render_layer);
     }
 }

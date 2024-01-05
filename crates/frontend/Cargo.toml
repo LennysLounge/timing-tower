@@ -8,3 +8,4 @@ common = {path ="../common"}
 bevy = { workspace = true }
 serde = { workspace = true }
 uuid = { workspace = true, features = ["v4"] }
+bytemuck = "1.14"

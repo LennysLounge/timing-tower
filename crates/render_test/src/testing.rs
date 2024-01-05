@@ -1,39 +1,28 @@
 use bevy::{
-    app::{Plugin, PostUpdate, Startup, Update},
-    asset::Assets,
+    app::{Plugin, Startup, Update},
     ecs::{
         component::Component,
         entity::Entity,
-        event::{EventReader, EventWriter},
+        event::EventWriter,
         query::With,
-        schedule::IntoSystemConfigs,
-        system::{Commands, EntityCommand, Local, Query},
+        system::{Commands, EntityCommand, Query},
     },
-    hierarchy::BuildWorldChildren,
     math::{vec2, vec3},
     prelude::SpatialBundle,
-    render::{
-        batching::NoAutomaticBatching,
-        color::Color,
-        mesh::Mesh,
-        primitives::Aabb,
-        view::{RenderLayers, Visibility},
-    },
+    render::{batching::NoAutomaticBatching, color::Color, view::RenderLayers},
     window::{PrimaryWindow, Window},
 };
-use frontend::cell::{
-    background::Background, create_mesh, CellMarker, CellMesh, CellStyle, CellSystem, SetStyle,
+use frontend::{
+    cell::{get_or_create_mesh, CellBundle, CellMarker},
+    cell_material::CellMaterial,
 };
 use rand::random;
-
-use crate::cell_material::CellMaterial;
 
 pub struct TestingPlugin;
 impl Plugin for TestingPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_systems(Startup, setup)
-            .add_systems(Update, update_ball)
-            .add_systems(PostUpdate, update_style.in_set(CellSystem));
+            .add_systems(Update, update_ball);
     }
 }
 
@@ -89,74 +78,14 @@ fn update_ball(
 pub struct CreateCustomCell;
 impl EntityCommand for CreateCustomCell {
     fn apply(self, id: Entity, world: &mut bevy::prelude::World) {
-        let background_id = create_background(world);
-
-        world
-            .entity_mut(id)
-            .insert((
-                SpatialBundle {
-                    visibility: Visibility::Inherited,
-                    ..Default::default()
-                },
-                RenderLayers::layer(0),
-                Background(background_id),
-                CellMarker,
-            ))
-            .add_child(background_id);
-    }
-}
-
-fn create_background(world: &mut bevy::prelude::World) -> Entity {
-    if !world.contains_resource::<CellMesh>() {
-        let mut meshes = world.resource_mut::<Assets<Mesh>>();
-        let mesh = meshes.add(create_mesh()).into();
-        world.insert_resource(CellMesh { mesh });
-    }
-    let mesh = world.resource::<CellMesh>().mesh.clone();
-
-    world
-        .spawn((
+        let mesh = get_or_create_mesh(world);
+        world.entity_mut(id).insert(CellBundle {
             mesh,
-            CellMaterial::default(),
-            SpatialBundle::default(),
-            Aabb::default(),
-            RenderLayers::layer(0),
-            NoAutomaticBatching,
-        ))
-        .id()
-}
-
-pub fn update_style(
-    mut events: EventReader<SetStyle>,
-    cells: Query<&Background>,
-    mut background: Query<(&mut CellMaterial, &mut Aabb, &mut RenderLayers)>,
-) {
-    for event in events.read() {
-        let Ok(background_hadle) = cells.get(event.entity) else {
-            continue;
-        };
-        let Ok((mut material, mut aabb, mut render_layers)) =
-            background.get_mut(background_hadle.0)
-        else {
-            continue;
-        };
-
-        material.color = event.style.color;
-        material.texture = event.style.texture.clone();
-        material.size = event.style.size;
-        material.skew = event.style.skew;
-        material.rounding = event.style.rounding.into();
-
-        let (min_skew, max_skew) = if event.style.skew > 0.0 {
-            (0.0, event.style.skew)
-        } else {
-            (event.style.skew, 0.0)
-        };
-        *aabb = Aabb::from_min_max(
-            vec3(min_skew, -event.style.size.y, 0.0),
-            vec3(event.style.size.x + max_skew, 0.0, 0.0),
-        );
-
-        *render_layers = RenderLayers::layer(event.style.render_layer);
+            material: CellMaterial::default(),
+            spatial_bundle: SpatialBundle::default(),
+            render_layers: RenderLayers::layer(0),
+            no_automatic_batching: NoAutomaticBatching,
+            marker: CellMarker,
+        });
     }
 }

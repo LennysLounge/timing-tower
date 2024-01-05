@@ -6,14 +6,17 @@ mod websocket;
 use asset_path_store::WebAssetPathStorePlugin;
 use bevy::{
     app::{PluginGroup, Update},
-    asset::AssetMetaCheck,
+    asset::{AssetMetaCheck, AssetServer},
     ecs::{
         component::Component,
+        entity::Entity,
         event::EventWriter,
         query::With,
+        schedule::{apply_deferred, IntoSystemConfigs},
         system::{Commands, Query, Res, ResMut, Resource},
     },
     gizmos::gizmos::Gizmos,
+    hierarchy::BuildChildren,
     input::mouse::MouseButtonInput,
     math::{vec2, vec3, Vec2},
     prelude::{App, Camera2dBundle, ClearColor, Color, EventReader, Startup},
@@ -50,7 +53,10 @@ fn main() {
             CellManagerPlugin,
         ))
         .add_systems(Startup, setup_camera)
-        //.add_systems(Startup, setup_cell)
+        .add_systems(
+            Startup,
+            (apply_deferred, setup_cell).chain().after(setup_camera),
+        )
         .init_resource::<SceneDefinition>()
         .add_systems(
             Update,
@@ -60,27 +66,35 @@ fn main() {
 }
 
 #[allow(unused)]
-fn setup_cell(mut commands: Commands, mut set_style: EventWriter<SetStyle>) {
-    let cell_id = commands.spawn_empty().add(CreateCell).id();
-    set_style.send(SetStyle {
-        entity: cell_id,
-        style: frontend::cell::CellStyle {
-            text: String::from(""),
-            text_color: Color::BLACK,
-            text_size: 40.0,
-            text_alignment: common::communication::TextAlignment::Center,
-            text_position: vec2(0.0, 0.0),
-            font: None,
-            color: Color::BLUE,
-            texture: None,
-            pos: vec3(320.0, 540.0, 0.0),
-            size: vec2(640.0, 360.0),
-            skew: 0.0,
-            visible: true,
-            rounding: [100.0, 200.0, 50.0, 150.0],
-            render_layer: 0,
-        },
-    });
+fn setup_cell(
+    mut commands: Commands,
+    mut set_style: EventWriter<SetStyle>,
+    cameras: Query<Entity, With<MainCamera>>,
+    asset_server: Res<AssetServer>,
+) {
+    for camera in cameras.iter() {
+        let cell_id = commands.spawn_empty().add(CreateCell).id();
+        commands.entity(camera).add_child(cell_id);
+        set_style.send(SetStyle {
+            entity: cell_id,
+            style: frontend::cell::CellStyle {
+                text: String::from("Hello World"),
+                text_color: Color::BLACK,
+                text_size: 40.0,
+                text_alignment: common::communication::TextAlignment::Center,
+                text_position: vec2(0.0, 0.0),
+                font: None,
+                color: Color::BLUE,
+                texture: None,
+                pos: vec3(-150.0, 150.0, 0.0),
+                size: vec2(300.0, 300.0),
+                skew: 0.0,
+                visible: true,
+                rounding: [0.0, 0.0, 0.0, 0.0],
+                render_layer: 0,
+            },
+        });
+    }
 }
 
 #[derive(Component)]

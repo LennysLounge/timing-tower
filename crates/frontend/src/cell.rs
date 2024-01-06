@@ -9,8 +9,11 @@ use bevy::{
     math::{vec2, vec3, Vec2},
     prelude::*,
     render::{
-        batching::NoAutomaticBatching, mesh::Indices, render_resource::PrimitiveTopology,
-        texture::Image, view::RenderLayers,
+        batching::NoAutomaticBatching,
+        mesh::Indices,
+        render_resource::PrimitiveTopology,
+        texture::Image,
+        view::{NoFrustumCulling, RenderLayers},
     },
     sprite::{Anchor, Mesh2dHandle},
     text::{Font, Text, Text2dBundle, TextStyle},
@@ -68,6 +71,7 @@ pub struct CellBundle {
     pub render_layers: RenderLayers,
     pub no_automatic_batching: NoAutomaticBatching,
     pub marker: CellMarker,
+    pub no_furstrum_culling: NoFrustumCulling,
 }
 
 pub struct CreateCell;
@@ -86,6 +90,7 @@ impl EntityCommand for CreateCell {
                     no_automatic_batching: NoAutomaticBatching,
                     render_layers: RenderLayers::layer(0),
                     marker: CellMarker,
+                    no_furstrum_culling: NoFrustumCulling,
                 },
                 Foreground(foreground_id),
             ))
@@ -105,6 +110,7 @@ impl EntityCommand for CreateClipArea {
             no_automatic_batching: NoAutomaticBatching,
             render_layers: RenderLayers::layer(0),
             marker: CellMarker,
+            no_furstrum_culling: NoFrustumCulling,
         });
     }
 }

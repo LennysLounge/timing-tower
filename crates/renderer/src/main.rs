@@ -52,16 +52,16 @@ fn main() {
             CellManagerPlugin,
         ))
         .add_systems(Startup, setup_camera)
-        // .add_systems(
-        //     Startup,
-        //     bevy::ecs::schedule::IntoSystemConfigs::after(
-        //         bevy::ecs::schedule::IntoSystemConfigs::chain((
-        //             bevy::ecs::schedule::apply_deferred,
-        //             setup_cell,
-        //         )),
-        //         setup_camera,
-        //     ),
-        // )
+        .add_systems(
+            Startup,
+            bevy::ecs::schedule::IntoSystemConfigs::after(
+                bevy::ecs::schedule::IntoSystemConfigs::chain((
+                    bevy::ecs::schedule::apply_deferred,
+                    setup_cell,
+                )),
+                setup_camera,
+            ),
+        )
         .init_resource::<SceneDefinition>()
         .add_systems(
             Update,

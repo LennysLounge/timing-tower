@@ -7,11 +7,11 @@
             {
                 "separator": "Platform style",
                 "type": "Set",
-                "value": "C:\\Users\\Leonard\\Documents\\Repos\\timing-tower\\crates\\render_test",
+                "value": "C:\\Users\\Leonard\\Documents\\Repos\\timing-tower\\crates\\frontend",
                 "variable": "BEVY_ASSET_ROOT"
             }
         ],
-        "executable": "C:\\Users\\Leonard\\Documents\\Repos\\timing-tower\\target\\debug\\render_test.exe",
+        "executable": "C:\\Users\\Leonard\\Documents\\Repos\\timing-tower\\target\\debug\\examples\\ordering.exe",
         "inject": false,
         "numQueuedFrames": 0,
         "options": {

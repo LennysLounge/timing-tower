@@ -1,11 +1,17 @@
 //! A material that renders cells as instanced.
 
+use std::ops::Range;
+
 use bevy::{
     asset::load_internal_asset,
     core_pipeline::core_2d::Transparent2d,
-    ecs::system::{lifetimeless::*, SystemParamItem},
+    ecs::{
+        query::QueryItem,
+        system::{lifetimeless::*, SystemParamItem},
+    },
     prelude::*,
     render::{
+        extract_component::{ExtractComponent, ExtractComponentPlugin},
         mesh::{GpuBufferInfo, MeshVertexBufferLayout},
         render_asset::{prepare_assets, RenderAssets},
         render_phase::{
@@ -22,7 +28,7 @@ use bevy::{
         Mesh2dHandle, Mesh2dPipeline, Mesh2dPipelineKey, RenderMesh2dInstances,
         SetMesh2dViewBindGroup,
     },
-    utils::{FloatOrd, HashMap},
+    utils::FloatOrd,
 };
 use bytemuck::{Pod, Zeroable};
 use uuid::uuid;
@@ -55,16 +61,16 @@ impl Plugin for CellMaterialPlugin {
             "../shaders/instanced_cell_material.wgsl",
             Shader::from_wgsl
         );
-
+        app.add_plugins(ExtractComponentPlugin::<CellMaterial>::default());
         app.sub_app_mut(RenderApp)
             .add_render_command::<Transparent2d, DrawCellMaterial>()
             .init_resource::<SpecializedMeshPipelines<CellMaterialPipline>>()
-            .add_systems(ExtractSchedule, extract_cell_material)
+            .add_systems(ExtractSchedule, extract_mesh_2d_handle)
             .add_systems(
                 Render,
                 (
-                    prepare_uniform_buffers
-                        .in_set(RenderSet::PrepareAssets)
+                    (group_instance_data, apply_deferred, prepare_uniform_buffers)
+                        .chain()
                         .after(prepare_assets::<Image>),
                     queue_custom.in_set(RenderSet::QueueMeshes),
                     prepare_instance_buffers.in_set(RenderSet::PrepareResources),
@@ -80,13 +86,47 @@ impl Plugin for CellMaterialPlugin {
 
 /// A material to render a cell.
 /// Cells are rendered as instances.
-#[derive(Component, Default)]
+#[derive(Component, Default, Clone)]
 pub struct CellMaterial {
     pub size: Vec2,
     pub skew: f32,
     pub rounding: [f32; 4],
     pub color: Color,
     pub texture: Option<Handle<Image>>,
+}
+#[derive(Component)]
+pub struct ExtractedCellMaterial {
+    material: CellMaterial,
+    mesh: Mesh2dHandle,
+    transform: Vec3,
+}
+
+impl ExtractComponent for CellMaterial {
+    type Query = (
+        &'static CellMaterial,
+        &'static Mesh2dHandle,
+        &'static GlobalTransform,
+    );
+    type Filter = ();
+    type Out = ExtractedCellMaterial;
+
+    fn extract_component(
+        (material, mesh, transform): QueryItem<'_, Self::Query>,
+    ) -> Option<Self::Out> {
+        Some(ExtractedCellMaterial {
+            material: material.clone(),
+            mesh: mesh.clone(),
+            transform: transform.translation(),
+        })
+    }
+}
+
+fn extract_mesh_2d_handle(mut commands: Commands, query: Extract<Query<(Entity, &Mesh2dHandle)>>) {
+    let mut extracted = Vec::new();
+    for (e, m) in query.iter() {
+        extracted.push((e, m.clone()));
+    }
+    commands.insert_or_spawn_batch(extracted);
 }
 
 /// The data that stays the same for each group of cells.
@@ -110,42 +150,43 @@ struct InstanceData {
 
 /// The extracted and grouped cell material data
 #[derive(Component)]
-struct ExtractedCellMaterial {
+struct GroupedCellMaterial {
     uniform: UniformData,
     per_instance: Vec<InstanceData>,
 }
 
-fn extract_cell_material(
-    mut commands: Commands,
-    query: Extract<Query<(Entity, &CellMaterial, &Mesh2dHandle, &GlobalTransform)>>,
-) {
-    // Group cells by their mesh and their background texture.
-    type GroupKey<'a> = (&'a Handle<Mesh>, &'a Option<Handle<Image>>);
-    let mut groups: HashMap<GroupKey, (Entity, ExtractedCellMaterial)> = HashMap::new();
-
-    for (entity, material, mesh, transform) in query.iter() {
-        let key = (&mesh.0, &material.texture);
-        let (_entity, extracted) = groups.entry(key).or_insert_with(|| {
+fn group_instance_data(mut commands: Commands, query: Query<(Entity, &ExtractedCellMaterial)>) {
+    let mut groupings = Groupings { groups: Vec::new() };
+    for (entity, extracted) in query.iter() {
+        groupings.insert(
+            entity,
+            InstanceData {
+                position: extracted.transform,
+                size: extracted.material.size,
+                skew: extracted.material.skew,
+                rounding: extracted.material.rounding,
+                color: extracted.material.color.as_linear_rgba_f32(),
+            },
+            extracted.mesh.0.id(),
+            extracted.material.texture.clone(),
+        );
+    }
+    let x = groupings
+        .groups
+        .into_iter()
+        .map(|group| {
             (
-                entity,
-                ExtractedCellMaterial {
+                group.host_entity,
+                GroupedCellMaterial {
                     uniform: UniformData {
-                        texture: material.texture.clone(),
+                        texture: group.texture,
                     },
-                    per_instance: Vec::new(),
+                    per_instance: group.content,
                 },
             )
-        });
-
-        extracted.per_instance.push(InstanceData {
-            position: transform.translation(),
-            size: material.size,
-            skew: material.skew,
-            rounding: material.rounding.clone(),
-            color: material.color.as_linear_rgba_f32(),
-        });
-    }
-    commands.insert_or_spawn_batch(groups.into_values().collect::<Vec<_>>());
+        })
+        .collect::<Vec<_>>();
+    commands.insert_or_spawn_batch(x);
 }
 
 #[derive(Component)]
@@ -155,13 +196,15 @@ pub struct UniformBuffer {
 
 fn prepare_uniform_buffers(
     mut commands: Commands,
-    query: Query<(Entity, &ExtractedCellMaterial)>,
+    query: Query<(Entity, &GroupedCellMaterial)>,
     pipeline: Res<CellMaterialPipline>,
     render_device: Res<RenderDevice>,
     images: Res<RenderAssets<Image>>,
     fallback_image: Res<FallbackImage>,
 ) {
+    //println!("start uniform buffer");
     for (entity, material) in query.iter() {
+        //println!("\tentity:{entity:?}");
         if let Ok(bind_group) = material.uniform.as_bind_group(
             &pipeline.uniform_data_layout,
             &render_device,
@@ -184,7 +227,7 @@ fn queue_custom(
     pipeline_cache: Res<PipelineCache>,
     meshes: Res<RenderAssets<Mesh>>,
     render_mesh_instances: Res<RenderMesh2dInstances>,
-    material_meshes: Query<Entity, (With<UniformBuffer>, With<ExtractedCellMaterial>)>,
+    material_meshes: Query<Entity, (With<UniformBuffer>, With<GroupedCellMaterial>)>,
     mut views: Query<(&ExtractedView, &mut RenderPhase<Transparent2d>)>,
 ) {
     //println!("Start queue");
@@ -232,7 +275,7 @@ pub struct InstanceBuffer {
 
 fn prepare_instance_buffers(
     mut commands: Commands,
-    query: Query<(Entity, &ExtractedCellMaterial)>,
+    query: Query<(Entity, &GroupedCellMaterial)>,
     render_device: Res<RenderDevice>,
 ) {
     //println!("start prepare");
@@ -372,5 +415,110 @@ impl<P: PhaseItem> RenderCommand<P> for DrawMesh2dInstanced {
             }
         }
         RenderCommandResult::Success
+    }
+}
+
+struct Groupings {
+    groups: Vec<CellGroup>,
+}
+struct CellGroup {
+    range: Range<f32>,
+    mesh: AssetId<Mesh>,
+    texture: Option<Handle<Image>>,
+    content: Vec<InstanceData>,
+    host_entity: Entity,
+}
+
+impl Groupings {
+    fn insert(
+        &mut self,
+        entity: Entity,
+        value: InstanceData,
+        mesh: AssetId<Mesh>,
+        texture: Option<Handle<Image>>,
+    ) {
+        if self.groups.is_empty() {
+            self.groups.push(CellGroup {
+                range: f32::NEG_INFINITY..f32::INFINITY,
+                mesh,
+                texture,
+                content: vec![value],
+                host_entity: entity,
+            });
+            return;
+        }
+
+        let group = self
+            .groups
+            .iter_mut()
+            .find(|group| group.range.contains(&value.position.z))
+            .expect("All groups should span the entire range");
+
+        if group.can_accept(&mesh, &texture) {
+            group.insert(value);
+        } else {
+            let above = group.split(entity, value.position.z);
+            if above.content.is_empty() {
+                // If the split batch above is empty we want to try to insert
+                // this element into the next batch instead.
+                // If this element is going to be the last in the batch
+                // we want to check if we cannot insert it into the next batch instead
+                if let Some(next_batch) = self
+                    .groups
+                    .iter_mut()
+                    .find(|b| b.range.start == above.range.end && b.can_accept(&mesh, &texture))
+                {
+                    next_batch.insert(value);
+                    next_batch.range.start = value.position.z;
+                } else {
+                    self.groups.push(CellGroup {
+                        range: value.position.z..above.range.end,
+                        mesh,
+                        texture,
+                        content: vec![value],
+                        host_entity: entity,
+                    })
+                }
+            } else {
+                self.groups.push(CellGroup {
+                    range: value.position.z..above.range.start,
+                    mesh,
+                    texture,
+                    content: vec![value],
+                    host_entity: entity,
+                });
+                self.groups.push(above);
+            }
+        }
+    }
+}
+impl CellGroup {
+    fn can_accept(&self, mesh: &AssetId<Mesh>, texture: &Option<Handle<Image>>) -> bool {
+        &self.mesh == mesh && &self.texture == texture
+    }
+    fn insert(&mut self, value: InstanceData) {
+        let position = self
+            .content
+            .partition_point(|v| v.position.z <= value.position.z);
+        self.content.insert(position, value);
+    }
+    /// Split this group into two. This group becomes the lower portion and
+    /// the upper portion is returned.
+    fn split(&mut self, host_entity: Entity, depth: f32) -> CellGroup {
+        let split_index = self.content.partition_point(|v| v.position.z <= depth);
+        let content_above = self.content.drain(split_index..).collect::<Vec<_>>();
+
+        let above = CellGroup {
+            range: content_above
+                .first()
+                .map(|e| e.position.z)
+                .unwrap_or(self.range.end)..self.range.end,
+            mesh: self.mesh.clone(),
+            texture: self.texture.clone(),
+            content: content_above,
+            host_entity,
+        };
+        self.range.end = depth;
+        above
     }
 }

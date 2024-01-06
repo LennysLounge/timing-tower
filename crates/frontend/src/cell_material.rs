@@ -21,7 +21,7 @@ use bevy::{
         render_resource::*,
         renderer::RenderDevice,
         texture::FallbackImage,
-        view::ExtractedView,
+        view::{ExtractedView, VisibleEntities},
         Extract, Render, RenderApp, RenderSet,
     },
     sprite::{
@@ -205,15 +205,20 @@ fn prepare_uniform_buffers(
     //println!("start uniform buffer");
     for (entity, material) in query.iter() {
         //println!("\tentity:{entity:?}");
-        if let Ok(bind_group) = material.uniform.as_bind_group(
+        match material.uniform.as_bind_group(
             &pipeline.uniform_data_layout,
             &render_device,
             &images,
             &fallback_image,
         ) {
-            commands.entity(entity).insert(UniformBuffer {
-                prepared: bind_group,
-            });
+            Ok(bind_group) => {
+                commands.entity(entity).insert(UniformBuffer {
+                    prepared: bind_group,
+                });
+            }
+            Err(e) => {
+                println!("Failed to create uniform buffer: {e:?}");
+            }
         }
     }
 }
@@ -228,7 +233,11 @@ fn queue_custom(
     meshes: Res<RenderAssets<Mesh>>,
     render_mesh_instances: Res<RenderMesh2dInstances>,
     material_meshes: Query<Entity, (With<UniformBuffer>, With<GroupedCellMaterial>)>,
-    mut views: Query<(&ExtractedView, &mut RenderPhase<Transparent2d>)>,
+    mut views: Query<(
+        &ExtractedView,
+        &VisibleEntities,
+        &mut RenderPhase<Transparent2d>,
+    )>,
 ) {
     //println!("Start queue");
     let draw_custom = transparent_2d_draw_functions
@@ -237,12 +246,15 @@ fn queue_custom(
 
     let msaa_key = Mesh2dPipelineKey::from_msaa_samples(msaa.samples());
 
-    for (view, mut transparent_phase) in &mut views {
+    for (view, visible_entities, mut transparent_phase) in &mut views {
         //println!("we have a view");
         let view_key = msaa_key | Mesh2dPipelineKey::from_hdr(view.hdr);
-        for entity in &material_meshes {
+        for visible_entity in &visible_entities.entities {
             //println!("there is an entity");
-            let Some(mesh_instance) = render_mesh_instances.get(&entity) else {
+            let Ok(_) = material_meshes.get(*visible_entity) else {
+                continue;
+            };
+            let Some(mesh_instance) = render_mesh_instances.get(visible_entity) else {
                 continue;
             };
             let Some(mesh) = meshes.get(mesh_instance.mesh_asset_id) else {
@@ -255,7 +267,7 @@ fn queue_custom(
                 .unwrap();
             //println!("Add phase item for entity: {:?}", entity);
             transparent_phase.add(Transparent2d {
-                entity,
+                entity: *visible_entity,
                 pipeline,
                 draw_function: draw_custom,
                 batch_range: 0..1,

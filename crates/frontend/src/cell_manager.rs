@@ -9,7 +9,7 @@ use bevy::{
             Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
         },
         view::RenderLayers,
-    },
+    }, core_pipeline::clear_color::ClearColorConfig,
 };
 use common::communication::StyleCommand;
 use uuid::Uuid;
@@ -101,6 +101,11 @@ impl CellManager {
                                             order: -1,
                                             target: RenderTarget::Image(image_handle),
                                             ..Default::default()
+                                        },
+                                        camera_2d: Camera2d {
+                                            clear_color: ClearColorConfig::Custom(Color::rgba_u8(
+                                                0, 0, 0, 0,
+                                            )),
                                         },
                                         ..Default::default()
                                     })

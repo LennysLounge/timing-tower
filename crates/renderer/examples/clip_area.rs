@@ -63,7 +63,10 @@ fn setup(
             ..Default::default()
         })
         .insert(RenderLayers::layer(1));
-
+    
+    /*
+     * These are rendered to the clip area.
+     */
     set_style.send(SetStyle {
         entity: commands.spawn_empty().add(CreateCell).id(),
         style: CellStyle {
@@ -100,6 +103,9 @@ fn setup(
         },
     });
 
+    /*
+     * This is where its rendered to.
+     */
     set_style.send(SetStyle {
         entity: commands.spawn_empty().add(CreateCell).id(),
         style: CellStyle {
@@ -109,6 +115,22 @@ fn setup(
             visible: true,
             texture: Some(image_handle),
             rounding: [150.0, 0.0, 0.0, 0.0],
+            ..Default::default()
+        },
+    });
+
+
+    /*
+    This is a free standing cell and should not be clipped
+    */
+    set_style.send(SetStyle {
+        entity: commands.spawn_empty().add(CreateCell).id(),
+        style: CellStyle {
+            color: Color::YELLOW,
+            pos: vec3(-50.0, 200.0, 0.0),
+            size: vec2(100.0, 100.0),
+            visible: true,
+            render_layer: 0,
             ..Default::default()
         },
     });

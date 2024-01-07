@@ -22,40 +22,33 @@ fn setup(
 ) {
     commands.spawn(Camera2dBundle::default());
 
-    set_style.send(SetStyle {
-        entity: commands.spawn_empty().add(CreateCell).id(),
-        style: CellStyle {
-            color: Color::WHITE,
-            pos: vec3(0.0, 150.0, 1.0),
-            size: vec2(300.0, 300.0),
-            visible: true,
-            texture: Some(_asset_server.load("../../../savefile/constructors/Porsche.png")),
-            rounding: [0.0, 0.0, 0.0, 0.0],
-            ..Default::default()
-        },
-    });
-    set_style.send(SetStyle {
-        entity: commands.spawn_empty().add(CreateCell).id(),
-        style: CellStyle {
-            color: Color::WHITE,
-            pos: vec3(-300.0, 150.0, -1.0),
-            size: vec2(300.0, 300.0),
-            visible: true,
-            texture: Some(_asset_server.load("../../../savefile/constructors/Alpine.png")),
-            rounding: [0.0, 0.0, 0.0, 0.0],
-            ..Default::default()
-        },
-    });
-    // set_style.send(SetStyle {
-    //     entity: commands.spawn_empty().add(CreateCell).id(),
-    //     style: CellStyle {
-    //         color: Color::WHITE,
-    //         pos: vec3(300.0, 150.0, 1.0),
-    //         size: vec2(300.0, 300.0),
-    //         visible: true,
-    //         texture: Some(_asset_server.load("../../../savefile/constructors/BMW.png")),
-    //         rounding: [0.0, 0.0, 0.0, 0.0],
-    //         ..Default::default()
-    //     },
-    // });
+    for i in 0..11 {
+        let i = i as f32 / 10.0;
+        set_style.send(SetStyle {
+            entity: commands.spawn_empty().add(CreateCell).id(),
+            style: CellStyle {
+                color: Color::hsl(i * 360.0, 1.0, 0.50),
+                pos: vec3(-500.0 + 500.0 * i, 150.0 - 300.0 * i, i),
+                size: vec2(100.0, 100.0),
+                visible: true,
+                texture: Some(_asset_server.load("../../../savefile/constructors/Alpine.png")),
+                ..Default::default()
+            },
+        });
+    }
+
+    for i in 0..11 {
+        let i = i as f32 / 10.0;
+        set_style.send(SetStyle {
+            entity: commands.spawn_empty().add(CreateCell).id(),
+            style: CellStyle {
+                color: Color::hsl(i * 360.0, 1.0, 0.50),
+                pos: vec3(-200.0 + 500.0 * i, 150.0 - 300.0 * i, 1.0 - i),
+                size: vec2(100.0, 100.0),
+                visible: true,
+                texture: Some(_asset_server.load("../../../savefile/constructors/Porsche.png")),
+                ..Default::default()
+            },
+        });
+    }
 }

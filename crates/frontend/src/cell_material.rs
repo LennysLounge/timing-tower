@@ -1,6 +1,9 @@
 //! A material that renders cells as instanced.
 
-use std::ops::Range;
+use std::{
+    collections::hash_map::DefaultHasher,
+    hash::{Hash, Hasher},
+};
 
 use bevy::{
     asset::load_internal_asset,
@@ -156,37 +159,67 @@ struct GroupedCellMaterial {
 }
 
 fn group_instance_data(mut commands: Commands, query: Query<(Entity, &ExtractedCellMaterial)>) {
-    let mut groupings = Groupings { groups: Vec::new() };
-    for (entity, extracted) in query.iter() {
-        groupings.insert(
-            entity,
-            InstanceData {
-                position: extracted.transform,
-                size: extracted.material.size,
-                skew: extracted.material.skew,
-                rounding: extracted.material.rounding,
-                color: extracted.material.color.as_linear_rgba_f32(),
-            },
-            extracted.mesh.0.id(),
-            extracted.material.texture.clone(),
-        );
-    }
-    let x = groupings
-        .groups
-        .into_iter()
-        .map(|group| {
-            (
-                group.host_entity,
-                GroupedCellMaterial {
-                    uniform: UniformData {
-                        texture: group.texture,
-                    },
-                    per_instance: group.content,
-                },
-            )
+    let mut x = query
+        .iter()
+        .map(|(entity, extracted)| {
+            let mut hasher = DefaultHasher::new();
+            extracted.mesh.0.hash(&mut hasher);
+            extracted.material.texture.hash(&mut hasher);
+            (entity, extracted, hasher.finish())
         })
         .collect::<Vec<_>>();
-    commands.insert_or_spawn_batch(x);
+    x.sort_by(|(_, extracted_a, hash_a), (_, extracted_b, hash_b)| {
+        extracted_a
+            .transform
+            .z
+            .partial_cmp(&extracted_b.transform.z)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then(hash_a.cmp(&hash_b))
+    });
+
+    let (mut groups, _, acc) = x.into_iter().fold(
+        (Vec::new(), 0u64, Vec::new()),
+        |(mut groups, mut current_hash, mut acc), (entity, extracted, extracted_hash)| {
+            if current_hash == extracted_hash {
+                acc.push((entity, extracted));
+            } else {
+                groups.push(acc);
+                current_hash = extracted_hash;
+                acc = vec![(entity, extracted)]
+            }
+            (groups, current_hash, acc)
+        },
+    );
+    groups.push(acc);
+
+    let entities = groups
+        .iter_mut()
+        .filter_map(|group| {
+            if group.is_empty() {
+                return None;
+            }
+            let (host_entity, extracted) = group.first().unwrap();
+            Some((
+                *host_entity,
+                GroupedCellMaterial {
+                    uniform: UniformData {
+                        texture: extracted.material.texture.clone(),
+                    },
+                    per_instance: group
+                        .iter()
+                        .map(|(_, extracted)| InstanceData {
+                            position: extracted.transform,
+                            size: extracted.material.size,
+                            skew: extracted.material.skew,
+                            rounding: extracted.material.rounding,
+                            color: extracted.material.color.as_linear_rgba_f32(),
+                        })
+                        .collect(),
+                },
+            ))
+        })
+        .collect::<Vec<_>>();
+    commands.insert_or_spawn_batch(entities);
 }
 
 #[derive(Component)]
@@ -427,110 +460,5 @@ impl<P: PhaseItem> RenderCommand<P> for DrawMesh2dInstanced {
             }
         }
         RenderCommandResult::Success
-    }
-}
-
-struct Groupings {
-    groups: Vec<CellGroup>,
-}
-struct CellGroup {
-    range: Range<f32>,
-    mesh: AssetId<Mesh>,
-    texture: Option<Handle<Image>>,
-    content: Vec<InstanceData>,
-    host_entity: Entity,
-}
-
-impl Groupings {
-    fn insert(
-        &mut self,
-        entity: Entity,
-        value: InstanceData,
-        mesh: AssetId<Mesh>,
-        texture: Option<Handle<Image>>,
-    ) {
-        if self.groups.is_empty() {
-            self.groups.push(CellGroup {
-                range: f32::NEG_INFINITY..f32::INFINITY,
-                mesh,
-                texture,
-                content: vec![value],
-                host_entity: entity,
-            });
-            return;
-        }
-
-        let group = self
-            .groups
-            .iter_mut()
-            .find(|group| group.range.contains(&value.position.z))
-            .expect("All groups should span the entire range");
-
-        if group.can_accept(&mesh, &texture) {
-            group.insert(value);
-        } else {
-            let above = group.split(entity, value.position.z);
-            if above.content.is_empty() {
-                // If the split batch above is empty we want to try to insert
-                // this element into the next batch instead.
-                // If this element is going to be the last in the batch
-                // we want to check if we cannot insert it into the next batch instead
-                if let Some(next_batch) = self
-                    .groups
-                    .iter_mut()
-                    .find(|b| b.range.start == above.range.end && b.can_accept(&mesh, &texture))
-                {
-                    next_batch.insert(value);
-                    next_batch.range.start = value.position.z;
-                } else {
-                    self.groups.push(CellGroup {
-                        range: value.position.z..above.range.end,
-                        mesh,
-                        texture,
-                        content: vec![value],
-                        host_entity: entity,
-                    })
-                }
-            } else {
-                self.groups.push(CellGroup {
-                    range: value.position.z..above.range.start,
-                    mesh,
-                    texture,
-                    content: vec![value],
-                    host_entity: entity,
-                });
-                self.groups.push(above);
-            }
-        }
-    }
-}
-impl CellGroup {
-    fn can_accept(&self, mesh: &AssetId<Mesh>, texture: &Option<Handle<Image>>) -> bool {
-        &self.mesh == mesh && &self.texture == texture
-    }
-    fn insert(&mut self, value: InstanceData) {
-        let position = self
-            .content
-            .partition_point(|v| v.position.z <= value.position.z);
-        self.content.insert(position, value);
-    }
-    /// Split this group into two. This group becomes the lower portion and
-    /// the upper portion is returned.
-    fn split(&mut self, host_entity: Entity, depth: f32) -> CellGroup {
-        let split_index = self.content.partition_point(|v| v.position.z <= depth);
-        let content_above = self.content.drain(split_index..).collect::<Vec<_>>();
-
-        let above = CellGroup {
-            range: content_above
-                .first()
-                .map(|e| e.position.z)
-                .unwrap_or(self.range.end)..self.range.end,
-            mesh: self.mesh.clone(),
-            texture: self.texture.clone(),
-            content: content_above,
-            host_entity,
-        };
-        self.range.end = depth;
-        above
     }
 }

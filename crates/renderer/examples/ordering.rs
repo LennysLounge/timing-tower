@@ -20,63 +20,44 @@ fn setup(
 ) {
     commands.spawn(Camera2dBundle::default());
 
-    // for i in 0..11 {
-    //     let i = i as f32;
-    //     println!("{}", i / 10.0);
-    //     set_style.send(SetStyle {
-    //         entity: commands.spawn_empty().add(CreateCell).id(),
-    //         style: CellStyle {
-    //             color: Color::rgba(1.0, 0.0, 0.0, i / 10.0),
-    //             pos: vec3(-500.0 + 100.0 * i, 150.0, 0.0),
-    //             size: vec2(100.0, 100.0),
-    //             visible: true,
-    //             ..Default::default()
-    //         },
-    //     });
-    // }
+    for i in 0..11 {
+        let i = i as f32 / 10.0;
+        set_style.send(SetStyle {
+            entity: commands.spawn_empty().add(CreateCell).id(),
+            style: CellStyle {
+                color: Color::hsl(i * 360.0, 1.0, 0.50),
+                pos: vec3(-500.0 + 500.0 * i, 150.0 - 300.0 * i, i),
+                size: vec2(100.0, 100.0),
+                visible: true,
+                ..Default::default()
+            },
+        });
+    }
+
+    for i in 0..11 {
+        let i = i as f32 / 10.0;
+        set_style.send(SetStyle {
+            entity: commands.spawn_empty().add(CreateCell).id(),
+            style: CellStyle {
+                color: Color::hsl(i * 360.0, 1.0, 0.50),
+                pos: vec3(-200.0 + 500.0 * i, 150.0 - 300.0 * i, 1.0 - i),
+                size: vec2(100.0, 100.0),
+                visible: true,
+                ..Default::default()
+            },
+        });
+    }
 
     set_style.send(SetStyle {
         entity: commands.spawn_empty().add(CreateCell).id(),
         style: CellStyle {
-            color: Color::RED,
-            pos: vec3(-500.0, 150.0, -1.0),
-            size: vec2(300.0, 300.0),
+            color: Color::WHITE,
+            pos: vec3(200.0, 150.0, 0.5),
+            size: vec2(200.0, 200.0),
             visible: true,
+            texture: Some(asset_server.load("../../../savefile/constructors/Alpine.png")),
             ..Default::default()
         },
     });
 
-    set_style.send(SetStyle {
-        entity: commands.spawn_empty().add(CreateCell).id(),
-        style: CellStyle {
-            color: Color::rgba(0.0, 0.0, 0.0, 0.5),
-            pos: vec3(-300.0, 150.0, -0.0),
-            size: vec2(300.0, 300.0),
-            visible: true,
-            texture: Some(asset_server.load("Alpine.png")),
-            ..Default::default()
-        },
-    });
-
-    set_style.send(SetStyle {
-        entity: commands.spawn_empty().add(CreateCell).id(),
-        style: CellStyle {
-            color: Color::BLUE,
-            pos: vec3(-100.0, 150.0, -1.0),
-            size: vec2(300.0, 300.0),
-            visible: true,
-            ..Default::default()
-        },
-    });
-
-    // set_style.send(SetStyle {
-    //     entity: commands.spawn_empty().add(CreateCell).id(),
-    //     style: CellStyle {
-    //         color: Color::BLUE,
-    //         pos: vec3(-50.0, 50.0, -1.0),
-    //         size: vec2(300.0, 300.0),
-    //         visible: true,
-    //         ..Default::default()
-    //     },
-    // });
 }

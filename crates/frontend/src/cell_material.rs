@@ -24,7 +24,7 @@ use bevy::{
         render_resource::*,
         renderer::RenderDevice,
         texture::FallbackImage,
-        view::{ExtractedView, VisibleEntities},
+        view::{ExtractedView, RenderLayers, VisibleEntities},
         Extract, Render, RenderApp, RenderSet,
     },
     sprite::{
@@ -102,6 +102,7 @@ pub struct ExtractedCellMaterial {
     material: CellMaterial,
     mesh: Mesh2dHandle,
     transform: Vec3,
+    render_layer: RenderLayers,
 }
 
 impl ExtractComponent for CellMaterial {
@@ -109,17 +110,19 @@ impl ExtractComponent for CellMaterial {
         &'static CellMaterial,
         &'static Mesh2dHandle,
         &'static GlobalTransform,
+        &'static RenderLayers,
     );
     type Filter = ();
     type Out = ExtractedCellMaterial;
 
     fn extract_component(
-        (material, mesh, transform): QueryItem<'_, Self::Query>,
+        (material, mesh, transform, layers): QueryItem<'_, Self::Query>,
     ) -> Option<Self::Out> {
         Some(ExtractedCellMaterial {
             material: material.clone(),
             mesh: mesh.clone(),
             transform: transform.translation(),
+            render_layer: *layers,
         })
     }
 }
@@ -159,67 +162,85 @@ struct GroupedCellMaterial {
 }
 
 fn group_instance_data(mut commands: Commands, query: Query<(Entity, &ExtractedCellMaterial)>) {
-    let mut x = query
-        .iter()
-        .map(|(entity, extracted)| {
-            let mut hasher = DefaultHasher::new();
-            extracted.mesh.0.hash(&mut hasher);
-            extracted.material.texture.hash(&mut hasher);
-            (entity, extracted, hasher.finish())
-        })
-        .collect::<Vec<_>>();
-    x.sort_by(|(_, extracted_a, hash_a), (_, extracted_b, hash_b)| {
-        extracted_a
-            .transform
-            .z
-            .partial_cmp(&extracted_b.transform.z)
-            .unwrap_or(std::cmp::Ordering::Equal)
-            .then(hash_a.cmp(&hash_b))
+    // group by render layer
+    // Cells can only belong to one render layer at the moment.
+    // This restriction is because the same host entity might get asigned multiple render groups.
+    // Once we no longe rely on the host entity from the mesh we can create as many entities
+    // as are needed to render the groups.
+    let mut layers: [Vec<(Entity, &ExtractedCellMaterial)>; 32] = Default::default();
+    query.iter().for_each(|x| {
+        for layer_index in 0..32 {
+            let layer = RenderLayers::layer(layer_index);
+            if x.1.render_layer.intersects(&layer) {
+                layers[layer_index as usize].push(x);
+                return;
+            }
+        }
     });
 
-    let (mut groups, _, acc) = x.into_iter().fold(
-        (Vec::new(), 0u64, Vec::new()),
-        |(mut groups, mut current_hash, mut acc), (entity, extracted, extracted_hash)| {
-            if current_hash == extracted_hash {
-                acc.push((entity, extracted));
-            } else {
-                groups.push(acc);
-                current_hash = extracted_hash;
-                acc = vec![(entity, extracted)]
-            }
-            (groups, current_hash, acc)
-        },
-    );
-    groups.push(acc);
+    for layer in layers {
+        let mut sorted_entries = layer
+            .into_iter()
+            .map(|(entity, extracted)| {
+                let mut hasher = DefaultHasher::new();
+                extracted.mesh.0.hash(&mut hasher);
+                extracted.material.texture.hash(&mut hasher);
+                (entity, extracted, hasher.finish())
+            })
+            .collect::<Vec<_>>();
+        sorted_entries.sort_by(|(_, extracted_a, hash_a), (_, extracted_b, hash_b)| {
+            extracted_a
+                .transform
+                .z
+                .partial_cmp(&extracted_b.transform.z)
+                .unwrap_or(std::cmp::Ordering::Equal)
+                .then(hash_a.cmp(&hash_b))
+        });
 
-    let entities = groups
-        .iter_mut()
-        .filter_map(|group| {
-            if group.is_empty() {
-                return None;
-            }
-            let (host_entity, extracted) = group.first().unwrap();
-            Some((
-                *host_entity,
-                GroupedCellMaterial {
-                    uniform: UniformData {
-                        texture: extracted.material.texture.clone(),
+        let (mut groups, _, acc) = sorted_entries.into_iter().fold(
+            (Vec::new(), 0u64, Vec::new()),
+            |(mut groups, mut current_hash, mut acc), (entity, extracted, extracted_hash)| {
+                if current_hash == extracted_hash {
+                    acc.push((entity, extracted));
+                } else {
+                    groups.push(acc);
+                    current_hash = extracted_hash;
+                    acc = vec![(entity, extracted)]
+                }
+                (groups, current_hash, acc)
+            },
+        );
+        groups.push(acc);
+
+        let entities = groups
+            .iter_mut()
+            .filter_map(|group| {
+                if group.is_empty() {
+                    return None;
+                }
+                let (host_entity, extracted) = group.first().unwrap();
+                Some((
+                    *host_entity,
+                    GroupedCellMaterial {
+                        uniform: UniformData {
+                            texture: extracted.material.texture.clone(),
+                        },
+                        per_instance: group
+                            .iter()
+                            .map(|(_, extracted)| InstanceData {
+                                position: extracted.transform,
+                                size: extracted.material.size,
+                                skew: extracted.material.skew,
+                                rounding: extracted.material.rounding,
+                                color: extracted.material.color.as_linear_rgba_f32(),
+                            })
+                            .collect(),
                     },
-                    per_instance: group
-                        .iter()
-                        .map(|(_, extracted)| InstanceData {
-                            position: extracted.transform,
-                            size: extracted.material.size,
-                            skew: extracted.material.skew,
-                            rounding: extracted.material.rounding,
-                            color: extracted.material.color.as_linear_rgba_f32(),
-                        })
-                        .collect(),
-                },
-            ))
-        })
-        .collect::<Vec<_>>();
-    commands.insert_or_spawn_batch(entities);
+                ))
+            })
+            .collect::<Vec<_>>();
+        commands.insert_or_spawn_batch(entities);
+    }
 }
 
 #[derive(Component)]

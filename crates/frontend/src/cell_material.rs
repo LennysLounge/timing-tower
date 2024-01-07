@@ -111,14 +111,15 @@ impl ExtractComponent for CellMaterial {
         &'static Mesh2dHandle,
         &'static GlobalTransform,
         &'static RenderLayers,
+        &'static InheritedVisibility,
     );
     type Filter = ();
     type Out = ExtractedCellMaterial;
 
     fn extract_component(
-        (material, mesh, transform, layers): QueryItem<'_, Self::Query>,
+        (material, mesh, transform, layers, visibility): QueryItem<'_, Self::Query>,
     ) -> Option<Self::Out> {
-        Some(ExtractedCellMaterial {
+        visibility.get().then_some(ExtractedCellMaterial {
             material: material.clone(),
             mesh: mesh.clone(),
             transform: transform.translation(),
@@ -259,6 +260,7 @@ fn prepare_uniform_buffers(
     //println!("start uniform buffer");
     for (entity, material) in query.iter() {
         //println!("\tentity:{entity:?}");
+        // Should this be cached between frames? I dont know.
         match material.uniform.as_bind_group(
             &pipeline.uniform_data_layout,
             &render_device,
@@ -270,8 +272,8 @@ fn prepare_uniform_buffers(
                     prepared: bind_group,
                 });
             }
-            Err(e) => {
-                println!("Failed to create uniform buffer: {e:?}");
+            Err(_e) => {
+                //println!("Failed to create uniform buffer: {e:?}");
             }
         }
     }

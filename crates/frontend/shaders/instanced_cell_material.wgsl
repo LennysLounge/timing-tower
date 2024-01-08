@@ -12,9 +12,10 @@ struct Vertex {
     
     @location(3) model_pos: vec3<f32>,
     @location(4) size: vec2<f32>,
-    @location(5) skew: f32,
-    @location(6) rounding: vec4<f32>,
-    @location(7) i_color: vec4<f32>,
+    @location(5) corner_offset_x: vec4<f32>,
+    @location(6) corner_offset_y: vec4<f32>,
+    @location(7) rounding: vec4<f32>,
+    @location(8) i_color: vec4<f32>,
 };
 
 struct VertexOutput {
@@ -29,8 +30,12 @@ struct VertexOutput {
 @group(1) @binding(1) var texture_sampler: sampler;
 
 @vertex
-fn vertex(vertex: Vertex) -> VertexOutput {
-    let vertex_pos = vertex.size * vertex.uv * vec2(1.0, -1.0) + vec2(vertex.skew, 0.0) * (1.0-vertex.uv.y);
+fn vertex(vertex: Vertex, @builtin(vertex_index) index: u32) -> VertexOutput {
+    let vertex_offset = vec2<f32>(
+        vertex.corner_offset_x[index % 4u],
+        vertex.corner_offset_y[index % 4u],
+    );
+    let vertex_pos = vertex.size * vertex.uv * vec2(1.0, -1.0) + vertex_offset;
     let final_vertex_pos = vec4<f32>(vertex.model_pos.xy + vertex_pos, vertex.model_pos.z, 1.0);
 
     var out: VertexOutput;

@@ -127,6 +127,18 @@ impl ExtractComponent for CellMaterial {
         })
     }
 }
+impl ExtractedCellMaterial {
+    fn to_instance_data(&self) -> InstanceData {
+        InstanceData {
+            position: self.transform,
+            size: self.material.size,
+            corner_offset_x: [self.material.skew, self.material.skew, 0.0, 0.0],
+            corner_offset_y: [0.0, 0.0, 0.0, 0.0],
+            rounding: self.material.rounding,
+            color: self.material.color.as_linear_rgba_f32(),
+        }
+    }
+}
 
 fn extract_mesh_2d_handle(mut commands: Commands, query: Extract<Query<(Entity, &Mesh2dHandle)>>) {
     let mut extracted = Vec::new();
@@ -150,7 +162,8 @@ struct UniformData {
 struct InstanceData {
     position: Vec3,
     size: Vec2,
-    skew: f32,
+    corner_offset_x: [f32; 4],
+    corner_offset_y: [f32; 4],
     rounding: [f32; 4],
     color: [f32; 4],
 }
@@ -228,13 +241,7 @@ fn group_instance_data(mut commands: Commands, query: Query<(Entity, &ExtractedC
                         },
                         per_instance: group
                             .iter()
-                            .map(|(_, extracted)| InstanceData {
-                                position: extracted.transform,
-                                size: extracted.material.size,
-                                skew: extracted.material.skew,
-                                rounding: extracted.material.rounding,
-                                color: extracted.material.color.as_linear_rgba_f32(),
-                            })
+                            .map(|(_, extracted)| extracted.to_instance_data())
                             .collect(),
                     },
                 ))
@@ -404,30 +411,41 @@ impl SpecializedMeshPipeline for CellMaterialPipline {
             array_stride: std::mem::size_of::<InstanceData>() as u64,
             step_mode: VertexStepMode::Instance,
             attributes: vec![
+                // model_pos
                 VertexAttribute {
                     format: VertexFormat::Float32x3,
                     offset: 0,
-                    shader_location: 3, // shader locations 0-2 are taken up by Position, Normal and UV attributes
+                    shader_location: 3,
                 },
+                //size
                 VertexAttribute {
                     format: VertexFormat::Float32x2,
                     offset: 12,
-                    shader_location: 4, // shader locations 0-2 are taken up by Position, Normal and UV attributes
+                    shader_location: 4,
                 },
-                VertexAttribute {
-                    format: VertexFormat::Float32,
-                    offset: 20,
-                    shader_location: 5, // shader locations 0-2 are taken up by Position, Normal and UV attributes
-                },
+                // corner_offset_x
                 VertexAttribute {
                     format: VertexFormat::Float32x4,
-                    offset: 24,
+                    offset: 20,
+                    shader_location: 5,
+                },
+                // corner_offset_y
+                VertexAttribute {
+                    format: VertexFormat::Float32x4,
+                    offset: 36,
                     shader_location: 6,
                 },
+                // rounding
                 VertexAttribute {
                     format: VertexFormat::Float32x4,
-                    offset: 40,
+                    offset: 52,
                     shader_location: 7,
+                },
+                // color
+                VertexAttribute {
+                    format: VertexFormat::Float32x4,
+                    offset: 68,
+                    shader_location: 8,
                 },
             ],
         });

@@ -83,7 +83,7 @@ fn setup_cell(
         set_style.send(SetStyle {
             entity: cell_id,
             style: frontend::cell::CellStyle {
-                text: String::from("Hello World"),
+                text: String::new(),
                 text_color: Color::BLACK,
                 text_size: 40.0,
                 text_alignment: common::communication::TextAlignment::Center,
@@ -94,13 +94,13 @@ fn setup_cell(
                 pos: vec3(-150.0, 150.0, 0.0),
                 size: vec2(300.0, 300.0),
                 corner_offsets: [
-                    vec2(50.0, 0.0),
-                    vec2(50.0, 0.0),
                     vec2(0.0, 0.0),
                     vec2(0.0, 0.0),
+                    vec2(0.0, 0.0),
+                    vec2(-300.0, 0.0),
                 ],
                 visible: true,
-                rounding: [50.0, 50.0, 50.0, 50.0],
+                rounding: [50.0, 200.0, 20.0, 50.0],
                 render_layer: 0,
             },
         });

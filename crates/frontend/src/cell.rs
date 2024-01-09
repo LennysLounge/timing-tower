@@ -54,7 +54,7 @@ pub struct CellStyle {
     pub texture: Option<Handle<Image>>,
     pub pos: Vec3,
     pub size: Vec2,
-    pub skew: f32,
+    pub corner_offsets: [Vec2; 4],
     pub visible: bool,
     pub rounding: [f32; 4],
     pub render_layer: u8,
@@ -203,7 +203,7 @@ fn update_style(
         material.color = style.color;
         material.texture = style.texture.clone();
         material.size = style.size;
-        material.skew = style.skew;
+        material.corner_offsets = style.corner_offsets;
         material.rounding = style.rounding.into();
 
         transform.translation = style.pos;

@@ -93,7 +93,12 @@ fn setup_cell(
                 texture: None,
                 pos: vec3(-150.0, 150.0, 0.0),
                 size: vec2(300.0, 300.0),
-                skew: 50.0,
+                corner_offsets: [
+                    vec2(50.0, 0.0),
+                    vec2(50.0, 0.0),
+                    vec2(0.0, 0.0),
+                    vec2(0.0, 0.0),
+                ],
                 visible: true,
                 rounding: [50.0, 50.0, 50.0, 50.0],
                 render_layer: 0,

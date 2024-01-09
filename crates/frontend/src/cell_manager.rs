@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use bevy::{
+    core_pipeline::clear_color::ClearColorConfig,
     math::vec3,
     prelude::*,
     render::{
@@ -9,7 +10,7 @@ use bevy::{
             Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
         },
         view::RenderLayers,
-    }, core_pipeline::clear_color::ClearColorConfig,
+    },
 };
 use common::communication::StyleCommand;
 use uuid::Uuid;
@@ -66,7 +67,7 @@ impl CellManager {
                                 .and_then(|path| Some(asset_server.load(path))),
                             pos: style.pos,
                             size: style.size,
-                            skew: style.skew,
+                            corner_offsets: style.corner_offsets,
                             visible: style.visible,
                             rounding: style.rounding,
                             render_layer: style.render_layer,
@@ -131,7 +132,7 @@ impl CellManager {
                         style: CellStyle {
                             pos: style.pos,
                             size: style.size,
-                            skew: style.skew,
+                            corner_offsets: style.corner_offsets,
                             rounding: style.rounding,
                             color: Color::WHITE,
                             visible: true,

@@ -92,7 +92,7 @@ impl Plugin for CellMaterialPlugin {
 #[derive(Component, Default, Clone)]
 pub struct CellMaterial {
     pub size: Vec2,
-    pub skew: f32,
+    pub corner_offsets: [Vec2; 4],
     pub rounding: [f32; 4],
     pub color: Color,
     pub texture: Option<Handle<Image>>,
@@ -132,8 +132,18 @@ impl ExtractedCellMaterial {
         InstanceData {
             position: self.transform,
             size: self.material.size,
-            corner_offset_x: [self.material.skew, self.material.skew, 0.0, 0.0],
-            corner_offset_y: [0.0, 0.0, 0.0, 0.0],
+            corner_offset_x: [
+                self.material.corner_offsets[0].x,
+                self.material.corner_offsets[1].x,
+                self.material.corner_offsets[2].x,
+                self.material.corner_offsets[3].x,
+            ],
+            corner_offset_y: [
+                self.material.corner_offsets[0].y,
+                self.material.corner_offsets[1].y,
+                self.material.corner_offsets[2].y,
+                self.material.corner_offsets[3].y,
+            ],
             rounding: self.material.rounding,
             color: self.material.color.as_linear_rgba_f32(),
         }

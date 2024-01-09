@@ -42,7 +42,7 @@ pub struct CellStyle {
     pub texture: Option<Uuid>,
     pub pos: Vec3,
     pub size: Vec2,
-    pub skew: f32,
+    pub corner_offsets: [Vec2; 4],
     pub visible: bool,
     pub rounding: [f32; 4],
     pub render_layer: u8,
@@ -60,7 +60,7 @@ pub enum TextAlignment {
 pub struct ClipAreaStyle {
     pub pos: Vec3,
     pub size: Vec2,
-    pub skew: f32,
+    pub corner_offsets: [Vec2; 4],
     pub rounding: [f32; 4],
     pub render_layer: u8,
 }

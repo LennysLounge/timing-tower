@@ -154,6 +154,70 @@ pub fn cell_property_editor(
             edit_result = EditResult::FromId(res.id)
         }
         ui.end_row();
+        ui.label("offset top left:");
+        ui.scope(|ui| {
+            edit_result |= ui
+                .add(PropertyEditor::new(
+                    &mut cell.corner_offsets.top_left.x,
+                    reference_store,
+                ))
+                .into();
+            edit_result |= ui
+                .add(PropertyEditor::new(
+                    &mut cell.corner_offsets.top_left.y,
+                    reference_store,
+                ))
+                .into();
+        });
+        ui.end_row();
+        ui.label("offset top right:");
+        ui.scope(|ui| {
+            edit_result |= ui
+                .add(PropertyEditor::new(
+                    &mut cell.corner_offsets.top_right.x,
+                    reference_store,
+                ))
+                .into();
+            edit_result |= ui
+                .add(PropertyEditor::new(
+                    &mut cell.corner_offsets.top_right.y,
+                    reference_store,
+                ))
+                .into();
+        });
+        ui.end_row();
+        ui.label("offset bottom left:");
+        ui.scope(|ui| {
+            edit_result |= ui
+                .add(PropertyEditor::new(
+                    &mut cell.corner_offsets.bot_left.x,
+                    reference_store,
+                ))
+                .into();
+            edit_result |= ui
+                .add(PropertyEditor::new(
+                    &mut cell.corner_offsets.bot_left.y,
+                    reference_store,
+                ))
+                .into();
+        });
+        ui.end_row();
+        ui.label("offset bottom right:");
+        ui.scope(|ui| {
+            edit_result |= ui
+                .add(PropertyEditor::new(
+                    &mut cell.corner_offsets.bot_right.x,
+                    reference_store,
+                ))
+                .into();
+            edit_result |= ui
+                .add(PropertyEditor::new(
+                    &mut cell.corner_offsets.bot_right.y,
+                    reference_store,
+                ))
+                .into();
+        });
+        ui.end_row();
 
         ui.label("Rounding:");
         ui.end_row();

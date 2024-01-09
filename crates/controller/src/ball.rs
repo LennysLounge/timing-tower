@@ -87,7 +87,7 @@ fn update(
                 texture: None,
                 pos: transform.translation,
                 size: vec2(30.0, 30.0),
-                skew: 0.0,
+                corner_offsets: [Vec2::ZERO, Vec2::ZERO, Vec2::ZERO, Vec2::ZERO],
                 visible: true,
                 rounding: [15.0; 4],
                 render_layer: 0,

@@ -1,6 +1,10 @@
 use std::collections::HashMap;
 
-use crate::{style::clip_area::ClipAreaData, value_types::Font, GameAdapterResource};
+use crate::{
+    style::clip_area::ClipAreaData,
+    value_types::{Font, Vec2Property},
+    GameAdapterResource,
+};
 
 use super::{
     savefile::Savefile,
@@ -14,7 +18,7 @@ use bevy::{
         schedule::{IntoSystemConfigs, SystemSet},
         system::ResMut,
     },
-    math::vec3,
+    math::{vec2, vec3},
     prelude::{Color, Component, Plugin, Query, Res, Update, Vec2, Vec3},
 };
 use common::communication::{CellStyle, ClipAreaStyle};
@@ -238,11 +242,19 @@ impl<'a> StyleResolver<'a> {
                     .unwrap_or_default()
                     .0,
             ),
-            skew: self
-                .value_store
-                .get_property(&clip_area.skew, self.entry)
-                .unwrap_or_default()
-                .0,
+            corner_offsets: {
+                let skew = self
+                    .value_store
+                    .get_property(&clip_area.skew, self.entry)
+                    .unwrap_or_default()
+                    .0;
+                [
+                    vec2(skew, 0.0),
+                    vec2(skew, 0.0),
+                    vec2(0.0, 0.0),
+                    vec2(0.0, 0.0),
+                ]
+            },
             rounding: [
                 self.value_store
                     .get_property(&clip_area.rounding.top_left, self.entry)
@@ -337,11 +349,32 @@ impl<'a> StyleResolver<'a> {
                     .unwrap_or(Number(0.0))
                     .0,
             ),
-            skew: self
-                .value_store
-                .get_property(&cell.skew, self.entry)
-                .unwrap_or(Number(0.0))
-                .0,
+            corner_offsets: {
+                let skew = self
+                    .value_store
+                    .get_property(&cell.skew, self.entry)
+                    .unwrap_or_default()
+                    .0;
+                let get_vec = |prop: &Vec2Property| {
+                    vec2(
+                        self.value_store
+                            .get_property(&prop.x, self.entry)
+                            .unwrap_or_default()
+                            .0,
+                        -self
+                            .value_store
+                            .get_property(&prop.y, self.entry)
+                            .unwrap_or_default()
+                            .0,
+                    )
+                };
+                [
+                    get_vec(&cell.corner_offsets.top_left) + vec2(skew, 0.0),
+                    get_vec(&cell.corner_offsets.top_right) + vec2(skew, 0.0),
+                    get_vec(&cell.corner_offsets.bot_left) + vec2(0.0, 0.0),
+                    get_vec(&cell.corner_offsets.bot_right) + vec2(0.0, 0.0),
+                ]
+            },
             visible: self
                 .value_store
                 .get_property(&cell.visible, self.entry)

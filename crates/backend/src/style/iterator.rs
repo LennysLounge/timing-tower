@@ -4,8 +4,9 @@ use uuid::Uuid;
 
 use super::{
     assets::{AssetDefinition, AssetFolder},
+    cell::{FreeCell, FreeCellFolder},
     scene::SceneDefinition,
-    timing_tower::{TimingTower, TimingTowerColumn, TimingTowerColumnFolder, TimingTowerRow},
+    timing_tower::{TimingTower, TimingTowerRow},
     variables::{VariableDefinition, VariableFolder},
     StyleDefinition,
 };
@@ -82,8 +83,8 @@ pub enum Node<'a> {
     Scene(&'a SceneDefinition),
     TimingTower(&'a TimingTower),
     TimingTowerRow(&'a TimingTowerRow),
-    TimingTowerColumn(&'a TimingTowerColumn),
-    TimingTowerColumnFolder(&'a TimingTowerColumnFolder),
+    FreeCellFolder(&'a FreeCellFolder),
+    FreeCell(&'a FreeCell),
 }
 
 impl Node<'_> {
@@ -97,8 +98,8 @@ impl Node<'_> {
             Node::Scene(o) => &o.id,
             Node::TimingTower(o) => &o.id,
             Node::TimingTowerRow(o) => &o.id,
-            Node::TimingTowerColumn(o) => &o.id,
-            Node::TimingTowerColumnFolder(o) => &o.id,
+            Node::FreeCellFolder(o) => &o.id,
+            Node::FreeCell(o) => &o.id,
         }
     }
 }
@@ -116,8 +117,8 @@ impl NodeIterator for Node<'_> {
             Node::Scene(o) => o.walk(f),
             Node::TimingTower(o) => o.walk(f),
             Node::TimingTowerRow(o) => o.walk(f),
-            Node::TimingTowerColumn(o) => o.walk(f),
-            Node::TimingTowerColumnFolder(o) => o.walk(f),
+            Node::FreeCellFolder(o) => o.walk(f),
+            Node::FreeCell(o) => o.walk(f),
         }
     }
 }
@@ -131,8 +132,8 @@ pub enum NodeMut<'a> {
     Scene(&'a mut SceneDefinition),
     TimingTower(&'a mut TimingTower),
     TimingTowerRow(&'a mut TimingTowerRow),
-    TimingTowerColumn(&'a mut TimingTowerColumn),
-    TimingTowerColumnFolder(&'a mut TimingTowerColumnFolder),
+    FreeCellFolderMut(&'a mut FreeCellFolder),
+    FreeCell(&'a mut FreeCell),
 }
 impl NodeMut<'_> {
     pub fn id(&self) -> &Uuid {
@@ -145,8 +146,8 @@ impl NodeMut<'_> {
             NodeMut::Scene(o) => &o.id,
             NodeMut::TimingTower(o) => &o.id,
             NodeMut::TimingTowerRow(o) => &o.id,
-            NodeMut::TimingTowerColumn(o) => &o.id,
-            NodeMut::TimingTowerColumnFolder(o) => &o.id,
+            NodeMut::FreeCellFolderMut(o) => &o.id,
+            NodeMut::FreeCell(o) => &o.id,
         }
     }
 }
@@ -164,8 +165,8 @@ impl NodeIteratorMut for NodeMut<'_> {
             NodeMut::Scene(o) => o.walk_mut(f),
             NodeMut::TimingTower(o) => o.walk_mut(f),
             NodeMut::TimingTowerRow(o) => o.walk_mut(f),
-            NodeMut::TimingTowerColumn(o) => o.walk_mut(f),
-            NodeMut::TimingTowerColumnFolder(o) => o.walk_mut(f),
+            NodeMut::FreeCellFolderMut(o) => o.walk_mut(f),
+            NodeMut::FreeCell(o) => o.walk_mut(f),
         }
     }
 }

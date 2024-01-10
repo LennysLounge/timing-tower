@@ -1,9 +1,17 @@
+use std::ops::ControlFlow;
+
 use bevy::prelude::Color;
 use common::communication::TextAlignment;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::value_types::{
     Boolean, Font, Number, Property, Text, Texture, Tint, Vec2Property, Vec3Property,
+};
+
+use super::{
+    iterator::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
+    StyleNode,
 };
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -83,4 +91,129 @@ pub struct ClipArea {
     pub skew: Property<Number>,
     pub rounding: Rounding,
     pub render_layer: u8,
+}
+
+#[derive(Serialize, Deserialize, Clone, Default)]
+pub struct FreeCell {
+    pub id: Uuid,
+    pub name: String,
+    pub cell: Cell,
+}
+impl FreeCell {
+    pub fn new() -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            name: String::from("Cell"),
+            cell: Cell::default(),
+        }
+    }
+}
+impl StyleNode for FreeCell {
+    fn id(&self) -> &Uuid {
+        &self.id
+    }
+
+    fn as_node<'a>(&'a self) -> Node<'a> {
+        Node::FreeCell(self)
+    }
+
+    fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
+        NodeMut::FreeCell(self)
+    }
+}
+impl NodeIterator for FreeCell {
+    fn walk<F, R>(&self, f: &mut F) -> ControlFlow<R>
+    where
+        F: FnMut(Node, Method) -> ControlFlow<R>,
+    {
+        f(self.as_node(), Method::Visit)?;
+        f(self.as_node(), Method::Leave)
+    }
+}
+
+impl NodeIteratorMut for FreeCell {
+    fn walk_mut<F, R>(&mut self, f: &mut F) -> ControlFlow<R>
+    where
+        F: FnMut(NodeMut, Method) -> ControlFlow<R>,
+    {
+        f(self.as_node_mut(), Method::Visit)?;
+        f(self.as_node_mut(), Method::Leave)
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Default)]
+pub struct FreeCellFolder {
+    pub id: Uuid,
+    pub name: String,
+    pub content: Vec<FreeCellOrFolder>,
+}
+impl FreeCellFolder {
+    pub fn new() -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            name: String::from("Group"),
+            content: Vec::new(),
+        }
+    }
+    pub fn contained_cells(&self) -> Vec<&FreeCell> {
+        self.content
+            .iter()
+            .flat_map(|af| match af {
+                FreeCellOrFolder::Cell(a) => vec![a],
+                FreeCellOrFolder::Folder(f) => f.contained_cells(),
+            })
+            .collect()
+    }
+}
+impl StyleNode for FreeCellFolder {
+    fn id(&self) -> &Uuid {
+        &self.id
+    }
+    fn as_node<'a>(&'a self) -> Node<'a> {
+        Node::FreeCellFolder(self)
+    }
+    fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
+        NodeMut::FreeCellFolderMut(self)
+    }
+}
+impl NodeIterator for FreeCellFolder {
+    fn walk<F, R>(&self, f: &mut F) -> ControlFlow<R>
+    where
+        F: FnMut(Node, Method) -> ControlFlow<R>,
+    {
+        f(self.as_node(), Method::Visit)?;
+        self.content.iter().try_for_each(|v| match v {
+            FreeCellOrFolder::Cell(o) => o.walk(f),
+            FreeCellOrFolder::Folder(o) => o.walk(f),
+        })?;
+        f(self.as_node(), Method::Leave)
+    }
+}
+impl NodeIteratorMut for FreeCellFolder {
+    fn walk_mut<F, R>(&mut self, f: &mut F) -> ControlFlow<R>
+    where
+        F: FnMut(NodeMut, Method) -> ControlFlow<R>,
+    {
+        f(self.as_node_mut(), Method::Visit)?;
+        self.content.iter_mut().try_for_each(|c| match c {
+            FreeCellOrFolder::Cell(o) => o.walk_mut(f),
+            FreeCellOrFolder::Folder(o) => o.walk_mut(f),
+        })?;
+        f(self.as_node_mut(), Method::Leave)
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(tag = "element_type")]
+pub enum FreeCellOrFolder {
+    Cell(FreeCell),
+    Folder(FreeCellFolder),
+}
+impl FreeCellOrFolder {
+    pub fn id(&self) -> &Uuid {
+        match self {
+            FreeCellOrFolder::Cell(o) => &o.id,
+            FreeCellOrFolder::Folder(o) => &o.id,
+        }
+    }
 }

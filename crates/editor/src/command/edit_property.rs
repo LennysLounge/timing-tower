@@ -41,8 +41,8 @@ impl EditProperty {
                     NodeMut::Scene(o) => apply_edit(o, self.value),
                     NodeMut::TimingTower(o) => apply_edit(o, self.value),
                     NodeMut::TimingTowerRow(o) => apply_edit(o, self.value),
-                    NodeMut::TimingTowerColumn(o) => apply_edit(o, self.value),
-                    NodeMut::TimingTowerColumnFolder(o) => apply_edit(o, self.value),
+                    NodeMut::FreeCellFolderMut(o) => apply_edit(o, self.value),
+                    NodeMut::FreeCell(o) => apply_edit(o, self.value),
                 };
                 EditProperty {
                     timestamp: self.timestamp,

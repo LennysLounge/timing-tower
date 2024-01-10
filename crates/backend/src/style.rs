@@ -20,8 +20,9 @@ pub mod variables;
 pub mod definitions {
     pub use self::super::{
         assets::{AssetDefinition, AssetFolder},
+        cell::{Cell, ClipArea, CornerOffsets, FreeCell, Rounding},
         scene::SceneDefinition,
-        timing_tower::{TimingTower, TimingTowerColumn, TimingTowerColumnFolder, TimingTowerRow},
+        timing_tower::{TimingTower, TimingTowerRow},
         variables::{VariableDefinition, VariableFolder},
         StyleDefinition,
     };

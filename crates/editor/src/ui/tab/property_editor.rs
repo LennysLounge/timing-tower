@@ -88,20 +88,20 @@ pub fn edit_node(
             }
         }
 
-        NodeMut::TimingTowerColumn(column) => {
+        NodeMut::FreeCell(cell) => {
             let mut edit_result = EditResult::None;
 
             ui.label("Name:");
-            edit_result |= ui.text_edit_singleline(&mut column.name).into();
+            edit_result |= ui.text_edit_singleline(&mut cell.name).into();
             ui.separator();
-            edit_result |= cell::cell_property_editor(ui, &mut column.cell, reference_store).into();
+            edit_result |= cell::cell_property_editor(ui, &mut cell.cell, reference_store).into();
 
             if let EditResult::FromId(widget_id) = edit_result {
-                undo_redo_manager.queue(EditProperty::new(column.id, column.clone(), widget_id));
+                undo_redo_manager.queue(EditProperty::new(cell.id, cell.clone(), widget_id));
             }
         }
 
-        NodeMut::TimingTowerColumnFolder(folder) => {
+        NodeMut::FreeCellFolderMut(folder) => {
             let mut edit_result = EditResult::None;
 
             ui.label("Name:");

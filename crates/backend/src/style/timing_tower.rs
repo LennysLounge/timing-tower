@@ -6,7 +6,7 @@ use uuid::Uuid;
 use crate::value_types::Vec2Property;
 
 use super::{
-    cell::{Cell, ClipArea},
+    cell::{Cell, ClipArea, FreeCell, FreeCellOrFolder},
     iterator::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
     StyleNode,
 };
@@ -54,15 +54,15 @@ pub struct TimingTowerRow {
     pub id: Uuid,
     pub row_offset: Vec2Property,
     pub clip_area: ClipArea,
-    pub columns: Vec<ColumnOrFolder>,
+    pub columns: Vec<FreeCellOrFolder>,
 }
 impl TimingTowerRow {
-    pub fn contained_columns(&self) -> Vec<&TimingTowerColumn> {
+    pub fn contained_cells(&self) -> Vec<&FreeCell> {
         self.columns
             .iter()
             .flat_map(|c| match c {
-                ColumnOrFolder::Column(t) => vec![t],
-                ColumnOrFolder::Folder(f) => f.contained_columns(),
+                FreeCellOrFolder::Cell(t) => vec![t],
+                FreeCellOrFolder::Folder(f) => f.contained_cells(),
             })
             .collect()
     }
@@ -85,8 +85,8 @@ impl NodeIterator for TimingTowerRow {
     {
         f(self.as_node(), Method::Visit)?;
         self.columns.iter().try_for_each(|c| match c {
-            ColumnOrFolder::Column(o) => o.walk(f),
-            ColumnOrFolder::Folder(o) => o.walk(f),
+            FreeCellOrFolder::Cell(o) => o.walk(f),
+            FreeCellOrFolder::Folder(o) => o.walk(f),
         })?;
         f(self.as_node(), Method::Leave)
     }
@@ -98,130 +98,9 @@ impl NodeIteratorMut for TimingTowerRow {
     {
         f(self.as_node_mut(), Method::Visit)?;
         self.columns.iter_mut().try_for_each(|c| match c {
-            ColumnOrFolder::Column(o) => o.walk_mut(f),
-            ColumnOrFolder::Folder(o) => o.walk_mut(f),
+            FreeCellOrFolder::Cell(o) => o.walk_mut(f),
+            FreeCellOrFolder::Folder(o) => o.walk_mut(f),
         })?;
         f(self.as_node_mut(), Method::Leave)
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Default)]
-pub struct TimingTowerColumn {
-    pub id: Uuid,
-    pub cell: Cell,
-    pub name: String,
-}
-
-impl TimingTowerColumn {
-    pub fn new() -> Self {
-        Self {
-            id: Uuid::new_v4(),
-            cell: Cell::default(),
-            name: "new column".to_string(),
-        }
-    }
-}
-impl StyleNode for TimingTowerColumn {
-    fn id(&self) -> &Uuid {
-        &self.id
-    }
-    fn as_node<'a>(&'a self) -> Node<'a> {
-        Node::TimingTowerColumn(self)
-    }
-    fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
-        NodeMut::TimingTowerColumn(self)
-    }
-}
-impl NodeIterator for TimingTowerColumn {
-    fn walk<F, R>(&self, f: &mut F) -> ControlFlow<R>
-    where
-        F: FnMut(Node, Method) -> ControlFlow<R>,
-    {
-        f(self.as_node(), Method::Visit)
-    }
-}
-impl NodeIteratorMut for TimingTowerColumn {
-    fn walk_mut<F, R>(&mut self, f: &mut F) -> ControlFlow<R>
-    where
-        F: FnMut(NodeMut, Method) -> ControlFlow<R>,
-    {
-        f(self.as_node_mut(), Method::Visit)
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Default)]
-pub struct TimingTowerColumnFolder {
-    pub id: Uuid,
-    pub name: String,
-    pub content: Vec<ColumnOrFolder>,
-}
-impl TimingTowerColumnFolder {
-    pub fn new() -> Self {
-        Self {
-            id: Uuid::new_v4(),
-            name: String::from("Group"),
-            content: Vec::new(),
-        }
-    }
-    pub fn contained_columns(&self) -> Vec<&TimingTowerColumn> {
-        self.content
-            .iter()
-            .flat_map(|af| match af {
-                ColumnOrFolder::Column(a) => vec![a],
-                ColumnOrFolder::Folder(f) => f.contained_columns(),
-            })
-            .collect()
-    }
-}
-impl StyleNode for TimingTowerColumnFolder {
-    fn id(&self) -> &Uuid {
-        &self.id
-    }
-    fn as_node<'a>(&'a self) -> Node<'a> {
-        Node::TimingTowerColumnFolder(self)
-    }
-    fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
-        NodeMut::TimingTowerColumnFolder(self)
-    }
-}
-impl NodeIterator for TimingTowerColumnFolder {
-    fn walk<F, R>(&self, f: &mut F) -> ControlFlow<R>
-    where
-        F: FnMut(Node, Method) -> ControlFlow<R>,
-    {
-        f(self.as_node(), Method::Visit)?;
-        self.content.iter().try_for_each(|v| match v {
-            ColumnOrFolder::Column(o) => o.walk(f),
-            ColumnOrFolder::Folder(o) => o.walk(f),
-        })?;
-        f(self.as_node(), Method::Leave)
-    }
-}
-impl NodeIteratorMut for TimingTowerColumnFolder {
-    fn walk_mut<F, R>(&mut self, f: &mut F) -> ControlFlow<R>
-    where
-        F: FnMut(NodeMut, Method) -> ControlFlow<R>,
-    {
-        f(self.as_node_mut(), Method::Visit)?;
-        self.content.iter_mut().try_for_each(|c| match c {
-            ColumnOrFolder::Column(o) => o.walk_mut(f),
-            ColumnOrFolder::Folder(o) => o.walk_mut(f),
-        })?;
-        f(self.as_node_mut(), Method::Leave)
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-#[serde(tag = "element_type")]
-pub enum ColumnOrFolder {
-    Column(TimingTowerColumn),
-    Folder(TimingTowerColumnFolder),
-}
-impl ColumnOrFolder {
-    pub fn id(&self) -> &Uuid {
-        match self {
-            ColumnOrFolder::Column(o) => &o.id,
-            ColumnOrFolder::Folder(o) => &o.id,
-        }
     }
 }

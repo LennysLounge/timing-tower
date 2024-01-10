@@ -158,7 +158,7 @@ fn update_tower(
             row_resolver.entry = Some(entry);
 
             // update columns
-            for column in tower_style.row.contained_columns() {
+            for column in tower_style.row.contained_cells() {
                 let cell_id = row
                     .columns
                     .entry(column.id)
@@ -171,7 +171,7 @@ fn update_tower(
             row.columns.retain(|col_id, _cell_id| {
                 tower_style
                     .row
-                    .contained_columns()
+                    .contained_cells()
                     .iter()
                     .any(|column| &column.id == col_id)
             });

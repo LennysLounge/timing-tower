@@ -108,8 +108,8 @@ fn remove(node: NodeMut, method: Method, node_id: &Uuid) -> ControlFlow<RemovedN
                 ControlFlow::Break(RemovedNode {
                     parent_id: *row.id(),
                     node: match row.columns.remove(index) {
-                        backend::style::timing_tower::ColumnOrFolder::Column(t) => Box::new(t),
-                        backend::style::timing_tower::ColumnOrFolder::Folder(f) => Box::new(f),
+                        backend::style::cell::FreeCellOrFolder::Cell(t) => Box::new(t),
+                        backend::style::cell::FreeCellOrFolder::Folder(f) => Box::new(f),
                     },
                     position: (index == 0)
                         .then_some(DropPosition::First)
@@ -122,13 +122,13 @@ fn remove(node: NodeMut, method: Method, node_id: &Uuid) -> ControlFlow<RemovedN
             }
         }
 
-        (Method::Visit, NodeMut::TimingTowerColumnFolder(folder)) => {
+        (Method::Visit, NodeMut::FreeCellFolderMut(folder)) => {
             if let Some(index) = folder.content.iter().position(|s| s.id() == node_id) {
                 ControlFlow::Break(RemovedNode {
                     parent_id: *folder.id(),
                     node: match folder.content.remove(index) {
-                        backend::style::timing_tower::ColumnOrFolder::Column(t) => Box::new(t),
-                        backend::style::timing_tower::ColumnOrFolder::Folder(f) => Box::new(f),
+                        backend::style::cell::FreeCellOrFolder::Cell(t) => Box::new(t),
+                        backend::style::cell::FreeCellOrFolder::Folder(f) => Box::new(f),
                     },
                     position: (index == 0)
                         .then_some(DropPosition::First)

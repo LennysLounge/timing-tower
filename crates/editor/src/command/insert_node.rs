@@ -5,6 +5,7 @@ use uuid::Uuid;
 
 use backend::style::{
     self,
+    cell::FreeCellFolder,
     definitions::*,
     iterator::{NodeIteratorMut, NodeMut},
     StyleNode,
@@ -120,12 +121,12 @@ pub fn insert(node: NodeMut, position: DropPosition, insert: Box<dyn Any>) -> Co
             let column_or_folder = Err(insert)
                 .or_else(|insert| {
                     insert
-                        .downcast::<TimingTowerColumnFolder>()
-                        .map(|i| style::timing_tower::ColumnOrFolder::Folder(*i))
+                        .downcast::<FreeCellFolder>()
+                        .map(|i| style::cell::FreeCellOrFolder::Folder(*i))
                 })
                 .or_else(|node| {
-                    node.downcast::<TimingTowerColumn>()
-                        .map(|i| style::timing_tower::ColumnOrFolder::Column(*i))
+                    node.downcast::<FreeCell>()
+                        .map(|i| style::cell::FreeCellOrFolder::Cell(*i))
                 })
                 .expect("No other types are allowed to be inserted");
 
@@ -145,17 +146,17 @@ pub fn insert(node: NodeMut, position: DropPosition, insert: Box<dyn Any>) -> Co
             }
             ControlFlow::Break(())
         }
-        NodeMut::TimingTowerColumnFolder(folder) => {
+        NodeMut::FreeCellFolderMut(folder) => {
             let column_or_folder = Err(insert)
                 .or_else(|insert| {
                     insert
-                        .downcast::<TimingTowerColumnFolder>()
-                        .map(|i| style::timing_tower::ColumnOrFolder::Folder(*i))
+                        .downcast::<FreeCellFolder>()
+                        .map(|i| style::cell::FreeCellOrFolder::Folder(*i))
                 })
                 .or_else(|insert| {
                     insert
-                        .downcast::<TimingTowerColumn>()
-                        .map(|i| style::timing_tower::ColumnOrFolder::Column(*i))
+                        .downcast::<FreeCell>()
+                        .map(|i| style::cell::FreeCellOrFolder::Cell(*i))
                 })
                 .expect("No other types are allowed to be inserted");
 

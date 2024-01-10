@@ -1,6 +1,7 @@
 use std::ops::ControlFlow;
 
 use backend::style::{
+    cell::FreeCellFolder,
     definitions::*,
     iterator::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
     StyleNode,
@@ -80,11 +81,11 @@ fn drop_allowed(target: Node, dragged: Node) -> bool {
         (Node::AssetFolder(_), Node::AssetFolder(_)) => true,
         (Node::AssetFolder(_), Node::Asset(_)) => true,
 
-        (Node::TimingTowerRow(_), Node::TimingTowerColumnFolder(_)) => true,
-        (Node::TimingTowerRow(_), Node::TimingTowerColumn(_)) => true,
+        (Node::TimingTowerRow(_), Node::FreeCellFolder(_)) => true,
+        (Node::TimingTowerRow(_), Node::FreeCell(_)) => true,
 
-        (Node::TimingTowerColumnFolder(_), Node::TimingTowerColumnFolder(_)) => true,
-        (Node::TimingTowerColumnFolder(_), Node::TimingTowerColumn(_)) => true,
+        (Node::FreeCellFolder(_), Node::FreeCellFolder(_)) => true,
+        (Node::FreeCellFolder(_), Node::FreeCell(_)) => true,
 
         _ => false,
     }
@@ -165,18 +166,14 @@ fn show_node(
             if let Some(res) = res {
                 res.context_menu(|ui| {
                     if ui.button("add column").clicked() {
-                        nodes_to_add.push((
-                            row.id,
-                            DropPosition::Last,
-                            Box::new(TimingTowerColumn::new()),
-                        ));
+                        nodes_to_add.push((row.id, DropPosition::Last, Box::new(FreeCell::new())));
                         ui.close_menu();
                     }
                     if ui.button("add group").clicked() {
                         nodes_to_add.push((
                             row.id,
                             DropPosition::Last,
-                            Box::new(TimingTowerColumnFolder::new()),
+                            Box::new(FreeCellFolder::new()),
                         ));
                         ui.close_menu();
                     }
@@ -191,17 +188,17 @@ fn show_node(
             ControlFlow::Continue(())
         }
 
-        (Method::Visit, NodeMut::TimingTowerColumn(column)) => {
-            let res = builder.leaf(&column.id, |ui| {
-                ui.label(&column.name);
+        (Method::Visit, NodeMut::FreeCell(cell)) => {
+            let res = builder.leaf(&cell.id, |ui| {
+                ui.label(&cell.name);
             });
             if let Some(res) = res {
                 res.context_menu(|ui| {
                     if ui.button("add column").clicked() {
                         nodes_to_add.push((
                             *stack.last().expect("There should always be a parent node"),
-                            DropPosition::After(column.id),
-                            Box::new(TimingTowerColumn::new()),
+                            DropPosition::After(cell.id),
+                            Box::new(FreeCell::new()),
                         ));
                         ui.close_menu();
                     }
@@ -209,12 +206,12 @@ fn show_node(
                         nodes_to_add.push((
                             *stack.last().expect("There should always be a parent node"),
                             DropPosition::Last,
-                            Box::new(TimingTowerColumnFolder::new()),
+                            Box::new(FreeCellFolder::new()),
                         ));
                         ui.close_menu();
                     }
                     if ui.button("delete").clicked() {
-                        nodes_to_remove.push(column.id);
+                        nodes_to_remove.push(cell.id);
                         ui.close_menu();
                     }
                 });
@@ -222,7 +219,7 @@ fn show_node(
             ControlFlow::Continue(())
         }
 
-        (Method::Visit, NodeMut::TimingTowerColumnFolder(folder)) => {
+        (Method::Visit, NodeMut::FreeCellFolderMut(folder)) => {
             let res = builder.dir(&folder.id, |ui| {
                 ui.label(&folder.name);
             });
@@ -232,7 +229,7 @@ fn show_node(
                         nodes_to_add.push((
                             *folder.id(),
                             DropPosition::Last,
-                            Box::new(TimingTowerColumn::new()),
+                            Box::new(FreeCell::new()),
                         ));
                         ui.close_menu();
                     }
@@ -240,7 +237,7 @@ fn show_node(
                         nodes_to_add.push((
                             *folder.id(),
                             DropPosition::Last,
-                            Box::new(TimingTowerColumnFolder::new()),
+                            Box::new(FreeCellFolder::new()),
                         ));
                         ui.close_menu();
                     }
@@ -248,7 +245,7 @@ fn show_node(
             }
             ControlFlow::Continue(())
         }
-        (Method::Leave, NodeMut::TimingTowerColumnFolder(_)) => {
+        (Method::Leave, NodeMut::FreeCellFolderMut(_)) => {
             builder.close_dir();
             ControlFlow::Continue(())
         }

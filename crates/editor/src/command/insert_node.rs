@@ -117,36 +117,11 @@ pub fn insert(node: NodeMut, position: DropPosition, insert: Box<dyn Any>) -> Co
             }
             ControlFlow::Break(())
         }
-        NodeMut::TimingTowerRow(row) => {
-            let column_or_folder = Err(insert)
-                .or_else(|insert| {
-                    insert
-                        .downcast::<FreeCellFolder>()
-                        .map(|i| style::cell::FreeCellOrFolder::Folder(*i))
-                })
-                .or_else(|node| {
-                    node.downcast::<FreeCell>()
-                        .map(|i| style::cell::FreeCellOrFolder::Cell(*i))
-                })
-                .expect("No other types are allowed to be inserted");
 
-            match &position {
-                DropPosition::First => row.columns.insert(0, column_or_folder),
-                DropPosition::Last => row.columns.push(column_or_folder),
-                DropPosition::After(id) => {
-                    if let Some(index) = row.columns.iter().position(|c| c.id() == id) {
-                        row.columns.insert(index + 1, column_or_folder);
-                    }
-                }
-                DropPosition::Before(id) => {
-                    if let Some(index) = row.columns.iter().position(|c| c.id() == id) {
-                        row.columns.insert(index, column_or_folder);
-                    }
-                }
-            }
-            ControlFlow::Break(())
-        }
-        NodeMut::FreeCellFolderMut(folder) => {
+        NodeMut::TimingTowerRow(TimingTowerRow {
+            columns: folder, ..
+        })
+        | NodeMut::FreeCellFolderMut(folder) => {
             let column_or_folder = Err(insert)
                 .or_else(|insert| {
                     insert

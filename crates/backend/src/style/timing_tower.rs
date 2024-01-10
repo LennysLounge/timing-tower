@@ -6,7 +6,7 @@ use uuid::Uuid;
 use crate::value_types::Vec2Property;
 
 use super::{
-    cell::{Cell, ClipArea, FreeCell, FreeCellOrFolder},
+    cell::{Cell, ClipArea, FreeCell, FreeCellFolder, FreeCellOrFolder},
     iterator::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
     StyleNode,
 };
@@ -54,17 +54,11 @@ pub struct TimingTowerRow {
     pub id: Uuid,
     pub row_offset: Vec2Property,
     pub clip_area: ClipArea,
-    pub columns: Vec<FreeCellOrFolder>,
+    pub columns: FreeCellFolder,
 }
 impl TimingTowerRow {
     pub fn contained_cells(&self) -> Vec<&FreeCell> {
-        self.columns
-            .iter()
-            .flat_map(|c| match c {
-                FreeCellOrFolder::Cell(t) => vec![t],
-                FreeCellOrFolder::Folder(f) => f.contained_cells(),
-            })
-            .collect()
+        self.columns.contained_cells()
     }
 }
 impl StyleNode for TimingTowerRow {
@@ -84,7 +78,7 @@ impl NodeIterator for TimingTowerRow {
         F: FnMut(Node, Method) -> ControlFlow<R>,
     {
         f(self.as_node(), Method::Visit)?;
-        self.columns.iter().try_for_each(|c| match c {
+        self.columns.content.iter().try_for_each(|c| match c {
             FreeCellOrFolder::Cell(o) => o.walk(f),
             FreeCellOrFolder::Folder(o) => o.walk(f),
         })?;
@@ -97,7 +91,7 @@ impl NodeIteratorMut for TimingTowerRow {
         F: FnMut(NodeMut, Method) -> ControlFlow<R>,
     {
         f(self.as_node_mut(), Method::Visit)?;
-        self.columns.iter_mut().try_for_each(|c| match c {
+        self.columns.content.iter_mut().try_for_each(|c| match c {
             FreeCellOrFolder::Cell(o) => o.walk_mut(f),
             FreeCellOrFolder::Folder(o) => o.walk_mut(f),
         })?;

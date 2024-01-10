@@ -103,26 +103,13 @@ fn remove(node: NodeMut, method: Method, node_id: &Uuid) -> ControlFlow<RemovedN
             }
         }
 
-        (Method::Visit, NodeMut::TimingTowerRow(row)) => {
-            if let Some(index) = row.columns.iter().position(|s| s.id() == node_id) {
-                ControlFlow::Break(RemovedNode {
-                    parent_id: *row.id(),
-                    node: match row.columns.remove(index) {
-                        backend::style::cell::FreeCellOrFolder::Cell(t) => Box::new(t),
-                        backend::style::cell::FreeCellOrFolder::Folder(f) => Box::new(f),
-                    },
-                    position: (index == 0)
-                        .then_some(DropPosition::First)
-                        .unwrap_or_else(|| {
-                            DropPosition::After(*row.columns.get(index - 1).unwrap().id())
-                        }),
-                })
-            } else {
-                ControlFlow::Continue(())
-            }
-        }
-
-        (Method::Visit, NodeMut::FreeCellFolderMut(folder)) => {
+        (
+            Method::Visit,
+            NodeMut::TimingTowerRow(TimingTowerRow {
+                columns: folder, ..
+            }),
+        )
+        | (Method::Visit, NodeMut::FreeCellFolderMut(folder)) => {
             if let Some(index) = folder.content.iter().position(|s| s.id() == node_id) {
                 ControlFlow::Break(RemovedNode {
                     parent_id: *folder.id(),

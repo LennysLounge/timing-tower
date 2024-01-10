@@ -533,67 +533,9 @@
     ],
     "timing_tower": {
       "id": "63777a7c-26e1-4bdc-a840-87ebf3bdcb41",
-      "cell": {
-        "text": "",
-        "text_color": {
-          "Rgba": {
-            "red": 0.0,
-            "green": 0.0,
-            "blue": 0.0,
-            "alpha": 1.0
-          }
-        },
-        "text_size": 20.0,
-        "font": "Default",
-        "color": {
-          "Rgba": {
-            "red": 0.0,
-            "green": 0.0,
-            "blue": 0.0,
-            "alpha": 0.0
-          }
-        },
-        "image": "None",
-        "pos": {
-          "x": 350.0,
-          "y": 55.0,
-          "z": 0.0
-        },
-        "size": {
-          "x": 300.0,
-          "y": 245.0
-        },
-        "skew": 0.0,
-        "corner_offsets": {
-          "top_left": {
-            "x": 0.0,
-            "y": 0.0
-          },
-          "top_right": {
-            "x": 0.0,
-            "y": 0.0
-          },
-          "bot_left": {
-            "x": 0.0,
-            "y": 0.0
-          },
-          "bot_right": {
-            "x": 0.0,
-            "y": 0.0
-          }
-        },
-        "visible": true,
-        "rounding": {
-          "top_left": 0.0,
-          "top_right": 0.0,
-          "bot_left": 0.0,
-          "bot_right": 0.0
-        },
-        "text_alginment": "Center",
-        "text_position": {
-          "x": 0.0,
-          "y": 0.0
-        }
+      "position": {
+        "x": 350.0,
+        "y": 55.0
       },
       "row": {
         "id": "23c20135-9036-4628-9c86-5a8f2b39871b",

@@ -37,7 +37,6 @@ pub struct StyleElementUpdate;
 
 #[derive(Component)]
 pub struct TimingTower {
-    cell_id: CellId,
     clip_area_cell_id: CellId,
     rows: HashMap<EntryId, Row>,
     scroll_position: f32,
@@ -48,7 +47,6 @@ pub struct Row {
 impl TimingTower {
     pub fn new() -> Self {
         Self {
-            cell_id: CellId::new(),
             clip_area_cell_id: CellId::new(),
             rows: HashMap::new(),
             scroll_position: 0.0,
@@ -70,7 +68,6 @@ fn update_tower(
 
     for mut tower in towers.iter_mut() {
         let TimingTower {
-            cell_id,
             clip_area_cell_id,
             rows,
             scroll_position,
@@ -96,13 +93,22 @@ fn update_tower(
             render_layer: 0,
         };
 
-        let cell = resolver.cell(&tower_style.cell);
-        let row_resolver = resolver.with_position(cell.pos);
+        let cell_position = vec3(
+            resolver
+                .property(&tower_style.position.x)
+                .unwrap_or_default()
+                .0,
+            -resolver
+                .property(&tower_style.position.y)
+                .unwrap_or_default()
+                .0,
+            0.0,
+        );
+        let row_resolver = resolver.with_position(cell_position);
 
         let clip_area = row_resolver.clip_area(&tower_style.row.clip_area);
         let mut row_resolver = row_resolver.with_render_layer(clip_area.render_layer);
 
-        batcher.add(&cell_id, cell);
         batcher.add_clip_area(&clip_area_cell_id, clip_area);
 
         // Create rows for each new entry

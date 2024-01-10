@@ -56,13 +56,7 @@ pub fn edit_node(
     undo_redo_manager: &mut UndoRedoManager,
 ) {
     match node {
-        NodeMut::TimingTower(tower) => {
-            let mut tower_edit = tower.clone();
-            let edit_result = cell::cell_property_editor(ui, &mut tower_edit.cell, reference_store);
-            if let EditResult::FromId(widget_id) = edit_result {
-                undo_redo_manager.queue(EditProperty::new(tower.id, tower_edit, widget_id));
-            }
-        }
+        NodeMut::TimingTower(_tower) => {}
 
         NodeMut::TimingTowerRow(row) => {
             let mut edit_result = EditResult::None;

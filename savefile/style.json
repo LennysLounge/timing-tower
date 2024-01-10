@@ -596,489 +596,556 @@
         }
       },
       "row": {
-          "id": "23c20135-9036-4628-9c86-5a8f2b39871b",
-          "cell": {
-            "text": "",
-            "text_color": {
-              "Rgba": {
-                "red": 0.0,
-                "green": 0.0,
-                "blue": 0.0,
-                "alpha": 1.0
-              }
-            },
-            "text_size": 20.0,
-            "font": "Default",
-            "color": {
-              "Rgba": {
-                "red": 0.0,
-                "green": 0.0,
-                "blue": 0.0,
-                "alpha": 0.0
-              }
-            },
-            "image": "None",
-            "pos": {
+        "id": "23c20135-9036-4628-9c86-5a8f2b39871b",
+        "cell": {
+          "text": "",
+          "text_color": {
+            "Rgba": {
+              "red": 0.0,
+              "green": 0.0,
+              "blue": 0.0,
+              "alpha": 1.0
+            }
+          },
+          "text_size": 20.0,
+          "font": "Default",
+          "color": {
+            "Rgba": {
+              "red": 0.0,
+              "green": 0.0,
+              "blue": 0.0,
+              "alpha": 0.0
+            }
+          },
+          "image": "None",
+          "pos": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
+          },
+          "size": {
+            "x": 660.0,
+            "y": 36.0
+          },
+          "skew": 0.0,
+          "corner_offsets": {
+            "top_left": {
               "x": 0.0,
-              "y": 0.0,
-              "z": 0.0
+              "y": 0.0
             },
-            "size": {
-              "x": 660.0,
-              "y": 36.0
+            "top_right": {
+              "x": 0.0,
+              "y": 0.0
             },
-            "skew": 0.0,
-            "corner_offsets": {
-              "top_left": {
-                "x": 0.0,
-                "y": 0.0
-              },
-              "top_right": {
-                "x": 0.0,
-                "y": 0.0
-              },
-              "bot_left": {
-                "x": 0.0,
-                "y": 0.0
-              },
-              "bot_right": {
-                "x": 0.0,
-                "y": 0.0
-              }
+            "bot_left": {
+              "x": 0.0,
+              "y": 0.0
             },
-            "visible": true,
-            "rounding": {
-              "top_left": 0.0,
-              "top_right": 0.0,
-              "bot_left": 0.0,
-              "bot_right": 0.0
-            },
-            "text_alginment": "Center",
-            "text_position": {
+            "bot_right": {
               "x": 0.0,
               "y": 0.0
             }
           },
-          "row_offset": {
+          "visible": true,
+          "rounding": {
+            "top_left": 0.0,
+            "top_right": 0.0,
+            "bot_left": 0.0,
+            "bot_right": 0.0
+          },
+          "text_alginment": "Center",
+          "text_position": {
             "x": 0.0,
-            "y": 2.0
+            "y": 0.0
+          }
+        },
+        "row_offset": {
+          "x": 0.0,
+          "y": 2.0
+        },
+        "clip_area": {
+          "pos": {
+            "x": 0.0,
+            "y": 0.0,
+            "z": 0.0
           },
-          "clip_area": {
-            "pos": {
-              "x": 0.0,
-              "y": 0.0,
-              "z": 0.0
-            },
-            "size": {
-              "x": 300.0,
-              "y": 874.0
-            },
-            "skew": 0.0,
-            "rounding": {
-              "top_left": 0.0,
-              "top_right": 0.0,
-              "bot_left": 0.0,
-              "bot_right": 0.0
-            },
-            "render_layer": 1
+          "size": {
+            "x": 300.0,
+            "y": 874.0
           },
-          "columns": [
-            {
-              "element_type": "Column",
-              "id": "7d96c8c6-c978-4258-83c4-9504bccf7256",
-              "cell": {
-                "text": {
-                  "ValueRef": "6330a6bb-51d1-4af7-9bd0-efeb00b1ff52"
-                },
-                "text_color": {
-                  "Rgba": {
-                    "red": 1.0,
-                    "green": 1.0,
-                    "blue": 1.0,
-                    "alpha": 1.0
-                  }
-                },
-                "text_size": 19.5,
-                "font": {
-                  "ValueRef": "28fc93a6-a776-4b91-b0f1-89e09f4a771f"
-                },
-                "color": {
-                  "ValueRef": "e86a2ae3-6486-4941-bee9-b063f3ff0152"
-                },
-                "image": "None",
-                "pos": {
+          "skew": 0.0,
+          "rounding": {
+            "top_left": 0.0,
+            "top_right": 0.0,
+            "bot_left": 0.0,
+            "bot_right": 0.0
+          },
+          "render_layer": 0
+        },
+        "columns": [
+          {
+            "element_type": "Column",
+            "id": "7d96c8c6-c978-4258-83c4-9504bccf7256",
+            "cell": {
+              "text": {
+                "ValueRef": "6330a6bb-51d1-4af7-9bd0-efeb00b1ff52"
+              },
+              "text_color": {
+                "Rgba": {
+                  "red": 1.0,
+                  "green": 1.0,
+                  "blue": 1.0,
+                  "alpha": 1.0
+                }
+              },
+              "text_size": 19.5,
+              "font": {
+                "ValueRef": "28fc93a6-a776-4b91-b0f1-89e09f4a771f"
+              },
+              "color": {
+                "ValueRef": "e86a2ae3-6486-4941-bee9-b063f3ff0152"
+              },
+              "image": "None",
+              "pos": {
+                "x": 0.0,
+                "y": 0.0,
+                "z": 3.0
+              },
+              "size": {
+                "x": 36.0,
+                "y": 36.0
+              },
+              "skew": 12.0,
+              "corner_offsets": {
+                "top_left": {
                   "x": 0.0,
-                  "y": 0.0,
-                  "z": 3.0
+                  "y": 0.0
                 },
-                "size": {
-                  "x": 36.0,
-                  "y": 36.0
+                "top_right": {
+                  "x": 0.0,
+                  "y": 0.0
                 },
-                "skew": 12.0,
-                "corner_offsets": {
-                  "top_left": {
-                    "x": 0.0,
-                    "y": 0.0
-                  },
-                  "top_right": {
-                    "x": 0.0,
-                    "y": 0.0
-                  },
-                  "bot_left": {
-                    "x": 0.0,
-                    "y": 0.0
-                  },
-                  "bot_right": {
-                    "x": 0.0,
-                    "y": 0.0
-                  }
+                "bot_left": {
+                  "x": 0.0,
+                  "y": 0.0
                 },
-                "visible": true,
-                "rounding": {
-                  "top_left": 12.0,
-                  "top_right": 0.0,
-                  "bot_left": 3.0,
-                  "bot_right": 0.0
-                },
-                "text_alginment": "Center",
-                "text_position": {
-                  "x": 24.5,
-                  "y": 18.0
+                "bot_right": {
+                  "x": 0.0,
+                  "y": 0.0
                 }
               },
-              "name": "position"
+              "visible": true,
+              "rounding": {
+                "top_left": 12.0,
+                "top_right": 0.0,
+                "bot_left": 3.0,
+                "bot_right": 0.0
+              },
+              "text_alginment": "Center",
+              "text_position": {
+                "x": 24.5,
+                "y": 18.0
+              }
             },
-            {
-              "element_type": "Column",
-              "id": "95ab724b-b056-4e76-8153-2f9265aac3cb",
-              "cell": {
-                "text": {
-                  "ValueRef": "8abcf9d5-60f7-4886-a716-139d62ad83ac"
-                },
-                "text_color": {
-                  "Rgba": {
-                    "red": 1.0,
-                    "green": 1.0,
-                    "blue": 1.0,
-                    "alpha": 1.0
-                  }
-                },
-                "text_size": 19.5,
-                "font": {
-                  "ValueRef": "28fc93a6-a776-4b91-b0f1-89e09f4a771f"
-                },
-                "color": {
-                  "Rgba": {
-                    "red": 0.0,
-                    "green": 0.0,
-                    "blue": 0.0,
-                    "alpha": 0.6904762
-                  }
-                },
-                "image": "None",
-                "pos": {
-                  "x": 32.0,
-                  "y": 0.0,
-                  "z": 0.0
-                },
-                "size": {
-                  "x": 250.0,
-                  "y": 36.0
-                },
-                "skew": 0.0,
-                "corner_offsets": {
-                  "top_left": {
-                    "x": 0.0,
-                    "y": 0.0
-                  },
-                  "top_right": {
-                    "x": 0.0,
-                    "y": 0.0
-                  },
-                  "bot_left": {
-                    "x": 0.0,
-                    "y": 0.0
-                  },
-                  "bot_right": {
-                    "x": 0.0,
-                    "y": 0.0
-                  }
-                },
-                "visible": true,
-                "rounding": {
-                  "top_left": 0.0,
-                  "top_right": 0.0,
-                  "bot_left": 0.0,
-                  "bot_right": 0.0
-                },
-                "text_alginment": "Left",
-                "text_position": {
-                  "x": 21.0,
-                  "y": 18.0
+            "name": "position"
+          },
+          {
+            "element_type": "Column",
+            "id": "95ab724b-b056-4e76-8153-2f9265aac3cb",
+            "cell": {
+              "text": {
+                "ValueRef": "8abcf9d5-60f7-4886-a716-139d62ad83ac"
+              },
+              "text_color": {
+                "Rgba": {
+                  "red": 1.0,
+                  "green": 1.0,
+                  "blue": 1.0,
+                  "alpha": 1.0
                 }
               },
-              "name": "driver name"
+              "text_size": 19.5,
+              "font": {
+                "ValueRef": "28fc93a6-a776-4b91-b0f1-89e09f4a771f"
+              },
+              "color": {
+                "Rgba": {
+                  "red": 0.0,
+                  "green": 0.0,
+                  "blue": 0.0,
+                  "alpha": 0.6904762
+                }
+              },
+              "image": "None",
+              "pos": {
+                "x": 32.0,
+                "y": 0.0,
+                "z": 0.0
+              },
+              "size": {
+                "x": 250.0,
+                "y": 36.0
+              },
+              "skew": 0.0,
+              "corner_offsets": {
+                "top_left": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "top_right": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "bot_left": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "bot_right": {
+                  "x": 0.0,
+                  "y": 0.0
+                }
+              },
+              "visible": true,
+              "rounding": {
+                "top_left": 0.0,
+                "top_right": 0.0,
+                "bot_left": 0.0,
+                "bot_right": 0.0
+              },
+              "text_alginment": "Left",
+              "text_position": {
+                "x": 21.0,
+                "y": 18.0
+              }
             },
-            {
-              "element_type": "Column",
-              "id": "f7b469e0-7ee6-4553-bba5-1d6b361cb949",
-              "cell": {
-                "text": "",
-                "text_color": {
-                  "Rgba": {
-                    "red": 0.0,
-                    "green": 0.0,
-                    "blue": 0.0,
-                    "alpha": 1.0
-                  }
-                },
-                "text_size": 20.0,
-                "font": "Default",
-                "color": {
-                  "ValueRef": "e41f142f-2026-4126-9dc4-bed03fecd31e"
-                },
-                "image": "None",
-                "pos": {
-                  "x": 189.0,
-                  "y": 0.0,
-                  "z": 0.5
-                },
-                "size": {
-                  "x": 36.0,
-                  "y": 36.0
-                },
-                "skew": 0.0,
-                "corner_offsets": {
-                  "top_left": {
-                    "x": 0.0,
-                    "y": 0.0
-                  },
-                  "top_right": {
-                    "x": 0.0,
-                    "y": 0.0
-                  },
-                  "bot_left": {
-                    "x": 0.0,
-                    "y": 0.0
-                  },
-                  "bot_right": {
-                    "x": 0.0,
-                    "y": 0.0
-                  }
-                },
-                "visible": true,
-                "rounding": {
-                  "top_left": 0.0,
-                  "top_right": 0.0,
-                  "bot_left": 0.0,
-                  "bot_right": 0.0
-                },
-                "text_alginment": "Left",
-                "text_position": {
-                  "x": 5.0,
-                  "y": 15.0
+            "name": "driver name"
+          },
+          {
+            "element_type": "Column",
+            "id": "f7b469e0-7ee6-4553-bba5-1d6b361cb949",
+            "cell": {
+              "text": "",
+              "text_color": {
+                "Rgba": {
+                  "red": 0.0,
+                  "green": 0.0,
+                  "blue": 0.0,
+                  "alpha": 1.0
                 }
               },
-              "name": "manufacturer bg"
+              "text_size": 20.0,
+              "font": "Default",
+              "color": {
+                "ValueRef": "e41f142f-2026-4126-9dc4-bed03fecd31e"
+              },
+              "image": "None",
+              "pos": {
+                "x": 189.0,
+                "y": 0.0,
+                "z": 0.5
+              },
+              "size": {
+                "x": 36.0,
+                "y": 36.0
+              },
+              "skew": 0.0,
+              "corner_offsets": {
+                "top_left": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "top_right": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "bot_left": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "bot_right": {
+                  "x": 0.0,
+                  "y": 0.0
+                }
+              },
+              "visible": true,
+              "rounding": {
+                "top_left": 0.0,
+                "top_right": 0.0,
+                "bot_left": 0.0,
+                "bot_right": 0.0
+              },
+              "text_alginment": "Left",
+              "text_position": {
+                "x": 5.0,
+                "y": 15.0
+              }
             },
-            {
-              "element_type": "Column",
-              "id": "408863e5-c4d7-4721-bb58-2a3887551ea5",
-              "cell": {
-                "text": "",
-                "text_color": {
-                  "Rgba": {
-                    "red": 1.0,
-                    "green": 1.0,
-                    "blue": 1.0,
-                    "alpha": 1.0
-                  }
-                },
-                "text_size": 20.0,
-                "font": "Default",
-                "color": {
-                  "ValueRef": "e41f142f-2026-4126-9dc4-bed03fecd31e"
-                },
-                "image": {
-                  "ValueRef": "94d9d538-676d-4ea9-a72c-923b054a2b6d"
-                },
-                "pos": {
-                  "x": 191.0,
-                  "y": 2.0,
-                  "z": 1.0
-                },
-                "size": {
-                  "x": 32.0,
-                  "y": 32.0
-                },
-                "skew": 0.0,
-                "corner_offsets": {
-                  "top_left": {
-                    "x": 0.0,
-                    "y": 0.0
-                  },
-                  "top_right": {
-                    "x": 0.0,
-                    "y": 0.0
-                  },
-                  "bot_left": {
-                    "x": 0.0,
-                    "y": 0.0
-                  },
-                  "bot_right": {
-                    "x": 0.0,
-                    "y": 0.0
-                  }
-                },
-                "visible": true,
-                "rounding": {
-                  "top_left": 0.0,
-                  "top_right": 0.0,
-                  "bot_left": 0.0,
-                  "bot_right": 0.0
-                },
-                "text_alginment": "Center",
-                "text_position": {
-                  "x": 18.0,
-                  "y": 18.0
+            "name": "manufacturer bg"
+          },
+          {
+            "element_type": "Column",
+            "id": "408863e5-c4d7-4721-bb58-2a3887551ea5",
+            "cell": {
+              "text": "",
+              "text_color": {
+                "Rgba": {
+                  "red": 1.0,
+                  "green": 1.0,
+                  "blue": 1.0,
+                  "alpha": 1.0
                 }
               },
-              "name": "manufacturer"
+              "text_size": 20.0,
+              "font": "Default",
+              "color": {
+                "ValueRef": "e41f142f-2026-4126-9dc4-bed03fecd31e"
+              },
+              "image": {
+                "ValueRef": "94d9d538-676d-4ea9-a72c-923b054a2b6d"
+              },
+              "pos": {
+                "x": 191.0,
+                "y": 2.0,
+                "z": 1.0
+              },
+              "size": {
+                "x": 32.0,
+                "y": 32.0
+              },
+              "skew": 0.0,
+              "corner_offsets": {
+                "top_left": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "top_right": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "bot_left": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "bot_right": {
+                  "x": 0.0,
+                  "y": 0.0
+                }
+              },
+              "visible": true,
+              "rounding": {
+                "top_left": 0.0,
+                "top_right": 0.0,
+                "bot_left": 0.0,
+                "bot_right": 0.0
+              },
+              "text_alginment": "Center",
+              "text_position": {
+                "x": 18.0,
+                "y": 18.0
+              }
             },
-            {
-              "element_type": "Column",
-              "id": "a275bdc4-ed4a-4dcb-a964-d0646598d64e",
-              "cell": {
-                "text": {
-                  "ValueRef": "171d7438-3179-4c70-b818-811cf86d514e"
+            "name": "manufacturer"
+          },
+          {
+            "element_type": "Column",
+            "id": "a275bdc4-ed4a-4dcb-a964-d0646598d64e",
+            "cell": {
+              "text": {
+                "ValueRef": "171d7438-3179-4c70-b818-811cf86d514e"
+              },
+              "text_color": {
+                "ValueRef": "925dacee-265f-45ee-baf8-668e3005a03d"
+              },
+              "text_size": 20.0,
+              "font": {
+                "ValueRef": "28fc93a6-a776-4b91-b0f1-89e09f4a771f"
+              },
+              "color": {
+                "ValueRef": "8536ebf5-82e1-41e3-bc37-b713534a7780"
+              },
+              "image": "None",
+              "pos": {
+                "x": 225.0,
+                "y": 0.0,
+                "z": 1.0
+              },
+              "size": {
+                "x": 46.0,
+                "y": 36.0
+              },
+              "skew": 0.0,
+              "corner_offsets": {
+                "top_left": {
+                  "x": 0.0,
+                  "y": 0.0
                 },
-                "text_color": {
-                  "ValueRef": "925dacee-265f-45ee-baf8-668e3005a03d"
+                "top_right": {
+                  "x": 0.0,
+                  "y": 0.0
                 },
-                "text_size": 20.0,
-                "font": {
-                  "ValueRef": "28fc93a6-a776-4b91-b0f1-89e09f4a771f"
+                "bot_left": {
+                  "x": 0.0,
+                  "y": 0.0
                 },
-                "color": {
-                  "ValueRef": "8536ebf5-82e1-41e3-bc37-b713534a7780"
-                },
-                "image": "None",
-                "pos": {
-                  "x": 225.0,
-                  "y": 0.0,
-                  "z": 1.0
-                },
-                "size": {
-                  "x": 46.0,
-                  "y": 36.0
-                },
-                "skew": 0.0,
-                "corner_offsets": {
-                  "top_left": {
-                    "x": 0.0,
-                    "y": 0.0
-                  },
-                  "top_right": {
-                    "x": 0.0,
-                    "y": 0.0
-                  },
-                  "bot_left": {
-                    "x": 0.0,
-                    "y": 0.0
-                  },
-                  "bot_right": {
-                    "x": 0.0,
-                    "y": 0.0
-                  }
-                },
-                "visible": true,
-                "rounding": {
-                  "top_left": 0.0,
-                  "top_right": 0.0,
-                  "bot_left": 0.0,
-                  "bot_right": 0.0
-                },
-                "text_alginment": "Center",
-                "text_position": {
-                  "x": 23.0,
-                  "y": 18.0
+                "bot_right": {
+                  "x": 0.0,
+                  "y": 0.0
                 }
               },
-              "name": "car number"
+              "visible": true,
+              "rounding": {
+                "top_left": 0.0,
+                "top_right": 0.0,
+                "bot_left": 0.0,
+                "bot_right": 0.0
+              },
+              "text_alginment": "Center",
+              "text_position": {
+                "x": 23.0,
+                "y": 18.0
+              }
             },
-            {
-              "element_type": "Column",
-              "id": "12b0a701-6b31-4027-8bbb-0c3011998f4c",
-              "cell": {
-                "text": "P",
-                "text_color": {
-                  "Rgba": {
-                    "red": 0.0,
-                    "green": 0.0,
-                    "blue": 0.0,
-                    "alpha": 1.0
-                  }
-                },
-                "text_size": 12.0,
-                "font": {
-                  "ValueRef": "28fc93a6-a776-4b91-b0f1-89e09f4a771f"
-                },
-                "color": {
-                  "Rgba": {
-                    "red": 1.0,
-                    "green": 1.0,
-                    "blue": 1.0,
-                    "alpha": 1.0
-                  }
-                },
-                "image": "None",
-                "pos": {
-                  "x": 271.0,
-                  "y": 0.0,
-                  "z": 5.0
-                },
-                "size": {
-                  "x": 11.0,
-                  "y": 36.0
-                },
-                "skew": 0.0,
-                "corner_offsets": {
-                  "top_left": {
-                    "x": 0.0,
-                    "y": 0.0
-                  },
-                  "top_right": {
-                    "x": 0.0,
-                    "y": 0.0
-                  },
-                  "bot_left": {
-                    "x": 0.0,
-                    "y": 0.0
-                  },
-                  "bot_right": {
-                    "x": 0.0,
-                    "y": 0.0
-                  }
-                },
-                "visible": {
-                  "ValueRef": "c16f71b9-dcc9-4f04-9579-ea5211fa99be"
-                },
-                "rounding": {
-                  "top_left": 0.0,
-                  "top_right": 0.0,
-                  "bot_left": 0.0,
-                  "bot_right": 0.0
-                },
-                "text_alginment": "Center",
-                "text_position": {
-                  "x": 5.5,
-                  "y": 18.0
+            "name": "car number"
+          },
+          {
+            "element_type": "Column",
+            "id": "12b0a701-6b31-4027-8bbb-0c3011998f4c",
+            "cell": {
+              "text": "P",
+              "text_color": {
+                "Rgba": {
+                  "red": 0.0,
+                  "green": 0.0,
+                  "blue": 0.0,
+                  "alpha": 1.0
                 }
               },
-              "name": "pit indicator"
-            }
-          ]
+              "text_size": 12.0,
+              "font": {
+                "ValueRef": "28fc93a6-a776-4b91-b0f1-89e09f4a771f"
+              },
+              "color": {
+                "Rgba": {
+                  "red": 1.0,
+                  "green": 1.0,
+                  "blue": 1.0,
+                  "alpha": 1.0
+                }
+              },
+              "image": "None",
+              "pos": {
+                "x": 271.0,
+                "y": 0.0,
+                "z": 5.0
+              },
+              "size": {
+                "x": 11.0,
+                "y": 36.0
+              },
+              "skew": 0.0,
+              "corner_offsets": {
+                "top_left": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "top_right": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "bot_left": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "bot_right": {
+                  "x": 0.0,
+                  "y": 0.0
+                }
+              },
+              "visible": {
+                "ValueRef": "c16f71b9-dcc9-4f04-9579-ea5211fa99be"
+              },
+              "rounding": {
+                "top_left": 0.0,
+                "top_right": 0.0,
+                "bot_left": 0.0,
+                "bot_right": 0.0
+              },
+              "text_alginment": "Center",
+              "text_position": {
+                "x": 5.5,
+                "y": 18.0
+              }
+            },
+            "name": "pit indicator"
+          },
+          {
+            "element_type": "Column",
+            "id": "ad533688-6462-4db2-bbff-62eb9992a21b",
+            "cell": {
+              "text": "Column",
+              "text_color": {
+                "Rgba": {
+                  "red": 0.0,
+                  "green": 0.0,
+                  "blue": 0.0,
+                  "alpha": 1.0
+                }
+              },
+              "text_size": 20.0,
+              "font": "Default",
+              "color": {
+                "Rgba": {
+                  "red": 0.49999976,
+                  "green": 0.0,
+                  "blue": 0.5,
+                  "alpha": 1.0
+                }
+              },
+              "image": "None",
+              "pos": {
+                "x": 116.0,
+                "y": 51.0,
+                "z": 5.0
+              },
+              "size": {
+                "x": 248.0,
+                "y": 205.0
+              },
+              "skew": 0.0,
+              "corner_offsets": {
+                "top_left": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "top_right": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "bot_left": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "bot_right": {
+                  "x": 0.0,
+                  "y": 0.0
+                }
+              },
+              "visible": true,
+              "rounding": {
+                "top_left": 0.0,
+                "top_right": 0.0,
+                "bot_left": 0.0,
+                "bot_right": 0.0
+              },
+              "text_alginment": "Left",
+              "text_position": {
+                "x": 5.0,
+                "y": 15.0
+              }
+            },
+            "name": "new column"
+          }
+        ]
       }
     }
   }

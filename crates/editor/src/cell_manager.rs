@@ -1,5 +1,5 @@
 use backend::style_batcher::{PrepareBatcher, StyleBatcher};
-use bevy::prelude::*;
+use bevy::{prelude::*, render::view::RenderLayers};
 use frontend::{cell::SetStyle, cell_manager::CellManager};
 
 use crate::asset_path_store::EditorAssetPathStore;
@@ -17,7 +17,7 @@ fn execute_style_commands(
     set_style: EventWriter<SetStyle>,
     commands: Commands,
     images: ResMut<Assets<Image>>,
-    cameras: Query<&mut Transform, With<Camera>>,
+    cameras: Query<(&mut Transform, &mut RenderLayers), With<Camera>>,
     asset_server: Res<AssetServer>,
     asset_path_store: ResMut<EditorAssetPathStore>,
 ) {

@@ -7,7 +7,7 @@ use bevy::{
         schedule::IntoSystemConfigs,
         system::{Commands, Local, Query, Res, ResMut},
     },
-    render::{camera::Camera, texture::Image},
+    render::{camera::Camera, texture::Image, view::RenderLayers},
     transform::components::Transform,
 };
 use common::communication::ToRendererMessage;
@@ -34,7 +34,7 @@ fn spawn_cells(
     commands: Commands,
     set_style: EventWriter<SetStyle>,
     images: ResMut<Assets<Image>>,
-    cameras: Query<&mut Transform, With<Camera>>,
+    cameras: Query<(&mut Transform, &mut RenderLayers), With<Camera>>,
     asset_server: Res<AssetServer>,
     asset_path_store: ResMut<WebAssetPathStore>,
 ) {

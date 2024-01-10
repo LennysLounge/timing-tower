@@ -23,7 +23,7 @@ use crate::{
 #[derive(Default)]
 pub struct CellManager {
     cells: HashMap<Uuid, Entity>,
-    clip_areas: HashMap<Uuid, (Entity, Handle<Image>, Entity)>,
+    clip_areas: HashMap<Uuid, ClipArea>,
 }
 impl CellManager {
     /// Apply style commands and update/create/remove the style of cells.
@@ -34,7 +34,7 @@ impl CellManager {
         mut set_style: EventWriter<SetStyle>,
         mut commands: Commands,
         mut images: ResMut<Assets<Image>>,
-        mut cameras: Query<&mut Transform, With<Camera>>,
+        mut cameras: Query<(&mut Transform, &mut RenderLayers), With<Camera>>,
         asset_server: Res<AssetServer>,
         asset_path_store: &impl AssetPathProvider,
     ) {
@@ -75,45 +75,14 @@ impl CellManager {
                     });
                 }
                 StyleCommand::ClipArea { id, style } => {
-                    let (clip_area_id, texture, camera_id) =
-                        self.clip_areas.entry(id).or_insert_with(|| {
-                            let image = Image {
-                                texture_descriptor: TextureDescriptor {
-                                    label: None,
-                                    size: Extent3d::default(),
-                                    mip_level_count: 1,
-                                    sample_count: 1,
-                                    dimension: TextureDimension::D2,
-                                    format: TextureFormat::Rgba8UnormSrgb,
-                                    usage: TextureUsages::TEXTURE_BINDING
-                                        | TextureUsages::COPY_DST
-                                        | TextureUsages::RENDER_ATTACHMENT,
-                                    view_formats: &[],
-                                },
-                                ..Default::default()
-                            };
-                            let image_handle = images.add(image);
-                            (
-                                commands.spawn_empty().add(CreateClipArea).id(),
-                                image_handle.clone(),
-                                commands
-                                    .spawn(Camera2dBundle {
-                                        camera: Camera {
-                                            order: -1,
-                                            target: RenderTarget::Image(image_handle),
-                                            ..Default::default()
-                                        },
-                                        camera_2d: Camera2d {
-                                            clear_color: ClearColorConfig::Custom(Color::rgba_u8(
-                                                0, 0, 0, 0,
-                                            )),
-                                        },
-                                        ..Default::default()
-                                    })
-                                    .insert(RenderLayers::layer(style.render_layer))
-                                    .id(),
-                            )
-                        });
+                    let ClipArea {
+                        cell,
+                        texture,
+                        camera,
+                    } = self
+                        .clip_areas
+                        .entry(id)
+                        .or_insert_with(|| ClipArea::new(&mut commands, &mut images));
 
                     if let Some(image) = images.get_mut(texture.id()) {
                         image.resize(Extent3d {
@@ -122,13 +91,18 @@ impl CellManager {
                             ..Default::default()
                         });
                     }
-                    if let Ok(mut camera) = cameras.get_mut(*camera_id) {
+                    if let Ok((mut camera, mut render_layers)) = cameras.get_mut(*camera) {
                         camera.translation =
                             style.pos + vec3(style.size.x / 2.0, -style.size.y / 2.0, 0.0);
+                        if style.render_layer > 0 {
+                            *render_layers = RenderLayers::layer(style.render_layer);
+                        } else {
+                            *render_layers = RenderLayers::none();
+                        }
                     }
 
                     set_style.send(SetStyle {
-                        entity: *clip_area_id,
+                        entity: *cell,
                         style: CellStyle {
                             pos: style.pos,
                             size: style.size,
@@ -146,12 +120,64 @@ impl CellManager {
                         commands.entity(cell_id).despawn_recursive();
                     }
 
-                    if let Some((cell_id, _, camera_id)) = self.clip_areas.remove(&id) {
-                        commands.entity(cell_id).despawn_recursive();
-                        commands.entity(camera_id).despawn();
+                    if let Some(ClipArea {
+                        cell,
+                        texture,
+                        camera,
+                    }) = self.clip_areas.remove(&id)
+                    {
+                        commands.entity(cell).despawn_recursive();
+                        commands.entity(camera).despawn();
+                        images.remove(texture);
                     }
                 }
             }
+        }
+    }
+}
+
+struct ClipArea {
+    cell: Entity,
+    texture: Handle<Image>,
+    camera: Entity,
+}
+
+impl ClipArea {
+    fn new(commands: &mut Commands, images: &mut Assets<Image>) -> Self {
+        let clip_area = commands.spawn_empty().add(CreateClipArea).id();
+        let texture = images.add(Image {
+            texture_descriptor: TextureDescriptor {
+                label: None,
+                size: Extent3d::default(),
+                mip_level_count: 1,
+                sample_count: 1,
+                dimension: TextureDimension::D2,
+                format: TextureFormat::Rgba8UnormSrgb,
+                usage: TextureUsages::TEXTURE_BINDING
+                    | TextureUsages::COPY_DST
+                    | TextureUsages::RENDER_ATTACHMENT,
+                view_formats: &[],
+            },
+            ..Default::default()
+        });
+        let camera = commands
+            .spawn(Camera2dBundle {
+                camera: Camera {
+                    order: -1,
+                    target: RenderTarget::Image(texture.clone()),
+                    ..Default::default()
+                },
+                camera_2d: Camera2d {
+                    clear_color: ClearColorConfig::Custom(Color::rgba_u8(0, 0, 0, 0)),
+                },
+                ..Default::default()
+            })
+            .insert(RenderLayers::layer(0))
+            .id();
+        Self {
+            cell: clip_area,
+            texture,
+            camera,
         }
     }
 }

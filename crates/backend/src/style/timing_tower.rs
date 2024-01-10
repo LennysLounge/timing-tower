@@ -16,6 +16,8 @@ pub struct TimingTower {
     pub id: Uuid,
     pub position: Vec2Property,
     pub row: TimingTowerRow,
+    #[serde(default)]
+    pub cells: FreeCellFolder,
 }
 impl StyleNode for TimingTower {
     fn id(&self) -> &Uuid {
@@ -35,6 +37,10 @@ impl NodeIterator for TimingTower {
     {
         f(self.as_node(), Method::Visit)?;
         self.row.walk(f)?;
+        self.cells.content.iter().try_for_each(|c| match c {
+            FreeCellOrFolder::Cell(o) => o.walk(f),
+            FreeCellOrFolder::Folder(o) => o.walk(f),
+        })?;
         f(self.as_node(), Method::Leave)
     }
 }
@@ -45,6 +51,10 @@ impl NodeIteratorMut for TimingTower {
     {
         f(self.as_node_mut(), Method::Visit)?;
         self.row.walk_mut(f)?;
+        self.cells.content.iter_mut().try_for_each(|c| match c {
+            FreeCellOrFolder::Cell(o) => o.walk_mut(f),
+            FreeCellOrFolder::Folder(o) => o.walk_mut(f),
+        })?;
         f(self.as_node_mut(), Method::Leave)
     }
 }

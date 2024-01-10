@@ -103,7 +103,8 @@ fn remove(node: NodeMut, method: Method, node_id: &Uuid) -> ControlFlow<RemovedN
             }
         }
 
-        (
+        (Method::Visit, NodeMut::TimingTower(TimingTower { cells: folder, .. }))
+        | (
             Method::Visit,
             NodeMut::TimingTowerRow(TimingTowerRow {
                 columns: folder, ..

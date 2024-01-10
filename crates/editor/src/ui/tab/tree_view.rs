@@ -87,6 +87,9 @@ fn drop_allowed(target: Node, dragged: Node) -> bool {
         (Node::FreeCellFolder(_), Node::FreeCellFolder(_)) => true,
         (Node::FreeCellFolder(_), Node::FreeCell(_)) => true,
 
+        (Node::TimingTower(_), Node::FreeCell(_)) => true,
+        (Node::TimingTower(_), Node::FreeCellFolder(_)) => true,
+
         _ => false,
     }
 }

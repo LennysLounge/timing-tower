@@ -563,13 +563,13 @@
           "render_layer": 1
         },
         "columns": {
-          "element_type": "Folder",
           "id": "6963cef4-9cc9-40be-86b5-70930a1f0d1f",
           "name": "Columns",
           "content": [
             {
               "element_type": "Cell",
               "id": "7d96c8c6-c978-4258-83c4-9504bccf7256",
+              "name": "position",
               "cell": {
                 "text": {
                   "ValueRef": "6330a6bb-51d1-4af7-9bd0-efeb00b1ff52"
@@ -630,12 +630,12 @@
                   "x": 24.5,
                   "y": 18.0
                 }
-              },
-              "name": "position"
+              }
             },
             {
               "element_type": "Cell",
               "id": "95ab724b-b056-4e76-8153-2f9265aac3cb",
+              "name": "driver name",
               "cell": {
                 "text": {
                   "ValueRef": "8abcf9d5-60f7-4886-a716-139d62ad83ac"
@@ -701,12 +701,12 @@
                   "x": 21.0,
                   "y": 18.0
                 }
-              },
-              "name": "driver name"
+              }
             },
             {
               "element_type": "Cell",
               "id": "f7b469e0-7ee6-4553-bba5-1d6b361cb949",
+              "name": "manufacturer bg",
               "cell": {
                 "text": "",
                 "text_color": {
@@ -763,12 +763,12 @@
                   "x": 5.0,
                   "y": 15.0
                 }
-              },
-              "name": "manufacturer bg"
+              }
             },
             {
               "element_type": "Cell",
               "id": "408863e5-c4d7-4721-bb58-2a3887551ea5",
+              "name": "manufacturer",
               "cell": {
                 "text": "",
                 "text_color": {
@@ -827,12 +827,12 @@
                   "x": 18.0,
                   "y": 18.0
                 }
-              },
-              "name": "manufacturer"
+              }
             },
             {
               "element_type": "Cell",
               "id": "a275bdc4-ed4a-4dcb-a964-d0646598d64e",
+              "name": "car number",
               "cell": {
                 "text": {
                   "ValueRef": "171d7438-3179-4c70-b818-811cf86d514e"
@@ -888,12 +888,12 @@
                   "x": 23.0,
                   "y": 18.0
                 }
-              },
-              "name": "car number"
+              }
             },
             {
               "element_type": "Cell",
               "id": "12b0a701-6b31-4027-8bbb-0c3011998f4c",
+              "name": "pit indicator",
               "cell": {
                 "text": "P",
                 "text_color": {
@@ -959,11 +959,15 @@
                   "x": 5.5,
                   "y": 18.0
                 }
-              },
-              "name": "pit indicator"
+              }
             }
           ]
         }
+      },
+      "cells": {
+        "id": "794df2c6-c8cb-4dc9-bd66-47848148dcc4",
+        "name": "",
+        "content": []
       }
     }
   }

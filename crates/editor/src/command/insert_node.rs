@@ -118,7 +118,8 @@ pub fn insert(node: NodeMut, position: DropPosition, insert: Box<dyn Any>) -> Co
             ControlFlow::Break(())
         }
 
-        NodeMut::TimingTowerRow(TimingTowerRow {
+        NodeMut::TimingTower(TimingTower { cells: folder, .. })
+        | NodeMut::TimingTowerRow(TimingTowerRow {
             columns: folder, ..
         })
         | NodeMut::FreeCellFolderMut(folder) => {

@@ -680,7 +680,7 @@
             "bot_left": 0.0,
             "bot_right": 0.0
           },
-          "render_layer": 0
+          "render_layer": 1
         },
         "columns": [
           {
@@ -1077,73 +1077,6 @@
               }
             },
             "name": "pit indicator"
-          },
-          {
-            "element_type": "Column",
-            "id": "ad533688-6462-4db2-bbff-62eb9992a21b",
-            "cell": {
-              "text": "Column",
-              "text_color": {
-                "Rgba": {
-                  "red": 0.0,
-                  "green": 0.0,
-                  "blue": 0.0,
-                  "alpha": 1.0
-                }
-              },
-              "text_size": 20.0,
-              "font": "Default",
-              "color": {
-                "Rgba": {
-                  "red": 0.49999976,
-                  "green": 0.0,
-                  "blue": 0.5,
-                  "alpha": 1.0
-                }
-              },
-              "image": "None",
-              "pos": {
-                "x": 116.0,
-                "y": 51.0,
-                "z": 5.0
-              },
-              "size": {
-                "x": 248.0,
-                "y": 205.0
-              },
-              "skew": 0.0,
-              "corner_offsets": {
-                "top_left": {
-                  "x": 0.0,
-                  "y": 0.0
-                },
-                "top_right": {
-                  "x": 0.0,
-                  "y": 0.0
-                },
-                "bot_left": {
-                  "x": 0.0,
-                  "y": 0.0
-                },
-                "bot_right": {
-                  "x": 0.0,
-                  "y": 0.0
-                }
-              },
-              "visible": true,
-              "rounding": {
-                "top_left": 0.0,
-                "top_right": 0.0,
-                "bot_left": 0.0,
-                "bot_right": 0.0
-              },
-              "text_alginment": "Left",
-              "text_position": {
-                "x": 5.0,
-                "y": 15.0
-              }
-            },
-            "name": "new column"
           }
         ]
       }

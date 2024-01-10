@@ -110,12 +110,7 @@ fn update_tower(
         for entry_id in resolver.session.entries.keys() {
             rows.entry(*entry_id).or_insert(Row {
                 cell_id: CellId::new(),
-                columns: tower_style
-                    .row
-                    .contained_columns()
-                    .iter()
-                    .map(|c| (c.id, CellId::new()))
-                    .collect(),
+                columns: HashMap::new(),
             });
         }
 
@@ -162,7 +157,7 @@ fn update_tower(
 
         // Update row and columns
         for entry in entries {
-            let Some(row) = rows.get(&entry.id) else {
+            let Some(row) = rows.get_mut(&entry.id) else {
                 continue;
             };
 
@@ -172,11 +167,22 @@ fn update_tower(
 
             // update columns
             for column in tower_style.row.contained_columns() {
-                let Some(cell_id) = row.columns.get(&column.id) else {
-                    continue;
-                };
+                let cell_id = row
+                    .columns
+                    .entry(column.id)
+                    .or_insert_with(|| CellId::new());
                 batcher.add(cell_id, column_resolver.cell(&column.cell));
             }
+            // Remove old columns
+            // TODO: This really doesnt have to happen every frame and should only
+            // be done when the savefile changes.
+            row.columns.retain(|col_id, _cell_id| {
+                tower_style
+                    .row
+                    .contained_columns()
+                    .iter()
+                    .any(|column| &column.id == col_id)
+            });
 
             batcher.add(&row.cell_id, cell);
             row_resolver.position += row_offset;

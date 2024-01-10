@@ -92,11 +92,11 @@ fn setup(
     commands.insert_resource(GameAdapterResource {
         adapter: adapter.clone(),
     });
-    // adapter.send(unified_sim_model::AdapterCommand::Game(
-    //     unified_sim_model::GameAdapterCommand::Dummy(
-    //         unified_sim_model::games::dummy::DummyCommands::SetEntryAmount(60),
-    //     ),
-    // ));
+    adapter.send(unified_sim_model::AdapterCommand::Game(
+        unified_sim_model::GameAdapterCommand::Dummy(
+            unified_sim_model::games::dummy::DummyCommands::SetEntryAmount(60),
+        ),
+    ));
 
     savefile.load("../../savefile/style.json", savefile_changed_event);
 
@@ -116,7 +116,7 @@ fn setup(
             font: None,
             color: Color::WHITE,
             texture: Some(asset_server.load("../../../savefile/acc6.PNG")),
-            pos: Vec3::new(0.0, 0.0, 0.0),
+            pos: Vec3::new(0.0, 0.0, -100.0),
             size: Vec2::new(1920.0, 1080.0),
             corner_offsets: [
                 Vec2::ZERO,

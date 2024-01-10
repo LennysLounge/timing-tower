@@ -52,7 +52,6 @@ impl NodeIteratorMut for TimingTower {
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct TimingTowerRow {
     pub id: Uuid,
-    pub cell: Cell,
     pub row_offset: Vec2Property,
     pub clip_area: ClipArea,
     pub columns: Vec<ColumnOrFolder>,

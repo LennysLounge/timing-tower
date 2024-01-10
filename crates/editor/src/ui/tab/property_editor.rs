@@ -83,9 +83,6 @@ pub fn edit_node(
             ui.separator();
             edit_result |= cell::clip_area_editor(ui, &mut row.clip_area, reference_store);
 
-            ui.separator();
-            edit_result |= cell::cell_property_editor(ui, &mut row.cell, reference_store);
-
             if let EditResult::FromId(widget_id) = edit_result {
                 undo_redo_manager.queue(EditProperty::new(row.id, row.clone(), widget_id));
             }

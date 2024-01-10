@@ -43,7 +43,6 @@ pub struct TimingTower {
     scroll_position: f32,
 }
 pub struct Row {
-    cell_id: CellId,
     columns: HashMap<Uuid, CellId>,
 }
 impl TimingTower {
@@ -109,7 +108,6 @@ fn update_tower(
         // Create rows for each new entry
         for entry_id in resolver.session.entries.keys() {
             rows.entry(*entry_id).or_insert(Row {
-                cell_id: CellId::new(),
                 columns: HashMap::new(),
             });
         }
@@ -126,11 +124,7 @@ fn update_tower(
             -row_resolver
                 .property(&tower_style.row.row_offset.y)
                 .unwrap_or_default()
-                .0
-                - row_resolver
-                    .property(&tower_style.row.cell.size.y)
-                    .unwrap_or_default()
-                    .0,
+                .0,
             0.0,
         );
 
@@ -162,8 +156,6 @@ fn update_tower(
             };
 
             row_resolver.entry = Some(entry);
-            let cell = row_resolver.cell(&tower_style.row.cell);
-            let column_resolver = row_resolver.with_position(cell.pos);
 
             // update columns
             for column in tower_style.row.contained_columns() {
@@ -171,7 +163,7 @@ fn update_tower(
                     .columns
                     .entry(column.id)
                     .or_insert_with(|| CellId::new());
-                batcher.add(cell_id, column_resolver.cell(&column.cell));
+                batcher.add(cell_id, row_resolver.cell(&column.cell));
             }
             // Remove old columns
             // TODO: This really doesnt have to happen every frame and should only
@@ -184,7 +176,6 @@ fn update_tower(
                     .any(|column| &column.id == col_id)
             });
 
-            batcher.add(&row.cell_id, cell);
             row_resolver.position += row_offset;
         }
     }

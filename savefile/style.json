@@ -260,6 +260,19 @@
               "blue": 0.0,
               "alpha": 1.0
             }
+          },
+          {
+            "element_type": "Variable",
+            "id": "dc0105f9-83eb-4746-b2a5-dd19d9048301",
+            "name": "Transparent Background",
+            "behavior": "FixedValue",
+            "output_type": "Tint",
+            "Rgba": {
+              "red": 0.0,
+              "green": 0.0,
+              "blue": 0.0,
+              "alpha": 0.6904762
+            }
           }
         ]
       },
@@ -535,7 +548,7 @@
       "id": "63777a7c-26e1-4bdc-a840-87ebf3bdcb41",
       "position": {
         "x": 350.0,
-        "y": 55.0
+        "y": 56.0
       },
       "row": {
         "id": "23c20135-9036-4628-9c86-5a8f2b39871b",
@@ -653,12 +666,7 @@
                   "ValueRef": "28fc93a6-a776-4b91-b0f1-89e09f4a771f"
                 },
                 "color": {
-                  "Rgba": {
-                    "red": 0.0,
-                    "green": 0.0,
-                    "blue": 0.0,
-                    "alpha": 0.6904762
-                  }
+                  "ValueRef": "dc0105f9-83eb-4746-b2a5-dd19d9048301"
                 },
                 "image": "None",
                 "pos": {
@@ -967,7 +975,72 @@
       "cells": {
         "id": "794df2c6-c8cb-4dc9-bd66-47848148dcc4",
         "name": "",
-        "content": []
+        "content": [
+          {
+            "element_type": "Cell",
+            "id": "68b30ff5-cda7-4220-b995-b36ccb29844c",
+            "name": "Heading",
+            "cell": {
+              "text": "OVERALL",
+              "text_color": {
+                "Rgba": {
+                  "red": 1.0,
+                  "green": 1.0,
+                  "blue": 1.0,
+                  "alpha": 1.0
+                }
+              },
+              "text_size": 13.0,
+              "font": {
+                "ValueRef": "28fc93a6-a776-4b91-b0f1-89e09f4a771f"
+              },
+              "color": {
+                "ValueRef": "dc0105f9-83eb-4746-b2a5-dd19d9048301"
+              },
+              "image": "None",
+              "pos": {
+                "x": 21.0,
+                "y": -21.0,
+                "z": 0.0
+              },
+              "size": {
+                "x": 70.0,
+                "y": 20.0
+              },
+              "skew": 0.0,
+              "corner_offsets": {
+                "top_left": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "top_right": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "bot_left": {
+                  "x": 21.0,
+                  "y": 0.0
+                },
+                "bot_right": {
+                  "x": 0.0,
+                  "y": 0.0
+                }
+              },
+              "visible": true,
+              "rounding": {
+                "top_left": 0.0,
+                "top_right": 0.0,
+                "bot_left": 0.0,
+                "bot_right": 0.0
+              },
+              "text_alginment": "Left",
+              "text_position": {
+                "x": 10.0,
+                "y": 11.0
+              }
+            }
+          }
+        ]
       }
     }
   }

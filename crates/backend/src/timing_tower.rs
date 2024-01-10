@@ -39,6 +39,7 @@ pub struct StyleElementUpdate;
 pub struct TimingTower {
     clip_area_cell_id: CellId,
     rows: HashMap<EntryId, Row>,
+    cells: HashMap<Uuid, CellId>,
     scroll_position: f32,
 }
 pub struct Row {
@@ -49,6 +50,7 @@ impl TimingTower {
         Self {
             clip_area_cell_id: CellId::new(),
             rows: HashMap::new(),
+            cells: HashMap::new(),
             scroll_position: 0.0,
         }
     }
@@ -70,6 +72,7 @@ fn update_tower(
         let TimingTower {
             clip_area_cell_id,
             rows,
+            cells,
             scroll_position,
         } = tower.as_mut();
 
@@ -104,10 +107,26 @@ fn update_tower(
                 .0,
             0.0,
         );
-        let row_resolver = resolver.with_position(cell_position);
+        let resolver = resolver.with_position(cell_position);
 
-        let clip_area = row_resolver.clip_area(&tower_style.row.clip_area);
-        let mut row_resolver = row_resolver.with_render_layer(clip_area.render_layer);
+        // Update cells of the timing tower
+        for column in tower_style.cells.contained_cells() {
+            let cell_id = cells.entry(column.id).or_insert_with(|| CellId::new());
+            batcher.add(cell_id, resolver.cell(&column.cell));
+        }
+        // Remove old columns
+        // TODO: This really doesnt have to happen every frame and should only
+        // be done when the savefile changes.
+        cells.retain(|col_id, _cell_id| {
+            tower_style
+                .cells
+                .contained_cells()
+                .iter()
+                .any(|column| &column.id == col_id)
+        });
+
+        let clip_area = resolver.clip_area(&tower_style.row.clip_area);
+        let mut row_resolver = resolver.with_render_layer(clip_area.render_layer);
 
         batcher.add_clip_area(&clip_area_cell_id, clip_area);
 

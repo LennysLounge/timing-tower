@@ -56,7 +56,26 @@ pub fn edit_node(
     undo_redo_manager: &mut UndoRedoManager,
 ) {
     match node {
-        NodeMut::TimingTower(_tower) => {}
+        NodeMut::TimingTower(tower) => {
+            let mut edit_result = EditResult::None;
+
+            ui.label("Position:");
+            ui.horizontal(|ui| {
+                ui.label("X:");
+                edit_result |= ui
+                    .add(PropertyEditor::new(&mut tower.position.x, reference_store))
+                    .into();
+            });
+            ui.horizontal(|ui| {
+                ui.label("Y:");
+                edit_result |= ui
+                    .add(PropertyEditor::new(&mut tower.position.y, reference_store))
+                    .into();
+            });
+            if let EditResult::FromId(widget_id) = edit_result {
+                undo_redo_manager.queue(EditProperty::new(tower.id, tower.clone(), widget_id));
+            }
+        }
 
         NodeMut::TimingTowerRow(row) => {
             let mut edit_result = EditResult::None;

@@ -81,6 +81,9 @@ pub fn edit_node(
                     .into();
             });
             ui.separator();
+            edit_result |= cell::clip_area_editor(ui, &mut row.clip_area, reference_store);
+
+            ui.separator();
             edit_result |= cell::cell_property_editor(ui, &mut row.cell, reference_store);
 
             if let EditResult::FromId(widget_id) = edit_result {
@@ -280,109 +283,6 @@ pub fn edit_node(
             });
         }
 
-        NodeMut::ClipArea(clip_area) => {
-            let data = &mut clip_area.data;
-            let mut edit_result = EditResult::None;
-
-            ui.horizontal(|ui| {
-                ui.label("Layer:");
-                let res = ui.add(DragValue::new(&mut data.render_layer).clamp_range(0..=31));
-                if res.changed() {
-                    edit_result = EditResult::FromId(res.id)
-                }
-            });
-            ui.horizontal(|ui| {
-                ui.label("Pos x:");
-                let res = ui.add(PropertyEditor::new(&mut data.pos.x, reference_store));
-                if res.changed() {
-                    edit_result = EditResult::FromId(res.id)
-                }
-            });
-            ui.horizontal(|ui| {
-                ui.label("Pos y:");
-                let res = ui.add(PropertyEditor::new(&mut data.pos.y, reference_store));
-                if res.changed() {
-                    edit_result = EditResult::FromId(res.id)
-                }
-            });
-            ui.horizontal(|ui| {
-                ui.label("Pos z:");
-                let res = ui.add(PropertyEditor::new(&mut data.pos.z, reference_store));
-                if res.changed() {
-                    edit_result = EditResult::FromId(res.id)
-                }
-            });
-            ui.horizontal(|ui| {
-                ui.label("Width:");
-                let res = ui.add(PropertyEditor::new(&mut data.size.x, reference_store));
-                if res.changed() {
-                    edit_result = EditResult::FromId(res.id)
-                }
-            });
-            ui.horizontal(|ui| {
-                ui.label("Height:");
-                let res = ui.add(PropertyEditor::new(&mut data.size.y, reference_store));
-                if res.changed() {
-                    edit_result = EditResult::FromId(res.id)
-                }
-            });
-            ui.horizontal(|ui| {
-                ui.label("Skew:");
-                let res = ui.add(PropertyEditor::new(&mut data.skew, reference_store));
-                if res.changed() {
-                    edit_result = EditResult::FromId(res.id)
-                }
-            });
-            ui.label("Rounding:");
-            ui.horizontal(|ui| {
-                ui.label("top left:");
-                let res = ui.add(PropertyEditor::new(
-                    &mut data.rounding.top_left,
-                    reference_store,
-                ));
-                if res.changed() {
-                    edit_result = EditResult::FromId(res.id)
-                }
-            });
-            ui.horizontal(|ui| {
-                ui.label("top right:");
-                let res = ui.add(PropertyEditor::new(
-                    &mut data.rounding.top_right,
-                    reference_store,
-                ));
-                if res.changed() {
-                    edit_result = EditResult::FromId(res.id)
-                }
-            });
-            ui.horizontal(|ui| {
-                ui.label("bottom right:");
-                let res = ui.add(PropertyEditor::new(
-                    &mut data.rounding.bot_right,
-                    reference_store,
-                ));
-                if res.changed() {
-                    edit_result = EditResult::FromId(res.id)
-                }
-            });
-            ui.horizontal(|ui| {
-                ui.label("bottom left:");
-                let res = ui.add(PropertyEditor::new(
-                    &mut data.rounding.bot_left,
-                    reference_store,
-                ));
-                if res.changed() {
-                    edit_result = EditResult::FromId(res.id)
-                }
-            });
-
-            if let EditResult::FromId(widget_id) = edit_result {
-                undo_redo_manager.queue(EditProperty::new(
-                    *clip_area.id(),
-                    clip_area.clone(),
-                    widget_id,
-                ));
-            }
-        }
         NodeMut::Style(_) => (),
     }
 }

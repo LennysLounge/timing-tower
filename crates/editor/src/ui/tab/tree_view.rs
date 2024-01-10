@@ -388,17 +388,6 @@ fn show_node(
             ControlFlow::Continue(())
         }
 
-        (Method::Visit, NodeMut::ClipArea(clip_area)) => {
-            builder.dir(clip_area.id(), |ui| {
-                ui.label("Clip area");
-            });
-            ControlFlow::Continue(())
-        }
-        (Method::Leave, NodeMut::ClipArea(_)) => {
-            builder.close_dir();
-            ControlFlow::Continue(())
-        }
-
         _ => ControlFlow::Continue(()),
     }
 }

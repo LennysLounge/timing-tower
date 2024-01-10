@@ -6,8 +6,7 @@ use uuid::Uuid;
 use crate::value_types::Vec2Property;
 
 use super::{
-    cell::Cell,
-    clip_area::ClipArea,
+    cell::{Cell, ClipArea},
     iterator::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
     StyleNode,
 };
@@ -16,7 +15,7 @@ use super::{
 pub struct TimingTower {
     pub id: Uuid,
     pub cell: Cell,
-    pub row: ClipArea<TimingTowerRow>,
+    pub row: TimingTowerRow,
 }
 impl StyleNode for TimingTower {
     fn id(&self) -> &Uuid {
@@ -55,6 +54,7 @@ pub struct TimingTowerRow {
     pub id: Uuid,
     pub cell: Cell,
     pub row_offset: Vec2Property,
+    pub clip_area: ClipArea,
     pub columns: Vec<ColumnOrFolder>,
 }
 impl TimingTowerRow {

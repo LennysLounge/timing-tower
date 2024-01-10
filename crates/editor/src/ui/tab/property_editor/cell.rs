@@ -1,5 +1,5 @@
-use backend::style::cell::Cell;
-use bevy_egui::egui::{Grid, Ui};
+use backend::style::cell::{Cell, ClipArea};
+use bevy_egui::egui::{DragValue, Grid, Ui};
 use common::communication::TextAlignment;
 
 use crate::{
@@ -262,5 +262,106 @@ pub fn cell_property_editor(
         }
         ui.end_row();
     });
+    edit_result
+}
+
+pub fn clip_area_editor(
+    ui: &mut Ui,
+    clip_area: &mut ClipArea,
+    reference_store: &ReferenceStore,
+) -> EditResult {
+    let mut edit_result = EditResult::None;
+
+    ui.horizontal(|ui| {
+        ui.label("Layer:");
+        let res = ui.add(DragValue::new(&mut clip_area.render_layer).clamp_range(0..=31));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
+    });
+    ui.horizontal(|ui| {
+        ui.label("Pos x:");
+        let res = ui.add(PropertyEditor::new(&mut clip_area.pos.x, reference_store));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
+    });
+    ui.horizontal(|ui| {
+        ui.label("Pos y:");
+        let res = ui.add(PropertyEditor::new(&mut clip_area.pos.y, reference_store));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
+    });
+    ui.horizontal(|ui| {
+        ui.label("Pos z:");
+        let res = ui.add(PropertyEditor::new(&mut clip_area.pos.z, reference_store));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
+    });
+    ui.horizontal(|ui| {
+        ui.label("Width:");
+        let res = ui.add(PropertyEditor::new(&mut clip_area.size.x, reference_store));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
+    });
+    ui.horizontal(|ui| {
+        ui.label("Height:");
+        let res = ui.add(PropertyEditor::new(&mut clip_area.size.y, reference_store));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
+    });
+    ui.horizontal(|ui| {
+        ui.label("Skew:");
+        let res = ui.add(PropertyEditor::new(&mut clip_area.skew, reference_store));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
+    });
+    ui.label("Rounding:");
+    ui.horizontal(|ui| {
+        ui.label("top left:");
+        let res = ui.add(PropertyEditor::new(
+            &mut clip_area.rounding.top_left,
+            reference_store,
+        ));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
+    });
+    ui.horizontal(|ui| {
+        ui.label("top right:");
+        let res = ui.add(PropertyEditor::new(
+            &mut clip_area.rounding.top_right,
+            reference_store,
+        ));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
+    });
+    ui.horizontal(|ui| {
+        ui.label("bottom right:");
+        let res = ui.add(PropertyEditor::new(
+            &mut clip_area.rounding.bot_right,
+            reference_store,
+        ));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
+    });
+    ui.horizontal(|ui| {
+        ui.label("bottom left:");
+        let res = ui.add(PropertyEditor::new(
+            &mut clip_area.rounding.bot_left,
+            reference_store,
+        ));
+        if res.changed() {
+            edit_result = EditResult::FromId(res.id)
+        }
+    });
+
     edit_result
 }

@@ -43,7 +43,6 @@ impl EditProperty {
                     NodeMut::TimingTowerRow(o) => apply_edit(o, self.value),
                     NodeMut::TimingTowerColumn(o) => apply_edit(o, self.value),
                     NodeMut::TimingTowerColumnFolder(o) => apply_edit(o, self.value),
-                    NodeMut::ClipArea(o) => apply_edit(o, self.value),
                 };
                 EditProperty {
                     timestamp: self.timestamp,

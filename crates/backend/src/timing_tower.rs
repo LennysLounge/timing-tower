@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::{
-    style::clip_area::ClipAreaData,
+    style::cell::ClipArea,
     value_types::{Font, Vec2Property},
     GameAdapterResource,
 };
@@ -100,7 +100,7 @@ fn update_tower(
         let cell = resolver.cell(&tower_style.cell);
         let row_resolver = resolver.with_position(cell.pos);
 
-        let clip_area = row_resolver.clip_area(&tower_style.row.data);
+        let clip_area = row_resolver.clip_area(&tower_style.row.clip_area);
         let mut row_resolver = row_resolver.with_render_layer(clip_area.render_layer);
 
         batcher.add(&cell_id, cell);
@@ -112,7 +112,6 @@ fn update_tower(
                 cell_id: CellId::new(),
                 columns: tower_style
                     .row
-                    .inner
                     .contained_columns()
                     .iter()
                     .map(|c| (c.id, CellId::new()))
@@ -126,15 +125,15 @@ fn update_tower(
         // Update the rows
         let row_offset = vec3(
             row_resolver
-                .property(&tower_style.row.inner.row_offset.x)
+                .property(&tower_style.row.row_offset.x)
                 .unwrap_or_default()
                 .0,
             -row_resolver
-                .property(&tower_style.row.inner.row_offset.y)
+                .property(&tower_style.row.row_offset.y)
                 .unwrap_or_default()
                 .0
                 - row_resolver
-                    .property(&tower_style.row.inner.cell.size.y)
+                    .property(&tower_style.row.cell.size.y)
                     .unwrap_or_default()
                     .0,
             0.0,
@@ -168,11 +167,11 @@ fn update_tower(
             };
 
             row_resolver.entry = Some(entry);
-            let cell = row_resolver.cell(&tower_style.row.inner.cell);
+            let cell = row_resolver.cell(&tower_style.row.cell);
             let column_resolver = row_resolver.with_position(cell.pos);
 
             // update columns
-            for column in tower_style.row.inner.contained_columns() {
+            for column in tower_style.row.contained_columns() {
                 let Some(cell_id) = row.columns.get(&column.id) else {
                     continue;
                 };
@@ -215,7 +214,7 @@ impl<'a> StyleResolver<'a> {
         }
     }
 
-    fn clip_area(&self, clip_area: &ClipAreaData) -> ClipAreaStyle {
+    fn clip_area(&self, clip_area: &ClipArea) -> ClipAreaStyle {
         ClipAreaStyle {
             pos: Vec3::new(
                 self.value_store

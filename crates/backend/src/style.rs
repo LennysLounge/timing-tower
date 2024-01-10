@@ -12,7 +12,6 @@ use self::{
 
 pub mod assets;
 pub mod cell;
-pub mod clip_area;
 pub mod iterator;
 pub mod scene;
 pub mod timing_tower;
@@ -21,7 +20,6 @@ pub mod variables;
 pub mod definitions {
     pub use self::super::{
         assets::{AssetDefinition, AssetFolder},
-        clip_area::{ClipArea, ClipAreaData},
         scene::SceneDefinition,
         timing_tower::{TimingTower, TimingTowerColumn, TimingTowerColumnFolder, TimingTowerRow},
         variables::{VariableDefinition, VariableFolder},

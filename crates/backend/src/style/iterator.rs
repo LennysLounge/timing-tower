@@ -4,7 +4,6 @@ use uuid::Uuid;
 
 use super::{
     assets::{AssetDefinition, AssetFolder},
-    clip_area::ClipArea,
     scene::SceneDefinition,
     timing_tower::{TimingTower, TimingTowerColumn, TimingTowerColumnFolder, TimingTowerRow},
     variables::{VariableDefinition, VariableFolder},
@@ -85,7 +84,6 @@ pub enum Node<'a> {
     TimingTowerRow(&'a TimingTowerRow),
     TimingTowerColumn(&'a TimingTowerColumn),
     TimingTowerColumnFolder(&'a TimingTowerColumnFolder),
-    ClipArea(&'a ClipArea<TimingTowerRow>),
 }
 
 impl Node<'_> {
@@ -101,7 +99,6 @@ impl Node<'_> {
             Node::TimingTowerRow(o) => &o.id,
             Node::TimingTowerColumn(o) => &o.id,
             Node::TimingTowerColumnFolder(o) => &o.id,
-            Node::ClipArea(o) => &o.data.id,
         }
     }
 }
@@ -121,7 +118,6 @@ impl NodeIterator for Node<'_> {
             Node::TimingTowerRow(o) => o.walk(f),
             Node::TimingTowerColumn(o) => o.walk(f),
             Node::TimingTowerColumnFolder(o) => o.walk(f),
-            Node::ClipArea(o) => o.walk(f),
         }
     }
 }
@@ -137,7 +133,6 @@ pub enum NodeMut<'a> {
     TimingTowerRow(&'a mut TimingTowerRow),
     TimingTowerColumn(&'a mut TimingTowerColumn),
     TimingTowerColumnFolder(&'a mut TimingTowerColumnFolder),
-    ClipArea(&'a mut ClipArea<TimingTowerRow>),
 }
 impl NodeMut<'_> {
     pub fn id(&self) -> &Uuid {
@@ -152,7 +147,6 @@ impl NodeMut<'_> {
             NodeMut::TimingTowerRow(o) => &o.id,
             NodeMut::TimingTowerColumn(o) => &o.id,
             NodeMut::TimingTowerColumnFolder(o) => &o.id,
-            NodeMut::ClipArea(o) => &o.data.id,
         }
     }
 }
@@ -172,7 +166,6 @@ impl NodeIteratorMut for NodeMut<'_> {
             NodeMut::TimingTowerRow(o) => o.walk_mut(f),
             NodeMut::TimingTowerColumn(o) => o.walk_mut(f),
             NodeMut::TimingTowerColumnFolder(o) => o.walk_mut(f),
-            NodeMut::ClipArea(o) => o.walk_mut(f),
         }
     }
 }

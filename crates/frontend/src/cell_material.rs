@@ -15,7 +15,6 @@ use bevy::{
     prelude::*,
     render::{
         extract_component::{ExtractComponent, ExtractComponentPlugin},
-        mesh::MeshVertexBufferLayout,
         render_asset::{prepare_assets, RenderAssets},
         render_phase::{
             AddRenderCommand, DrawFunctions, PhaseItem, RenderCommand, RenderCommandResult,
@@ -23,14 +22,11 @@ use bevy::{
         },
         render_resource::*,
         renderer::RenderDevice,
-        texture::FallbackImage,
+        texture::{BevyDefault, FallbackImage},
         view::{ExtractedView, RenderLayers, VisibleEntities},
         Extract, Render, RenderApp, RenderSet,
     },
-    sprite::{
-        Mesh2dHandle, Mesh2dPipeline, Mesh2dPipelineKey, RenderMesh2dInstances,
-        SetMesh2dViewBindGroup,
-    },
+    sprite::{Mesh2dHandle, Mesh2dPipeline, Mesh2dPipelineKey, SetMesh2dViewBindGroup},
     utils::FloatOrd,
 };
 use bytemuck::{Pod, Zeroable};
@@ -67,7 +63,7 @@ impl Plugin for CellMaterialPlugin {
         app.add_plugins(ExtractComponentPlugin::<CellMaterial>::default());
         app.sub_app_mut(RenderApp)
             .add_render_command::<Transparent2d, DrawCellMaterial>()
-            .init_resource::<SpecializedMeshPipelines<CellMaterialPipline>>()
+            .init_resource::<SpecializedRenderPipelines<CellMaterialPipline>>()
             .add_systems(ExtractSchedule, extract_mesh_2d_handle)
             .add_systems(
                 Render,
@@ -183,6 +179,7 @@ struct InstanceData {
 struct GroupedCellMaterial {
     uniform: UniformData,
     per_instance: Vec<InstanceData>,
+    z_pos: f32,
 }
 
 fn group_instance_data(mut commands: Commands, query: Query<(Entity, &ExtractedCellMaterial)>) {
@@ -249,6 +246,7 @@ fn group_instance_data(mut commands: Commands, query: Query<(Entity, &ExtractedC
                         uniform: UniformData {
                             texture: extracted.material.texture.clone(),
                         },
+                        z_pos: extracted.transform.z,
                         per_instance: group
                             .iter()
                             .map(|(_, extracted)| extracted.to_instance_data())
@@ -301,18 +299,15 @@ fn queue_custom(
     transparent_2d_draw_functions: Res<DrawFunctions<Transparent2d>>,
     custom_pipeline: Res<CellMaterialPipline>,
     msaa: Res<Msaa>,
-    mut pipelines: ResMut<SpecializedMeshPipelines<CellMaterialPipline>>,
+    mut pipelines: ResMut<SpecializedRenderPipelines<CellMaterialPipline>>,
     pipeline_cache: Res<PipelineCache>,
-    meshes: Res<RenderAssets<Mesh>>,
-    render_mesh_instances: Res<RenderMesh2dInstances>,
-    material_meshes: Query<Entity, (With<UniformBuffer>, With<GroupedCellMaterial>)>,
+    material_meshes: Query<(Entity, &GroupedCellMaterial), With<UniformBuffer>>,
     mut views: Query<(
         &ExtractedView,
         &VisibleEntities,
         &mut RenderPhase<Transparent2d>,
     )>,
 ) {
-    //println!("Start queue");
     let draw_custom = transparent_2d_draw_functions
         .read()
         .id::<DrawCellMaterial>();
@@ -320,36 +315,22 @@ fn queue_custom(
     let msaa_key = Mesh2dPipelineKey::from_msaa_samples(msaa.samples());
 
     for (view, visible_entities, mut transparent_phase) in &mut views {
-        //println!("we have a view");
-        let view_key = msaa_key | Mesh2dPipelineKey::from_hdr(view.hdr);
+        let key = msaa_key | Mesh2dPipelineKey::from_hdr(view.hdr);
         for visible_entity in &visible_entities.entities {
-            //println!("there is an entity");
-            let Ok(_) = material_meshes.get(*visible_entity) else {
+            let Ok((_entity, grouped_cell_material)) = material_meshes.get(*visible_entity) else {
                 continue;
             };
-            let Some(mesh_instance) = render_mesh_instances.get(visible_entity) else {
-                continue;
-            };
-            let Some(mesh) = meshes.get(mesh_instance.mesh_asset_id) else {
-                continue;
-            };
-            let key = view_key
-                | Mesh2dPipelineKey::from_primitive_topology(PrimitiveTopology::TriangleList);
-            let pipeline = pipelines
-                .specialize(&pipeline_cache, &custom_pipeline, key, &mesh.layout)
-                .unwrap();
-            //println!("Add phase item for entity: {:?}", entity);
+            let pipeline = pipelines.specialize(&pipeline_cache, &custom_pipeline, key);
             transparent_phase.add(Transparent2d {
                 entity: *visible_entity,
                 pipeline,
                 draw_function: draw_custom,
                 batch_range: 0..1,
                 dynamic_offset: None,
-                sort_key: FloatOrd(mesh_instance.transforms.transform.translation.z),
+                sort_key: FloatOrd(grouped_cell_material.z_pos),
             });
         }
     }
-    //println!("end queue");
 }
 
 #[derive(Component)]
@@ -400,24 +381,11 @@ impl FromWorld for CellMaterialPipline {
     }
 }
 
-impl SpecializedMeshPipeline for CellMaterialPipline {
+impl SpecializedRenderPipeline for CellMaterialPipline {
     type Key = Mesh2dPipelineKey;
 
-    fn specialize(
-        &self,
-        key: Self::Key,
-        layout: &MeshVertexBufferLayout,
-    ) -> Result<RenderPipelineDescriptor, SpecializedMeshPipelineError> {
-        let mut descriptor = self.mesh2d_pipeline.specialize(key, layout)?;
-
-        // We are only using the view binding and uniform data here.
-        descriptor.layout = vec![
-            self.mesh2d_pipeline.view_layout.clone(),
-            self.uniform_data_layout.clone(),
-        ];
-
-        descriptor.vertex.shader = INSTANCE_SHADER_HANDLE.clone();
-        descriptor.vertex.buffers = vec![VertexBufferLayout {
+    fn specialize(&self, key: Self::Key) -> RenderPipelineDescriptor {
+        let vertex_buffer_layout = VertexBufferLayout {
             array_stride: std::mem::size_of::<InstanceData>() as u64,
             step_mode: VertexStepMode::Instance,
             attributes: vec![
@@ -458,9 +426,55 @@ impl SpecializedMeshPipeline for CellMaterialPipline {
                     shader_location: 8,
                 },
             ],
-        }];
-        descriptor.fragment.as_mut().unwrap().shader = INSTANCE_SHADER_HANDLE.clone();
-        Ok(descriptor)
+        };
+
+        let mut push_constant_ranges = Vec::with_capacity(1);
+        if cfg!(all(feature = "webgl", target_arch = "wasm32")) {
+            push_constant_ranges.push(PushConstantRange {
+                stages: ShaderStages::VERTEX,
+                range: 0..4,
+            });
+        }
+
+        RenderPipelineDescriptor {
+            vertex: VertexState {
+                shader: INSTANCE_SHADER_HANDLE.clone(),
+                entry_point: "vertex".into(),
+                shader_defs: Vec::new(),
+                buffers: vec![vertex_buffer_layout],
+            },
+            fragment: Some(FragmentState {
+                shader: INSTANCE_SHADER_HANDLE.clone(),
+                shader_defs: Vec::new(),
+                entry_point: "fragment".into(),
+                targets: vec![Some(ColorTargetState {
+                    format: TextureFormat::bevy_default(),
+                    blend: Some(BlendState::ALPHA_BLENDING),
+                    write_mask: ColorWrites::ALL,
+                })],
+            }),
+            layout: vec![
+                self.mesh2d_pipeline.view_layout.clone(),
+                self.uniform_data_layout.clone(),
+            ],
+            push_constant_ranges,
+            primitive: PrimitiveState {
+                front_face: FrontFace::Ccw,
+                cull_mode: None,
+                unclipped_depth: false,
+                polygon_mode: PolygonMode::Fill,
+                conservative: false,
+                topology: PrimitiveTopology::TriangleList,
+                strip_index_format: None,
+            },
+            depth_stencil: None,
+            multisample: MultisampleState {
+                count: key.msaa_samples(),
+                mask: !0,
+                alpha_to_coverage_enabled: false,
+            },
+            label: Some("cell_pipeline".into()),
+        }
     }
 }
 

@@ -96,11 +96,11 @@ fn setup_cell(
                 corner_offsets: [
                     vec2(0.0, 0.0),
                     vec2(0.0, 0.0),
-                    vec2(0.0, 0.0),
                     vec2(-300.0, 0.0),
+                    vec2(0.0, 0.0),
                 ],
                 visible: true,
-                rounding: [0.0, 0.0, 0.0, 0.0],
+                rounding: [0.0, 0.0, 50.0, 0.0],
                 render_layer: 0,
             },
         });

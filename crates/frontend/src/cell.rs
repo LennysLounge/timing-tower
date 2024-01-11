@@ -47,8 +47,10 @@ pub struct CellStyle {
     pub texture: Option<Handle<Image>>,
     pub pos: Vec3,
     pub size: Vec2,
+    // Order top left, top right, bottom left, bottom right,
     pub corner_offsets: [Vec2; 4],
     pub visible: bool,
+    // Order top left, top right, bottom left, bottom right,
     pub rounding: [f32; 4],
     pub render_layer: u8,
 }

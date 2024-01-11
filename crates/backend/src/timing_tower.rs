@@ -286,11 +286,11 @@ impl<'a> StyleResolver<'a> {
                     .unwrap_or(Number(0.0))
                     .0,
                 self.value_store
-                    .get_property(&clip_area.rounding.bot_right, self.entry)
+                    .get_property(&clip_area.rounding.bot_left, self.entry)
                     .unwrap_or(Number(0.0))
                     .0,
                 self.value_store
-                    .get_property(&clip_area.rounding.bot_left, self.entry)
+                    .get_property(&clip_area.rounding.bot_right, self.entry)
                     .unwrap_or(Number(0.0))
                     .0,
             ],
@@ -392,8 +392,8 @@ impl<'a> StyleResolver<'a> {
                 [
                     get_vec(&cell.corner_offsets.top_left) + vec2(skew, 0.0),
                     get_vec(&cell.corner_offsets.top_right) + vec2(skew, 0.0),
-                    get_vec(&cell.corner_offsets.bot_right) + vec2(0.0, 0.0),
                     get_vec(&cell.corner_offsets.bot_left) + vec2(0.0, 0.0),
+                    get_vec(&cell.corner_offsets.bot_right) + vec2(0.0, 0.0),
                 ]
             },
             visible: self
@@ -411,11 +411,11 @@ impl<'a> StyleResolver<'a> {
                     .unwrap_or(Number(0.0))
                     .0,
                 self.value_store
-                    .get_property(&cell.rounding.bot_right, self.entry)
+                    .get_property(&cell.rounding.bot_left, self.entry)
                     .unwrap_or(Number(0.0))
                     .0,
                 self.value_store
-                    .get_property(&cell.rounding.bot_left, self.entry)
+                    .get_property(&cell.rounding.bot_right, self.entry)
                     .unwrap_or(Number(0.0))
                     .0,
             ],

@@ -433,7 +433,7 @@ impl SpecializedRenderPipeline for CellMaterialPipline {
                 unclipped_depth: false,
                 polygon_mode: PolygonMode::Fill,
                 conservative: false,
-                topology: PrimitiveTopology::TriangleList,
+                topology: PrimitiveTopology::TriangleStrip,
                 strip_index_format: None,
             },
             depth_stencil: None,
@@ -468,12 +468,9 @@ impl<P: PhaseItem> RenderCommand<P> for DrawMesh2dInstanced {
         _: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
-        //println!("do draw call for entity: {:?}", item.entity());
-
         pass.set_bind_group(1, &uniform_buffer.prepared.bind_group, &[]);
         pass.set_vertex_buffer(0, instance_buffer.buffer.slice(..));
-        pass.draw(0..6, 0..instance_buffer.length as u32);
-
+        pass.draw(0..4, 0..instance_buffer.length as u32);
         RenderCommandResult::Success
     }
 }

@@ -79,7 +79,7 @@ fn cross2d(u: vec2<f32>, v: vec2<f32>) -> f32{
 @fragment
 fn fragment(in: VertexOutput) -> @location(0) vec4<f32> {
     let mask = get_rounding_mask(vec2(in.edge_dist[3u], in.edge_dist[0u]), in.rounding[0])
-             * get_rounding_mask(vec2(in.edge_dist[1u], in.edge_dist[2u]), in.rounding[1])
+             * get_rounding_mask(vec2(in.edge_dist[0u], in.edge_dist[1u]), in.rounding[1])
              * get_rounding_mask(vec2(in.edge_dist[3u], in.edge_dist[2u]), in.rounding[2])
              * get_rounding_mask(vec2(in.edge_dist[1u], in.edge_dist[2u]), in.rounding[3]);
 

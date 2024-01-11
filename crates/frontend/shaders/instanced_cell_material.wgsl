@@ -7,12 +7,12 @@
 const corner_index_table: u32 = 0xe24u;
 
 struct InstanceData{
-    @location(3) model_pos: vec3<f32>,
-    @location(4) size: vec2<f32>,
-    @location(5) corner_offset_x: vec4<f32>,
-    @location(6) corner_offset_y: vec4<f32>,
-    @location(7) rounding: vec4<f32>,
-    @location(8) i_color: vec4<f32>,
+    @location(0) model_pos: vec3<f32>,
+    @location(1) size: vec2<f32>,
+    @location(2) corner_offset_x: vec4<f32>,
+    @location(3) corner_offset_y: vec4<f32>,
+    @location(4) rounding: vec4<f32>,
+    @location(5) i_color: vec4<f32>,
 };
 
 struct VertexOutput {

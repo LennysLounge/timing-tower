@@ -24,36 +24,20 @@ use bevy::{
         renderer::RenderDevice,
         texture::{BevyDefault, FallbackImage},
         view::{ExtractedView, RenderLayers, VisibleEntities},
-        Extract, Render, RenderApp, RenderSet,
+        Render, RenderApp, RenderSet,
     },
-    sprite::{Mesh2dHandle, Mesh2dPipeline, Mesh2dPipelineKey, SetMesh2dViewBindGroup},
+    sprite::{Mesh2dPipeline, Mesh2dPipelineKey, SetMesh2dViewBindGroup},
     utils::FloatOrd,
 };
 use bytemuck::{Pod, Zeroable};
 use uuid::uuid;
 
-const VERT_SHADER_HANDLE: Handle<Shader> =
-    Handle::weak_from_u128(uuid!("8f2e85d4-c560-410c-9159-c37a95e865e5").as_u128());
-const FRAG_SHADER_HANDLE: Handle<Shader> =
-    Handle::weak_from_u128(uuid!("eb34f151-aa39-4148-8e01-7c801b4b8566").as_u128());
 const INSTANCE_SHADER_HANDLE: Handle<Shader> =
     Handle::weak_from_u128(uuid!("a42b398a-0d38-4f78-aea0-c737b10ba73f").as_u128());
 
 pub struct CellMaterialPlugin;
 impl Plugin for CellMaterialPlugin {
     fn build(&self, app: &mut App) {
-        load_internal_asset!(
-            app,
-            FRAG_SHADER_HANDLE,
-            "../shaders/cell_frag.wgsl",
-            Shader::from_wgsl
-        );
-        load_internal_asset!(
-            app,
-            VERT_SHADER_HANDLE,
-            "../shaders/cell_vert.wgsl",
-            Shader::from_wgsl
-        );
         load_internal_asset!(
             app,
             INSTANCE_SHADER_HANDLE,
@@ -64,7 +48,6 @@ impl Plugin for CellMaterialPlugin {
         app.sub_app_mut(RenderApp)
             .add_render_command::<Transparent2d, DrawCellMaterial>()
             .init_resource::<SpecializedRenderPipelines<CellMaterialPipline>>()
-            .add_systems(ExtractSchedule, extract_mesh_2d_handle)
             .add_systems(
                 Render,
                 (
@@ -96,7 +79,6 @@ pub struct CellMaterial {
 #[derive(Component)]
 pub struct ExtractedCellMaterial {
     material: CellMaterial,
-    mesh: Mesh2dHandle,
     transform: Vec3,
     render_layer: RenderLayers,
 }
@@ -104,7 +86,6 @@ pub struct ExtractedCellMaterial {
 impl ExtractComponent for CellMaterial {
     type Query = (
         &'static CellMaterial,
-        &'static Mesh2dHandle,
         &'static GlobalTransform,
         &'static RenderLayers,
         &'static InheritedVisibility,
@@ -113,11 +94,10 @@ impl ExtractComponent for CellMaterial {
     type Out = ExtractedCellMaterial;
 
     fn extract_component(
-        (material, mesh, transform, layers, visibility): QueryItem<'_, Self::Query>,
+        (material, transform, layers, visibility): QueryItem<'_, Self::Query>,
     ) -> Option<Self::Out> {
         visibility.get().then_some(ExtractedCellMaterial {
             material: material.clone(),
-            mesh: mesh.clone(),
             transform: transform.translation(),
             render_layer: *layers,
         })
@@ -144,14 +124,6 @@ impl ExtractedCellMaterial {
             color: self.material.color.as_linear_rgba_f32(),
         }
     }
-}
-
-fn extract_mesh_2d_handle(mut commands: Commands, query: Extract<Query<(Entity, &Mesh2dHandle)>>) {
-    let mut extracted = Vec::new();
-    for (e, m) in query.iter() {
-        extracted.push((e, m.clone()));
-    }
-    commands.insert_or_spawn_batch(extracted);
 }
 
 /// The data that stays the same for each group of cells.
@@ -204,7 +176,6 @@ fn group_instance_data(mut commands: Commands, query: Query<(Entity, &ExtractedC
             .into_iter()
             .map(|(entity, extracted)| {
                 let mut hasher = DefaultHasher::new();
-                extracted.mesh.0.hash(&mut hasher);
                 extracted.material.texture.hash(&mut hasher);
                 (entity, extracted, hasher.finish())
             })
@@ -272,9 +243,7 @@ fn prepare_uniform_buffers(
     images: Res<RenderAssets<Image>>,
     fallback_image: Res<FallbackImage>,
 ) {
-    //println!("start uniform buffer");
     for (entity, material) in query.iter() {
-        //println!("\tentity:{entity:?}");
         // Should this be cached between frames? I dont know.
         match material.uniform.as_bind_group(
             &pipeline.uniform_data_layout,
@@ -393,37 +362,37 @@ impl SpecializedRenderPipeline for CellMaterialPipline {
                 VertexAttribute {
                     format: VertexFormat::Float32x3,
                     offset: 0,
-                    shader_location: 3,
+                    shader_location: 0,
                 },
                 //size
                 VertexAttribute {
                     format: VertexFormat::Float32x2,
                     offset: 12,
-                    shader_location: 4,
+                    shader_location: 1,
                 },
                 // corner_offset_x
                 VertexAttribute {
                     format: VertexFormat::Float32x4,
                     offset: 20,
-                    shader_location: 5,
+                    shader_location: 2,
                 },
                 // corner_offset_y
                 VertexAttribute {
                     format: VertexFormat::Float32x4,
                     offset: 36,
-                    shader_location: 6,
+                    shader_location: 3,
                 },
                 // rounding
                 VertexAttribute {
                     format: VertexFormat::Float32x4,
                     offset: 52,
-                    shader_location: 7,
+                    shader_location: 4,
                 },
                 // color
                 VertexAttribute {
                     format: VertexFormat::Float32x4,
                     offset: 68,
-                    shader_location: 8,
+                    shader_location: 5,
                 },
             ],
         };

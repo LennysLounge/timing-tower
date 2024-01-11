@@ -1,21 +1,14 @@
 use bevy::{
     app::PostUpdate,
-    ecs::{
-        entity::Entity,
-        event::Event,
-        schedule::{IntoSystemConfigs, SystemSet},
-        system::{EntityCommand, Resource},
-    },
-    math::{vec2, vec3, Vec2},
+    ecs::{entity::Entity, schedule::IntoSystemConfigs, system::EntityCommand},
+    math::Vec2,
     prelude::*,
     render::{
         batching::NoAutomaticBatching,
-        mesh::Indices,
-        render_resource::PrimitiveTopology,
         texture::Image,
         view::{NoFrustumCulling, RenderLayers},
     },
-    sprite::{Anchor, Mesh2dHandle},
+    sprite::Anchor,
     text::{Font, Text, Text2dBundle, TextStyle},
 };
 use common::communication::TextAlignment;
@@ -65,7 +58,6 @@ pub struct CellMarker;
 
 #[derive(Bundle)]
 pub struct CellBundle {
-    pub mesh: Mesh2dHandle,
     pub material: CellMaterial,
     pub spatial_bundle: SpatialBundle,
     pub render_layers: RenderLayers,
@@ -78,13 +70,11 @@ pub struct CreateCell;
 impl EntityCommand for CreateCell {
     fn apply(self, id: Entity, world: &mut World) {
         let foreground_id = create_foreground(world);
-        let mesh = get_or_create_mesh(world);
 
         world
             .entity_mut(id)
             .insert((
                 CellBundle {
-                    mesh,
                     material: CellMaterial::default(),
                     spatial_bundle: SpatialBundle::default(),
                     no_automatic_batching: NoAutomaticBatching,
@@ -101,10 +91,7 @@ impl EntityCommand for CreateCell {
 pub struct CreateClipArea;
 impl EntityCommand for CreateClipArea {
     fn apply(self, id: Entity, world: &mut bevy::prelude::World) {
-        let mesh = get_or_create_mesh(world);
-
         world.entity_mut(id).insert(CellBundle {
-            mesh,
             material: CellMaterial::default(),
             spatial_bundle: SpatialBundle::default(),
             no_automatic_batching: NoAutomaticBatching,
@@ -131,48 +118,6 @@ fn create_foreground(world: &mut bevy::prelude::World) -> Entity {
         })
         .insert(RenderLayers::layer(0))
         .id()
-}
-
-#[derive(Resource)]
-struct CellMesh {
-    pub mesh: Mesh2dHandle,
-}
-
-pub fn get_or_create_mesh(world: &mut World) -> Mesh2dHandle {
-    if !world.contains_resource::<CellMesh>() {
-        let mut meshes = world.resource_mut::<Assets<Mesh>>();
-        let mesh = meshes.add(create_mesh()).into();
-        world.insert_resource(CellMesh { mesh });
-    }
-    world.resource::<CellMesh>().mesh.clone()
-}
-
-fn create_mesh() -> Mesh {
-    let positions = vec![
-        vec3(0.0, 0.0, 0.0),
-        vec3(0.0, 0.0, 0.0),
-        vec3(0.0, 0.0, 0.0),
-        vec3(0.0, 0.0, 0.0),
-    ];
-    let normals = vec![
-        vec3(0.0, 0.0, 1.0),
-        vec3(0.0, 0.0, 1.0),
-        vec3(0.0, 0.0, 1.0),
-        vec3(0.0, 0.0, 1.0),
-    ];
-    let uvs = vec![
-        vec2(0.0, 0.0),
-        vec2(1.0, 0.0),
-        vec2(1.0, 1.0),
-        vec2(0.0, 1.0),
-    ];
-    let indices = vec![0, 1, 2, 0, 2, 3];
-
-    Mesh::new(PrimitiveTopology::TriangleList)
-        .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, positions)
-        .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, normals)
-        .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, uvs)
-        //.with_indices(Some(Indices::U32(indices)))
 }
 
 fn update_style(

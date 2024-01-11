@@ -100,7 +100,7 @@ fn setup_cell(
                     vec2(-300.0, 0.0),
                 ],
                 visible: true,
-                rounding: [50.0, 200.0, 20.0, 50.0],
+                rounding: [0.0, 0.0, 0.0, 0.0],
                 render_layer: 0,
             },
         });

@@ -4,13 +4,7 @@
 }
 #import bevy_render::instance_index::get_instance_index
 
-
-struct Vertex {
-    @location(0) position: vec3<f32>,
-    @location(1) normal: vec3<f32>,
-    @location(2) uv: vec2<f32>,   
-    @builtin(vertex_index) index: u32,
-};
+const corner_index_table: u32 = 0xe24u;
 
 struct InstanceData{
     @location(3) model_pos: vec3<f32>,
@@ -34,8 +28,11 @@ struct VertexOutput {
 @group(1) @binding(1) var texture_sampler: sampler;
 
 @vertex
-fn vertex(vertex: Vertex, instance_data: InstanceData) -> VertexOutput {
-    let position = corner(instance_data, vertex.index);
+fn vertex(@builtin(vertex_index) vertex_index: u32, instance_data: InstanceData) -> VertexOutput {
+    //convert the vertex index into a corner index
+    let corner_index = corner_index_table >> (vertex_index*2u) & 0x03u;
+
+    let position = corner(instance_data, corner_index);
 
     let edge_distance = vec4(
         max(0.0, dist_to_edge(instance_data, position.xy, 0u)),
@@ -47,7 +44,10 @@ fn vertex(vertex: Vertex, instance_data: InstanceData) -> VertexOutput {
     var out: VertexOutput;
     out.clip_position = mesh2d_position_world_to_clip(vec4(position, 1.0));
     out.color = instance_data.i_color;
-    out.uv = vertex.uv;
+    out.uv = vec2(
+        size_coef[corner_index % 4u],
+        size_coef[(corner_index+3u) % 4u],
+    );
     out.rounding = instance_data.rounding;
     out.size = instance_data.size;
     out.edge_dist = edge_distance;

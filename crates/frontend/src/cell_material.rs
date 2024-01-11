@@ -15,7 +15,7 @@ use bevy::{
     prelude::*,
     render::{
         extract_component::{ExtractComponent, ExtractComponentPlugin},
-        mesh::{GpuBufferInfo, MeshVertexBufferLayout},
+        mesh::MeshVertexBufferLayout,
         render_asset::{prepare_assets, RenderAssets},
         render_phase::{
             AddRenderCommand, DrawFunctions, PhaseItem, RenderCommand, RenderCommandResult,
@@ -333,8 +333,8 @@ fn queue_custom(
             let Some(mesh) = meshes.get(mesh_instance.mesh_asset_id) else {
                 continue;
             };
-            let key =
-                view_key | Mesh2dPipelineKey::from_primitive_topology(mesh.primitive_topology);
+            let key = view_key
+                | Mesh2dPipelineKey::from_primitive_topology(PrimitiveTopology::TriangleList);
             let pipeline = pipelines
                 .specialize(&pipeline_cache, &custom_pipeline, key, &mesh.layout)
                 .unwrap();
@@ -417,7 +417,7 @@ impl SpecializedMeshPipeline for CellMaterialPipline {
         ];
 
         descriptor.vertex.shader = INSTANCE_SHADER_HANDLE.clone();
-        descriptor.vertex.buffers.push(VertexBufferLayout {
+        descriptor.vertex.buffers = vec![VertexBufferLayout {
             array_stride: std::mem::size_of::<InstanceData>() as u64,
             step_mode: VertexStepMode::Instance,
             attributes: vec![
@@ -458,7 +458,7 @@ impl SpecializedMeshPipeline for CellMaterialPipline {
                     shader_location: 8,
                 },
             ],
-        });
+        }];
         descriptor.fragment.as_mut().unwrap().shader = INSTANCE_SHADER_HANDLE.clone();
         Ok(descriptor)
     }
@@ -473,43 +473,24 @@ type DrawCellMaterial = (
 pub struct DrawMesh2dInstanced;
 
 impl<P: PhaseItem> RenderCommand<P> for DrawMesh2dInstanced {
-    type Param = (SRes<RenderAssets<Mesh>>, SRes<RenderMesh2dInstances>);
+    type Param = ();
     type ViewWorldQuery = ();
     type ItemWorldQuery = (Read<UniformBuffer>, Read<InstanceBuffer>);
 
     #[inline]
     fn render<'w>(
-        item: &P,
+        _item: &P,
         _view: (),
-        (_uniform_buffer, instance_buffer): (&'w UniformBuffer, &'w InstanceBuffer),
-        (meshes, render_mesh_instances): SystemParamItem<'w, '_, Self::Param>,
+        (uniform_buffer, instance_buffer): (&'w UniformBuffer, &'w InstanceBuffer),
+        _: SystemParamItem<'w, '_, Self::Param>,
         pass: &mut TrackedRenderPass<'w>,
     ) -> RenderCommandResult {
         //println!("do draw call for entity: {:?}", item.entity());
-        let Some(mesh_instance) = render_mesh_instances.get(&item.entity()) else {
-            return RenderCommandResult::Failure;
-        };
-        let gpu_mesh = match meshes.into_inner().get(mesh_instance.mesh_asset_id) {
-            Some(gpu_mesh) => gpu_mesh,
-            None => return RenderCommandResult::Failure,
-        };
-        pass.set_bind_group(1, &_uniform_buffer.prepared.bind_group, &[]);
-        pass.set_vertex_buffer(0, gpu_mesh.vertex_buffer.slice(..));
-        pass.set_vertex_buffer(1, instance_buffer.buffer.slice(..));
 
-        match &gpu_mesh.buffer_info {
-            GpuBufferInfo::Indexed {
-                buffer,
-                index_format,
-                count,
-            } => {
-                pass.set_index_buffer(buffer.slice(..), 0, *index_format);
-                pass.draw_indexed(0..*count, 0, 0..instance_buffer.length as u32);
-            }
-            GpuBufferInfo::NonIndexed => {
-                pass.draw(0..gpu_mesh.vertex_count, 0..instance_buffer.length as u32);
-            }
-        }
+        pass.set_bind_group(1, &uniform_buffer.prepared.bind_group, &[]);
+        pass.set_vertex_buffer(0, instance_buffer.buffer.slice(..));
+        pass.draw(0..6, 0..instance_buffer.length as u32);
+
         RenderCommandResult::Success
     }
 }

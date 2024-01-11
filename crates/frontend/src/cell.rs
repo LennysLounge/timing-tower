@@ -172,7 +172,7 @@ fn create_mesh() -> Mesh {
         .with_inserted_attribute(Mesh::ATTRIBUTE_POSITION, positions)
         .with_inserted_attribute(Mesh::ATTRIBUTE_NORMAL, normals)
         .with_inserted_attribute(Mesh::ATTRIBUTE_UV_0, uvs)
-        .with_indices(Some(Indices::U32(indices)))
+        //.with_indices(Some(Indices::U32(indices)))
 }
 
 fn update_style(

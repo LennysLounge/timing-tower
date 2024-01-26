@@ -15,7 +15,7 @@ use super::{remove_node::remove_node, EditorCommand};
 
 pub struct InsertNode {
     pub target_node: Uuid,
-    pub position: DropPosition,
+    pub position: DropPosition<Uuid>,
     pub node: Box<dyn StyleNode>,
 }
 impl InsertNode {
@@ -55,7 +55,7 @@ impl From<InsertNodeUndo> for EditorCommand {
     }
 }
 
-pub fn insert(node: NodeMut, position: DropPosition, insert: Box<dyn Any>) -> ControlFlow<()> {
+pub fn insert(node: NodeMut, position: DropPosition<Uuid>, insert: Box<dyn Any>) -> ControlFlow<()> {
     match node {
         NodeMut::AssetFolder(folder) => {
             let folder_or_asset = Err(insert)

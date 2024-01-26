@@ -7,7 +7,7 @@ use super::{insert_node::insert, remove_node::remove_node, EditorCommand};
 pub struct MoveNode {
     pub id: Uuid,
     pub target_id: Uuid,
-    pub position: DropPosition,
+    pub position: DropPosition<Uuid>,
 }
 impl MoveNode {
     pub fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {

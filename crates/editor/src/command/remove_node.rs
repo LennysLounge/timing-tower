@@ -52,7 +52,7 @@ impl From<RemoveNodeUndo> for EditorCommand {
 pub struct RemovedNode {
     pub parent_id: Uuid,
     pub node: Box<dyn StyleNode>,
-    pub position: DropPosition,
+    pub position: DropPosition<Uuid>,
 }
 
 pub fn remove_node<V: NodeIteratorMut>(node_id: &Uuid, visitable: &mut V) -> Option<RemovedNode> {

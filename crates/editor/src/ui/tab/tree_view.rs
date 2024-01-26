@@ -1,8 +1,6 @@
 use std::ops::ControlFlow;
 
 use backend::style::{
-    cell::FreeCellFolder,
-    definitions::*,
     iterator::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
     StyleNode,
 };
@@ -95,23 +93,23 @@ fn drop_allowed(target: Node, dragged: Node) -> bool {
 }
 
 pub struct TreeViewVisitorResult {
-    pub response: TreeViewResponse,
-    pub nodes_to_add: Vec<(Uuid, DropPosition, Box<dyn StyleNode + Sync + Send>)>,
+    pub response: TreeViewResponse<Uuid>,
+    pub nodes_to_add: Vec<(Uuid, DropPosition<Uuid>, Box<dyn StyleNode + Sync + Send>)>,
     pub nodes_to_remove: Vec<Uuid>,
 }
 pub fn show(ui: &mut Ui, style_node: &mut dyn StyleNode) -> TreeViewVisitorResult {
     let mut nodes_to_add = Vec::new();
     let mut nodes_to_remove = Vec::new();
     let mut stack: Vec<Uuid> = Vec::new();
-    let response = egui_ltreeview::TreeViewBuilder::new(
+
+    let response = egui_ltreeview::TreeView::new(ui.make_persistent_id("element_tree_view")).show(
         ui,
-        ui.make_persistent_id("element_tree_view"),
-        |mut root| {
+        |mut builder| {
             style_node.as_node_mut().walk_mut(&mut |node, method| {
                 show_node(
                     node,
                     method,
-                    &mut root,
+                    &mut builder,
                     &mut nodes_to_add,
                     &mut nodes_to_remove,
                     &mut stack,
@@ -128,15 +126,15 @@ pub fn show(ui: &mut Ui, style_node: &mut dyn StyleNode) -> TreeViewVisitorResul
 fn show_node(
     node: NodeMut,
     method: Method,
-    builder: &mut TreeViewBuilder,
-    nodes_to_add: &mut Vec<(Uuid, DropPosition, Box<dyn StyleNode + Sync + Send>)>,
-    nodes_to_remove: &mut Vec<Uuid>,
+    builder: &mut TreeViewBuilder<Uuid>,
+    _nodes_to_add: &mut Vec<(Uuid, DropPosition<Uuid>, Box<dyn StyleNode + Sync + Send>)>,
+    _nodes_to_remove: &mut Vec<Uuid>,
     stack: &mut Vec<Uuid>,
 ) -> ControlFlow<()> {
     match (method, node) {
         (Method::Visit, NodeMut::Style(style)) => {
             stack.push(style.id);
-            builder.dir(&style.id, |ui| {
+            builder.dir(style.id, |ui| {
                 ui.label("Style");
             });
             ControlFlow::Continue(())
@@ -149,7 +147,7 @@ fn show_node(
 
         (Method::Visit, NodeMut::TimingTower(tower)) => {
             stack.push(tower.id);
-            builder.dir(&tower.id, |ui| {
+            builder.dir(tower.id, |ui| {
                 ui.label("Timing tower");
             });
             ControlFlow::Continue(())
@@ -162,26 +160,26 @@ fn show_node(
 
         (Method::Visit, NodeMut::TimingTowerRow(row)) => {
             stack.push(row.id);
-            let res = builder.dir(&row.id, |ui| {
+            builder.dir(row.id, |ui| {
                 ui.label("Row");
             });
 
-            if let Some(res) = res {
-                res.context_menu(|ui| {
-                    if ui.button("add column").clicked() {
-                        nodes_to_add.push((row.id, DropPosition::Last, Box::new(FreeCell::new())));
-                        ui.close_menu();
-                    }
-                    if ui.button("add group").clicked() {
-                        nodes_to_add.push((
-                            row.id,
-                            DropPosition::Last,
-                            Box::new(FreeCellFolder::new()),
-                        ));
-                        ui.close_menu();
-                    }
-                });
-            }
+            // if let Some(res) = res {
+            //     res.context_menu(|ui| {
+            //         if ui.button("add column").clicked() {
+            //             nodes_to_add.push((row.id, DropPosition::Last, Box::new(FreeCell::new())));
+            //             ui.close_menu();
+            //         }
+            //         if ui.button("add group").clicked() {
+            //             nodes_to_add.push((
+            //                 row.id,
+            //                 DropPosition::Last,
+            //                 Box::new(FreeCellFolder::new()),
+            //             ));
+            //             ui.close_menu();
+            //         }
+            //     });
+            // }
 
             ControlFlow::Continue(())
         }
@@ -192,60 +190,60 @@ fn show_node(
         }
 
         (Method::Visit, NodeMut::FreeCell(cell)) => {
-            let res = builder.leaf(&cell.id, |ui| {
+            builder.leaf(cell.id, |ui| {
                 ui.label(&cell.name);
             });
-            if let Some(res) = res {
-                res.context_menu(|ui| {
-                    if ui.button("add column").clicked() {
-                        nodes_to_add.push((
-                            *stack.last().expect("There should always be a parent node"),
-                            DropPosition::After(cell.id),
-                            Box::new(FreeCell::new()),
-                        ));
-                        ui.close_menu();
-                    }
-                    if ui.button("add group").clicked() {
-                        nodes_to_add.push((
-                            *stack.last().expect("There should always be a parent node"),
-                            DropPosition::Last,
-                            Box::new(FreeCellFolder::new()),
-                        ));
-                        ui.close_menu();
-                    }
-                    if ui.button("delete").clicked() {
-                        nodes_to_remove.push(cell.id);
-                        ui.close_menu();
-                    }
-                });
-            }
+            // if let Some(res) = res {
+            //     res.context_menu(|ui| {
+            //         if ui.button("add column").clicked() {
+            //             nodes_to_add.push((
+            //                 *stack.last().expect("There should always be a parent node"),
+            //                 DropPosition::After(cell.id),
+            //                 Box::new(FreeCell::new()),
+            //             ));
+            //             ui.close_menu();
+            //         }
+            //         if ui.button("add group").clicked() {
+            //             nodes_to_add.push((
+            //                 *stack.last().expect("There should always be a parent node"),
+            //                 DropPosition::Last,
+            //                 Box::new(FreeCellFolder::new()),
+            //             ));
+            //             ui.close_menu();
+            //         }
+            //         if ui.button("delete").clicked() {
+            //             nodes_to_remove.push(cell.id);
+            //             ui.close_menu();
+            //         }
+            //     });
+            // }
             ControlFlow::Continue(())
         }
 
         (Method::Visit, NodeMut::FreeCellFolderMut(folder)) => {
-            let res = builder.dir(&folder.id, |ui| {
+            builder.dir(folder.id, |ui| {
                 ui.label(&folder.name);
             });
-            if let Some(res) = res {
-                res.context_menu(|ui| {
-                    if ui.button("add column").clicked() {
-                        nodes_to_add.push((
-                            *folder.id(),
-                            DropPosition::Last,
-                            Box::new(FreeCell::new()),
-                        ));
-                        ui.close_menu();
-                    }
-                    if ui.button("add group").clicked() {
-                        nodes_to_add.push((
-                            *folder.id(),
-                            DropPosition::Last,
-                            Box::new(FreeCellFolder::new()),
-                        ));
-                        ui.close_menu();
-                    }
-                });
-            }
+            // if let Some(res) = res {
+            //     res.context_menu(|ui| {
+            //         if ui.button("add column").clicked() {
+            //             nodes_to_add.push((
+            //                 *folder.id(),
+            //                 DropPosition::Last,
+            //                 Box::new(FreeCell::new()),
+            //             ));
+            //             ui.close_menu();
+            //         }
+            //         if ui.button("add group").clicked() {
+            //             nodes_to_add.push((
+            //                 *folder.id(),
+            //                 DropPosition::Last,
+            //                 Box::new(FreeCellFolder::new()),
+            //             ));
+            //             ui.close_menu();
+            //         }
+            //     });
+            // }
             ControlFlow::Continue(())
         }
         (Method::Leave, NodeMut::FreeCellFolderMut(_)) => {
@@ -254,60 +252,60 @@ fn show_node(
         }
 
         (Method::Visit, NodeMut::Asset(asset)) => {
-            let res = builder.leaf(&asset.id, |ui| {
+            builder.leaf(asset.id, |ui| {
                 ui.label(&asset.name);
             });
-            if let Some(res) = res {
-                res.context_menu(|ui| {
-                    if ui.button("add image").clicked() {
-                        nodes_to_add.push((
-                            *stack.last().expect("There should always be a parent node"),
-                            DropPosition::After(asset.id),
-                            Box::new(AssetDefinition::new()),
-                        ));
-                        ui.close_menu();
-                    }
-                    if ui.button("add group").clicked() {
-                        nodes_to_add.push((
-                            *stack.last().expect("There should always be a parent node"),
-                            DropPosition::Last,
-                            Box::new(AssetFolder::new()),
-                        ));
-                        ui.close_menu();
-                    }
-                    if ui.button("delete").clicked() {
-                        nodes_to_remove.push(asset.id);
-                        ui.close_menu();
-                    }
-                });
-            }
+            // if let Some(res) = res {
+            //     res.context_menu(|ui| {
+            //         if ui.button("add image").clicked() {
+            //             nodes_to_add.push((
+            //                 *stack.last().expect("There should always be a parent node"),
+            //                 DropPosition::After(asset.id),
+            //                 Box::new(AssetDefinition::new()),
+            //             ));
+            //             ui.close_menu();
+            //         }
+            //         if ui.button("add group").clicked() {
+            //             nodes_to_add.push((
+            //                 *stack.last().expect("There should always be a parent node"),
+            //                 DropPosition::Last,
+            //                 Box::new(AssetFolder::new()),
+            //             ));
+            //             ui.close_menu();
+            //         }
+            //         if ui.button("delete").clicked() {
+            //             nodes_to_remove.push(asset.id);
+            //             ui.close_menu();
+            //         }
+            //     });
+            // }
             ControlFlow::Continue(())
         }
 
         (Method::Visit, NodeMut::AssetFolder(folder)) => {
-            let res = builder.dir(&folder.id, |ui| {
+            builder.dir(folder.id, |ui| {
                 ui.label(&folder.name);
             });
-            if let Some(res) = res {
-                res.context_menu(|ui| {
-                    if ui.button("add image").clicked() {
-                        nodes_to_add.push((
-                            *folder.id(),
-                            DropPosition::Last,
-                            Box::new(AssetDefinition::new()),
-                        ));
-                        ui.close_menu();
-                    }
-                    if ui.button("add group").clicked() {
-                        nodes_to_add.push((
-                            *folder.id(),
-                            DropPosition::Last,
-                            Box::new(AssetFolder::new()),
-                        ));
-                        ui.close_menu();
-                    }
-                });
-            }
+            // if let Some(res) = res {
+            //     res.context_menu(|ui| {
+            //         if ui.button("add image").clicked() {
+            //             nodes_to_add.push((
+            //                 *folder.id(),
+            //                 DropPosition::Last,
+            //                 Box::new(AssetDefinition::new()),
+            //             ));
+            //             ui.close_menu();
+            //         }
+            //         if ui.button("add group").clicked() {
+            //             nodes_to_add.push((
+            //                 *folder.id(),
+            //                 DropPosition::Last,
+            //                 Box::new(AssetFolder::new()),
+            //             ));
+            //             ui.close_menu();
+            //         }
+            //     });
+            // }
             ControlFlow::Continue(())
         }
         (Method::Leave, NodeMut::AssetFolder(_)) => {
@@ -316,60 +314,60 @@ fn show_node(
         }
 
         (Method::Visit, NodeMut::Variable(variable)) => {
-            let res = builder.leaf(&variable.id, |ui| {
+            builder.leaf(variable.id, |ui| {
                 ui.label(&variable.name);
             });
-            if let Some(res) = res {
-                res.context_menu(|ui| {
-                    if ui.button("add variable").clicked() {
-                        nodes_to_add.push((
-                            *stack.last().expect("There should always be a parent node"),
-                            DropPosition::After(variable.id),
-                            Box::new(VariableDefinition::new()),
-                        ));
-                        ui.close_menu();
-                    }
-                    if ui.button("add group").clicked() {
-                        nodes_to_add.push((
-                            *stack.last().expect("There should always be a parent node"),
-                            DropPosition::Last,
-                            Box::new(VariableFolder::new()),
-                        ));
-                        ui.close_menu();
-                    }
-                    if ui.button("delete").clicked() {
-                        nodes_to_remove.push(variable.id);
-                        ui.close_menu();
-                    }
-                });
-            }
+            // if let Some(res) = res {
+            //     res.context_menu(|ui| {
+            //         if ui.button("add variable").clicked() {
+            //             nodes_to_add.push((
+            //                 *stack.last().expect("There should always be a parent node"),
+            //                 DropPosition::After(variable.id),
+            //                 Box::new(VariableDefinition::new()),
+            //             ));
+            //             ui.close_menu();
+            //         }
+            //         if ui.button("add group").clicked() {
+            //             nodes_to_add.push((
+            //                 *stack.last().expect("There should always be a parent node"),
+            //                 DropPosition::Last,
+            //                 Box::new(VariableFolder::new()),
+            //             ));
+            //             ui.close_menu();
+            //         }
+            //         if ui.button("delete").clicked() {
+            //             nodes_to_remove.push(variable.id);
+            //             ui.close_menu();
+            //         }
+            //     });
+            // }
             ControlFlow::Continue(())
         }
 
         (Method::Visit, NodeMut::VariableFolder(folder)) => {
-            let res = builder.dir(&folder.id, |ui| {
+            builder.dir(folder.id, |ui| {
                 ui.label(&folder.name);
             });
-            if let Some(res) = res {
-                res.context_menu(|ui| {
-                    if ui.button("add variable").clicked() {
-                        nodes_to_add.push((
-                            *folder.id(),
-                            DropPosition::Last,
-                            Box::new(VariableDefinition::new()),
-                        ));
-                        ui.close_menu();
-                    }
-                    if ui.button("add group").clicked() {
-                        nodes_to_add.push((
-                            *folder.id(),
-                            DropPosition::Last,
-                            Box::new(VariableFolder::new()),
-                        ));
-                        ui.close_menu();
-                    }
-                });
-            }
+            // if let Some(res) = res {
+            //     res.context_menu(|ui| {
+            //         if ui.button("add variable").clicked() {
+            //             nodes_to_add.push((
+            //                 *folder.id(),
+            //                 DropPosition::Last,
+            //                 Box::new(VariableDefinition::new()),
+            //             ));
+            //             ui.close_menu();
+            //         }
+            //         if ui.button("add group").clicked() {
+            //             nodes_to_add.push((
+            //                 *folder.id(),
+            //                 DropPosition::Last,
+            //                 Box::new(VariableFolder::new()),
+            //             ));
+            //             ui.close_menu();
+            //         }
+            //     });
+            // }
             ControlFlow::Continue(())
         }
         (Method::Leave, NodeMut::VariableFolder(_)) => {
@@ -378,7 +376,7 @@ fn show_node(
         }
 
         (Method::Visit, NodeMut::Scene(scene)) => {
-            builder.dir(&scene.id, |ui| {
+            builder.dir(scene.id, |ui| {
                 ui.label("Scene");
             });
             ControlFlow::Continue(())

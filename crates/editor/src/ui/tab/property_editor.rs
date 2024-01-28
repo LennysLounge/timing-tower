@@ -114,7 +114,7 @@ pub fn edit_node(
             }
         }
 
-        NodeMut::FreeCellFolderMut(folder) => {
+        NodeMut::FreeCellFolder(folder) => {
             let mut edit_result = EditResult::None;
 
             ui.label("Name:");

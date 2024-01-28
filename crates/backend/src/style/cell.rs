@@ -173,7 +173,7 @@ impl StyleNode for FreeCellFolder {
         Node::FreeCellFolder(self)
     }
     fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
-        NodeMut::FreeCellFolderMut(self)
+        NodeMut::FreeCellFolder(self)
     }
 }
 impl NodeIterator for FreeCellFolder {

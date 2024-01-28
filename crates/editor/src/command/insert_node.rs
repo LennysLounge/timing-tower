@@ -122,7 +122,7 @@ pub fn insert(node: NodeMut, position: DropPosition<Uuid>, insert: Box<dyn Any>)
         | NodeMut::TimingTowerRow(TimingTowerRow {
             columns: folder, ..
         })
-        | NodeMut::FreeCellFolderMut(folder) => {
+        | NodeMut::FreeCellFolder(folder) => {
             let column_or_folder = Err(insert)
                 .or_else(|insert| {
                     insert

@@ -20,34 +20,19 @@ use crate::command::{
 
 pub fn tree_view(
     ui: &mut Ui,
-    _selected_node: &mut Option<Uuid>,
+    selected_node: &mut Option<Uuid>,
     base_node: &mut impl StyleNode,
     undo_redo_manager: &mut UndoRedoManager,
 ) -> bool {
     let mut changed = false;
-    let TreeViewVisitorResult {
-        response,
-        nodes_to_add,
-        nodes_to_remove,
-    } = ScrollArea::vertical()
-        .show(ui, |ui| show(ui, base_node))
+    let response = ScrollArea::vertical()
+        .show(ui, |ui| {
+            show(ui, base_node.as_node_mut(), undo_redo_manager)
+        })
         .inner;
 
-    // Add nodes
-    for (target_node, position, node) in nodes_to_add {
-        undo_redo_manager.queue(InsertNode {
-            target_node,
-            position,
-            node,
-        });
-    }
-    // remove nodes
-    for id in nodes_to_remove {
-        undo_redo_manager.queue(RemoveNode { id });
-    }
-
     if response.selected_node.is_some() {
-        *_selected_node = response.selected_node;
+        *selected_node = response.selected_node;
     }
 
     if let Some(drop_action) = &response.drag_drop_action {
@@ -98,78 +83,54 @@ fn drop_allowed(target: Node, dragged: Node) -> bool {
     }
 }
 
-pub struct TreeViewVisitorResult {
-    pub response: TreeViewResponse<Uuid>,
-    pub nodes_to_add: Vec<(Uuid, DropPosition<Uuid>, Box<dyn StyleNode + Sync + Send>)>,
-    pub nodes_to_remove: Vec<Uuid>,
-}
-pub fn show(ui: &mut Ui, style_node: &mut dyn StyleNode) -> TreeViewVisitorResult {
-    let mut nodes_to_add = Vec::new();
-    let mut nodes_to_remove = Vec::new();
-    let mut stack: Vec<Uuid> = Vec::new();
-
+fn show(
+    ui: &mut Ui,
+    mut root: NodeMut,
+    undo_redo_manager: &mut UndoRedoManager,
+) -> TreeViewResponse<Uuid> {
     let response = egui_ltreeview::TreeView::new(ui.make_persistent_id("element_tree_view"))
         .row_layout(egui_ltreeview::RowLayout::CompactAlignedLables)
         .show(ui, |mut builder| {
-            style_node.as_node_mut().walk_mut(&mut |node, method| {
-                show_node(
-                    node,
-                    method,
-                    &mut builder,
-                    &mut nodes_to_add,
-                    &mut nodes_to_remove,
-                    &mut stack,
-                )
-            });
+            root.walk_mut(&mut |node, method| show_node(node, method, &mut builder));
         });
+
     response.context_menu(ui, |ui, node_id| {
-        style_node.as_node().search(&node_id, |node| {
-            context_menu(ui, node, &mut nodes_to_add, &mut nodes_to_remove);
+        root.search_mut(&node_id, |node| {
+            context_menu(ui, node, undo_redo_manager);
         });
     });
-    TreeViewVisitorResult {
-        response,
-        nodes_to_add,
-        nodes_to_remove,
-    }
+
+    response
 }
 fn show_node(
     node: NodeMut,
     method: Method,
     builder: &mut TreeViewBuilder<Uuid>,
-    _nodes_to_add: &mut Vec<(Uuid, DropPosition<Uuid>, Box<dyn StyleNode + Sync + Send>)>,
-    _nodes_to_remove: &mut Vec<Uuid>,
-    stack: &mut Vec<Uuid>,
 ) -> ControlFlow<()> {
     match (method, node) {
         (Method::Visit, NodeMut::Style(style)) => {
-            stack.push(style.id);
             builder.node(NodeBuilder::dir(style.id), |ui| {
                 ui.label("Style");
             });
             ControlFlow::Continue(())
         }
         (Method::Leave, NodeMut::Style(_)) => {
-            stack.pop();
             builder.close_dir();
             ControlFlow::Continue(())
         }
 
         (Method::Visit, NodeMut::TimingTower(tower)) => {
-            stack.push(tower.id);
             builder.node(NodeBuilder::dir(tower.id).closer(folder_closer), |ui| {
                 ui.label("Timing tower");
             });
             ControlFlow::Continue(())
         }
         (Method::Leave, NodeMut::TimingTower(_)) => {
-            stack.pop();
             builder.close_dir();
             ControlFlow::Continue(())
         }
 
         (Method::Visit, NodeMut::TimingTowerRow(row)) => {
-            stack.push(row.id);
             builder.node(NodeBuilder::dir(row.id).closer(folder_closer), |ui| {
                 ui.label("Row");
             });
@@ -177,7 +138,6 @@ fn show_node(
         }
 
         (Method::Leave, NodeMut::TimingTowerRow(_)) => {
-            stack.pop();
             builder.close_dir();
             ControlFlow::Continue(())
         }
@@ -196,42 +156,38 @@ fn show_node(
             ControlFlow::Continue(())
         }
 
-        (Method::Visit, NodeMut::FreeCellFolderMut(folder)) => {
+        (Method::Visit, NodeMut::FreeCellFolder(folder)) => {
             builder.node(NodeBuilder::dir(folder.id).closer(folder_closer), |ui| {
                 ui.label(&folder.name);
             });
             ControlFlow::Continue(())
         }
 
-        (Method::Leave, NodeMut::FreeCellFolderMut(_)) => {
+        (Method::Leave, NodeMut::FreeCellFolder(_)) => {
             builder.close_dir();
             ControlFlow::Continue(())
         }
 
         (Method::Visit, NodeMut::Asset(asset)) => {
             let value_type = asset.value_type;
-            builder.node(
-                NodeBuilder::leaf(asset.id).icon(move |ui| {
-                    match value_type {
-                        backend::value_types::ValueType::Texture => {
-                            egui::Image::new(egui::include_image!("../../../images/image.png"))
-                                .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
-                                .paint_at(ui, ui.max_rect());
-                        }
-                        backend::value_types::ValueType::Font => {
-                            egui::Image::new(egui::include_image!(
-                                "../../../images/match_case.png"
-                            ))
+            let node_config = NodeBuilder::leaf(asset.id).icon(move |ui| {
+                match value_type {
+                    backend::value_types::ValueType::Texture => {
+                        egui::Image::new(egui::include_image!("../../../images/image.png"))
                             .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
                             .paint_at(ui, ui.max_rect());
-                        }
-                        _ => (),
-                    };
-                }),
-                |ui| {
-                    ui.label(&asset.name);
-                },
-            );
+                    }
+                    backend::value_types::ValueType::Font => {
+                        egui::Image::new(egui::include_image!("../../../images/match_case.png"))
+                            .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
+                            .paint_at(ui, ui.max_rect());
+                    }
+                    _ => (),
+                };
+            });
+            builder.node(node_config, |ui| {
+                ui.label(&asset.name);
+            });
             ControlFlow::Continue(())
         }
 
@@ -305,15 +261,10 @@ fn folder_closer(ui: &mut Ui, state: CloserState) {
     }
 }
 
-fn context_menu(
-    ui: &mut Ui,
-    node: Node,
-    nodes_to_add: &mut Vec<(Uuid, DropPosition<Uuid>, Box<dyn StyleNode + Send + Sync>)>,
-    nodes_to_remove: &mut Vec<Uuid>,
-) {
+fn context_menu(ui: &mut Ui, node: NodeMut, undo_redo_manager: &mut UndoRedoManager) {
     match node {
-        Node::Style(_) => (),
-        Node::Variable(variable) => {
+        NodeMut::Style(_) => _ = ui.label("Style"),
+        NodeMut::Variable(variable) => {
             // if ui.button("add variable").clicked() {
             //     nodes_to_add.push((
             //         *stack.last().expect("There should always be a parent node"),
@@ -331,29 +282,29 @@ fn context_menu(
             //     ui.close_menu();
             // }
             if ui.button("delete").clicked() {
-                nodes_to_remove.push(variable.id);
+                undo_redo_manager.queue(RemoveNode { id: variable.id });
                 ui.close_menu();
             }
         }
-        Node::VariableFolder(folder) => {
+        NodeMut::VariableFolder(folder) => {
             if ui.button("add variable").clicked() {
-                nodes_to_add.push((
-                    *folder.id(),
-                    DropPosition::Last,
-                    Box::new(VariableDefinition::new()),
-                ));
+                undo_redo_manager.queue(InsertNode {
+                    target_node: folder.id,
+                    position: DropPosition::Last,
+                    node: Box::new(VariableDefinition::new()),
+                });
                 ui.close_menu();
             }
             if ui.button("add group").clicked() {
-                nodes_to_add.push((
-                    *folder.id(),
-                    DropPosition::Last,
-                    Box::new(VariableFolder::new()),
-                ));
+                undo_redo_manager.queue(InsertNode {
+                    target_node: folder.id,
+                    position: DropPosition::Last,
+                    node: Box::new(VariableFolder::new()),
+                });
                 ui.close_menu();
             }
         }
-        Node::Asset(asset) => {
+        NodeMut::Asset(asset) => {
             // if ui.button("add image").clicked() {
             //     nodes_to_add.push((
             //         *stack.last().expect("There should always be a parent node"),
@@ -371,55 +322,67 @@ fn context_menu(
             //     ui.close_menu();
             // }
             if ui.button("delete").clicked() {
-                nodes_to_remove.push(asset.id);
+                undo_redo_manager.queue(RemoveNode { id: asset.id });
                 ui.close_menu();
             }
         }
-        Node::AssetFolder(folder) => {
+        NodeMut::AssetFolder(folder) => {
             if ui.button("add image").clicked() {
-                nodes_to_add.push((
-                    *folder.id(),
-                    DropPosition::Last,
-                    Box::new(AssetDefinition::new()),
-                ));
+                undo_redo_manager.queue(InsertNode {
+                    target_node: folder.id,
+                    position: DropPosition::Last,
+                    node: Box::new(AssetDefinition::new()),
+                });
                 ui.close_menu();
             }
             if ui.button("add group").clicked() {
-                nodes_to_add.push((
-                    *folder.id(),
-                    DropPosition::Last,
-                    Box::new(AssetFolder::new()),
-                ));
+                undo_redo_manager.queue(InsertNode {
+                    target_node: folder.id,
+                    position: DropPosition::Last,
+                    node: Box::new(AssetFolder::new()),
+                });
                 ui.close_menu();
             }
         }
-        Node::Scene(_) => (),
-        Node::TimingTower(_) => (),
-        Node::TimingTowerRow(row) => {
+        NodeMut::Scene(_) => _ = ui.label("Scene"),
+        NodeMut::TimingTower(_) => _ = ui.label("Timing tower"),
+        NodeMut::TimingTowerRow(row) => {
             if ui.button("add column").clicked() {
-                nodes_to_add.push((row.id, DropPosition::Last, Box::new(FreeCell::new())));
+                undo_redo_manager.queue(InsertNode {
+                    target_node: row.id,
+                    position: DropPosition::Last,
+                    node: Box::new(FreeCell::new()),
+                });
                 ui.close_menu();
             }
             if ui.button("add group").clicked() {
-                nodes_to_add.push((row.id, DropPosition::Last, Box::new(FreeCellFolder::new())));
+                undo_redo_manager.queue(InsertNode {
+                    target_node: row.id,
+                    position: DropPosition::Last,
+                    node: Box::new(FreeCellFolder::new()),
+                });
                 ui.close_menu();
             }
         }
-        Node::FreeCellFolder(folder) => {
+        NodeMut::FreeCellFolder(folder) => {
             if ui.button("add column").clicked() {
-                nodes_to_add.push((*folder.id(), DropPosition::Last, Box::new(FreeCell::new())));
+                undo_redo_manager.queue(InsertNode {
+                    target_node: folder.id,
+                    position: DropPosition::Last,
+                    node: Box::new(FreeCell::new()),
+                });
                 ui.close_menu();
             }
             if ui.button("add group").clicked() {
-                nodes_to_add.push((
-                    *folder.id(),
-                    DropPosition::Last,
-                    Box::new(FreeCellFolder::new()),
-                ));
+                undo_redo_manager.queue(InsertNode {
+                    target_node: folder.id,
+                    position: DropPosition::Last,
+                    node: Box::new(FreeCellFolder::new()),
+                });
                 ui.close_menu();
             }
         }
-        Node::FreeCell(cell) => {
+        NodeMut::FreeCell(cell) => {
             // if ui.button("add column").clicked() {
             //     nodes_to_add.push((
             //         *stack.last().expect("There should always be a parent node"),
@@ -437,7 +400,7 @@ fn context_menu(
             //     ui.close_menu();
             // }
             if ui.button("delete").clicked() {
-                nodes_to_remove.push(cell.id);
+                undo_redo_manager.queue(RemoveNode { id: cell.id });
                 ui.close_menu();
             }
         }

@@ -110,7 +110,7 @@ fn remove(node: NodeMut, method: Method, node_id: &Uuid) -> ControlFlow<RemovedN
                 columns: folder, ..
             }),
         )
-        | (Method::Visit, NodeMut::FreeCellFolderMut(folder)) => {
+        | (Method::Visit, NodeMut::FreeCellFolder(folder)) => {
             if let Some(index) = folder.content.iter().position(|s| s.id() == node_id) {
                 ControlFlow::Break(RemovedNode {
                     parent_id: *folder.id(),

@@ -132,7 +132,7 @@ pub enum NodeMut<'a> {
     Scene(&'a mut SceneDefinition),
     TimingTower(&'a mut TimingTower),
     TimingTowerRow(&'a mut TimingTowerRow),
-    FreeCellFolderMut(&'a mut FreeCellFolder),
+    FreeCellFolder(&'a mut FreeCellFolder),
     FreeCell(&'a mut FreeCell),
 }
 impl NodeMut<'_> {
@@ -146,7 +146,7 @@ impl NodeMut<'_> {
             NodeMut::Scene(o) => &o.id,
             NodeMut::TimingTower(o) => &o.id,
             NodeMut::TimingTowerRow(o) => &o.id,
-            NodeMut::FreeCellFolderMut(o) => &o.id,
+            NodeMut::FreeCellFolder(o) => &o.id,
             NodeMut::FreeCell(o) => &o.id,
         }
     }
@@ -165,7 +165,7 @@ impl NodeIteratorMut for NodeMut<'_> {
             NodeMut::Scene(o) => o.walk_mut(f),
             NodeMut::TimingTower(o) => o.walk_mut(f),
             NodeMut::TimingTowerRow(o) => o.walk_mut(f),
-            NodeMut::FreeCellFolderMut(o) => o.walk_mut(f),
+            NodeMut::FreeCellFolder(o) => o.walk_mut(f),
             NodeMut::FreeCell(o) => o.walk_mut(f),
         }
     }

@@ -96,7 +96,7 @@ fn show(
 
     response.context_menu(ui, |ui, node_id| {
         root.search_mut(&node_id, |node| {
-            context_menu(ui, node, undo_redo_manager);
+            context_menu(ui, node, undo_redo_manager, &response);
         });
     });
 
@@ -169,9 +169,8 @@ fn show_node(
         }
 
         (Method::Visit, NodeMut::Asset(asset)) => {
-            let value_type = asset.value_type;
-            let node_config = NodeBuilder::leaf(asset.id).icon(move |ui| {
-                match value_type {
+            let node_config = NodeBuilder::leaf(asset.id).icon(|ui| {
+                match asset.value_type {
                     backend::value_types::ValueType::Texture => {
                         egui::Image::new(egui::include_image!("../../../images/image.png"))
                             .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
@@ -261,26 +260,35 @@ fn folder_closer(ui: &mut Ui, state: CloserState) {
     }
 }
 
-fn context_menu(ui: &mut Ui, node: NodeMut, undo_redo_manager: &mut UndoRedoManager) {
+fn context_menu(
+    ui: &mut Ui,
+    node: NodeMut,
+    undo_redo_manager: &mut UndoRedoManager,
+    tree_response: &TreeViewResponse<Uuid>,
+) {
     match node {
         NodeMut::Style(_) => _ = ui.label("Style"),
         NodeMut::Variable(variable) => {
-            // if ui.button("add variable").clicked() {
-            //     nodes_to_add.push((
-            //         *stack.last().expect("There should always be a parent node"),
-            //         DropPosition::After(variable.id),
-            //         Box::new(VariableDefinition::new()),
-            //     ));
-            //     ui.close_menu();
-            // }
-            // if ui.button("add group").clicked() {
-            //     nodes_to_add.push((
-            //         *stack.last().expect("There should always be a parent node"),
-            //         DropPosition::Last,
-            //         Box::new(VariableFolder::new()),
-            //     ));
-            //     ui.close_menu();
-            // }
+            if ui.button("add variable").clicked() {
+                undo_redo_manager.queue(InsertNode {
+                    target_node: tree_response
+                        .parent_of(variable.id)
+                        .expect("Should have a parent"),
+                    position: DropPosition::After(variable.id),
+                    node: Box::new(VariableDefinition::new()),
+                });
+                ui.close_menu();
+            }
+            if ui.button("add group").clicked() {
+                undo_redo_manager.queue(InsertNode {
+                    target_node: tree_response
+                        .parent_of(variable.id)
+                        .expect("Should have a parent"),
+                    position: DropPosition::After(variable.id),
+                    node: Box::new(VariableFolder::new()),
+                });
+                ui.close_menu();
+            }
             if ui.button("delete").clicked() {
                 undo_redo_manager.queue(RemoveNode { id: variable.id });
                 ui.close_menu();
@@ -305,22 +313,26 @@ fn context_menu(ui: &mut Ui, node: NodeMut, undo_redo_manager: &mut UndoRedoMana
             }
         }
         NodeMut::Asset(asset) => {
-            // if ui.button("add image").clicked() {
-            //     nodes_to_add.push((
-            //         *stack.last().expect("There should always be a parent node"),
-            //         DropPosition::After(asset.id),
-            //         Box::new(AssetDefinition::new()),
-            //     ));
-            //     ui.close_menu();
-            // }
-            // if ui.button("add group").clicked() {
-            //     nodes_to_add.push((
-            //         *stack.last().expect("There should always be a parent node"),
-            //         DropPosition::Last,
-            //         Box::new(AssetFolder::new()),
-            //     ));
-            //     ui.close_menu();
-            // }
+            if ui.button("add image").clicked() {
+                undo_redo_manager.queue(InsertNode {
+                    target_node: tree_response
+                        .parent_of(asset.id)
+                        .expect("Should have a parent"),
+                    position: DropPosition::After(asset.id),
+                    node: Box::new(AssetDefinition::new()),
+                });
+                ui.close_menu();
+            }
+            if ui.button("add group").clicked() {
+                undo_redo_manager.queue(InsertNode {
+                    target_node: tree_response
+                        .parent_of(asset.id)
+                        .expect("Should have a parent"),
+                    position: DropPosition::After(asset.id),
+                    node: Box::new(AssetFolder::new()),
+                });
+                ui.close_menu();
+            }
             if ui.button("delete").clicked() {
                 undo_redo_manager.queue(RemoveNode { id: asset.id });
                 ui.close_menu();
@@ -345,7 +357,24 @@ fn context_menu(ui: &mut Ui, node: NodeMut, undo_redo_manager: &mut UndoRedoMana
             }
         }
         NodeMut::Scene(_) => _ = ui.label("Scene"),
-        NodeMut::TimingTower(_) => _ = ui.label("Timing tower"),
+        NodeMut::TimingTower(tower) => {
+            if ui.button("add column").clicked() {
+                undo_redo_manager.queue(InsertNode {
+                    target_node: tower.id,
+                    position: DropPosition::Last,
+                    node: Box::new(FreeCell::new()),
+                });
+                ui.close_menu();
+            }
+            if ui.button("add group").clicked() {
+                undo_redo_manager.queue(InsertNode {
+                    target_node: tower.id,
+                    position: DropPosition::Last,
+                    node: Box::new(FreeCellFolder::new()),
+                });
+                ui.close_menu();
+            }
+        },
         NodeMut::TimingTowerRow(row) => {
             if ui.button("add column").clicked() {
                 undo_redo_manager.queue(InsertNode {
@@ -381,24 +410,32 @@ fn context_menu(ui: &mut Ui, node: NodeMut, undo_redo_manager: &mut UndoRedoMana
                 });
                 ui.close_menu();
             }
+            if ui.button("delete").clicked() {
+                undo_redo_manager.queue(RemoveNode { id: folder.id });
+                ui.close_menu();
+            }
         }
         NodeMut::FreeCell(cell) => {
-            // if ui.button("add column").clicked() {
-            //     nodes_to_add.push((
-            //         *stack.last().expect("There should always be a parent node"),
-            //         DropPosition::After(cell.id),
-            //         Box::new(FreeCell::new()),
-            //     ));
-            //     ui.close_menu();
-            // }
-            // if ui.button("add group").clicked() {
-            //     nodes_to_add.push((
-            //         *stack.last().expect("There should always be a parent node"),
-            //         DropPosition::Last,
-            //         Box::new(FreeCellFolder::new()),
-            //     ));
-            //     ui.close_menu();
-            // }
+            if ui.button("add column").clicked() {
+                undo_redo_manager.queue(InsertNode {
+                    target_node: tree_response
+                        .parent_of(cell.id)
+                        .expect("Should have a parent"),
+                    position: DropPosition::After(cell.id),
+                    node: Box::new(FreeCell::new()),
+                });
+                ui.close_menu();
+            }
+            if ui.button("add group").clicked() {
+                undo_redo_manager.queue(InsertNode {
+                    target_node: tree_response
+                        .parent_of(cell.id)
+                        .expect("Should have a parent"),
+                    position: DropPosition::After(cell.id),
+                    node: Box::new(FreeCellFolder::new()),
+                });
+                ui.close_menu();
+            }
             if ui.button("delete").clicked() {
                 undo_redo_manager.queue(RemoveNode { id: cell.id });
                 ui.close_menu();

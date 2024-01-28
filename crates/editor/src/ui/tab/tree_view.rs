@@ -1,7 +1,10 @@
 use std::ops::ControlFlow;
 
 use backend::style::{
+    assets::{AssetDefinition, AssetFolder},
+    cell::{FreeCell, FreeCellFolder},
     iterator::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
+    variables::{VariableDefinition, VariableFolder},
     StyleNode,
 };
 use bevy_egui::egui::{self, ScrollArea, Ui};
@@ -119,6 +122,11 @@ pub fn show(ui: &mut Ui, style_node: &mut dyn StyleNode) -> TreeViewVisitorResul
                 )
             });
         });
+    response.context_menu(ui, |ui, node_id| {
+        style_node.as_node().search(&node_id, |node| {
+            context_menu(ui, node, &mut nodes_to_add, &mut nodes_to_remove);
+        });
+    });
     TreeViewVisitorResult {
         response,
         nodes_to_add,
@@ -136,20 +144,9 @@ fn show_node(
     match (method, node) {
         (Method::Visit, NodeMut::Style(style)) => {
             stack.push(style.id);
-            builder.node(
-                NodeBuilder::dir(style.id).closer(|ui, state| {
-                    egui::Image::new(egui::include_image!("../../../images/settings.png"))
-                        .tint(if state.is_hovered {
-                            ui.visuals().widgets.hovered.fg_stroke.color
-                        } else {
-                            ui.visuals().widgets.noninteractive.fg_stroke.color
-                        })
-                        .paint_at(ui, ui.max_rect());
-                }),
-                |ui| {
-                    ui.label("Style");
-                },
-            );
+            builder.node(NodeBuilder::dir(style.id), |ui| {
+                ui.label("Style");
+            });
             ControlFlow::Continue(())
         }
         (Method::Leave, NodeMut::Style(_)) => {
@@ -176,26 +173,9 @@ fn show_node(
             builder.node(NodeBuilder::dir(row.id).closer(folder_closer), |ui| {
                 ui.label("Row");
             });
-
-            // if let Some(res) = res {
-            //     res.context_menu(|ui| {
-            //         if ui.button("add column").clicked() {
-            //             nodes_to_add.push((row.id, DropPosition::Last, Box::new(FreeCell::new())));
-            //             ui.close_menu();
-            //         }
-            //         if ui.button("add group").clicked() {
-            //             nodes_to_add.push((
-            //                 row.id,
-            //                 DropPosition::Last,
-            //                 Box::new(FreeCellFolder::new()),
-            //             ));
-            //             ui.close_menu();
-            //         }
-            //     });
-            // }
-
             ControlFlow::Continue(())
         }
+
         (Method::Leave, NodeMut::TimingTowerRow(_)) => {
             stack.pop();
             builder.close_dir();
@@ -213,30 +193,6 @@ fn show_node(
                     ui.label(&cell.name);
                 },
             );
-            // if let Some(res) = res {
-            //     res.context_menu(|ui| {
-            //         if ui.button("add column").clicked() {
-            //             nodes_to_add.push((
-            //                 *stack.last().expect("There should always be a parent node"),
-            //                 DropPosition::After(cell.id),
-            //                 Box::new(FreeCell::new()),
-            //             ));
-            //             ui.close_menu();
-            //         }
-            //         if ui.button("add group").clicked() {
-            //             nodes_to_add.push((
-            //                 *stack.last().expect("There should always be a parent node"),
-            //                 DropPosition::Last,
-            //                 Box::new(FreeCellFolder::new()),
-            //             ));
-            //             ui.close_menu();
-            //         }
-            //         if ui.button("delete").clicked() {
-            //             nodes_to_remove.push(cell.id);
-            //             ui.close_menu();
-            //         }
-            //     });
-            // }
             ControlFlow::Continue(())
         }
 
@@ -244,28 +200,9 @@ fn show_node(
             builder.node(NodeBuilder::dir(folder.id).closer(folder_closer), |ui| {
                 ui.label(&folder.name);
             });
-            // if let Some(res) = res {
-            //     res.context_menu(|ui| {
-            //         if ui.button("add column").clicked() {
-            //             nodes_to_add.push((
-            //                 *folder.id(),
-            //                 DropPosition::Last,
-            //                 Box::new(FreeCell::new()),
-            //             ));
-            //             ui.close_menu();
-            //         }
-            //         if ui.button("add group").clicked() {
-            //             nodes_to_add.push((
-            //                 *folder.id(),
-            //                 DropPosition::Last,
-            //                 Box::new(FreeCellFolder::new()),
-            //             ));
-            //             ui.close_menu();
-            //         }
-            //     });
-            // }
             ControlFlow::Continue(())
         }
+
         (Method::Leave, NodeMut::FreeCellFolderMut(_)) => {
             builder.close_dir();
             ControlFlow::Continue(())
@@ -295,30 +232,6 @@ fn show_node(
                     ui.label(&asset.name);
                 },
             );
-            // if let Some(res) = res {
-            //     res.context_menu(|ui| {
-            //         if ui.button("add image").clicked() {
-            //             nodes_to_add.push((
-            //                 *stack.last().expect("There should always be a parent node"),
-            //                 DropPosition::After(asset.id),
-            //                 Box::new(AssetDefinition::new()),
-            //             ));
-            //             ui.close_menu();
-            //         }
-            //         if ui.button("add group").clicked() {
-            //             nodes_to_add.push((
-            //                 *stack.last().expect("There should always be a parent node"),
-            //                 DropPosition::Last,
-            //                 Box::new(AssetFolder::new()),
-            //             ));
-            //             ui.close_menu();
-            //         }
-            //         if ui.button("delete").clicked() {
-            //             nodes_to_remove.push(asset.id);
-            //             ui.close_menu();
-            //         }
-            //     });
-            // }
             ControlFlow::Continue(())
         }
 
@@ -326,28 +239,9 @@ fn show_node(
             builder.node(NodeBuilder::dir(folder.id).closer(folder_closer), |ui| {
                 ui.label(&folder.name);
             });
-            // if let Some(res) = res {
-            //     res.context_menu(|ui| {
-            //         if ui.button("add image").clicked() {
-            //             nodes_to_add.push((
-            //                 *folder.id(),
-            //                 DropPosition::Last,
-            //                 Box::new(AssetDefinition::new()),
-            //             ));
-            //             ui.close_menu();
-            //         }
-            //         if ui.button("add group").clicked() {
-            //             nodes_to_add.push((
-            //                 *folder.id(),
-            //                 DropPosition::Last,
-            //                 Box::new(AssetFolder::new()),
-            //             ));
-            //             ui.close_menu();
-            //         }
-            //     });
-            // }
             ControlFlow::Continue(())
         }
+
         (Method::Leave, NodeMut::AssetFolder(_)) => {
             builder.close_dir();
             ControlFlow::Continue(())
@@ -364,30 +258,6 @@ fn show_node(
                     ui.label(&variable.name);
                 },
             );
-            // if let Some(res) = res {
-            //     res.context_menu(|ui| {
-            //         if ui.button("add variable").clicked() {
-            //             nodes_to_add.push((
-            //                 *stack.last().expect("There should always be a parent node"),
-            //                 DropPosition::After(variable.id),
-            //                 Box::new(VariableDefinition::new()),
-            //             ));
-            //             ui.close_menu();
-            //         }
-            //         if ui.button("add group").clicked() {
-            //             nodes_to_add.push((
-            //                 *stack.last().expect("There should always be a parent node"),
-            //                 DropPosition::Last,
-            //                 Box::new(VariableFolder::new()),
-            //             ));
-            //             ui.close_menu();
-            //         }
-            //         if ui.button("delete").clicked() {
-            //             nodes_to_remove.push(variable.id);
-            //             ui.close_menu();
-            //         }
-            //     });
-            // }
             ControlFlow::Continue(())
         }
 
@@ -395,28 +265,9 @@ fn show_node(
             builder.node(NodeBuilder::dir(folder.id).closer(folder_closer), |ui| {
                 ui.label(&folder.name);
             });
-            // if let Some(res) = res {
-            //     res.context_menu(|ui| {
-            //         if ui.button("add variable").clicked() {
-            //             nodes_to_add.push((
-            //                 *folder.id(),
-            //                 DropPosition::Last,
-            //                 Box::new(VariableDefinition::new()),
-            //             ));
-            //             ui.close_menu();
-            //         }
-            //         if ui.button("add group").clicked() {
-            //             nodes_to_add.push((
-            //                 *folder.id(),
-            //                 DropPosition::Last,
-            //                 Box::new(VariableFolder::new()),
-            //             ));
-            //             ui.close_menu();
-            //         }
-            //     });
-            // }
             ControlFlow::Continue(())
         }
+
         (Method::Leave, NodeMut::VariableFolder(_)) => {
             builder.close_dir();
             ControlFlow::Continue(())
@@ -451,5 +302,144 @@ fn folder_closer(ui: &mut Ui, state: CloserState) {
         egui::Image::new(egui::include_image!("../../../images/folder.png"))
             .tint(color)
             .paint_at(ui, ui.max_rect());
+    }
+}
+
+fn context_menu(
+    ui: &mut Ui,
+    node: Node,
+    nodes_to_add: &mut Vec<(Uuid, DropPosition<Uuid>, Box<dyn StyleNode + Send + Sync>)>,
+    nodes_to_remove: &mut Vec<Uuid>,
+) {
+    match node {
+        Node::Style(_) => (),
+        Node::Variable(variable) => {
+            // if ui.button("add variable").clicked() {
+            //     nodes_to_add.push((
+            //         *stack.last().expect("There should always be a parent node"),
+            //         DropPosition::After(variable.id),
+            //         Box::new(VariableDefinition::new()),
+            //     ));
+            //     ui.close_menu();
+            // }
+            // if ui.button("add group").clicked() {
+            //     nodes_to_add.push((
+            //         *stack.last().expect("There should always be a parent node"),
+            //         DropPosition::Last,
+            //         Box::new(VariableFolder::new()),
+            //     ));
+            //     ui.close_menu();
+            // }
+            if ui.button("delete").clicked() {
+                nodes_to_remove.push(variable.id);
+                ui.close_menu();
+            }
+        }
+        Node::VariableFolder(folder) => {
+            if ui.button("add variable").clicked() {
+                nodes_to_add.push((
+                    *folder.id(),
+                    DropPosition::Last,
+                    Box::new(VariableDefinition::new()),
+                ));
+                ui.close_menu();
+            }
+            if ui.button("add group").clicked() {
+                nodes_to_add.push((
+                    *folder.id(),
+                    DropPosition::Last,
+                    Box::new(VariableFolder::new()),
+                ));
+                ui.close_menu();
+            }
+        }
+        Node::Asset(asset) => {
+            // if ui.button("add image").clicked() {
+            //     nodes_to_add.push((
+            //         *stack.last().expect("There should always be a parent node"),
+            //         DropPosition::After(asset.id),
+            //         Box::new(AssetDefinition::new()),
+            //     ));
+            //     ui.close_menu();
+            // }
+            // if ui.button("add group").clicked() {
+            //     nodes_to_add.push((
+            //         *stack.last().expect("There should always be a parent node"),
+            //         DropPosition::Last,
+            //         Box::new(AssetFolder::new()),
+            //     ));
+            //     ui.close_menu();
+            // }
+            if ui.button("delete").clicked() {
+                nodes_to_remove.push(asset.id);
+                ui.close_menu();
+            }
+        }
+        Node::AssetFolder(folder) => {
+            if ui.button("add image").clicked() {
+                nodes_to_add.push((
+                    *folder.id(),
+                    DropPosition::Last,
+                    Box::new(AssetDefinition::new()),
+                ));
+                ui.close_menu();
+            }
+            if ui.button("add group").clicked() {
+                nodes_to_add.push((
+                    *folder.id(),
+                    DropPosition::Last,
+                    Box::new(AssetFolder::new()),
+                ));
+                ui.close_menu();
+            }
+        }
+        Node::Scene(_) => (),
+        Node::TimingTower(_) => (),
+        Node::TimingTowerRow(row) => {
+            if ui.button("add column").clicked() {
+                nodes_to_add.push((row.id, DropPosition::Last, Box::new(FreeCell::new())));
+                ui.close_menu();
+            }
+            if ui.button("add group").clicked() {
+                nodes_to_add.push((row.id, DropPosition::Last, Box::new(FreeCellFolder::new())));
+                ui.close_menu();
+            }
+        }
+        Node::FreeCellFolder(folder) => {
+            if ui.button("add column").clicked() {
+                nodes_to_add.push((*folder.id(), DropPosition::Last, Box::new(FreeCell::new())));
+                ui.close_menu();
+            }
+            if ui.button("add group").clicked() {
+                nodes_to_add.push((
+                    *folder.id(),
+                    DropPosition::Last,
+                    Box::new(FreeCellFolder::new()),
+                ));
+                ui.close_menu();
+            }
+        }
+        Node::FreeCell(cell) => {
+            // if ui.button("add column").clicked() {
+            //     nodes_to_add.push((
+            //         *stack.last().expect("There should always be a parent node"),
+            //         DropPosition::After(cell.id),
+            //         Box::new(FreeCell::new()),
+            //     ));
+            //     ui.close_menu();
+            // }
+            // if ui.button("add group").clicked() {
+            //     nodes_to_add.push((
+            //         *stack.last().expect("There should always be a parent node"),
+            //         DropPosition::Last,
+            //         Box::new(FreeCellFolder::new()),
+            //     ));
+            //     ui.close_menu();
+            // }
+            if ui.button("delete").clicked() {
+                nodes_to_remove.push(cell.id);
+                ui.close_menu();
+            }
+        }
     }
 }

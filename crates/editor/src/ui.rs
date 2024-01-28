@@ -38,7 +38,7 @@ pub struct EditorUiPlugin;
 impl Plugin for EditorUiPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource(EditorState::new())
-            .add_systems(Startup, set_theme)
+            .add_systems(Startup, setup_egui_context)
             .add_systems(First, savefile_changed)
             .add_systems(Update, ui.in_set(UiSystem));
     }
@@ -47,7 +47,8 @@ impl Plugin for EditorUiPlugin {
 #[derive(SystemSet, Hash, Debug, PartialEq, Eq, Clone)]
 pub struct UiSystem;
 
-fn set_theme(mut ctx: EguiContexts) {
+fn setup_egui_context(mut ctx: EguiContexts) {
+    egui_extras::install_image_loaders(ctx.ctx_mut());
     dear_egui::set_theme(
         ctx.ctx_mut(),
         dear_egui::Theme::Sky,

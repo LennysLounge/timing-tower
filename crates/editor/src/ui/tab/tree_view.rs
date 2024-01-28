@@ -4,8 +4,11 @@ use backend::style::{
     iterator::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
     StyleNode,
 };
-use bevy_egui::egui::{ScrollArea, Ui};
-use egui_ltreeview::{DropPosition, TreeViewBuilder, TreeViewResponse};
+use bevy_egui::egui::{self, ScrollArea, Ui};
+use egui_ltreeview::{
+    builder::{CloserState, NodeBuilder},
+    DropPosition, TreeViewBuilder, TreeViewResponse,
+};
 use uuid::Uuid;
 
 use crate::command::{
@@ -47,8 +50,8 @@ pub fn tree_view(
     if let Some(drop_action) = &response.drag_drop_action {
         let drop_allowed = base_node
             .as_node()
-            .search(&drop_action.drag_id, |dragged| {
-                base_node.as_node().search(&drop_action.drop_id, |dropped| {
+            .search(&drop_action.source, |dragged| {
+                base_node.as_node().search(&drop_action.target, |dropped| {
                     drop_allowed(dropped, dragged)
                 })
             })
@@ -59,10 +62,10 @@ pub fn tree_view(
             response.remove_drop_marker(ui);
         }
 
-        if response.dropped && drop_allowed {
+        if drop_action.commit && drop_allowed {
             undo_redo_manager.queue(MoveNode {
-                id: drop_action.drag_id,
-                target_id: drop_action.drop_id,
+                id: drop_action.source,
+                target_id: drop_action.target,
                 position: drop_action.position,
             });
             changed = true;
@@ -102,9 +105,9 @@ pub fn show(ui: &mut Ui, style_node: &mut dyn StyleNode) -> TreeViewVisitorResul
     let mut nodes_to_remove = Vec::new();
     let mut stack: Vec<Uuid> = Vec::new();
 
-    let response = egui_ltreeview::TreeView::new(ui.make_persistent_id("element_tree_view")).show(
-        ui,
-        |mut builder| {
+    let response = egui_ltreeview::TreeView::new(ui.make_persistent_id("element_tree_view"))
+        .row_layout(egui_ltreeview::RowLayout::CompactAlignedLables)
+        .show(ui, |mut builder| {
             style_node.as_node_mut().walk_mut(&mut |node, method| {
                 show_node(
                     node,
@@ -115,8 +118,7 @@ pub fn show(ui: &mut Ui, style_node: &mut dyn StyleNode) -> TreeViewVisitorResul
                     &mut stack,
                 )
             });
-        },
-    );
+        });
     TreeViewVisitorResult {
         response,
         nodes_to_add,
@@ -134,9 +136,20 @@ fn show_node(
     match (method, node) {
         (Method::Visit, NodeMut::Style(style)) => {
             stack.push(style.id);
-            builder.dir(style.id, |ui| {
-                ui.label("Style");
-            });
+            builder.node(
+                NodeBuilder::dir(style.id).closer(|ui, state| {
+                    egui::Image::new(egui::include_image!("../../../images/settings.png"))
+                        .tint(if state.is_hovered {
+                            ui.visuals().widgets.hovered.fg_stroke.color
+                        } else {
+                            ui.visuals().widgets.noninteractive.fg_stroke.color
+                        })
+                        .paint_at(ui, ui.max_rect());
+                }),
+                |ui| {
+                    ui.label("Style");
+                },
+            );
             ControlFlow::Continue(())
         }
         (Method::Leave, NodeMut::Style(_)) => {
@@ -147,7 +160,7 @@ fn show_node(
 
         (Method::Visit, NodeMut::TimingTower(tower)) => {
             stack.push(tower.id);
-            builder.dir(tower.id, |ui| {
+            builder.node(NodeBuilder::dir(tower.id).closer(folder_closer), |ui| {
                 ui.label("Timing tower");
             });
             ControlFlow::Continue(())
@@ -160,7 +173,7 @@ fn show_node(
 
         (Method::Visit, NodeMut::TimingTowerRow(row)) => {
             stack.push(row.id);
-            builder.dir(row.id, |ui| {
+            builder.node(NodeBuilder::dir(row.id).closer(folder_closer), |ui| {
                 ui.label("Row");
             });
 
@@ -190,9 +203,16 @@ fn show_node(
         }
 
         (Method::Visit, NodeMut::FreeCell(cell)) => {
-            builder.leaf(cell.id, |ui| {
-                ui.label(&cell.name);
-            });
+            builder.node(
+                NodeBuilder::leaf(cell.id).icon(|ui| {
+                    egui::Image::new(egui::include_image!("../../../images/article.png"))
+                        .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
+                        .paint_at(ui, ui.max_rect());
+                }),
+                |ui| {
+                    ui.label(&cell.name);
+                },
+            );
             // if let Some(res) = res {
             //     res.context_menu(|ui| {
             //         if ui.button("add column").clicked() {
@@ -221,7 +241,7 @@ fn show_node(
         }
 
         (Method::Visit, NodeMut::FreeCellFolderMut(folder)) => {
-            builder.dir(folder.id, |ui| {
+            builder.node(NodeBuilder::dir(folder.id).closer(folder_closer), |ui| {
                 ui.label(&folder.name);
             });
             // if let Some(res) = res {
@@ -252,9 +272,29 @@ fn show_node(
         }
 
         (Method::Visit, NodeMut::Asset(asset)) => {
-            builder.leaf(asset.id, |ui| {
-                ui.label(&asset.name);
-            });
+            let value_type = asset.value_type;
+            builder.node(
+                NodeBuilder::leaf(asset.id).icon(move |ui| {
+                    match value_type {
+                        backend::value_types::ValueType::Texture => {
+                            egui::Image::new(egui::include_image!("../../../images/image.png"))
+                                .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
+                                .paint_at(ui, ui.max_rect());
+                        }
+                        backend::value_types::ValueType::Font => {
+                            egui::Image::new(egui::include_image!(
+                                "../../../images/match_case.png"
+                            ))
+                            .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
+                            .paint_at(ui, ui.max_rect());
+                        }
+                        _ => (),
+                    };
+                }),
+                |ui| {
+                    ui.label(&asset.name);
+                },
+            );
             // if let Some(res) = res {
             //     res.context_menu(|ui| {
             //         if ui.button("add image").clicked() {
@@ -283,7 +323,7 @@ fn show_node(
         }
 
         (Method::Visit, NodeMut::AssetFolder(folder)) => {
-            builder.dir(folder.id, |ui| {
+            builder.node(NodeBuilder::dir(folder.id).closer(folder_closer), |ui| {
                 ui.label(&folder.name);
             });
             // if let Some(res) = res {
@@ -314,9 +354,16 @@ fn show_node(
         }
 
         (Method::Visit, NodeMut::Variable(variable)) => {
-            builder.leaf(variable.id, |ui| {
-                ui.label(&variable.name);
-            });
+            builder.node(
+                NodeBuilder::leaf(variable.id).icon(|ui| {
+                    egui::Image::new(egui::include_image!("../../../images/object.png"))
+                        .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
+                        .paint_at(ui, ui.max_rect());
+                }),
+                |ui| {
+                    ui.label(&variable.name);
+                },
+            );
             // if let Some(res) = res {
             //     res.context_menu(|ui| {
             //         if ui.button("add variable").clicked() {
@@ -345,7 +392,7 @@ fn show_node(
         }
 
         (Method::Visit, NodeMut::VariableFolder(folder)) => {
-            builder.dir(folder.id, |ui| {
+            builder.node(NodeBuilder::dir(folder.id).closer(folder_closer), |ui| {
                 ui.label(&folder.name);
             });
             // if let Some(res) = res {
@@ -376,7 +423,7 @@ fn show_node(
         }
 
         (Method::Visit, NodeMut::Scene(scene)) => {
-            builder.dir(scene.id, |ui| {
+            builder.node(NodeBuilder::dir(scene.id).closer(folder_closer), |ui| {
                 ui.label("Scene");
             });
             ControlFlow::Continue(())
@@ -387,5 +434,22 @@ fn show_node(
         }
 
         _ => ControlFlow::Continue(()),
+    }
+}
+
+fn folder_closer(ui: &mut Ui, state: CloserState) {
+    let color = if state.is_hovered {
+        ui.visuals().widgets.hovered.fg_stroke.color
+    } else {
+        ui.visuals().widgets.noninteractive.fg_stroke.color
+    };
+    if state.is_open {
+        egui::Image::new(egui::include_image!("../../../images/folder_open.png"))
+            .tint(color)
+            .paint_at(ui, ui.max_rect());
+    } else {
+        egui::Image::new(egui::include_image!("../../../images/folder.png"))
+            .tint(color)
+            .paint_at(ui, ui.max_rect());
     }
 }

@@ -6,6 +6,7 @@ use uuid::Uuid;
 use backend::style::{
     self,
     cell::FreeCellFolder,
+    component::Component,
     definitions::*,
     iterator::{NodeIteratorMut, NodeMut},
     StyleNode,
@@ -55,7 +56,11 @@ impl From<InsertNodeUndo> for EditorCommand {
     }
 }
 
-pub fn insert(node: NodeMut, position: DropPosition<Uuid>, insert: Box<dyn Any>) -> ControlFlow<()> {
+pub fn insert(
+    node: NodeMut,
+    position: DropPosition<Uuid>,
+    insert: Box<dyn Any>,
+) -> ControlFlow<()> {
     match node {
         NodeMut::AssetFolder(folder) => {
             let folder_or_asset = Err(insert)
@@ -152,6 +157,33 @@ pub fn insert(node: NodeMut, position: DropPosition<Uuid>, insert: Box<dyn Any>)
             }
             ControlFlow::Break(())
         }
-        _ => ControlFlow::Continue(()),
+
+        NodeMut::Scene(scene) => {
+            let component = *insert
+                .downcast::<Component>()
+                .expect("No other types are allowed to be inserted");
+            match &position {
+                DropPosition::First => scene.components.insert(0, component),
+                DropPosition::Last => scene.components.push(component),
+                DropPosition::After(id) => {
+                    if let Some(index) = scene.components.iter().position(|c| c.id() == id) {
+                        scene.components.insert(index + 1, component);
+                    }
+                }
+                DropPosition::Before(id) => {
+                    if let Some(index) = scene.components.iter().position(|c| c.id() == id) {
+                        scene.components.insert(index, component);
+                    }
+                }
+            }
+
+            ControlFlow::Break(())
+        }
+
+        NodeMut::Style(_) => ControlFlow::Continue(()),
+        NodeMut::Variable(_) => ControlFlow::Continue(()),
+        NodeMut::Asset(_) => ControlFlow::Continue(()),
+        NodeMut::FreeCell(_) => ControlFlow::Continue(()),
+        NodeMut::Component(_) => ControlFlow::Continue(()),
     }
 }

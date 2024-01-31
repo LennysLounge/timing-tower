@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use super::{
+    component::Component,
     definitions::TimingTower,
     iterator::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
     StyleNode,
@@ -15,6 +16,7 @@ pub struct SceneDefinition {
     pub id: Uuid,
     pub prefered_size: Vec2,
     pub timing_tower: TimingTower,
+    pub components: Vec<Component>,
 }
 impl StyleNode for SceneDefinition {
     fn id(&self) -> &Uuid {
@@ -34,6 +36,7 @@ impl NodeIterator for SceneDefinition {
     {
         f(self.as_node(), Method::Visit)?;
         self.timing_tower.walk(f)?;
+        self.components.iter().try_for_each(|c| c.walk(f))?;
         f(self.as_node(), Method::Leave)
     }
 }
@@ -44,6 +47,7 @@ impl NodeIteratorMut for SceneDefinition {
     {
         f(self.as_node_mut(), Method::Visit)?;
         self.timing_tower.walk_mut(f)?;
+        self.components.iter_mut().try_for_each(|c| c.walk_mut(f))?;
         f(self.as_node_mut(), Method::Leave)
     }
 }

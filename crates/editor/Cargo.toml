@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = { workspace = true}
+bevy = { workspace = true, features = ["dynamic_linking"] }
 bevy_egui = { workspace = true }
 egui_dock = { workspace = true }
 serde = { workspace = true }
@@ -21,4 +21,4 @@ tracing = "0.1.37"
 uuid = { version = "1.4.1", features = ["v4"] }
 dyn-clone = "1.0.16"
 rand = "0.8.5"
-egui_extras = {version = "0.24", features = ["all_loaders"]}
+egui_extras = { version = "0.24", features = ["all_loaders"] }

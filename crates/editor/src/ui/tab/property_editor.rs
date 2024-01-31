@@ -294,5 +294,6 @@ pub fn edit_node(
         }
 
         NodeMut::Style(_) => (),
+        NodeMut::Component(_) => (),
     }
 }

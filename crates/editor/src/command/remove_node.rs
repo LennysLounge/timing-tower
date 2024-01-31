@@ -128,6 +128,28 @@ fn remove(node: NodeMut, method: Method, node_id: &Uuid) -> ControlFlow<RemovedN
                 ControlFlow::Continue(())
             }
         }
-        _ => ControlFlow::Continue(()),
+
+        (Method::Visit, NodeMut::Scene(scene)) => {
+            if let Some(index) = scene.components.iter().position(|c| c.id() == node_id) {
+                ControlFlow::Break(RemovedNode {
+                    parent_id: scene.id,
+                    node: Box::new(scene.components.remove(index)),
+                    position: (index == 0)
+                        .then_some(DropPosition::First)
+                        .unwrap_or_else(|| {
+                            DropPosition::After(*scene.components.get(index - 1).unwrap().id())
+                        }),
+                })
+            } else {
+                ControlFlow::Continue(())
+            }
+        }
+
+        (Method::Visit, NodeMut::Style(_)) => ControlFlow::Continue(()),
+        (Method::Visit, NodeMut::Variable(_)) => ControlFlow::Continue(()),
+        (Method::Visit, NodeMut::Asset(_)) => ControlFlow::Continue(()),
+        (Method::Visit, NodeMut::FreeCell(_)) => ControlFlow::Continue(()),
+        (Method::Visit, NodeMut::Component(_)) => ControlFlow::Continue(()),
+        (Method::Leave, _) => ControlFlow::Continue(()),
     }
 }

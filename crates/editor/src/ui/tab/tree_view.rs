@@ -3,6 +3,7 @@ use std::ops::ControlFlow;
 use backend::style::{
     assets::{AssetDefinition, AssetFolder},
     cell::{FreeCell, FreeCellFolder},
+    component::Component,
     iterator::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
     variables::{VariableDefinition, VariableFolder},
     StyleNode,
@@ -78,6 +79,8 @@ fn drop_allowed(target: Node, dragged: Node) -> bool {
 
         (Node::TimingTower(_), Node::FreeCell(_)) => true,
         (Node::TimingTower(_), Node::FreeCellFolder(_)) => true,
+
+        (Node::Scene(_), Node::Component(_)) => true,
 
         _ => false,
     }
@@ -238,8 +241,16 @@ fn show_node(
             builder.close_dir();
             ControlFlow::Continue(())
         }
-
-        _ => ControlFlow::Continue(()),
+        (Method::Visit, NodeMut::Component(comp)) => {
+            builder.leaf(comp.id, |ui| {
+                ui.label(&comp.name);
+            });
+            ControlFlow::Continue(())
+        }
+        (Method::Leave, NodeMut::Variable(_)) => ControlFlow::Continue(()),
+        (Method::Leave, NodeMut::Asset(_)) => ControlFlow::Continue(()),
+        (Method::Leave, NodeMut::FreeCell(_)) => ControlFlow::Continue(()),
+        (Method::Leave, NodeMut::Component(_)) => ControlFlow::Continue(()),
     }
 }
 
@@ -356,7 +367,16 @@ fn context_menu(
                 ui.close_menu();
             }
         }
-        NodeMut::Scene(_) => _ = ui.label("Scene"),
+        NodeMut::Scene(scene) => {
+            if ui.button("add component").clicked() {
+                undo_redo_manager.queue(InsertNode {
+                    target_node: scene.id,
+                    position: DropPosition::Last,
+                    node: Box::new(Component::new()),
+                });
+                ui.close_menu();
+            }
+        }
         NodeMut::TimingTower(tower) => {
             if ui.button("add column").clicked() {
                 undo_redo_manager.queue(InsertNode {
@@ -374,7 +394,7 @@ fn context_menu(
                 });
                 ui.close_menu();
             }
-        },
+        }
         NodeMut::TimingTowerRow(row) => {
             if ui.button("add column").clicked() {
                 undo_redo_manager.queue(InsertNode {
@@ -440,6 +460,9 @@ fn context_menu(
                 undo_redo_manager.queue(RemoveNode { id: cell.id });
                 ui.close_menu();
             }
+        }
+        NodeMut::Component(comp) => {
+            ui.label(&comp.name);
         }
     }
 }

@@ -12,6 +12,7 @@ use self::{
 
 pub mod assets;
 pub mod cell;
+pub mod component;
 pub mod iterator;
 pub mod scene;
 pub mod timing_tower;
@@ -21,6 +22,7 @@ pub mod definitions {
     pub use self::super::{
         assets::{AssetDefinition, AssetFolder},
         cell::{Cell, ClipArea, CornerOffsets, FreeCell, Rounding},
+        component::Component,
         scene::SceneDefinition,
         timing_tower::{TimingTower, TimingTowerRow},
         variables::{VariableDefinition, VariableFolder},

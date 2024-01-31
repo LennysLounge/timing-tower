@@ -84,6 +84,7 @@ pub struct CornerOffsets {
     pub bot_right: Vec2Property,
 }
 
+
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct ClipArea {
     pub pos: Vec3Property,

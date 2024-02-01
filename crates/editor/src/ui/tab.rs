@@ -15,7 +15,8 @@ pub enum Tab {
     Elements,
     Variables,
     Assets,
-    PropertyEditor,
+    ComponentEditor,
+    ElementEditor,
     UndoRedo,
 }
 
@@ -34,7 +35,8 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
         match tab {
             Tab::SceneView => "Scene view".into(),
             Tab::Elements => "Elements".into(),
-            Tab::PropertyEditor => "Style".into(),
+            Tab::ComponentEditor => "Component".into(),
+            Tab::ElementEditor => "Element".into(),
             Tab::Variables => "Variables".into(),
             Tab::Assets => "Assets".into(),
             Tab::UndoRedo => "Undo/Redo".into(),
@@ -54,7 +56,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     self.undo_redo_manager,
                 );
             }
-            Tab::PropertyEditor => {
+            Tab::ComponentEditor => {
                 property_editor::property_editor(
                     ui,
                     self.selected_node,
@@ -63,6 +65,9 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     self.undo_redo_manager,
                     self.game_adapter,
                 );
+            }
+            Tab::ElementEditor => {
+                ui.label("Element editor");
             }
             Tab::Variables => {
                 tree_view::tree_view(

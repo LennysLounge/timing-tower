@@ -71,8 +71,10 @@ impl EditorState {
             0.15,
             vec![Tab::Elements, Tab::Variables, Tab::Assets],
         );
-        let [_scene, _tree_view] =
-            tree.split_right(scene, 0.7, vec![Tab::PropertyEditor, Tab::UndoRedo]);
+        let [scene, _component_editor] =
+            tree.split_right(scene, 0.8, vec![Tab::ComponentEditor, Tab::UndoRedo]);
+
+        let [_scene, _element_editor] = tree.split_right(scene, 0.7, vec![Tab::ElementEditor]);
 
         Self {
             selected_node: None,

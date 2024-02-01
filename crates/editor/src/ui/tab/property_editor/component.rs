@@ -33,7 +33,7 @@ pub fn component_property_editor(
 
     ui.label("Elements:");
     ui.group(|ui| {
-        show_element_tree(ui, component);
+        edit_result |= show_element_tree(ui, component);
 
         ui.allocate_space(vec2(
             ui.available_width(),

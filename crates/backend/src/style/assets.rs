@@ -1,5 +1,3 @@
-use std::ops::ControlFlow;
-
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -9,7 +7,7 @@ use crate::{
 };
 
 use super::{
-    iterator::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
+    iterator::{Node, NodeMut},
     variables::StaticValueProducer,
     StyleNode,
 };
@@ -59,22 +57,6 @@ impl StyleNode for AssetDefinition {
         NodeMut::Asset(self)
     }
 }
-impl NodeIterator for AssetDefinition {
-    fn walk<F, R>(&self, f: &mut F) -> ControlFlow<R>
-    where
-        F: FnMut(Node, Method) -> ControlFlow<R>,
-    {
-        f(self.as_node(), Method::Visit)
-    }
-}
-impl NodeIteratorMut for AssetDefinition {
-    fn walk_mut<F, R>(&mut self, f: &mut F) -> ControlFlow<R>
-    where
-        F: FnMut(NodeMut, Method) -> ControlFlow<R>,
-    {
-        f(self.as_node_mut(), Method::Visit)
-    }
-}
 
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct AssetFolder {
@@ -110,32 +92,6 @@ impl StyleNode for AssetFolder {
     }
     fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
         NodeMut::AssetFolder(self)
-    }
-}
-impl NodeIterator for AssetFolder {
-    fn walk<F, R>(&self, f: &mut F) -> ControlFlow<R>
-    where
-        F: FnMut(Node, Method) -> ControlFlow<R>,
-    {
-        f(self.as_node(), Method::Visit)?;
-        self.content.iter().try_for_each(|v| match v {
-            AssetOrFolder::Asset(o) => o.walk(f),
-            AssetOrFolder::Folder(o) => o.walk(f),
-        })?;
-        f(self.as_node(), Method::Leave)
-    }
-}
-impl NodeIteratorMut for AssetFolder {
-    fn walk_mut<F, R>(&mut self, f: &mut F) -> ControlFlow<R>
-    where
-        F: FnMut(NodeMut, Method) -> ControlFlow<R>,
-    {
-        f(self.as_node_mut(), Method::Visit)?;
-        self.content.iter_mut().try_for_each(|v| match v {
-            AssetOrFolder::Asset(o) => o.walk_mut(f),
-            AssetOrFolder::Folder(o) => o.walk_mut(f),
-        })?;
-        f(self.as_node_mut(), Method::Leave)
     }
 }
 

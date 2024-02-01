@@ -1,4 +1,4 @@
-use std::{any::Any, ops::ControlFlow};
+use std::any::Any;
 
 use dyn_clone::DynClone;
 use serde::{Deserialize, Serialize};
@@ -6,7 +6,7 @@ use uuid::Uuid;
 
 use self::{
     definitions::*,
-    iterator::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
+    iterator::{Node, NodeMut},
     scene::SceneDefinition,
 };
 
@@ -48,30 +48,6 @@ impl StyleNode for StyleDefinition {
         NodeMut::Style(self)
     }
 }
-impl NodeIterator for StyleDefinition {
-    fn walk<F, R>(&self, f: &mut F) -> ControlFlow<R>
-    where
-        F: FnMut(Node, Method) -> ControlFlow<R>,
-    {
-        f(self.as_node(), Method::Visit)?;
-        self.assets.walk(f)?;
-        self.vars.walk(f)?;
-        self.scene.walk(f)?;
-        f(self.as_node(), Method::Leave)
-    }
-}
-impl NodeIteratorMut for StyleDefinition {
-    fn walk_mut<F, R>(&mut self, f: &mut F) -> ControlFlow<R>
-    where
-        F: FnMut(NodeMut, Method) -> ControlFlow<R>,
-    {
-        f(self.as_node_mut(), Method::Visit)?;
-        self.assets.walk_mut(f)?;
-        self.vars.walk_mut(f)?;
-        self.scene.walk_mut(f)?;
-        f(self.as_node_mut(), Method::Leave)
-    }
-}
 
 /// Base trait for all elements in the style definition.
 pub trait StyleNode: ToAny + Sync + Send + DynClone {
@@ -104,23 +80,3 @@ where
         self
     }
 }
-
-// /// Allows for cloneing a `StyleNode` as a trait object.
-// pub trait BoxClone {
-//     /// Clone the element into a `StyleNode` trait object.
-//     fn box_clone(&self) -> Box<dyn StyleNode>;
-// }
-// impl<T> BoxClone for T
-// where
-//     T: StyleNode + Clone + 'static,
-// {
-//     fn box_clone(&self) -> Box<dyn StyleNode> {
-//         Box::new(self.clone())
-//     }
-// }
-
-// impl Clone for Box<dyn StyleNode> {
-//     fn clone(&self) -> Self {
-//         (*self).box_clone()
-//     }
-// }

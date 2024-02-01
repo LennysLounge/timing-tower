@@ -1,9 +1,10 @@
 use backend::{
     style::{
-        iterator::{NodeIteratorMut, NodeMut},
+        iterator::NodeMut,
         variables::{condition::Condition, fixed_value::FixedValue, map::Map, VariableBehavior},
         StyleDefinition, StyleNode,
     },
+    tree_iterator::TreeIteratorMut,
     value_types::ValueType,
 };
 use bevy_egui::egui::{ComboBox, DragValue, ScrollArea, Ui};
@@ -43,7 +44,7 @@ pub fn property_editor(
     ScrollArea::vertical()
         .auto_shrink([false, false])
         .show(ui, |ui| {
-            style.as_node_mut().search_mut(*&selected_id, |node| {
+            style.as_node_mut().search_mut(*selected_id, |node| {
                 edit_node(ui, node, reference_store, game_adapter, undo_redo_manager);
             });
         });
@@ -51,7 +52,7 @@ pub fn property_editor(
 
 pub fn edit_node(
     ui: &mut Ui,
-    node: NodeMut,
+    node: &mut NodeMut,
     reference_store: &ReferenceStore,
     game_adapter: &Adapter,
     undo_redo_manager: &mut UndoRedoManager,

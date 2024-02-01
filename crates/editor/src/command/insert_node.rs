@@ -3,13 +3,12 @@ use std::{any::Any, ops::ControlFlow};
 use egui_ltreeview::DropPosition;
 use uuid::Uuid;
 
-use backend::style::{
-    self,
-    cell::FreeCellFolder,
-    component::Component,
-    definitions::*,
-    iterator::{NodeIteratorMut, NodeMut},
-    StyleNode,
+use backend::{
+    style::{
+        self, cell::FreeCellFolder, component::Component, definitions::*, iterator::NodeMut,
+        StyleNode,
+    },
+    tree_iterator::TreeIteratorMut,
 };
 
 use super::{remove_node::remove_node, EditorCommand};
@@ -22,7 +21,7 @@ pub struct InsertNode {
 impl InsertNode {
     pub fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
         let id = *self.node.id();
-        style.as_node_mut().search_mut(&self.target_node, |node| {
+        style.as_node_mut().search_mut(self.target_node, |node| {
             insert(node, self.position, self.node.clone().to_any())
         });
         Some(InsertNodeUndo { id }.into())
@@ -40,7 +39,7 @@ pub struct InsertNodeUndo {
 }
 impl InsertNodeUndo {
     pub fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
-        remove_node(&self.id, style).map(|removed_node| {
+        remove_node(&self.id, &mut style.as_node_mut()).map(|removed_node| {
             InsertNode {
                 target_node: removed_node.parent_id,
                 position: removed_node.position,
@@ -57,7 +56,7 @@ impl From<InsertNodeUndo> for EditorCommand {
 }
 
 pub fn insert(
-    node: NodeMut,
+    node: &mut NodeMut,
     position: DropPosition<Uuid>,
     insert: Box<dyn Any>,
 ) -> ControlFlow<()> {
@@ -123,38 +122,16 @@ pub fn insert(
             ControlFlow::Break(())
         }
 
-        NodeMut::TimingTower(TimingTower { cells: folder, .. })
-        | NodeMut::TimingTowerRow(TimingTowerRow {
-            columns: folder, ..
-        })
-        | NodeMut::FreeCellFolder(folder) => {
-            let column_or_folder = Err(insert)
-                .or_else(|insert| {
-                    insert
-                        .downcast::<FreeCellFolder>()
-                        .map(|i| style::cell::FreeCellOrFolder::Folder(*i))
-                })
-                .or_else(|insert| {
-                    insert
-                        .downcast::<FreeCell>()
-                        .map(|i| style::cell::FreeCellOrFolder::Cell(*i))
-                })
-                .expect("No other types are allowed to be inserted");
-
-            match &position {
-                DropPosition::First => folder.content.insert(0, column_or_folder),
-                DropPosition::Last => folder.content.push(column_or_folder),
-                DropPosition::After(id) => {
-                    if let Some(index) = folder.content.iter().position(|c| c.id() == id) {
-                        folder.content.insert(index + 1, column_or_folder);
-                    }
-                }
-                DropPosition::Before(id) => {
-                    if let Some(index) = folder.content.iter().position(|c| c.id() == id) {
-                        folder.content.insert(index, column_or_folder);
-                    }
-                }
-            }
+        NodeMut::TimingTower(tower) => {
+            insert_into_free_cell_folder(&mut tower.cells, position, insert);
+            ControlFlow::Break(())
+        }
+        NodeMut::TimingTowerRow(tower_row) => {
+            insert_into_free_cell_folder(&mut tower_row.columns, position, insert);
+            ControlFlow::Break(())
+        }
+        NodeMut::FreeCellFolder(folder) => {
+            insert_into_free_cell_folder(folder, position, insert);
             ControlFlow::Break(())
         }
 
@@ -185,5 +162,39 @@ pub fn insert(
         NodeMut::Asset(_) => ControlFlow::Continue(()),
         NodeMut::FreeCell(_) => ControlFlow::Continue(()),
         NodeMut::Component(_) => ControlFlow::Continue(()),
+    }
+}
+
+fn insert_into_free_cell_folder(
+    folder: &mut FreeCellFolder,
+    position: DropPosition<Uuid>,
+    insert: Box<dyn Any>,
+) {
+    let column_or_folder = Err(insert)
+        .or_else(|insert| {
+            insert
+                .downcast::<FreeCellFolder>()
+                .map(|i| style::cell::FreeCellOrFolder::Folder(*i))
+        })
+        .or_else(|insert| {
+            insert
+                .downcast::<FreeCell>()
+                .map(|i| style::cell::FreeCellOrFolder::Cell(*i))
+        })
+        .expect("No other types are allowed to be inserted");
+
+    match &position {
+        DropPosition::First => folder.content.insert(0, column_or_folder),
+        DropPosition::Last => folder.content.push(column_or_folder),
+        DropPosition::After(id) => {
+            if let Some(index) = folder.content.iter().position(|c| c.id() == id) {
+                folder.content.insert(index + 1, column_or_folder);
+            }
+        }
+        DropPosition::Before(id) => {
+            if let Some(index) = folder.content.iter().position(|c| c.id() == id) {
+                folder.content.insert(index, column_or_folder);
+            }
+        }
     }
 }

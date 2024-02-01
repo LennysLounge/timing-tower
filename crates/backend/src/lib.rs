@@ -10,6 +10,7 @@ pub mod savefile;
 pub mod style;
 pub mod style_batcher;
 pub mod timing_tower;
+pub mod tree_iterator;
 pub mod value_store;
 pub mod value_types;
 

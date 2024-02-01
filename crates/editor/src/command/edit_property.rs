@@ -1,8 +1,8 @@
 use std::{any::Any, ops::BitOrAssign, time::Instant};
 
-use backend::style::{
-    iterator::{NodeIteratorMut, NodeMut},
-    StyleDefinition, StyleNode,
+use backend::{
+    style::{iterator::NodeMut, StyleDefinition, StyleNode},
+    tree_iterator::TreeIteratorMut,
 };
 use bevy_egui::egui::{self, Response};
 use uuid::Uuid;
@@ -31,19 +31,19 @@ impl EditProperty {
     pub fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
         style
             .as_node_mut()
-            .search_mut(&self.node_id, |node| {
+            .search_mut(self.node_id, |node| {
                 let old_value = match node {
-                    NodeMut::Style(o) => apply_edit(o, self.value),
-                    NodeMut::Variable(o) => apply_edit(o, self.value),
-                    NodeMut::VariableFolder(o) => apply_edit(o, self.value),
-                    NodeMut::Asset(o) => apply_edit(o, self.value),
-                    NodeMut::AssetFolder(o) => apply_edit(o, self.value),
-                    NodeMut::Scene(o) => apply_edit(o, self.value),
-                    NodeMut::TimingTower(o) => apply_edit(o, self.value),
-                    NodeMut::TimingTowerRow(o) => apply_edit(o, self.value),
-                    NodeMut::FreeCellFolder(o) => apply_edit(o, self.value),
-                    NodeMut::FreeCell(o) => apply_edit(o, self.value),
-                    NodeMut::Component(o) => apply_edit(o, self.value),
+                    NodeMut::Style(o) => apply_edit(*o, self.value),
+                    NodeMut::Variable(o) => apply_edit(*o, self.value),
+                    NodeMut::VariableFolder(o) => apply_edit(*o, self.value),
+                    NodeMut::Asset(o) => apply_edit(*o, self.value),
+                    NodeMut::AssetFolder(o) => apply_edit(*o, self.value),
+                    NodeMut::Scene(o) => apply_edit(*o, self.value),
+                    NodeMut::TimingTower(o) => apply_edit(*o, self.value),
+                    NodeMut::TimingTowerRow(o) => apply_edit(*o, self.value),
+                    NodeMut::FreeCellFolder(o) => apply_edit(*o, self.value),
+                    NodeMut::FreeCell(o) => apply_edit(*o, self.value),
+                    NodeMut::Component(o) => apply_edit(*o, self.value),
                 };
                 EditProperty {
                     timestamp: self.timestamp,

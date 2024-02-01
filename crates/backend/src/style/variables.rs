@@ -1,5 +1,3 @@
-use std::ops::ControlFlow;
-
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 use uuid::Uuid;
@@ -9,7 +7,7 @@ use crate::value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, V
 use self::{condition::Condition, fixed_value::FixedValue, map::Map};
 
 use super::{
-    iterator::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
+    iterator::{Node, NodeMut},
     StyleNode,
 };
 
@@ -63,22 +61,6 @@ impl StyleNode for VariableDefinition {
         NodeMut::Variable(self)
     }
 }
-impl NodeIterator for VariableDefinition {
-    fn walk<F, R>(&self, f: &mut F) -> ControlFlow<R>
-    where
-        F: FnMut(Node, Method) -> ControlFlow<R>,
-    {
-        f(self.as_node(), Method::Visit)
-    }
-}
-impl NodeIteratorMut for VariableDefinition {
-    fn walk_mut<F, R>(&mut self, f: &mut F) -> ControlFlow<R>
-    where
-        F: FnMut(NodeMut, Method) -> ControlFlow<R>,
-    {
-        f(self.as_node_mut(), Method::Visit)
-    }
-}
 
 pub struct StaticValueProducer<T>(pub T);
 impl<T> ValueProducer<T> for StaticValueProducer<T>
@@ -124,32 +106,6 @@ impl StyleNode for VariableFolder {
     }
     fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
         NodeMut::VariableFolder(self)
-    }
-}
-impl NodeIterator for VariableFolder {
-    fn walk<F, R>(&self, f: &mut F) -> ControlFlow<R>
-    where
-        F: FnMut(Node, Method) -> ControlFlow<R>,
-    {
-        f(self.as_node(), Method::Visit)?;
-        self.content.iter().try_for_each(|v| match v {
-            VariableOrFolder::Variable(o) => o.walk(f),
-            VariableOrFolder::Folder(o) => o.walk(f),
-        })?;
-        f(self.as_node(), Method::Leave)
-    }
-}
-impl NodeIteratorMut for VariableFolder {
-    fn walk_mut<F, R>(&mut self, f: &mut F) -> ControlFlow<R>
-    where
-        F: FnMut(NodeMut, Method) -> ControlFlow<R>,
-    {
-        f(self.as_node_mut(), Method::Visit)?;
-        self.content.iter_mut().try_for_each(|c| match c {
-            VariableOrFolder::Variable(o) => o.walk_mut(f),
-            VariableOrFolder::Folder(o) => o.walk_mut(f),
-        })?;
-        f(self.as_node_mut(), Method::Leave)
     }
 }
 

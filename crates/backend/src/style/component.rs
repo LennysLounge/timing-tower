@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use super::{
     cell::{ClipArea, FreeCell},
-    iterator::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
+    iterator::{Node, NodeMut},
     StyleNode,
 };
 
@@ -35,24 +35,6 @@ impl StyleNode for Component {
 
     fn as_node_mut<'a>(&'a mut self) -> super::iterator::NodeMut<'a> {
         NodeMut::Component(self)
-    }
-}
-impl NodeIterator for Component {
-    fn walk<F, R>(&self, f: &mut F) -> std::ops::ControlFlow<R>
-    where
-        F: FnMut(super::iterator::Node, super::iterator::Method) -> std::ops::ControlFlow<R>,
-    {
-        f(self.as_node(), Method::Visit)?;
-        f(self.as_node(), Method::Leave)
-    }
-}
-impl NodeIteratorMut for Component {
-    fn walk_mut<F, R>(&mut self, f: &mut F) -> std::ops::ControlFlow<R>
-    where
-        F: FnMut(super::iterator::NodeMut, Method) -> std::ops::ControlFlow<R>,
-    {
-        f(self.as_node_mut(), Method::Visit)?;
-        f(self.as_node_mut(), Method::Leave)
     }
 }
 

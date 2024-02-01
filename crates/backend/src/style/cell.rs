@@ -1,5 +1,3 @@
-use std::ops::ControlFlow;
-
 use bevy::prelude::Color;
 use common::communication::TextAlignment;
 use serde::{Deserialize, Serialize};
@@ -10,7 +8,7 @@ use crate::value_types::{
 };
 
 use super::{
-    iterator::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
+    iterator::{Node, NodeMut},
     StyleNode,
 };
 
@@ -84,7 +82,6 @@ pub struct CornerOffsets {
     pub bot_right: Vec2Property,
 }
 
-
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct ClipArea {
     pub pos: Vec3Property,
@@ -122,25 +119,6 @@ impl StyleNode for FreeCell {
         NodeMut::FreeCell(self)
     }
 }
-impl NodeIterator for FreeCell {
-    fn walk<F, R>(&self, f: &mut F) -> ControlFlow<R>
-    where
-        F: FnMut(Node, Method) -> ControlFlow<R>,
-    {
-        f(self.as_node(), Method::Visit)?;
-        f(self.as_node(), Method::Leave)
-    }
-}
-
-impl NodeIteratorMut for FreeCell {
-    fn walk_mut<F, R>(&mut self, f: &mut F) -> ControlFlow<R>
-    where
-        F: FnMut(NodeMut, Method) -> ControlFlow<R>,
-    {
-        f(self.as_node_mut(), Method::Visit)?;
-        f(self.as_node_mut(), Method::Leave)
-    }
-}
 
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct FreeCellFolder {
@@ -175,32 +153,6 @@ impl StyleNode for FreeCellFolder {
     }
     fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
         NodeMut::FreeCellFolder(self)
-    }
-}
-impl NodeIterator for FreeCellFolder {
-    fn walk<F, R>(&self, f: &mut F) -> ControlFlow<R>
-    where
-        F: FnMut(Node, Method) -> ControlFlow<R>,
-    {
-        f(self.as_node(), Method::Visit)?;
-        self.content.iter().try_for_each(|v| match v {
-            FreeCellOrFolder::Cell(o) => o.walk(f),
-            FreeCellOrFolder::Folder(o) => o.walk(f),
-        })?;
-        f(self.as_node(), Method::Leave)
-    }
-}
-impl NodeIteratorMut for FreeCellFolder {
-    fn walk_mut<F, R>(&mut self, f: &mut F) -> ControlFlow<R>
-    where
-        F: FnMut(NodeMut, Method) -> ControlFlow<R>,
-    {
-        f(self.as_node_mut(), Method::Visit)?;
-        self.content.iter_mut().try_for_each(|c| match c {
-            FreeCellOrFolder::Cell(o) => o.walk_mut(f),
-            FreeCellOrFolder::Folder(o) => o.walk_mut(f),
-        })?;
-        f(self.as_node_mut(), Method::Leave)
     }
 }
 

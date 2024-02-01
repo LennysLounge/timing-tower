@@ -1,12 +1,15 @@
 use std::ops::ControlFlow;
 
-use backend::style::{
-    assets::{AssetDefinition, AssetFolder},
-    cell::{FreeCell, FreeCellFolder},
-    component::Component,
-    iterator::{Method, Node, NodeIterator, NodeIteratorMut, NodeMut},
-    variables::{VariableDefinition, VariableFolder},
-    StyleNode,
+use backend::{
+    style::{
+        assets::{AssetDefinition, AssetFolder},
+        cell::{FreeCell, FreeCellFolder},
+        component::Component,
+        iterator::{Node, NodeMut},
+        variables::{VariableDefinition, VariableFolder},
+        StyleNode,
+    },
+    tree_iterator::{Method, TreeIterator, TreeIteratorMut},
 };
 use bevy_egui::egui::{self, ScrollArea, Ui};
 use egui_ltreeview::{
@@ -47,10 +50,10 @@ pub fn tree_view(
             } => {
                 let drop_allowed = base_node
                     .as_node()
-                    .search(source, |dragged| {
+                    .search(*source, |dragged| {
                         base_node
                             .as_node()
-                            .search(target, |dropped| drop_allowed(dropped, dragged))
+                            .search(*target, |dropped| drop_allowed(dropped, dragged))
                     })
                     .flatten()
                     .unwrap_or(false);
@@ -71,7 +74,7 @@ pub fn tree_view(
     changed
 }
 
-fn drop_allowed(target: Node, dragged: Node) -> bool {
+fn drop_allowed(target: &Node, dragged: &Node) -> bool {
     match (target, dragged) {
         (Node::VariableFolder(_), Node::VariableFolder(_)) => true,
         (Node::VariableFolder(_), Node::Variable(_)) => true,
@@ -106,7 +109,7 @@ fn show(
         });
 
     response.context_menu(ui, |ui, node_id| {
-        root.search_mut(&node_id, |node| {
+        root.search_mut(node_id, |node| {
             context_menu(ui, node, undo_redo_manager, &response);
         });
     });
@@ -114,7 +117,7 @@ fn show(
     response
 }
 fn show_node(
-    node: NodeMut,
+    node: &mut NodeMut,
     method: Method,
     builder: &mut TreeViewBuilder<Uuid>,
 ) -> ControlFlow<()> {
@@ -281,7 +284,7 @@ fn folder_closer(ui: &mut Ui, state: CloserState) {
 
 fn context_menu(
     ui: &mut Ui,
-    node: NodeMut,
+    node: &mut NodeMut,
     undo_redo_manager: &mut UndoRedoManager,
     tree_response: &TreeViewResponse<Uuid>,
 ) {

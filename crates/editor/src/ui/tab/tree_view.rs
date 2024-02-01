@@ -11,7 +11,7 @@ use backend::style::{
 use bevy_egui::egui::{self, ScrollArea, Ui};
 use egui_ltreeview::{
     builder::{CloserState, NodeBuilder},
-    DropPosition, TreeViewBuilder, TreeViewResponse,
+    Action, DropPosition, TreeViewBuilder, TreeViewResponse,
 };
 use uuid::Uuid;
 
@@ -32,32 +32,40 @@ pub fn tree_view(
         })
         .inner;
 
-    if response.selected_node.is_some() {
-        *selected_node = response.selected_node;
-    }
-
-    if let Some(drop_action) = &response.drag_drop_action {
-        let drop_allowed = base_node
-            .as_node()
-            .search(&drop_action.source, |dragged| {
-                base_node.as_node().search(&drop_action.target, |dropped| {
-                    drop_allowed(dropped, dragged)
-                })
-            })
-            .flatten()
-            .unwrap_or(false);
-
-        if !drop_allowed {
-            response.remove_drop_marker(ui);
-        }
-
-        if drop_action.commit && drop_allowed {
-            undo_redo_manager.queue(MoveNode {
-                id: drop_action.source,
-                target_id: drop_action.target,
-                position: drop_action.position,
-            });
-            changed = true;
+    for action in response.actions.iter() {
+        match action {
+            Action::SetSelected(id) => *selected_node = *id,
+            a @ Action::Move {
+                source,
+                target,
+                position,
+            }
+            | a @ Action::Drag {
+                source,
+                target,
+                position,
+            } => {
+                let drop_allowed = base_node
+                    .as_node()
+                    .search(source, |dragged| {
+                        base_node
+                            .as_node()
+                            .search(target, |dropped| drop_allowed(dropped, dragged))
+                    })
+                    .flatten()
+                    .unwrap_or(false);
+                if !drop_allowed {
+                    response.remove_drop_marker(ui);
+                }
+                if let Action::Move { .. } = a {
+                    undo_redo_manager.queue(MoveNode {
+                        id: *source,
+                        target_id: *target,
+                        position: *position,
+                    });
+                    changed = true;
+                }
+            }
         }
     }
     changed

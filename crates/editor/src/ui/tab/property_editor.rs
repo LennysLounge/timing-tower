@@ -21,9 +21,10 @@ use crate::{
     ui::combo_box::LComboBox,
 };
 
-use self::property::PropertyEditor;
+use self::{component::component_property_editor, property::PropertyEditor};
 
 mod cell;
+mod component;
 mod property;
 mod variable;
 
@@ -293,7 +294,10 @@ pub fn edit_node(
             });
         }
 
+        NodeMut::Component(component) => {
+            component_property_editor(ui, component, reference_store, undo_redo_manager);
+        }
+
         NodeMut::Style(_) => (),
-        NodeMut::Component(_) => (),
     }
 }

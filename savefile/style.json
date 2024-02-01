@@ -1043,6 +1043,12 @@
         ]
       }
     },
-    "components": []
+    "components": [
+      {
+        "id": "032f8808-fe8e-48de-9c5c-91f4504dfe21",
+        "name": "Timing Tower",
+        "elements": []
+      }
+    ]
   }
 }

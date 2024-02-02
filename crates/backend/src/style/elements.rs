@@ -7,6 +7,32 @@ use crate::tree_iterator::{Method, TreeItem, TreeIterator, TreeIteratorMut};
 
 use super::cell::{ClipArea, FreeCell};
 
+#[derive(Serialize, Deserialize, Clone, Default)]
+pub struct Elements {
+    pub elements: Vec<Element>,
+}
+
+impl TreeIterator for Elements {
+    type Item<'item> = Element;
+
+    fn walk<F, R>(&self, f: &mut F) -> ControlFlow<R>
+    where
+        F: FnMut(&Self::Item<'_>, Method) -> ControlFlow<R>,
+    {
+        self.elements.iter().try_for_each(|e| e.walk(f))
+    }
+}
+impl TreeIteratorMut for Elements {
+    type Item<'item> = Element;
+
+    fn walk_mut<F, R>(&mut self, f: &mut F) -> ControlFlow<R>
+    where
+        F: FnMut(&mut Self::Item<'_>, Method) -> ControlFlow<R>,
+    {
+        self.elements.iter_mut().try_for_each(|e| e.walk_mut(f))
+    }
+}
+
 /// A visual element that implements some functionality
 /// or graphic.
 #[derive(Serialize, Deserialize, Clone)]

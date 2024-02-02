@@ -1,21 +1,21 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::{elements::Element, Node, NodeMut, OwnedNode, StyleNode};
+use super::{elements::Elements, Node, NodeMut, OwnedNode, StyleNode};
 
 /// A visual graphic component in the scene.
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct Component {
     pub id: Uuid,
     pub name: String,
-    pub elements: Vec<Element>,
+    pub elements: Elements,
 }
 impl Component {
     pub fn new() -> Self {
         Self {
             id: Uuid::new_v4(),
             name: String::from("Component"),
-            elements: Vec::new(),
+            elements: Elements::default(),
         }
     }
 }

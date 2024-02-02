@@ -6,7 +6,7 @@ use backend::{
         component::Component,
         elements::{Element, FreeClipArea},
     },
-    tree_iterator::TreeItem,
+    tree_iterator::{Method, TreeItem, TreeIterator, TreeIteratorMut},
 };
 use bevy_egui::egui::{self, vec2, Id, Ui};
 use egui_ltreeview::{
@@ -50,12 +50,16 @@ pub fn component_property_editor(
         .width(ui.available_width())
         .show_ui(ui, |ui| {
             if ui.selectable_label(false, "Cell").clicked() {
-                component.elements.push(Element::Cell(FreeCell::new()));
+                component
+                    .elements
+                    .elements
+                    .push(Element::Cell(FreeCell::new()));
                 edit_result = EditResult::FromId(ui.id());
                 ui.close_menu();
             }
             if ui.selectable_label(false, "Clip Area").clicked() {
                 component
+                    .elements
                     .elements
                     .push(Element::ClipArea(FreeClipArea::new()));
                 edit_result = EditResult::FromId(ui.id());
@@ -77,7 +81,10 @@ fn show_element_tree(ui: &mut Ui, component: &mut Component) -> EditResult {
         .row_layout(RowLayout::AlignedIcons)
         .show(ui, |mut builder| {
             builder.set_root_id(component.id);
-            add_elements_to_tree(&mut builder, &mut component.elements);
+            component.elements.walk(&mut |element, method| {
+                element_tree_node(&mut builder, element, method);
+                ControlFlow::Continue::<()>(())
+            });
         });
 
     for action in res.actions.iter() {
@@ -87,12 +94,8 @@ fn show_element_tree(ui: &mut Ui, component: &mut Component) -> EditResult {
             position,
         } = action
         {
-            if let Some(element) = remove(&mut component.elements, *source) {
-                if *target == component.id {
-                    add_element_to_list(&mut component.elements, element, *position);
-                } else {
-                    add(&mut component.elements, element, *target, *position);
-                }
+            if let Some(element) = remove_element(component, *source) {
+                insert_element(component, *target, *position, element);
             }
         }
     }
@@ -109,7 +112,7 @@ fn show_element_tree(ui: &mut Ui, component: &mut Component) -> EditResult {
     }
     let mut commands = Vec::new();
     res.context_menu(ui, |ui, node_id| {
-        if let Some(element) = find_element(&component.elements, &node_id) {
+        component.elements.search_mut(node_id, |element| {
             if ui.button("delete").clicked() {
                 commands.push(Command::Remove { id: node_id });
                 ui.close_menu();
@@ -137,7 +140,7 @@ fn show_element_tree(ui: &mut Ui, component: &mut Component) -> EditResult {
                 });
                 ui.close_menu();
             }
-        }
+        });
     });
 
     let mut edit_result = EditResult::None;
@@ -148,15 +151,11 @@ fn show_element_tree(ui: &mut Ui, component: &mut Component) -> EditResult {
                 target,
                 position,
             } => {
-                if target == component.id {
-                    add_element_to_list(&mut component.elements, element, position);
-                } else {
-                    add(&mut component.elements, element, target, position);
-                }
+                insert_element(component, target, position, element);
                 edit_result = EditResult::FromId(Id::new("Component element Tree view edit"));
             }
             Command::Remove { id } => {
-                remove(&mut component.elements, id);
+                remove_element(component, id);
                 edit_result = EditResult::FromId(Id::new("Component element Tree view edit"));
             }
         }
@@ -165,121 +164,99 @@ fn show_element_tree(ui: &mut Ui, component: &mut Component) -> EditResult {
     edit_result
 }
 
-fn add_elements_to_tree(builder: &mut TreeViewBuilder<Uuid>, elements: &Vec<Element>) {
-    for element in elements.iter() {
-        match element {
-            Element::Cell(cell) => {
-                builder.node(
-                    NodeBuilder::leaf(cell.id).icon(|ui| {
-                        egui::Image::new(egui::include_image!("../../../../images/article.png"))
-                            .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
-                            .paint_at(ui, ui.max_rect());
-                    }),
-                    |ui| _ = ui.label(&cell.name),
-                );
-            }
+fn element_tree_node(builder: &mut TreeViewBuilder<Uuid>, element: &Element, method: Method) {
+    match (method, element) {
+        (Method::Visit, Element::Cell(cell)) => {
+            builder.node(
+                NodeBuilder::leaf(cell.id).icon(|ui| {
+                    egui::Image::new(egui::include_image!("../../../../images/article.png"))
+                        .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
+                        .paint_at(ui, ui.max_rect());
+                }),
+                |ui| _ = ui.label(&cell.name),
+            );
+        }
+        (Method::Leave, Element::Cell(_)) => (),
+        (Method::Visit, Element::ClipArea(clip_area)) => {
+            builder.node(
+                NodeBuilder::dir(clip_area.id).icon(|ui| {
+                    egui::Image::new(egui::include_image!("../../../../images/array.png"))
+                        .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
+                        .paint_at(ui, ui.max_rect());
+                }), // .closer(folder_closer)
+                |ui| _ = ui.label("Clip Area"),
+            );
+        }
+        (Method::Leave, Element::ClipArea(_)) => {
+            builder.close_dir();
+        }
+    }
+}
+
+fn remove_element(component: &mut Component, id: Uuid) -> Option<Element> {
+    if let Some(index) = component
+        .elements
+        .elements
+        .iter()
+        .position(|e| e.id() == id)
+    {
+        return Some(component.elements.elements.remove(index));
+    }
+    let r = component.elements.walk_mut(&mut |e, method| {
+        if method != Method::Visit {
+            return ControlFlow::Continue(());
+        }
+        match e {
+            Element::Cell(_) => ControlFlow::Continue(()),
             Element::ClipArea(clip_area) => {
-                builder.node(
-                    NodeBuilder::dir(clip_area.id).icon(|ui| {
-                        egui::Image::new(egui::include_image!("../../../../images/array.png"))
-                            .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
-                            .paint_at(ui, ui.max_rect());
-                    }), // .closer(folder_closer)
-                    |ui| _ = ui.label("Clip Area"),
-                );
-                add_elements_to_tree(builder, &clip_area.elements);
-                builder.close_dir();
+                if let Some(index) = clip_area.elements.iter().position(|e| e.id() == id) {
+                    ControlFlow::Break(Some(clip_area.elements.remove(index)))
+                } else {
+                    ControlFlow::Continue(())
+                }
             }
         }
+    });
+    match r {
+        ControlFlow::Continue(_) => None,
+        ControlFlow::Break(x) => x,
     }
 }
 
-// fn folder_closer(ui: &mut Ui, state: CloserState) {
-//     let color = if state.is_hovered {
-//         ui.visuals().widgets.hovered.fg_stroke.color
-//     } else {
-//         ui.visuals().widgets.noninteractive.fg_stroke.color
-//     };
-//     if state.is_open {
-//         egui::Image::new(egui::include_image!("../../../../images/folder_open.png"))
-//             .tint(color)
-//             .paint_at(ui, ui.max_rect());
-//     } else {
-//         egui::Image::new(egui::include_image!("../../../../images/folder.png"))
-//             .tint(color)
-//             .paint_at(ui, ui.max_rect());
-//     }
-// }
-
-fn find_element<'a>(elements: &'a [Element], id: &Uuid) -> Option<&'a Element> {
-    for element in elements.iter() {
-        if element.id() == *id {
-            return Some(element);
-        }
-        let x = match element {
-            Element::ClipArea(clip_area) => find_element(&clip_area.elements, id),
-            Element::Cell(_) => None,
-        };
-        if x.is_some() {
-            return x;
-        }
-    }
-    None
-}
-
-fn remove(elements: &mut Vec<Element>, id: Uuid) -> Option<Element> {
-    if let Some(index) = elements.iter().position(|e| e.id() == id) {
-        return Some(elements.remove(index));
-    }
-    for element in elements.iter_mut() {
-        let x = match element {
-            Element::Cell(_) => None,
-            Element::ClipArea(clip_area) => remove(&mut clip_area.elements, id),
-        };
-        if x.is_some() {
-            return x;
-        }
-    }
-    return None;
-}
-
-fn add(
-    elements: &mut Vec<Element>,
-    mut element_to_add: Element,
+fn insert_element(
+    component: &mut Component,
     target: Uuid,
     position: DropPosition<Uuid>,
-) -> ControlFlow<(), Element> {
-    for element in elements.iter_mut() {
-        match element {
+    element: Element,
+) {
+    if target == component.id {
+        insert_into_vec(&mut component.elements.elements, position, element);
+    } else {
+        component.elements.search_mut(target, |e| match e {
             Element::Cell(_) => (),
             Element::ClipArea(clip_area) => {
-                if target == clip_area.id {
-                    add_element_to_list(&mut clip_area.elements, element_to_add, position);
-                    return ControlFlow::Break(());
-                }
-                element_to_add = add(&mut clip_area.elements, element_to_add, target, position)?;
+                insert_into_vec(&mut clip_area.elements, position, element);
             }
-        }
+        });
     }
-    ControlFlow::Continue(element_to_add)
 }
 
-fn add_element_to_list(
-    elements: &mut Vec<Element>,
-    element: Element,
-    position: DropPosition<Uuid>,
-) {
+fn insert_into_vec(vec: &mut Vec<Element>, position: DropPosition<Uuid>, element: Element) {
     match position {
-        DropPosition::First => elements.insert(0, element),
-        DropPosition::Last => elements.push(element),
-        DropPosition::After(ref id) => {
-            if let Some(index) = elements.iter().position(|e| e.id() == *id) {
-                elements.insert(index + 1, element);
+        DropPosition::First => vec.insert(0, element),
+        DropPosition::Last => vec.push(element),
+        DropPosition::After(id) => {
+            if let Some(index) = vec.iter().position(|e| e.id() == id) {
+                vec.insert(index + 1, element);
+            } else {
+                vec.push(element);
             }
         }
-        DropPosition::Before(ref id) => {
-            if let Some(index) = elements.iter().position(|e| e.id() == *id) {
-                elements.insert(index, element);
+        DropPosition::Before(id) => {
+            if let Some(index) = vec.iter().position(|e| e.id() == id) {
+                vec.insert(index, element);
+            } else {
+                vec.push(element);
             }
         }
     }

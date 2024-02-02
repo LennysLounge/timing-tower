@@ -24,6 +24,7 @@ use crate::command::{
 pub fn tree_view(
     ui: &mut Ui,
     selected_node: &mut Option<Uuid>,
+    secondary_selection: &mut Option<Uuid>,
     base_node: &mut impl StyleNode,
     undo_redo_manager: &mut UndoRedoManager,
 ) -> bool {
@@ -36,7 +37,10 @@ pub fn tree_view(
 
     for action in response.actions.iter() {
         match action {
-            Action::SetSelected(id) => *selected_node = *id,
+            Action::SetSelected(id) => {
+                *selected_node = *id;
+                *secondary_selection = None;
+            }
             a @ Action::Move {
                 source,
                 target,

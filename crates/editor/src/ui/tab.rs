@@ -1,3 +1,4 @@
+mod element_editor;
 mod property_editor;
 mod tree_view;
 mod undo_redo;
@@ -23,6 +24,7 @@ pub enum Tab {
 pub struct EditorTabViewer<'a> {
     pub viewport: &'a mut Rect,
     pub selected_node: &'a mut Option<Uuid>,
+    pub secondary_selection: &'a mut Option<Uuid>,
     pub style: &'a mut StyleDefinition,
     pub reference_store: &'a ReferenceStore,
     pub undo_redo_manager: &'a mut UndoRedoManager,
@@ -52,6 +54,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 tree_view::tree_view(
                     ui,
                     self.selected_node,
+                    self.secondary_selection,
                     &mut self.style.scene,
                     self.undo_redo_manager,
                 );
@@ -67,12 +70,21 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 );
             }
             Tab::ElementEditor => {
-                ui.label("Element editor");
+                element_editor::element_editor(
+                    ui,
+                    self.selected_node,
+                    self.secondary_selection,
+                    self.style,
+                    self.reference_store,
+                    self.undo_redo_manager,
+                    self.game_adapter,
+                );
             }
             Tab::Variables => {
                 tree_view::tree_view(
                     ui,
                     self.selected_node,
+                    self.secondary_selection,
                     &mut self.style.vars,
                     self.undo_redo_manager,
                 );
@@ -81,6 +93,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 tree_view::tree_view(
                     ui,
                     self.selected_node,
+                    self.secondary_selection,
                     &mut self.style.assets,
                     self.undo_redo_manager,
                 );

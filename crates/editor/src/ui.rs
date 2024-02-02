@@ -60,6 +60,7 @@ fn setup_egui_context(mut ctx: EguiContexts) {
 struct EditorState {
     dock_state: DockState<Tab>,
     selected_node: Option<Uuid>,
+    secondary_selection: Option<Uuid>,
     style: StyleDefinition,
 }
 impl EditorState {
@@ -78,6 +79,7 @@ impl EditorState {
 
         Self {
             selected_node: None,
+            secondary_selection: None,
             dock_state: state,
             style: StyleDefinition::default(),
         }
@@ -132,6 +134,7 @@ fn ui(
     let EditorState {
         dock_state,
         selected_node,
+        secondary_selection,
         style,
     } = &mut *state;
     let viewport = &mut editor_camera.single_mut().0.raw_viewport;
@@ -142,6 +145,7 @@ fn ui(
             &mut tab::EditorTabViewer {
                 viewport,
                 selected_node,
+                secondary_selection,
                 style: style,
                 reference_store: &reference_store,
                 undo_redo_manager: undo_redo_manager.as_mut(),

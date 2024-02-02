@@ -93,6 +93,7 @@ impl TreeIteratorMut for Element {
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct FreeClipArea {
     pub id: Uuid,
+    pub name: String,
     pub clip_area: ClipArea,
     pub elements: Vec<Element>,
 }
@@ -100,6 +101,7 @@ impl FreeClipArea {
     pub fn new() -> Self {
         Self {
             id: Uuid::new_v4(),
+            name: String::from("Clip area"),
             clip_area: ClipArea::default(),
             elements: Vec::new(),
         }

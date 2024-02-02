@@ -60,6 +60,14 @@ fn editor(ui: &mut Ui, element: &mut Element, reference_store: &ReferenceStore) 
             edit_result |= cell::cell_property_editor(ui, &mut cell.cell, reference_store).into();
             edit_result
         }
-        Element::ClipArea(_) => EditResult::None,
+        Element::ClipArea(clip_area) => {
+            let mut edit_result = EditResult::None;
+
+            ui.label("Name:");
+            edit_result |= ui.text_edit_singleline(&mut clip_area.name).into();
+            ui.separator();
+            edit_result |= cell::clip_area_editor(ui, &mut clip_area.clip_area, reference_store);
+            edit_result
+        }
     }
 }

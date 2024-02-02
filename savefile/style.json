@@ -1120,6 +1120,7 @@
             {
               "ClipArea": {
                 "id": "e1f8321a-dba9-49e8-845d-aac53e0b5516",
+                "name": "Clip area",
                 "clip_area": {
                   "pos": {
                     "x": 0.0,

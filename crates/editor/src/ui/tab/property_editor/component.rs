@@ -8,7 +8,7 @@ use backend::{
     },
     tree_iterator::{Method, TreeItem, TreeIterator, TreeIteratorMut},
 };
-use bevy_egui::egui::{self, vec2, Id, Ui};
+use bevy_egui::egui::{self, vec2, Color32, Id, Ui};
 use egui_ltreeview::{
     builder::NodeBuilder, Action, DropPosition, RowLayout, TreeView, TreeViewBuilder,
 };
@@ -183,7 +183,12 @@ fn element_tree_node(builder: &mut TreeViewBuilder<Uuid>, element: &Element, met
                         .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
                         .paint_at(ui, ui.max_rect());
                 }),
-                |ui| _ = ui.label(&cell.name),
+                |ui| {
+                    ui.horizontal(|ui| {
+                        ui.colored_label(Color32::from_gray(120), "Cell");
+                        ui.label(&cell.name);
+                    });
+                },
             );
         }
         (Method::Leave, Element::Cell(_)) => (),
@@ -194,7 +199,13 @@ fn element_tree_node(builder: &mut TreeViewBuilder<Uuid>, element: &Element, met
                         .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
                         .paint_at(ui, ui.max_rect());
                 }), // .closer(folder_closer)
-                |ui| _ = ui.label("Clip Area"),
+                |ui| {
+                    ui.horizontal(|ui| {
+                        ui.colored_label(Color32::from_gray(120), "Clip area");
+                        ui.label(&clip_area.name);
+
+                    });
+                },
             );
         }
         (Method::Leave, Element::ClipArea(_)) => {

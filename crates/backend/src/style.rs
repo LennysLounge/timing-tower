@@ -17,6 +17,7 @@ use self::{
 pub mod assets;
 pub mod cell;
 pub mod component;
+pub mod elements;
 pub mod scene;
 pub mod timing_tower;
 pub mod variables;

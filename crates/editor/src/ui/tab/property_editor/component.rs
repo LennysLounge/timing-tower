@@ -1,8 +1,12 @@
 use std::ops::ControlFlow;
 
-use backend::style::{
-    cell::FreeCell,
-    component::{Component, Element, FreeClipArea},
+use backend::{
+    style::{
+        cell::FreeCell,
+        component::Component,
+        elements::{Element, FreeClipArea},
+    },
+    tree_iterator::TreeItem,
 };
 use bevy_egui::egui::{self, vec2, Id, Ui};
 use egui_ltreeview::{
@@ -116,7 +120,6 @@ fn show_element_tree(ui: &mut Ui, component: &mut Component) -> EditResult {
                     DropPosition::After(node_id),
                 ),
                 Element::ClipArea(_) => (node_id, DropPosition::Last),
-                Element::DriverTable => todo!(),
             };
             if ui.button("add cell").clicked() {
                 commands.push(Command::Add {
@@ -187,7 +190,6 @@ fn add_elements_to_tree(builder: &mut TreeViewBuilder<Uuid>, elements: &Vec<Elem
                 add_elements_to_tree(builder, &clip_area.elements);
                 builder.close_dir();
             }
-            Element::DriverTable => todo!(),
         }
     }
 }
@@ -211,12 +213,11 @@ fn add_elements_to_tree(builder: &mut TreeViewBuilder<Uuid>, elements: &Vec<Elem
 
 fn find_element<'a>(elements: &'a [Element], id: &Uuid) -> Option<&'a Element> {
     for element in elements.iter() {
-        if element.id() == id {
+        if element.id() == *id {
             return Some(element);
         }
         let x = match element {
             Element::ClipArea(clip_area) => find_element(&clip_area.elements, id),
-            Element::DriverTable => todo!(),
             Element::Cell(_) => None,
         };
         if x.is_some() {
@@ -227,14 +228,13 @@ fn find_element<'a>(elements: &'a [Element], id: &Uuid) -> Option<&'a Element> {
 }
 
 fn remove(elements: &mut Vec<Element>, id: Uuid) -> Option<Element> {
-    if let Some(index) = elements.iter().position(|e| *e.id() == id) {
+    if let Some(index) = elements.iter().position(|e| e.id() == id) {
         return Some(elements.remove(index));
     }
     for element in elements.iter_mut() {
         let x = match element {
             Element::Cell(_) => None,
             Element::ClipArea(clip_area) => remove(&mut clip_area.elements, id),
-            Element::DriverTable => todo!(),
         };
         if x.is_some() {
             return x;
@@ -259,7 +259,6 @@ fn add(
                 }
                 element_to_add = add(&mut clip_area.elements, element_to_add, target, position)?;
             }
-            Element::DriverTable => todo!(),
         }
     }
     ControlFlow::Continue(element_to_add)
@@ -274,12 +273,12 @@ fn add_element_to_list(
         DropPosition::First => elements.insert(0, element),
         DropPosition::Last => elements.push(element),
         DropPosition::After(ref id) => {
-            if let Some(index) = elements.iter().position(|e| e.id() == id) {
+            if let Some(index) = elements.iter().position(|e| e.id() == *id) {
                 elements.insert(index + 1, element);
             }
         }
         DropPosition::Before(ref id) => {
-            if let Some(index) = elements.iter().position(|e| e.id() == id) {
+            if let Some(index) = elements.iter().position(|e| e.id() == *id) {
                 elements.insert(index, element);
             }
         }

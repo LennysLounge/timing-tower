@@ -63,6 +63,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 property_editor::property_editor(
                     ui,
                     self.selected_node,
+                    self.secondary_selection,
                     self.style,
                     self.reference_store,
                     self.undo_redo_manager,

@@ -23,7 +23,7 @@ use crate::{
 
 use self::{component::component_property_editor, property::PropertyEditor};
 
-mod cell;
+pub mod cell;
 mod component;
 mod property;
 mod variable;
@@ -31,6 +31,7 @@ mod variable;
 pub fn property_editor(
     ui: &mut Ui,
     selected_id: &mut Option<Uuid>,
+    secondary_selection: &mut Option<Uuid>,
     style: &mut StyleDefinition,
     reference_store: &ReferenceStore,
     undo_redo_manager: &mut UndoRedoManager,
@@ -44,7 +45,14 @@ pub fn property_editor(
         .auto_shrink([false, false])
         .show(ui, |ui| {
             style.as_node_mut().search_mut(*selected_id, |node| {
-                edit_node(ui, node, reference_store, game_adapter, undo_redo_manager);
+                edit_node(
+                    ui,
+                    node,
+                    reference_store,
+                    game_adapter,
+                    undo_redo_manager,
+                    secondary_selection,
+                );
             });
         });
 }
@@ -55,6 +63,7 @@ pub fn edit_node(
     reference_store: &ReferenceStore,
     game_adapter: &Adapter,
     undo_redo_manager: &mut UndoRedoManager,
+    secondary_selection: &mut Option<Uuid>,
 ) {
     match node {
         NodeMut::TimingTower(tower) => {
@@ -295,7 +304,13 @@ pub fn edit_node(
         }
 
         NodeMut::Component(component) => {
-            component_property_editor(ui, component, reference_store, undo_redo_manager);
+            component_property_editor(
+                ui,
+                component,
+                secondary_selection,
+                reference_store,
+                undo_redo_manager,
+            );
         }
 
         NodeMut::Style(_) => (),

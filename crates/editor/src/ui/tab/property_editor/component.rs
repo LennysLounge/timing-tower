@@ -25,6 +25,7 @@ use crate::{
 pub fn component_property_editor(
     ui: &mut Ui,
     component: &mut Component,
+    secondary_selection: &mut Option<Uuid>,
     _reference_store: &ReferenceStore,
     undo_redo_manager: &mut UndoRedoManager,
 ) {
@@ -37,7 +38,7 @@ pub fn component_property_editor(
 
     ui.label("Elements:");
     ui.group(|ui| {
-        edit_result |= show_element_tree(ui, component);
+        edit_result |= show_element_tree(ui, secondary_selection, component);
 
         ui.allocate_space(vec2(
             ui.available_width(),
@@ -76,7 +77,11 @@ pub fn component_property_editor(
     }
 }
 
-fn show_element_tree(ui: &mut Ui, component: &mut Component) -> EditResult {
+fn show_element_tree(
+    ui: &mut Ui,
+    secondary_selection: &mut Option<Uuid>,
+    component: &mut Component,
+) -> EditResult {
     let res = TreeView::new(ui.make_persistent_id("Component element tree"))
         .row_layout(RowLayout::AlignedIcons)
         .show(ui, |mut builder| {
@@ -88,15 +93,20 @@ fn show_element_tree(ui: &mut Ui, component: &mut Component) -> EditResult {
         });
 
     for action in res.actions.iter() {
-        if let Action::Move {
-            source,
-            target,
-            position,
-        } = action
-        {
-            if let Some(element) = remove_element(component, *source) {
-                insert_element(component, *target, *position, element);
+        match action {
+            Action::SetSelected(id) => {
+                *secondary_selection = *id;
             }
+            Action::Move {
+                source,
+                target,
+                position,
+            } => {
+                if let Some(element) = remove_element(component, *source) {
+                    insert_element(component, *target, *position, element);
+                }
+            }
+            Action::Drag { .. } => (),
         }
     }
 

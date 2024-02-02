@@ -1052,7 +1052,7 @@
             {
               "Cell": {
                 "id": "91a1e256-8d9d-4798-b090-8ad4a08dc4ef",
-                "name": "Cell",
+                "name": "Heading",
                 "cell": {
                   "text": "Column",
                   "text_color": {
@@ -1067,7 +1067,7 @@
                   "font": "Default",
                   "color": {
                     "Rgba": {
-                      "red": 0.5,
+                      "red": 0.49999976,
                       "green": 0.0,
                       "blue": 0.5,
                       "alpha": 1.0
@@ -1143,7 +1143,7 @@
                   {
                     "Cell": {
                       "id": "e2dcb2ca-185a-4766-b5d2-bd394b851c99",
-                      "name": "Cell",
+                      "name": "First",
                       "cell": {
                         "text": "Column",
                         "text_color": {
@@ -1158,7 +1158,7 @@
                         "font": "Default",
                         "color": {
                           "Rgba": {
-                            "red": 0.5,
+                            "red": 0.49999976,
                             "green": 0.0,
                             "blue": 0.5,
                             "alpha": 1.0
@@ -1211,7 +1211,7 @@
                   {
                     "Cell": {
                       "id": "77fd9838-8ce5-4cb5-8c67-6a880d3d1576",
-                      "name": "Cell",
+                      "name": "Second",
                       "cell": {
                         "text": "Column",
                         "text_color": {
@@ -1226,7 +1226,7 @@
                         "font": "Default",
                         "color": {
                           "Rgba": {
-                            "red": 0.5,
+                            "red": 0.49999976,
                             "green": 0.0,
                             "blue": 0.5,
                             "alpha": 1.0

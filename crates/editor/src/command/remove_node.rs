@@ -4,7 +4,7 @@ use egui_ltreeview::DropPosition;
 use uuid::Uuid;
 
 use backend::{
-    style::{cell::FreeCellFolder, definitions::*, NodeMut, OwnedNode, StyleNode},
+    style::{cell::FreeCellFolder, NodeMut, OwnedNode, StyleDefinition, StyleNode},
     tree_iterator::{Method, TreeItem, TreeIteratorMut},
 };
 

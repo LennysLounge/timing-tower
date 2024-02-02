@@ -7,9 +7,8 @@ use backend::{
     style::{
         self,
         cell::{FreeCellFolder, FreeCellOrFolder},
-        definitions::*,
         variables::VariableOrFolder,
-        NodeMut, OwnedNode, StyleNode,
+        NodeMut, OwnedNode, StyleDefinition, StyleNode,
     },
     tree_iterator::{TreeItem, TreeIteratorMut},
 };

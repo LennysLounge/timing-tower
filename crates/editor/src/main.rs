@@ -118,12 +118,7 @@ fn setup(
             texture: Some(asset_server.load("../../../savefile/acc6.PNG")),
             pos: Vec3::new(0.0, 0.0, -100.0),
             size: Vec2::new(1920.0, 1080.0),
-            corner_offsets: [
-                Vec2::ZERO,
-                Vec2::ZERO,
-                Vec2::ZERO,
-                Vec2::ZERO,
-            ],
+            corner_offsets: [Vec2::ZERO, Vec2::ZERO, Vec2::ZERO, Vec2::ZERO],
             visible: true,
             rounding: [0.0, 0.0, 0.0, 0.0],
             render_layer: 0,

@@ -7,11 +7,12 @@ use uuid::Uuid;
 use crate::tree_iterator::{Method, TreeItem, TreeIterator, TreeIteratorMut};
 
 use self::{
-    assets::AssetOrFolder,
-    cell::{FreeCellFolder, FreeCellOrFolder},
-    definitions::*,
+    assets::{AssetDefinition, AssetFolder, AssetOrFolder},
+    cell::{FreeCell, FreeCellFolder, FreeCellOrFolder},
+    component::Component,
     scene::SceneDefinition,
-    variables::VariableOrFolder,
+    timing_tower::{TimingTower, TimingTowerRow},
+    variables::{VariableDefinition, VariableFolder, VariableOrFolder},
 };
 
 pub mod assets;
@@ -21,18 +22,6 @@ pub mod elements;
 pub mod scene;
 pub mod timing_tower;
 pub mod variables;
-
-pub mod definitions {
-    pub use self::super::{
-        assets::{AssetDefinition, AssetFolder},
-        cell::{Cell, ClipArea, CornerOffsets, FreeCell, Rounding},
-        component::Component,
-        scene::SceneDefinition,
-        timing_tower::{TimingTower, TimingTowerRow},
-        variables::{VariableDefinition, VariableFolder},
-        StyleDefinition,
-    };
-}
 
 /// Base trait for all elements in the style definition.
 pub trait StyleNode: Sync + Send + DynClone {
@@ -191,6 +180,7 @@ impl TreeIterator for Node<'_> {
 }
 
 pub enum NodeMut<'a> {
+    Component(&'a mut Component),
     Style(&'a mut StyleDefinition),
     Variable(&'a mut VariableDefinition),
     VariableFolder(&'a mut VariableFolder),
@@ -201,7 +191,6 @@ pub enum NodeMut<'a> {
     TimingTowerRow(&'a mut TimingTowerRow),
     FreeCellFolder(&'a mut FreeCellFolder),
     FreeCell(&'a mut FreeCell),
-    Component(&'a mut Component),
 }
 
 impl TreeItem for NodeMut<'_> {

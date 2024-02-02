@@ -2,7 +2,7 @@ use std::net::{TcpListener, TcpStream};
 
 use backend::{
     savefile::{Savefile, SavefileChanged},
-    style::definitions::AssetDefinition,
+    style::assets::AssetDefinition,
 };
 use bevy::{
     app::{First, Plugin, Update},

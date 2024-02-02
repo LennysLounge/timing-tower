@@ -11,9 +11,9 @@ use tracing::info;
 use uuid::Uuid;
 
 use backend::{
-    game_sources::{self},
+    game_sources,
     savefile::{Savefile, SavefileChanged},
-    style::{definitions::AssetFolder, variables::VariableFolder},
+    style::{assets::AssetFolder, variables::VariableFolder},
     value_types::{UntypedValueRef, ValueRef, ValueType, ValueTypeOf},
 };
 
@@ -310,7 +310,7 @@ fn savefile_changed(
 
 mod style {
     use backend::style::{
-        definitions::AssetDefinition,
+        assets::AssetDefinition,
         variables::{VariableBehavior, VariableDefinition},
     };
 

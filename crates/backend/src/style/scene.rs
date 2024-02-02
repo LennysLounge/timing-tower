@@ -2,7 +2,7 @@ use bevy::math::Vec2;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::{component::Component, definitions::TimingTower, Node, NodeMut, OwnedNode, StyleNode};
+use super::{component::Component, timing_tower::TimingTower, Node, NodeMut, OwnedNode, StyleNode};
 
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct SceneDefinition {

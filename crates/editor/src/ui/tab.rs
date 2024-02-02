@@ -55,7 +55,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     ui,
                     self.selected_node,
                     self.secondary_selection,
-                    &mut self.style.scene,
+                    self.style,
                     self.undo_redo_manager,
                 );
             }
@@ -82,22 +82,22 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 );
             }
             Tab::Variables => {
-                tree_view::tree_view(
-                    ui,
-                    self.selected_node,
-                    self.secondary_selection,
-                    &mut self.style.vars,
-                    self.undo_redo_manager,
-                );
+                // tree_view::tree_view(
+                //     ui,
+                //     self.selected_node,
+                //     self.secondary_selection,
+                //     &mut self.style.vars,
+                //     self.undo_redo_manager,
+                // );
             }
             Tab::Assets => {
-                tree_view::tree_view(
-                    ui,
-                    self.selected_node,
-                    self.secondary_selection,
-                    &mut self.style.assets,
-                    self.undo_redo_manager,
-                );
+                // tree_view::tree_view(
+                //     ui,
+                //     self.selected_node,
+                //     self.secondary_selection,
+                //     &mut self.style.assets,
+                //     self.undo_redo_manager,
+                // );
             }
             Tab::UndoRedo => {
                 undo_redo::undo_redo(ui, &mut self.undo_redo_manager);

@@ -85,7 +85,6 @@ fn show_element_tree(
     let res = TreeView::new(ui.make_persistent_id("Component element tree"))
         .row_layout(RowLayout::AlignedIcons)
         .show(ui, |mut builder| {
-            builder.set_root_id(component.id);
             component.items.walk(&mut |element, method| {
                 element_tree_node(&mut builder, element, method);
                 ControlFlow::Continue::<()>(())

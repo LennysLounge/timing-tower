@@ -1958,7 +1958,7 @@ dependencies = [
 [[package]]
 name = "egui_ltreeview"
 version = "0.1.0"
-source = "git+https://github.com/LennysLounge/egui_ltreeview.git#b9e6206501b0291b7554357abecedcd35181d77d"
+source = "git+https://github.com/LennysLounge/egui_ltreeview.git#40bb5d003101b0b17a57b5182fa8e13cc0389470"
 dependencies = [
  "egui",
  "uuid",

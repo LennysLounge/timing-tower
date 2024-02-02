@@ -6,7 +6,7 @@ use backend::{
         cell::{FreeCell, FreeCellFolder},
         graphic::Graphic,
         variables::{VariableDefinition, VariableFolder},
-        StyleItemRef, StyleItemMut, StyleItem,
+        StyleDefinition, StyleItem, StyleItemMut, StyleItemRef,
     },
     tree_iterator::{Method, TreeIterator, TreeIteratorMut},
 };
@@ -25,14 +25,12 @@ pub fn tree_view(
     ui: &mut Ui,
     selected_node: &mut Option<Uuid>,
     secondary_selection: &mut Option<Uuid>,
-    base_node: &mut impl StyleItem,
+    base_node: &mut StyleDefinition,
     undo_redo_manager: &mut UndoRedoManager,
 ) -> bool {
     let mut changed = false;
     let response = ScrollArea::vertical()
-        .show(ui, |ui| {
-            show(ui, base_node.as_mut(), undo_redo_manager)
-        })
+        .show(ui, |ui| show(ui, base_node.as_mut(), undo_redo_manager))
         .inner;
 
     for action in response.actions.iter() {
@@ -208,9 +206,14 @@ fn show_node(
         }
 
         (Method::Visit, StyleItemMut::AssetFolder(folder)) => {
-            builder.node(NodeBuilder::dir(folder.id).closer(folder_closer), |ui| {
-                ui.label(&folder.name);
-            });
+            builder.node(
+                NodeBuilder::dir(folder.id)
+                    .closer(folder_closer)
+                    .default_open(false),
+                |ui| {
+                    ui.label(&folder.name);
+                },
+            );
             ControlFlow::Continue(())
         }
 
@@ -234,9 +237,14 @@ fn show_node(
         }
 
         (Method::Visit, StyleItemMut::VariableFolder(folder)) => {
-            builder.node(NodeBuilder::dir(folder.id).closer(folder_closer), |ui| {
-                ui.label(&folder.name);
-            });
+            builder.node(
+                NodeBuilder::dir(folder.id)
+                    .closer(folder_closer)
+                    .default_open(false),
+                |ui| {
+                    ui.label(&folder.name);
+                },
+            );
             ControlFlow::Continue(())
         }
 

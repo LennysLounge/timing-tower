@@ -16,7 +16,7 @@ impl MoveNode {
     pub fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
         remove_node(&self.id, &mut style.as_node_mut()).map(|removed_node| {
             style.as_node_mut().search_mut(self.target_id, |node| {
-                insert(node, self.position, removed_node.node.to_any());
+                insert(node, self.position, removed_node.node);
             });
             MoveNode {
                 id: self.id,

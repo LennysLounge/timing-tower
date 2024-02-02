@@ -5,8 +5,7 @@ use crate::value_types::Vec2Property;
 
 use super::{
     cell::{ClipArea, FreeCell, FreeCellFolder},
-    iterator::{Node, NodeMut},
-    StyleNode,
+    Node, NodeMut, OwnedNode, StyleNode,
 };
 
 #[derive(Serialize, Deserialize, Clone, Default)]
@@ -26,6 +25,9 @@ impl StyleNode for TimingTower {
     }
     fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
         NodeMut::TimingTower(self)
+    }
+    fn to_node(self) -> OwnedNode {
+        OwnedNode::TimingTower(self)
     }
 }
 
@@ -50,5 +52,8 @@ impl StyleNode for TimingTowerRow {
     }
     fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
         NodeMut::TimingTowerRow(self)
+    }
+    fn to_node(self) -> OwnedNode {
+        OwnedNode::TimingTowerRow(self)
     }
 }

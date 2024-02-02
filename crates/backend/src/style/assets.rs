@@ -6,11 +6,7 @@ use crate::{
     value_types::{Font, Texture, ValueType},
 };
 
-use super::{
-    iterator::{Node, NodeMut},
-    variables::StaticValueProducer,
-    StyleNode,
-};
+use super::{variables::StaticValueProducer, Node, NodeMut, OwnedNode, StyleNode};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct AssetDefinition {
@@ -49,12 +45,14 @@ impl StyleNode for AssetDefinition {
     fn id(&self) -> &Uuid {
         &self.id
     }
-
     fn as_node<'a>(&'a self) -> Node<'a> {
         Node::Asset(self)
     }
     fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
         NodeMut::Asset(self)
+    }
+    fn to_node(self) -> OwnedNode {
+        OwnedNode::Asset(self)
     }
 }
 
@@ -92,6 +90,9 @@ impl StyleNode for AssetFolder {
     }
     fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
         NodeMut::AssetFolder(self)
+    }
+    fn to_node(self) -> OwnedNode {
+        OwnedNode::AssetFolder(self)
     }
 }
 

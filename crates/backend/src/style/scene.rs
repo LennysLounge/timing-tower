@@ -2,12 +2,7 @@ use bevy::math::Vec2;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::{
-    component::Component,
-    definitions::TimingTower,
-    iterator::{Node, NodeMut},
-    StyleNode,
-};
+use super::{component::Component, definitions::TimingTower, Node, NodeMut, OwnedNode, StyleNode};
 
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct SceneDefinition {
@@ -25,5 +20,8 @@ impl StyleNode for SceneDefinition {
     }
     fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
         NodeMut::Scene(self)
+    }
+    fn to_node(self) -> OwnedNode {
+        OwnedNode::Scene(self)
     }
 }

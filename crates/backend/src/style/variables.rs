@@ -6,10 +6,7 @@ use crate::value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, V
 
 use self::{condition::Condition, fixed_value::FixedValue, map::Map};
 
-use super::{
-    iterator::{Node, NodeMut},
-    StyleNode,
-};
+use super::{Node, NodeMut, OwnedNode, StyleNode};
 
 pub mod condition;
 pub mod fixed_value;
@@ -60,6 +57,9 @@ impl StyleNode for VariableDefinition {
     fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
         NodeMut::Variable(self)
     }
+    fn to_node(self) -> OwnedNode {
+        OwnedNode::Variable(self)
+    }
 }
 
 pub struct StaticValueProducer<T>(pub T);
@@ -106,6 +106,9 @@ impl StyleNode for VariableFolder {
     }
     fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
         NodeMut::VariableFolder(self)
+    }
+    fn to_node(self) -> OwnedNode {
+        OwnedNode::VariableFolder(self)
     }
 }
 

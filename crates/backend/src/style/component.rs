@@ -3,8 +3,7 @@ use uuid::Uuid;
 
 use super::{
     cell::{ClipArea, FreeCell},
-    iterator::{Node, NodeMut},
-    StyleNode,
+    Node, NodeMut, OwnedNode, StyleNode,
 };
 
 /// A visual graphic component in the scene.
@@ -29,12 +28,15 @@ impl StyleNode for Component {
         &self.id
     }
 
-    fn as_node<'a>(&'a self) -> super::iterator::Node<'a> {
+    fn as_node<'a>(&'a self) -> Node<'a> {
         Node::Component(self)
     }
 
-    fn as_node_mut<'a>(&'a mut self) -> super::iterator::NodeMut<'a> {
+    fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
         NodeMut::Component(self)
+    }
+    fn to_node(self) -> OwnedNode {
+        OwnedNode::Component(self)
     }
 }
 

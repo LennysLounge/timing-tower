@@ -4,8 +4,8 @@ use egui_ltreeview::DropPosition;
 use uuid::Uuid;
 
 use backend::{
-    style::{cell::FreeCellFolder, definitions::*, iterator::NodeMut, StyleNode},
-    tree_iterator::{Method, TreeIteratorMut},
+    style::{cell::FreeCellFolder, definitions::*, NodeMut, OwnedNode, StyleNode},
+    tree_iterator::{Method, TreeItem, TreeIteratorMut},
 };
 
 use super::{insert_node::insert, EditorCommand};
@@ -36,10 +36,10 @@ impl RemoveNodeUndo {
             node,
             position,
         } = self.removed_node;
-        let node_id = *node.id();
-        style.as_node_mut().search_mut(parent_id, |parent_node| {
-            insert(parent_node, position, node.to_any())
-        });
+        let node_id = node.id();
+        style
+            .as_node_mut()
+            .search_mut(parent_id, |parent_node| insert(parent_node, position, node));
         Some(RemoveNode { id: node_id }.into())
     }
 }
@@ -51,7 +51,7 @@ impl From<RemoveNodeUndo> for EditorCommand {
 
 pub struct RemovedNode {
     pub parent_id: Uuid,
-    pub node: Box<dyn StyleNode>,
+    pub node: OwnedNode,
     pub position: DropPosition<Uuid>,
 }
 
@@ -70,8 +70,8 @@ fn remove(node: &mut NodeMut, method: Method, node_id: &Uuid) -> ControlFlow<Rem
                 ControlFlow::Break(RemovedNode {
                     parent_id: folder.id,
                     node: match folder.content.remove(index) {
-                        backend::style::assets::AssetOrFolder::Asset(a) => Box::new(a),
-                        backend::style::assets::AssetOrFolder::Folder(f) => Box::new(f),
+                        backend::style::assets::AssetOrFolder::Asset(a) => a.to_node(),
+                        backend::style::assets::AssetOrFolder::Folder(f) => f.to_node(),
                     },
                     position: (index == 0)
                         .then_some(DropPosition::First)
@@ -88,8 +88,8 @@ fn remove(node: &mut NodeMut, method: Method, node_id: &Uuid) -> ControlFlow<Rem
                 ControlFlow::Break(RemovedNode {
                     parent_id: folder.id,
                     node: match folder.content.remove(index) {
-                        backend::style::variables::VariableOrFolder::Variable(a) => Box::new(a),
-                        backend::style::variables::VariableOrFolder::Folder(f) => Box::new(f),
+                        backend::style::variables::VariableOrFolder::Variable(a) => a.to_node(),
+                        backend::style::variables::VariableOrFolder::Folder(f) => f.to_node(),
                     },
                     position: (index == 0)
                         .then_some(DropPosition::First)
@@ -116,7 +116,7 @@ fn remove(node: &mut NodeMut, method: Method, node_id: &Uuid) -> ControlFlow<Rem
             if let Some(index) = scene.components.iter().position(|c| c.id() == node_id) {
                 ControlFlow::Break(RemovedNode {
                     parent_id: scene.id,
-                    node: Box::new(scene.components.remove(index)),
+                    node: scene.components.remove(index).to_node(),
                     position: (index == 0)
                         .then_some(DropPosition::First)
                         .unwrap_or_else(|| {
@@ -145,8 +145,8 @@ fn remove_node_from_folder(
         ControlFlow::Break(RemovedNode {
             parent_id: *folder.id(),
             node: match folder.content.remove(index) {
-                backend::style::cell::FreeCellOrFolder::Cell(t) => Box::new(t),
-                backend::style::cell::FreeCellOrFolder::Folder(f) => Box::new(f),
+                backend::style::cell::FreeCellOrFolder::Cell(t) => t.to_node(),
+                backend::style::cell::FreeCellOrFolder::Folder(f) => f.to_node(),
             },
             position: (index == 0)
                 .then_some(DropPosition::First)

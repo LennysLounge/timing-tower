@@ -1,8 +1,7 @@
 use backend::{
     style::{
-        iterator::NodeMut,
         variables::{condition::Condition, fixed_value::FixedValue, map::Map, VariableBehavior},
-        StyleDefinition, StyleNode,
+        NodeMut, StyleDefinition, StyleNode,
     },
     tree_iterator::TreeIteratorMut,
     value_types::ValueType,

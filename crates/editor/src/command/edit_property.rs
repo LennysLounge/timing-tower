@@ -1,7 +1,7 @@
 use std::{any::Any, ops::BitOrAssign, time::Instant};
 
 use backend::{
-    style::{iterator::NodeMut, StyleDefinition, StyleNode},
+    style::{NodeMut, StyleDefinition, StyleNode},
     tree_iterator::TreeIteratorMut,
 };
 use bevy_egui::egui::{self, Response};

@@ -7,10 +7,7 @@ use crate::value_types::{
     Boolean, Font, Number, Property, Text, Texture, Tint, Vec2Property, Vec3Property,
 };
 
-use super::{
-    iterator::{Node, NodeMut},
-    StyleNode,
-};
+use super::{Node, NodeMut, OwnedNode, StyleNode};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Cell {
@@ -118,6 +115,9 @@ impl StyleNode for FreeCell {
     fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
         NodeMut::FreeCell(self)
     }
+    fn to_node(self) -> OwnedNode {
+        OwnedNode::FreeCell(self)
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Default)]
@@ -153,6 +153,9 @@ impl StyleNode for FreeCellFolder {
     }
     fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
         NodeMut::FreeCellFolder(self)
+    }
+    fn to_node(self) -> OwnedNode {
+        OwnedNode::FreeCellFolder(self)
     }
 }
 

@@ -5,9 +5,8 @@ use backend::{
         assets::{AssetDefinition, AssetFolder},
         cell::{FreeCell, FreeCellFolder},
         component::Component,
-        iterator::{Node, NodeMut},
         variables::{VariableDefinition, VariableFolder},
-        StyleNode,
+        Node, NodeMut, StyleNode,
     },
     tree_iterator::{Method, TreeIterator, TreeIteratorMut},
 };
@@ -297,7 +296,7 @@ fn context_menu(
                         .parent_of(variable.id)
                         .expect("Should have a parent"),
                     position: DropPosition::After(variable.id),
-                    node: Box::new(VariableDefinition::new()),
+                    node: VariableDefinition::new().to_node(),
                 });
                 ui.close_menu();
             }
@@ -307,7 +306,7 @@ fn context_menu(
                         .parent_of(variable.id)
                         .expect("Should have a parent"),
                     position: DropPosition::After(variable.id),
-                    node: Box::new(VariableFolder::new()),
+                    node: VariableFolder::new().to_node(),
                 });
                 ui.close_menu();
             }
@@ -321,7 +320,7 @@ fn context_menu(
                 undo_redo_manager.queue(InsertNode {
                     target_node: folder.id,
                     position: DropPosition::Last,
-                    node: Box::new(VariableDefinition::new()),
+                    node: VariableDefinition::new().to_node(),
                 });
                 ui.close_menu();
             }
@@ -329,7 +328,7 @@ fn context_menu(
                 undo_redo_manager.queue(InsertNode {
                     target_node: folder.id,
                     position: DropPosition::Last,
-                    node: Box::new(VariableFolder::new()),
+                    node: VariableFolder::new().to_node(),
                 });
                 ui.close_menu();
             }
@@ -341,7 +340,7 @@ fn context_menu(
                         .parent_of(asset.id)
                         .expect("Should have a parent"),
                     position: DropPosition::After(asset.id),
-                    node: Box::new(AssetDefinition::new()),
+                    node: AssetDefinition::new().to_node(),
                 });
                 ui.close_menu();
             }
@@ -351,7 +350,7 @@ fn context_menu(
                         .parent_of(asset.id)
                         .expect("Should have a parent"),
                     position: DropPosition::After(asset.id),
-                    node: Box::new(AssetFolder::new()),
+                    node: AssetFolder::new().to_node(),
                 });
                 ui.close_menu();
             }
@@ -365,7 +364,7 @@ fn context_menu(
                 undo_redo_manager.queue(InsertNode {
                     target_node: folder.id,
                     position: DropPosition::Last,
-                    node: Box::new(AssetDefinition::new()),
+                    node: AssetDefinition::new().to_node(),
                 });
                 ui.close_menu();
             }
@@ -373,7 +372,7 @@ fn context_menu(
                 undo_redo_manager.queue(InsertNode {
                     target_node: folder.id,
                     position: DropPosition::Last,
-                    node: Box::new(AssetFolder::new()),
+                    node: AssetFolder::new().to_node(),
                 });
                 ui.close_menu();
             }
@@ -383,7 +382,7 @@ fn context_menu(
                 undo_redo_manager.queue(InsertNode {
                     target_node: scene.id,
                     position: DropPosition::Last,
-                    node: Box::new(Component::new()),
+                    node: Component::new().to_node(),
                 });
                 ui.close_menu();
             }
@@ -393,7 +392,7 @@ fn context_menu(
                 undo_redo_manager.queue(InsertNode {
                     target_node: tower.id,
                     position: DropPosition::Last,
-                    node: Box::new(FreeCell::new()),
+                    node: FreeCell::new().to_node(),
                 });
                 ui.close_menu();
             }
@@ -401,7 +400,7 @@ fn context_menu(
                 undo_redo_manager.queue(InsertNode {
                     target_node: tower.id,
                     position: DropPosition::Last,
-                    node: Box::new(FreeCellFolder::new()),
+                    node: FreeCellFolder::new().to_node(),
                 });
                 ui.close_menu();
             }
@@ -411,7 +410,7 @@ fn context_menu(
                 undo_redo_manager.queue(InsertNode {
                     target_node: row.id,
                     position: DropPosition::Last,
-                    node: Box::new(FreeCell::new()),
+                    node: FreeCell::new().to_node(),
                 });
                 ui.close_menu();
             }
@@ -419,7 +418,7 @@ fn context_menu(
                 undo_redo_manager.queue(InsertNode {
                     target_node: row.id,
                     position: DropPosition::Last,
-                    node: Box::new(FreeCellFolder::new()),
+                    node: FreeCellFolder::new().to_node(),
                 });
                 ui.close_menu();
             }
@@ -429,7 +428,7 @@ fn context_menu(
                 undo_redo_manager.queue(InsertNode {
                     target_node: folder.id,
                     position: DropPosition::Last,
-                    node: Box::new(FreeCell::new()),
+                    node: FreeCell::new().to_node(),
                 });
                 ui.close_menu();
             }
@@ -437,7 +436,7 @@ fn context_menu(
                 undo_redo_manager.queue(InsertNode {
                     target_node: folder.id,
                     position: DropPosition::Last,
-                    node: Box::new(FreeCellFolder::new()),
+                    node: FreeCellFolder::new().to_node(),
                 });
                 ui.close_menu();
             }
@@ -453,7 +452,7 @@ fn context_menu(
                         .parent_of(cell.id)
                         .expect("Should have a parent"),
                     position: DropPosition::After(cell.id),
-                    node: Box::new(FreeCell::new()),
+                    node: FreeCell::new().to_node(),
                 });
                 ui.close_menu();
             }
@@ -463,7 +462,7 @@ fn context_menu(
                         .parent_of(cell.id)
                         .expect("Should have a parent"),
                     position: DropPosition::After(cell.id),
-                    node: Box::new(FreeCellFolder::new()),
+                    node: FreeCellFolder::new().to_node(),
                 });
                 ui.close_menu();
             }

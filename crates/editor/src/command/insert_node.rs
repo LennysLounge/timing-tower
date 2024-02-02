@@ -1,14 +1,17 @@
-use std::{any::Any, ops::ControlFlow};
+use std::ops::ControlFlow;
 
 use egui_ltreeview::DropPosition;
 use uuid::Uuid;
 
 use backend::{
     style::{
-        self, cell::FreeCellFolder, component::Component, definitions::*, iterator::NodeMut,
-        StyleNode,
+        self,
+        cell::{FreeCellFolder, FreeCellOrFolder},
+        definitions::*,
+        variables::VariableOrFolder,
+        NodeMut, OwnedNode, StyleNode,
     },
-    tree_iterator::TreeIteratorMut,
+    tree_iterator::{TreeItem, TreeIteratorMut},
 };
 
 use super::{remove_node::remove_node, EditorCommand};
@@ -16,13 +19,13 @@ use super::{remove_node::remove_node, EditorCommand};
 pub struct InsertNode {
     pub target_node: Uuid,
     pub position: DropPosition<Uuid>,
-    pub node: Box<dyn StyleNode>,
+    pub node: OwnedNode,
 }
 impl InsertNode {
     pub fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
-        let id = *self.node.id();
+        let id = self.node.id();
         style.as_node_mut().search_mut(self.target_node, |node| {
-            insert(node, self.position, self.node.clone().to_any())
+            insert(node, self.position, self.node)
         });
         Some(InsertNodeUndo { id }.into())
     }
@@ -58,23 +61,15 @@ impl From<InsertNodeUndo> for EditorCommand {
 pub fn insert(
     node: &mut NodeMut,
     position: DropPosition<Uuid>,
-    insert: Box<dyn Any>,
+    insert: OwnedNode,
 ) -> ControlFlow<()> {
     match node {
         NodeMut::AssetFolder(folder) => {
-            let folder_or_asset = Err(insert)
-                .or_else(|insert| {
-                    insert
-                        .downcast::<AssetDefinition>()
-                        .map(|i| style::assets::AssetOrFolder::Asset(*i))
-                })
-                .or_else(|inset| {
-                    inset
-                        .downcast::<AssetFolder>()
-                        .map(|i| style::assets::AssetOrFolder::Folder(*i))
-                })
-                .expect("No other types are allowed to be inserted");
-
+            let folder_or_asset = match insert {
+                OwnedNode::Asset(asset) => style::assets::AssetOrFolder::Asset(asset),
+                OwnedNode::AssetFolder(folder) => style::assets::AssetOrFolder::Folder(folder),
+                _ => unreachable!("No other types are allowed to be inserted"),
+            };
             match &position {
                 DropPosition::First => folder.content.insert(0, folder_or_asset),
                 DropPosition::Last => folder.content.insert(folder.content.len(), folder_or_asset),
@@ -92,19 +87,11 @@ pub fn insert(
             ControlFlow::Break(())
         }
         NodeMut::VariableFolder(folder) => {
-            let folder_or_asset = Err(insert)
-                .or_else(|insert| {
-                    insert
-                        .downcast::<VariableDefinition>()
-                        .map(|i| style::variables::VariableOrFolder::Variable(*i))
-                })
-                .or_else(|insert| {
-                    insert
-                        .downcast::<VariableFolder>()
-                        .map(|i| style::variables::VariableOrFolder::Folder(*i))
-                })
-                .expect("No other types are allowed to be inserted");
-
+            let folder_or_asset = match insert {
+                OwnedNode::Variable(asset) => VariableOrFolder::Variable(asset),
+                OwnedNode::VariableFolder(folder) => VariableOrFolder::Folder(folder),
+                _ => unreachable!("No other types are allowed to be inserted"),
+            };
             match &position {
                 DropPosition::First => folder.content.insert(0, folder_or_asset),
                 DropPosition::Last => folder.content.insert(folder.content.len(), folder_or_asset),
@@ -136,9 +123,9 @@ pub fn insert(
         }
 
         NodeMut::Scene(scene) => {
-            let component = *insert
-                .downcast::<Component>()
-                .expect("No other types are allowed to be inserted");
+            let OwnedNode::Component(component) = insert else {
+                unreachable!("No other types are allowed to be inserted");
+            };
             match &position {
                 DropPosition::First => scene.components.insert(0, component),
                 DropPosition::Last => scene.components.push(component),
@@ -168,20 +155,13 @@ pub fn insert(
 fn insert_into_free_cell_folder(
     folder: &mut FreeCellFolder,
     position: DropPosition<Uuid>,
-    insert: Box<dyn Any>,
+    insert: OwnedNode,
 ) {
-    let column_or_folder = Err(insert)
-        .or_else(|insert| {
-            insert
-                .downcast::<FreeCellFolder>()
-                .map(|i| style::cell::FreeCellOrFolder::Folder(*i))
-        })
-        .or_else(|insert| {
-            insert
-                .downcast::<FreeCell>()
-                .map(|i| style::cell::FreeCellOrFolder::Cell(*i))
-        })
-        .expect("No other types are allowed to be inserted");
+    let column_or_folder = match insert {
+        OwnedNode::FreeCellFolder(folder) => FreeCellOrFolder::Folder(folder),
+        OwnedNode::FreeCell(cell) => FreeCellOrFolder::Cell(cell),
+        _ => unreachable!("No other types are allowed to be inserted"),
+    };
 
     match &position {
         DropPosition::First => folder.content.insert(0, column_or_folder),

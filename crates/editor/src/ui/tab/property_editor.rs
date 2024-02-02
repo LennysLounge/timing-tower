@@ -1,7 +1,7 @@
 use backend::{
     style::{
         variables::{condition::Condition, fixed_value::FixedValue, map::Map, VariableBehavior},
-        NodeMut, StyleDefinition, StyleNode,
+        StyleItemMut, StyleDefinition, StyleItem,
     },
     tree_iterator::TreeIteratorMut,
     value_types::ValueType,
@@ -44,7 +44,7 @@ pub fn property_editor(
     ScrollArea::vertical()
         .auto_shrink([false, false])
         .show(ui, |ui| {
-            style.as_node_mut().search_mut(*selected_id, |node| {
+            style.as_mut().search_mut(*selected_id, |node| {
                 edit_node(
                     ui,
                     node,
@@ -59,14 +59,14 @@ pub fn property_editor(
 
 pub fn edit_node(
     ui: &mut Ui,
-    node: &mut NodeMut,
+    node: &mut StyleItemMut,
     reference_store: &ReferenceStore,
     game_adapter: &Adapter,
     undo_redo_manager: &mut UndoRedoManager,
     secondary_selection: &mut Option<Uuid>,
 ) {
     match node {
-        NodeMut::TimingTower(tower) => {
+        StyleItemMut::TimingTower(tower) => {
             let mut edit_result = EditResult::None;
 
             ui.label("Position:");
@@ -87,7 +87,7 @@ pub fn edit_node(
             }
         }
 
-        NodeMut::TimingTowerRow(row) => {
+        StyleItemMut::TimingTowerRow(row) => {
             let mut edit_result = EditResult::None;
 
             ui.label("Row offset:");
@@ -111,7 +111,7 @@ pub fn edit_node(
             }
         }
 
-        NodeMut::FreeCell(cell) => {
+        StyleItemMut::FreeCell(cell) => {
             let mut edit_result = EditResult::None;
 
             ui.label("Name:");
@@ -124,7 +124,7 @@ pub fn edit_node(
             }
         }
 
-        NodeMut::FreeCellFolder(folder) => {
+        StyleItemMut::FreeCellFolder(folder) => {
             let mut edit_result = EditResult::None;
 
             ui.label("Name:");
@@ -135,7 +135,7 @@ pub fn edit_node(
             }
         }
 
-        NodeMut::Asset(asset) => {
+        StyleItemMut::Asset(asset) => {
             let mut edit_result = EditResult::None;
 
             ui.label("Name");
@@ -159,7 +159,7 @@ pub fn edit_node(
             }
         }
 
-        NodeMut::AssetFolder(folder) => {
+        StyleItemMut::AssetFolder(folder) => {
             let mut edit_result = EditResult::None;
 
             ui.label("Name:");
@@ -170,7 +170,7 @@ pub fn edit_node(
             }
         }
 
-        NodeMut::Variable(variable) => {
+        StyleItemMut::Variable(variable) => {
             let mut edit_result = EditResult::None;
 
             ui.label("Name:");
@@ -243,7 +243,7 @@ pub fn edit_node(
             }
         }
 
-        NodeMut::VariableFolder(folder) => {
+        StyleItemMut::VariableFolder(folder) => {
             let mut edit_result = EditResult::None;
 
             ui.label("Name:");
@@ -254,7 +254,7 @@ pub fn edit_node(
             }
         }
 
-        NodeMut::Scene(scene) => {
+        StyleItemMut::Scene(scene) => {
             let mut edit_result = EditResult::None;
 
             ui.label("Prefered size:");
@@ -303,7 +303,7 @@ pub fn edit_node(
             });
         }
 
-        NodeMut::Component(component) => {
+        StyleItemMut::Graphic(component) => {
             component_property_editor(
                 ui,
                 component,
@@ -313,6 +313,6 @@ pub fn edit_node(
             );
         }
 
-        NodeMut::Style(_) => (),
+        StyleItemMut::Style(_) => (),
     }
 }

@@ -1,7 +1,7 @@
 use std::{any::Any, ops::BitOrAssign, time::Instant};
 
 use backend::{
-    style::{NodeMut, StyleDefinition, StyleNode},
+    style::{StyleItemMut, StyleDefinition, StyleItem},
     tree_iterator::TreeIteratorMut,
 };
 use bevy_egui::egui::{self, Response};
@@ -30,20 +30,20 @@ impl EditProperty {
 
     pub fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
         style
-            .as_node_mut()
+            .as_mut()
             .search_mut(self.node_id, |node| {
                 let old_value = match node {
-                    NodeMut::Style(o) => apply_edit(*o, self.value),
-                    NodeMut::Variable(o) => apply_edit(*o, self.value),
-                    NodeMut::VariableFolder(o) => apply_edit(*o, self.value),
-                    NodeMut::Asset(o) => apply_edit(*o, self.value),
-                    NodeMut::AssetFolder(o) => apply_edit(*o, self.value),
-                    NodeMut::Scene(o) => apply_edit(*o, self.value),
-                    NodeMut::TimingTower(o) => apply_edit(*o, self.value),
-                    NodeMut::TimingTowerRow(o) => apply_edit(*o, self.value),
-                    NodeMut::FreeCellFolder(o) => apply_edit(*o, self.value),
-                    NodeMut::FreeCell(o) => apply_edit(*o, self.value),
-                    NodeMut::Component(o) => apply_edit(*o, self.value),
+                    StyleItemMut::Style(o) => apply_edit(*o, self.value),
+                    StyleItemMut::Variable(o) => apply_edit(*o, self.value),
+                    StyleItemMut::VariableFolder(o) => apply_edit(*o, self.value),
+                    StyleItemMut::Asset(o) => apply_edit(*o, self.value),
+                    StyleItemMut::AssetFolder(o) => apply_edit(*o, self.value),
+                    StyleItemMut::Scene(o) => apply_edit(*o, self.value),
+                    StyleItemMut::TimingTower(o) => apply_edit(*o, self.value),
+                    StyleItemMut::TimingTowerRow(o) => apply_edit(*o, self.value),
+                    StyleItemMut::FreeCellFolder(o) => apply_edit(*o, self.value),
+                    StyleItemMut::FreeCell(o) => apply_edit(*o, self.value),
+                    StyleItemMut::Graphic(o) => apply_edit(*o, self.value),
                 };
                 EditProperty {
                     timestamp: self.timestamp,

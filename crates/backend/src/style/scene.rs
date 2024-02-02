@@ -2,26 +2,25 @@ use bevy::math::Vec2;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::{component::Component, timing_tower::TimingTower, Node, NodeMut, OwnedNode, StyleNode};
+use super::{timing_tower::TimingTower, OwnedStyleItem, StyleItem, StyleItemMut, StyleItemRef};
 
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct SceneDefinition {
     pub id: Uuid,
     pub prefered_size: Vec2,
     pub timing_tower: TimingTower,
-    pub components: Vec<Component>,
 }
-impl StyleNode for SceneDefinition {
+impl StyleItem for SceneDefinition {
     fn id(&self) -> &Uuid {
         &self.id
     }
-    fn as_node<'a>(&'a self) -> Node<'a> {
-        Node::Scene(self)
+    fn as_ref<'a>(&'a self) -> StyleItemRef<'a> {
+        StyleItemRef::Scene(self)
     }
-    fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
-        NodeMut::Scene(self)
+    fn as_mut<'a>(&'a mut self) -> StyleItemMut<'a> {
+        StyleItemMut::Scene(self)
     }
-    fn to_node(self) -> OwnedNode {
-        OwnedNode::Scene(self)
+    fn to_owned(self) -> OwnedStyleItem {
+        OwnedStyleItem::Scene(self)
     }
 }

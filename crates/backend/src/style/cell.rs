@@ -7,7 +7,7 @@ use crate::value_types::{
     Boolean, Font, Number, Property, Text, Texture, Tint, Vec2Property, Vec3Property,
 };
 
-use super::{Node, NodeMut, OwnedNode, StyleNode};
+use super::{StyleItemRef, StyleItemMut, OwnedStyleItem, StyleItem};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Cell {
@@ -103,20 +103,20 @@ impl FreeCell {
         }
     }
 }
-impl StyleNode for FreeCell {
+impl StyleItem for FreeCell {
     fn id(&self) -> &Uuid {
         &self.id
     }
 
-    fn as_node<'a>(&'a self) -> Node<'a> {
-        Node::FreeCell(self)
+    fn as_ref<'a>(&'a self) -> StyleItemRef<'a> {
+        StyleItemRef::FreeCell(self)
     }
 
-    fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
-        NodeMut::FreeCell(self)
+    fn as_mut<'a>(&'a mut self) -> StyleItemMut<'a> {
+        StyleItemMut::FreeCell(self)
     }
-    fn to_node(self) -> OwnedNode {
-        OwnedNode::FreeCell(self)
+    fn to_owned(self) -> OwnedStyleItem {
+        OwnedStyleItem::FreeCell(self)
     }
 }
 
@@ -144,18 +144,18 @@ impl FreeCellFolder {
             .collect()
     }
 }
-impl StyleNode for FreeCellFolder {
+impl StyleItem for FreeCellFolder {
     fn id(&self) -> &Uuid {
         &self.id
     }
-    fn as_node<'a>(&'a self) -> Node<'a> {
-        Node::FreeCellFolder(self)
+    fn as_ref<'a>(&'a self) -> StyleItemRef<'a> {
+        StyleItemRef::FreeCellFolder(self)
     }
-    fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
-        NodeMut::FreeCellFolder(self)
+    fn as_mut<'a>(&'a mut self) -> StyleItemMut<'a> {
+        StyleItemMut::FreeCellFolder(self)
     }
-    fn to_node(self) -> OwnedNode {
-        OwnedNode::FreeCellFolder(self)
+    fn to_owned(self) -> OwnedStyleItem {
+        OwnedStyleItem::FreeCellFolder(self)
     }
 }
 

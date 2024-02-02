@@ -6,7 +6,7 @@ use crate::{
     value_types::{Font, Texture, ValueType},
 };
 
-use super::{variables::StaticValueProducer, Node, NodeMut, OwnedNode, StyleNode};
+use super::{variables::StaticValueProducer, StyleItemRef, StyleItemMut, OwnedStyleItem, StyleItem};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct AssetDefinition {
@@ -41,18 +41,18 @@ impl IntoValueProducer for AssetDefinition {
         (self.id, typed_value_producer)
     }
 }
-impl StyleNode for AssetDefinition {
+impl StyleItem for AssetDefinition {
     fn id(&self) -> &Uuid {
         &self.id
     }
-    fn as_node<'a>(&'a self) -> Node<'a> {
-        Node::Asset(self)
+    fn as_ref<'a>(&'a self) -> StyleItemRef<'a> {
+        StyleItemRef::Asset(self)
     }
-    fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
-        NodeMut::Asset(self)
+    fn as_mut<'a>(&'a mut self) -> StyleItemMut<'a> {
+        StyleItemMut::Asset(self)
     }
-    fn to_node(self) -> OwnedNode {
-        OwnedNode::Asset(self)
+    fn to_owned(self) -> OwnedStyleItem {
+        OwnedStyleItem::Asset(self)
     }
 }
 
@@ -80,19 +80,19 @@ impl AssetFolder {
             .collect()
     }
 }
-impl StyleNode for AssetFolder {
+impl StyleItem for AssetFolder {
     fn id(&self) -> &Uuid {
         &self.id
     }
 
-    fn as_node<'a>(&'a self) -> Node<'a> {
-        Node::AssetFolder(self)
+    fn as_ref<'a>(&'a self) -> StyleItemRef<'a> {
+        StyleItemRef::AssetFolder(self)
     }
-    fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
-        NodeMut::AssetFolder(self)
+    fn as_mut<'a>(&'a mut self) -> StyleItemMut<'a> {
+        StyleItemMut::AssetFolder(self)
     }
-    fn to_node(self) -> OwnedNode {
-        OwnedNode::AssetFolder(self)
+    fn to_owned(self) -> OwnedStyleItem {
+        OwnedStyleItem::AssetFolder(self)
     }
 }
 

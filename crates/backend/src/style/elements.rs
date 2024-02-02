@@ -8,49 +8,49 @@ use crate::tree_iterator::{Method, TreeItem, TreeIterator, TreeIteratorMut};
 use super::cell::{ClipArea, FreeCell};
 
 #[derive(Serialize, Deserialize, Clone, Default)]
-pub struct Elements {
-    pub elements: Vec<Element>,
+pub struct GraphicItems {
+    pub items: Vec<GraphicItem>,
 }
 
-impl TreeIterator for Elements {
-    type Item<'item> = Element;
+impl TreeIterator for GraphicItems {
+    type Item<'item> = GraphicItem;
 
     fn walk<F, R>(&self, f: &mut F) -> ControlFlow<R>
     where
         F: FnMut(&Self::Item<'_>, Method) -> ControlFlow<R>,
     {
-        self.elements.iter().try_for_each(|e| e.walk(f))
+        self.items.iter().try_for_each(|e| e.walk(f))
     }
 }
-impl TreeIteratorMut for Elements {
-    type Item<'item> = Element;
+impl TreeIteratorMut for GraphicItems {
+    type Item<'item> = GraphicItem;
 
     fn walk_mut<F, R>(&mut self, f: &mut F) -> ControlFlow<R>
     where
         F: FnMut(&mut Self::Item<'_>, Method) -> ControlFlow<R>,
     {
-        self.elements.iter_mut().try_for_each(|e| e.walk_mut(f))
+        self.items.iter_mut().try_for_each(|e| e.walk_mut(f))
     }
 }
 
 /// A visual element that implements some functionality
 /// or graphic.
 #[derive(Serialize, Deserialize, Clone)]
-pub enum Element {
+pub enum GraphicItem {
     Cell(FreeCell),
     ClipArea(FreeClipArea),
 }
-impl TreeItem for Element {
+impl TreeItem for GraphicItem {
     fn id(&self) -> Uuid {
         match self {
-            Element::Cell(cell) => cell.id,
-            Element::ClipArea(clip_area) => clip_area.id,
+            GraphicItem::Cell(cell) => cell.id,
+            GraphicItem::ClipArea(clip_area) => clip_area.id,
         }
     }
 }
 
-impl TreeIterator for Element {
-    type Item<'item> = Element;
+impl TreeIterator for GraphicItem {
+    type Item<'item> = GraphicItem;
 
     fn walk<F, R>(&self, f: &mut F) -> ControlFlow<R>
     where
@@ -58,8 +58,8 @@ impl TreeIterator for Element {
     {
         f(self, Method::Visit)?;
         match self {
-            Element::Cell(_) => (),
-            Element::ClipArea(clip_area) => {
+            GraphicItem::Cell(_) => (),
+            GraphicItem::ClipArea(clip_area) => {
                 clip_area.elements.iter().try_for_each(|e| e.walk(f))?;
             }
         }
@@ -67,8 +67,8 @@ impl TreeIterator for Element {
     }
 }
 
-impl TreeIteratorMut for Element {
-    type Item<'item> = Element;
+impl TreeIteratorMut for GraphicItem {
+    type Item<'item> = GraphicItem;
 
     fn walk_mut<F, R>(&mut self, f: &mut F) -> ControlFlow<R>
     where
@@ -76,8 +76,8 @@ impl TreeIteratorMut for Element {
     {
         f(self, Method::Visit)?;
         match self {
-            Element::Cell(_) => (),
-            Element::ClipArea(clip_area) => {
+            GraphicItem::Cell(_) => (),
+            GraphicItem::ClipArea(clip_area) => {
                 clip_area
                     .elements
                     .iter_mut()
@@ -95,7 +95,7 @@ pub struct FreeClipArea {
     pub id: Uuid,
     pub name: String,
     pub clip_area: ClipArea,
-    pub elements: Vec<Element>,
+    pub elements: Vec<GraphicItem>,
 }
 impl FreeClipArea {
     pub fn new() -> Self {

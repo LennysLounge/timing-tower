@@ -4,9 +4,9 @@ use backend::{
     style::{
         assets::{AssetDefinition, AssetFolder},
         cell::{FreeCell, FreeCellFolder},
-        component::Component,
+        graphic::Graphic,
         variables::{VariableDefinition, VariableFolder},
-        Node, NodeMut, StyleNode,
+        StyleItemRef, StyleItemMut, StyleItem,
     },
     tree_iterator::{Method, TreeIterator, TreeIteratorMut},
 };
@@ -25,13 +25,13 @@ pub fn tree_view(
     ui: &mut Ui,
     selected_node: &mut Option<Uuid>,
     secondary_selection: &mut Option<Uuid>,
-    base_node: &mut impl StyleNode,
+    base_node: &mut impl StyleItem,
     undo_redo_manager: &mut UndoRedoManager,
 ) -> bool {
     let mut changed = false;
     let response = ScrollArea::vertical()
         .show(ui, |ui| {
-            show(ui, base_node.as_node_mut(), undo_redo_manager)
+            show(ui, base_node.as_mut(), undo_redo_manager)
         })
         .inner;
 
@@ -52,10 +52,10 @@ pub fn tree_view(
                 position,
             } => {
                 let drop_allowed = base_node
-                    .as_node()
+                    .as_ref()
                     .search(*source, |dragged| {
                         base_node
-                            .as_node()
+                            .as_ref()
                             .search(*target, |dropped| drop_allowed(dropped, dragged))
                     })
                     .flatten()
@@ -77,24 +77,24 @@ pub fn tree_view(
     changed
 }
 
-fn drop_allowed(target: &Node, dragged: &Node) -> bool {
+fn drop_allowed(target: &StyleItemRef, dragged: &StyleItemRef) -> bool {
     match (target, dragged) {
-        (Node::VariableFolder(_), Node::VariableFolder(_)) => true,
-        (Node::VariableFolder(_), Node::Variable(_)) => true,
+        (StyleItemRef::VariableFolder(_), StyleItemRef::VariableFolder(_)) => true,
+        (StyleItemRef::VariableFolder(_), StyleItemRef::Variable(_)) => true,
 
-        (Node::AssetFolder(_), Node::AssetFolder(_)) => true,
-        (Node::AssetFolder(_), Node::Asset(_)) => true,
+        (StyleItemRef::AssetFolder(_), StyleItemRef::AssetFolder(_)) => true,
+        (StyleItemRef::AssetFolder(_), StyleItemRef::Asset(_)) => true,
 
-        (Node::TimingTowerRow(_), Node::FreeCellFolder(_)) => true,
-        (Node::TimingTowerRow(_), Node::FreeCell(_)) => true,
+        (StyleItemRef::TimingTowerRow(_), StyleItemRef::FreeCellFolder(_)) => true,
+        (StyleItemRef::TimingTowerRow(_), StyleItemRef::FreeCell(_)) => true,
 
-        (Node::FreeCellFolder(_), Node::FreeCellFolder(_)) => true,
-        (Node::FreeCellFolder(_), Node::FreeCell(_)) => true,
+        (StyleItemRef::FreeCellFolder(_), StyleItemRef::FreeCellFolder(_)) => true,
+        (StyleItemRef::FreeCellFolder(_), StyleItemRef::FreeCell(_)) => true,
 
-        (Node::TimingTower(_), Node::FreeCell(_)) => true,
-        (Node::TimingTower(_), Node::FreeCellFolder(_)) => true,
+        (StyleItemRef::TimingTower(_), StyleItemRef::FreeCell(_)) => true,
+        (StyleItemRef::TimingTower(_), StyleItemRef::FreeCellFolder(_)) => true,
 
-        (Node::Scene(_), Node::Component(_)) => true,
+        (StyleItemRef::Scene(_), StyleItemRef::Graphic(_)) => true,
 
         _ => false,
     }
@@ -102,7 +102,7 @@ fn drop_allowed(target: &Node, dragged: &Node) -> bool {
 
 fn show(
     ui: &mut Ui,
-    mut root: NodeMut,
+    mut root: StyleItemMut,
     undo_redo_manager: &mut UndoRedoManager,
 ) -> TreeViewResponse<Uuid> {
     let response = egui_ltreeview::TreeView::new(ui.make_persistent_id("element_tree_view"))
@@ -120,46 +120,46 @@ fn show(
     response
 }
 fn show_node(
-    node: &mut NodeMut,
+    node: &mut StyleItemMut,
     method: Method,
     builder: &mut TreeViewBuilder<Uuid>,
 ) -> ControlFlow<()> {
     match (method, node) {
-        (Method::Visit, NodeMut::Style(style)) => {
+        (Method::Visit, StyleItemMut::Style(style)) => {
             builder.node(NodeBuilder::dir(style.id), |ui| {
                 ui.label("Style");
             });
             ControlFlow::Continue(())
         }
-        (Method::Leave, NodeMut::Style(_)) => {
+        (Method::Leave, StyleItemMut::Style(_)) => {
             builder.close_dir();
             ControlFlow::Continue(())
         }
 
-        (Method::Visit, NodeMut::TimingTower(tower)) => {
+        (Method::Visit, StyleItemMut::TimingTower(tower)) => {
             builder.node(NodeBuilder::dir(tower.id).closer(folder_closer), |ui| {
                 ui.label("Timing tower");
             });
             ControlFlow::Continue(())
         }
-        (Method::Leave, NodeMut::TimingTower(_)) => {
+        (Method::Leave, StyleItemMut::TimingTower(_)) => {
             builder.close_dir();
             ControlFlow::Continue(())
         }
 
-        (Method::Visit, NodeMut::TimingTowerRow(row)) => {
+        (Method::Visit, StyleItemMut::TimingTowerRow(row)) => {
             builder.node(NodeBuilder::dir(row.id).closer(folder_closer), |ui| {
                 ui.label("Row");
             });
             ControlFlow::Continue(())
         }
 
-        (Method::Leave, NodeMut::TimingTowerRow(_)) => {
+        (Method::Leave, StyleItemMut::TimingTowerRow(_)) => {
             builder.close_dir();
             ControlFlow::Continue(())
         }
 
-        (Method::Visit, NodeMut::FreeCell(cell)) => {
+        (Method::Visit, StyleItemMut::FreeCell(cell)) => {
             builder.node(
                 NodeBuilder::leaf(cell.id).icon(|ui| {
                     egui::Image::new(egui::include_image!("../../../images/article.png"))
@@ -173,19 +173,19 @@ fn show_node(
             ControlFlow::Continue(())
         }
 
-        (Method::Visit, NodeMut::FreeCellFolder(folder)) => {
+        (Method::Visit, StyleItemMut::FreeCellFolder(folder)) => {
             builder.node(NodeBuilder::dir(folder.id).closer(folder_closer), |ui| {
                 ui.label(&folder.name);
             });
             ControlFlow::Continue(())
         }
 
-        (Method::Leave, NodeMut::FreeCellFolder(_)) => {
+        (Method::Leave, StyleItemMut::FreeCellFolder(_)) => {
             builder.close_dir();
             ControlFlow::Continue(())
         }
 
-        (Method::Visit, NodeMut::Asset(asset)) => {
+        (Method::Visit, StyleItemMut::Asset(asset)) => {
             let node_config = NodeBuilder::leaf(asset.id).icon(|ui| {
                 match asset.value_type {
                     backend::value_types::ValueType::Texture => {
@@ -207,19 +207,19 @@ fn show_node(
             ControlFlow::Continue(())
         }
 
-        (Method::Visit, NodeMut::AssetFolder(folder)) => {
+        (Method::Visit, StyleItemMut::AssetFolder(folder)) => {
             builder.node(NodeBuilder::dir(folder.id).closer(folder_closer), |ui| {
                 ui.label(&folder.name);
             });
             ControlFlow::Continue(())
         }
 
-        (Method::Leave, NodeMut::AssetFolder(_)) => {
+        (Method::Leave, StyleItemMut::AssetFolder(_)) => {
             builder.close_dir();
             ControlFlow::Continue(())
         }
 
-        (Method::Visit, NodeMut::Variable(variable)) => {
+        (Method::Visit, StyleItemMut::Variable(variable)) => {
             builder.node(
                 NodeBuilder::leaf(variable.id).icon(|ui| {
                     egui::Image::new(egui::include_image!("../../../images/object.png"))
@@ -233,38 +233,38 @@ fn show_node(
             ControlFlow::Continue(())
         }
 
-        (Method::Visit, NodeMut::VariableFolder(folder)) => {
+        (Method::Visit, StyleItemMut::VariableFolder(folder)) => {
             builder.node(NodeBuilder::dir(folder.id).closer(folder_closer), |ui| {
                 ui.label(&folder.name);
             });
             ControlFlow::Continue(())
         }
 
-        (Method::Leave, NodeMut::VariableFolder(_)) => {
+        (Method::Leave, StyleItemMut::VariableFolder(_)) => {
             builder.close_dir();
             ControlFlow::Continue(())
         }
 
-        (Method::Visit, NodeMut::Scene(scene)) => {
+        (Method::Visit, StyleItemMut::Scene(scene)) => {
             builder.node(NodeBuilder::dir(scene.id).closer(folder_closer), |ui| {
                 ui.label("Scene");
             });
             ControlFlow::Continue(())
         }
-        (Method::Leave, NodeMut::Scene(_)) => {
+        (Method::Leave, StyleItemMut::Scene(_)) => {
             builder.close_dir();
             ControlFlow::Continue(())
         }
-        (Method::Visit, NodeMut::Component(comp)) => {
+        (Method::Visit, StyleItemMut::Graphic(comp)) => {
             builder.leaf(comp.id, |ui| {
                 ui.label(&comp.name);
             });
             ControlFlow::Continue(())
         }
-        (Method::Leave, NodeMut::Variable(_)) => ControlFlow::Continue(()),
-        (Method::Leave, NodeMut::Asset(_)) => ControlFlow::Continue(()),
-        (Method::Leave, NodeMut::FreeCell(_)) => ControlFlow::Continue(()),
-        (Method::Leave, NodeMut::Component(_)) => ControlFlow::Continue(()),
+        (Method::Leave, StyleItemMut::Variable(_)) => ControlFlow::Continue(()),
+        (Method::Leave, StyleItemMut::Asset(_)) => ControlFlow::Continue(()),
+        (Method::Leave, StyleItemMut::FreeCell(_)) => ControlFlow::Continue(()),
+        (Method::Leave, StyleItemMut::Graphic(_)) => ControlFlow::Continue(()),
     }
 }
 
@@ -287,20 +287,20 @@ fn folder_closer(ui: &mut Ui, state: CloserState) {
 
 fn context_menu(
     ui: &mut Ui,
-    node: &mut NodeMut,
+    node: &mut StyleItemMut,
     undo_redo_manager: &mut UndoRedoManager,
     tree_response: &TreeViewResponse<Uuid>,
 ) {
     match node {
-        NodeMut::Style(_) => _ = ui.label("Style"),
-        NodeMut::Variable(variable) => {
+        StyleItemMut::Style(_) => _ = ui.label("Style"),
+        StyleItemMut::Variable(variable) => {
             if ui.button("add variable").clicked() {
                 undo_redo_manager.queue(InsertNode {
                     target_node: tree_response
                         .parent_of(variable.id)
                         .expect("Should have a parent"),
                     position: DropPosition::After(variable.id),
-                    node: VariableDefinition::new().to_node(),
+                    node: VariableDefinition::new().to_owned(),
                 });
                 ui.close_menu();
             }
@@ -310,7 +310,7 @@ fn context_menu(
                         .parent_of(variable.id)
                         .expect("Should have a parent"),
                     position: DropPosition::After(variable.id),
-                    node: VariableFolder::new().to_node(),
+                    node: VariableFolder::new().to_owned(),
                 });
                 ui.close_menu();
             }
@@ -319,12 +319,12 @@ fn context_menu(
                 ui.close_menu();
             }
         }
-        NodeMut::VariableFolder(folder) => {
+        StyleItemMut::VariableFolder(folder) => {
             if ui.button("add variable").clicked() {
                 undo_redo_manager.queue(InsertNode {
                     target_node: folder.id,
                     position: DropPosition::Last,
-                    node: VariableDefinition::new().to_node(),
+                    node: VariableDefinition::new().to_owned(),
                 });
                 ui.close_menu();
             }
@@ -332,19 +332,19 @@ fn context_menu(
                 undo_redo_manager.queue(InsertNode {
                     target_node: folder.id,
                     position: DropPosition::Last,
-                    node: VariableFolder::new().to_node(),
+                    node: VariableFolder::new().to_owned(),
                 });
                 ui.close_menu();
             }
         }
-        NodeMut::Asset(asset) => {
+        StyleItemMut::Asset(asset) => {
             if ui.button("add image").clicked() {
                 undo_redo_manager.queue(InsertNode {
                     target_node: tree_response
                         .parent_of(asset.id)
                         .expect("Should have a parent"),
                     position: DropPosition::After(asset.id),
-                    node: AssetDefinition::new().to_node(),
+                    node: AssetDefinition::new().to_owned(),
                 });
                 ui.close_menu();
             }
@@ -354,7 +354,7 @@ fn context_menu(
                         .parent_of(asset.id)
                         .expect("Should have a parent"),
                     position: DropPosition::After(asset.id),
-                    node: AssetFolder::new().to_node(),
+                    node: AssetFolder::new().to_owned(),
                 });
                 ui.close_menu();
             }
@@ -363,12 +363,12 @@ fn context_menu(
                 ui.close_menu();
             }
         }
-        NodeMut::AssetFolder(folder) => {
+        StyleItemMut::AssetFolder(folder) => {
             if ui.button("add image").clicked() {
                 undo_redo_manager.queue(InsertNode {
                     target_node: folder.id,
                     position: DropPosition::Last,
-                    node: AssetDefinition::new().to_node(),
+                    node: AssetDefinition::new().to_owned(),
                 });
                 ui.close_menu();
             }
@@ -376,27 +376,27 @@ fn context_menu(
                 undo_redo_manager.queue(InsertNode {
                     target_node: folder.id,
                     position: DropPosition::Last,
-                    node: AssetFolder::new().to_node(),
+                    node: AssetFolder::new().to_owned(),
                 });
                 ui.close_menu();
             }
         }
-        NodeMut::Scene(scene) => {
+        StyleItemMut::Scene(scene) => {
             if ui.button("add component").clicked() {
                 undo_redo_manager.queue(InsertNode {
                     target_node: scene.id,
                     position: DropPosition::Last,
-                    node: Component::new().to_node(),
+                    node: Graphic::new().to_owned(),
                 });
                 ui.close_menu();
             }
         }
-        NodeMut::TimingTower(tower) => {
+        StyleItemMut::TimingTower(tower) => {
             if ui.button("add column").clicked() {
                 undo_redo_manager.queue(InsertNode {
                     target_node: tower.id,
                     position: DropPosition::Last,
-                    node: FreeCell::new().to_node(),
+                    node: FreeCell::new().to_owned(),
                 });
                 ui.close_menu();
             }
@@ -404,17 +404,17 @@ fn context_menu(
                 undo_redo_manager.queue(InsertNode {
                     target_node: tower.id,
                     position: DropPosition::Last,
-                    node: FreeCellFolder::new().to_node(),
+                    node: FreeCellFolder::new().to_owned(),
                 });
                 ui.close_menu();
             }
         }
-        NodeMut::TimingTowerRow(row) => {
+        StyleItemMut::TimingTowerRow(row) => {
             if ui.button("add column").clicked() {
                 undo_redo_manager.queue(InsertNode {
                     target_node: row.id,
                     position: DropPosition::Last,
-                    node: FreeCell::new().to_node(),
+                    node: FreeCell::new().to_owned(),
                 });
                 ui.close_menu();
             }
@@ -422,17 +422,17 @@ fn context_menu(
                 undo_redo_manager.queue(InsertNode {
                     target_node: row.id,
                     position: DropPosition::Last,
-                    node: FreeCellFolder::new().to_node(),
+                    node: FreeCellFolder::new().to_owned(),
                 });
                 ui.close_menu();
             }
         }
-        NodeMut::FreeCellFolder(folder) => {
+        StyleItemMut::FreeCellFolder(folder) => {
             if ui.button("add column").clicked() {
                 undo_redo_manager.queue(InsertNode {
                     target_node: folder.id,
                     position: DropPosition::Last,
-                    node: FreeCell::new().to_node(),
+                    node: FreeCell::new().to_owned(),
                 });
                 ui.close_menu();
             }
@@ -440,7 +440,7 @@ fn context_menu(
                 undo_redo_manager.queue(InsertNode {
                     target_node: folder.id,
                     position: DropPosition::Last,
-                    node: FreeCellFolder::new().to_node(),
+                    node: FreeCellFolder::new().to_owned(),
                 });
                 ui.close_menu();
             }
@@ -449,14 +449,14 @@ fn context_menu(
                 ui.close_menu();
             }
         }
-        NodeMut::FreeCell(cell) => {
+        StyleItemMut::FreeCell(cell) => {
             if ui.button("add column").clicked() {
                 undo_redo_manager.queue(InsertNode {
                     target_node: tree_response
                         .parent_of(cell.id)
                         .expect("Should have a parent"),
                     position: DropPosition::After(cell.id),
-                    node: FreeCell::new().to_node(),
+                    node: FreeCell::new().to_owned(),
                 });
                 ui.close_menu();
             }
@@ -466,7 +466,7 @@ fn context_menu(
                         .parent_of(cell.id)
                         .expect("Should have a parent"),
                     position: DropPosition::After(cell.id),
-                    node: FreeCellFolder::new().to_node(),
+                    node: FreeCellFolder::new().to_owned(),
                 });
                 ui.close_menu();
             }
@@ -475,7 +475,7 @@ fn context_menu(
                 ui.close_menu();
             }
         }
-        NodeMut::Component(comp) => {
+        StyleItemMut::Graphic(comp) => {
             ui.label(&comp.name);
         }
     }

@@ -4,7 +4,7 @@ use egui_ltreeview::DropPosition;
 use uuid::Uuid;
 
 use backend::{
-    style::{cell::FreeCellFolder, NodeMut, OwnedNode, StyleDefinition, StyleNode},
+    style::{cell::FreeCellFolder, OwnedStyleItem, StyleDefinition, StyleItem, StyleItemMut},
     tree_iterator::{Method, TreeItem, TreeIteratorMut},
 };
 
@@ -15,7 +15,7 @@ pub struct RemoveNode {
 }
 impl RemoveNode {
     pub fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
-        remove_node(&self.id, &mut style.as_node_mut())
+        remove_node(&self.id, &mut style.as_mut())
             .map(|removed_node| RemoveNodeUndo { removed_node }.into())
     }
 }
@@ -38,7 +38,7 @@ impl RemoveNodeUndo {
         } = self.removed_node;
         let node_id = node.id();
         style
-            .as_node_mut()
+            .as_mut()
             .search_mut(parent_id, |parent_node| insert(parent_node, position, node));
         Some(RemoveNode { id: node_id }.into())
     }
@@ -51,11 +51,11 @@ impl From<RemoveNodeUndo> for EditorCommand {
 
 pub struct RemovedNode {
     pub parent_id: Uuid,
-    pub node: OwnedNode,
+    pub node: OwnedStyleItem,
     pub position: DropPosition<Uuid>,
 }
 
-pub fn remove_node(node_id: &Uuid, root: &mut NodeMut) -> Option<RemovedNode> {
+pub fn remove_node(node_id: &Uuid, root: &mut StyleItemMut) -> Option<RemovedNode> {
     let output = root.walk_mut(&mut |node, method| remove(node, method, node_id));
     match output {
         ControlFlow::Continue(_) => None,
@@ -63,15 +63,15 @@ pub fn remove_node(node_id: &Uuid, root: &mut NodeMut) -> Option<RemovedNode> {
     }
 }
 
-fn remove(node: &mut NodeMut, method: Method, node_id: &Uuid) -> ControlFlow<RemovedNode> {
+fn remove(node: &mut StyleItemMut, method: Method, node_id: &Uuid) -> ControlFlow<RemovedNode> {
     match (method, node) {
-        (Method::Visit, NodeMut::AssetFolder(folder)) => {
+        (Method::Visit, StyleItemMut::AssetFolder(folder)) => {
             if let Some(index) = folder.content.iter().position(|s| s.id() == node_id) {
                 ControlFlow::Break(RemovedNode {
                     parent_id: folder.id,
                     node: match folder.content.remove(index) {
-                        backend::style::assets::AssetOrFolder::Asset(a) => a.to_node(),
-                        backend::style::assets::AssetOrFolder::Folder(f) => f.to_node(),
+                        backend::style::assets::AssetOrFolder::Asset(a) => a.to_owned(),
+                        backend::style::assets::AssetOrFolder::Folder(f) => f.to_owned(),
                     },
                     position: (index == 0)
                         .then_some(DropPosition::First)
@@ -83,13 +83,13 @@ fn remove(node: &mut NodeMut, method: Method, node_id: &Uuid) -> ControlFlow<Rem
                 ControlFlow::Continue(())
             }
         }
-        (Method::Visit, NodeMut::VariableFolder(folder)) => {
+        (Method::Visit, StyleItemMut::VariableFolder(folder)) => {
             if let Some(index) = folder.content.iter().position(|s| s.id() == node_id) {
                 ControlFlow::Break(RemovedNode {
                     parent_id: folder.id,
                     node: match folder.content.remove(index) {
-                        backend::style::variables::VariableOrFolder::Variable(a) => a.to_node(),
-                        backend::style::variables::VariableOrFolder::Folder(f) => f.to_node(),
+                        backend::style::variables::VariableOrFolder::Variable(a) => a.to_owned(),
+                        backend::style::variables::VariableOrFolder::Folder(f) => f.to_owned(),
                     },
                     position: (index == 0)
                         .then_some(DropPosition::First)
@@ -102,37 +102,22 @@ fn remove(node: &mut NodeMut, method: Method, node_id: &Uuid) -> ControlFlow<Rem
             }
         }
 
-        (Method::Visit, NodeMut::TimingTower(tower)) => {
+        (Method::Visit, StyleItemMut::TimingTower(tower)) => {
             remove_node_from_folder(&mut tower.cells, node_id)
         }
-        (Method::Visit, NodeMut::TimingTowerRow(tower_row)) => {
+        (Method::Visit, StyleItemMut::TimingTowerRow(tower_row)) => {
             remove_node_from_folder(&mut tower_row.columns, node_id)
         }
-        (Method::Visit, NodeMut::FreeCellFolder(folder)) => {
+        (Method::Visit, StyleItemMut::FreeCellFolder(folder)) => {
             remove_node_from_folder(folder, node_id)
         }
 
-        (Method::Visit, NodeMut::Scene(scene)) => {
-            if let Some(index) = scene.components.iter().position(|c| c.id() == node_id) {
-                ControlFlow::Break(RemovedNode {
-                    parent_id: scene.id,
-                    node: scene.components.remove(index).to_node(),
-                    position: (index == 0)
-                        .then_some(DropPosition::First)
-                        .unwrap_or_else(|| {
-                            DropPosition::After(*scene.components.get(index - 1).unwrap().id())
-                        }),
-                })
-            } else {
-                ControlFlow::Continue(())
-            }
-        }
-
-        (Method::Visit, NodeMut::Style(_)) => ControlFlow::Continue(()),
-        (Method::Visit, NodeMut::Variable(_)) => ControlFlow::Continue(()),
-        (Method::Visit, NodeMut::Asset(_)) => ControlFlow::Continue(()),
-        (Method::Visit, NodeMut::FreeCell(_)) => ControlFlow::Continue(()),
-        (Method::Visit, NodeMut::Component(_)) => ControlFlow::Continue(()),
+        (Method::Visit, StyleItemMut::Scene(_)) => ControlFlow::Continue(()),
+        (Method::Visit, StyleItemMut::Style(_)) => ControlFlow::Continue(()),
+        (Method::Visit, StyleItemMut::Variable(_)) => ControlFlow::Continue(()),
+        (Method::Visit, StyleItemMut::Asset(_)) => ControlFlow::Continue(()),
+        (Method::Visit, StyleItemMut::FreeCell(_)) => ControlFlow::Continue(()),
+        (Method::Visit, StyleItemMut::Graphic(_)) => ControlFlow::Continue(()),
         (Method::Leave, _) => ControlFlow::Continue(()),
     }
 }
@@ -145,8 +130,8 @@ fn remove_node_from_folder(
         ControlFlow::Break(RemovedNode {
             parent_id: *folder.id(),
             node: match folder.content.remove(index) {
-                backend::style::cell::FreeCellOrFolder::Cell(t) => t.to_node(),
-                backend::style::cell::FreeCellOrFolder::Folder(f) => f.to_node(),
+                backend::style::cell::FreeCellOrFolder::Cell(t) => t.to_owned(),
+                backend::style::cell::FreeCellOrFolder::Folder(f) => f.to_owned(),
             },
             position: (index == 0)
                 .then_some(DropPosition::First)

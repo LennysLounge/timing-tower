@@ -5,7 +5,7 @@ use crate::value_types::Vec2Property;
 
 use super::{
     cell::{ClipArea, FreeCell, FreeCellFolder},
-    Node, NodeMut, OwnedNode, StyleNode,
+    StyleItemRef, StyleItemMut, OwnedStyleItem, StyleItem,
 };
 
 #[derive(Serialize, Deserialize, Clone, Default)]
@@ -16,18 +16,18 @@ pub struct TimingTower {
     #[serde(default)]
     pub cells: FreeCellFolder,
 }
-impl StyleNode for TimingTower {
+impl StyleItem for TimingTower {
     fn id(&self) -> &Uuid {
         &self.id
     }
-    fn as_node<'a>(&'a self) -> Node<'a> {
-        Node::TimingTower(self)
+    fn as_ref<'a>(&'a self) -> StyleItemRef<'a> {
+        StyleItemRef::TimingTower(self)
     }
-    fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
-        NodeMut::TimingTower(self)
+    fn as_mut<'a>(&'a mut self) -> StyleItemMut<'a> {
+        StyleItemMut::TimingTower(self)
     }
-    fn to_node(self) -> OwnedNode {
-        OwnedNode::TimingTower(self)
+    fn to_owned(self) -> OwnedStyleItem {
+        OwnedStyleItem::TimingTower(self)
     }
 }
 
@@ -43,17 +43,17 @@ impl TimingTowerRow {
         self.columns.contained_cells()
     }
 }
-impl StyleNode for TimingTowerRow {
+impl StyleItem for TimingTowerRow {
     fn id(&self) -> &Uuid {
         &self.id
     }
-    fn as_node<'a>(&'a self) -> Node<'a> {
-        Node::TimingTowerRow(self)
+    fn as_ref<'a>(&'a self) -> StyleItemRef<'a> {
+        StyleItemRef::TimingTowerRow(self)
     }
-    fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
-        NodeMut::TimingTowerRow(self)
+    fn as_mut<'a>(&'a mut self) -> StyleItemMut<'a> {
+        StyleItemMut::TimingTowerRow(self)
     }
-    fn to_node(self) -> OwnedNode {
-        OwnedNode::TimingTowerRow(self)
+    fn to_owned(self) -> OwnedStyleItem {
+        OwnedStyleItem::TimingTowerRow(self)
     }
 }

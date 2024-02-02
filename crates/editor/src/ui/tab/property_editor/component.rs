@@ -3,8 +3,8 @@ use std::ops::ControlFlow;
 use backend::{
     style::{
         cell::FreeCell,
-        component::Component,
-        elements::{Element, FreeClipArea},
+        graphic::Graphic,
+        elements::{GraphicItem, FreeClipArea},
     },
     tree_iterator::{Method, TreeItem, TreeIterator, TreeIteratorMut},
 };
@@ -24,7 +24,7 @@ use crate::{
 
 pub fn component_property_editor(
     ui: &mut Ui,
-    component: &mut Component,
+    component: &mut Graphic,
     secondary_selection: &mut Option<Uuid>,
     _reference_store: &ReferenceStore,
     undo_redo_manager: &mut UndoRedoManager,
@@ -52,17 +52,17 @@ pub fn component_property_editor(
         .show_ui(ui, |ui| {
             if ui.selectable_label(false, "Cell").clicked() {
                 component
-                    .elements
-                    .elements
-                    .push(Element::Cell(FreeCell::new()));
+                    .items
+                    .items
+                    .push(GraphicItem::Cell(FreeCell::new()));
                 edit_result = EditResult::FromId(ui.id());
                 ui.close_menu();
             }
             if ui.selectable_label(false, "Clip Area").clicked() {
                 component
-                    .elements
-                    .elements
-                    .push(Element::ClipArea(FreeClipArea::new()));
+                    .items
+                    .items
+                    .push(GraphicItem::ClipArea(FreeClipArea::new()));
                 edit_result = EditResult::FromId(ui.id());
                 ui.close_menu();
             }
@@ -80,13 +80,13 @@ pub fn component_property_editor(
 fn show_element_tree(
     ui: &mut Ui,
     secondary_selection: &mut Option<Uuid>,
-    component: &mut Component,
+    component: &mut Graphic,
 ) -> EditResult {
     let res = TreeView::new(ui.make_persistent_id("Component element tree"))
         .row_layout(RowLayout::AlignedIcons)
         .show(ui, |mut builder| {
             builder.set_root_id(component.id);
-            component.elements.walk(&mut |element, method| {
+            component.items.walk(&mut |element, method| {
                 element_tree_node(&mut builder, element, method);
                 ControlFlow::Continue::<()>(())
             });
@@ -112,7 +112,7 @@ fn show_element_tree(
 
     enum Command {
         Add {
-            element: Element,
+            element: GraphicItem,
             target: Uuid,
             position: DropPosition<Uuid>,
         },
@@ -122,21 +122,21 @@ fn show_element_tree(
     }
     let mut commands = Vec::new();
     res.context_menu(ui, |ui, node_id| {
-        component.elements.search_mut(node_id, |element| {
+        component.items.search_mut(node_id, |element| {
             if ui.button("delete").clicked() {
                 commands.push(Command::Remove { id: node_id });
                 ui.close_menu();
             }
             let (target, position) = match element {
-                Element::Cell(_) => (
+                GraphicItem::Cell(_) => (
                     res.parent_of(node_id).unwrap_or_default(),
                     DropPosition::After(node_id),
                 ),
-                Element::ClipArea(_) => (node_id, DropPosition::Last),
+                GraphicItem::ClipArea(_) => (node_id, DropPosition::Last),
             };
             if ui.button("add cell").clicked() {
                 commands.push(Command::Add {
-                    element: Element::Cell(FreeCell::new()),
+                    element: GraphicItem::Cell(FreeCell::new()),
                     target,
                     position,
                 });
@@ -144,7 +144,7 @@ fn show_element_tree(
             }
             if ui.button("add clip area").clicked() {
                 commands.push(Command::Add {
-                    element: Element::ClipArea(FreeClipArea::new()),
+                    element: GraphicItem::ClipArea(FreeClipArea::new()),
                     target,
                     position,
                 });
@@ -174,9 +174,9 @@ fn show_element_tree(
     edit_result
 }
 
-fn element_tree_node(builder: &mut TreeViewBuilder<Uuid>, element: &Element, method: Method) {
+fn element_tree_node(builder: &mut TreeViewBuilder<Uuid>, element: &GraphicItem, method: Method) {
     match (method, element) {
-        (Method::Visit, Element::Cell(cell)) => {
+        (Method::Visit, GraphicItem::Cell(cell)) => {
             builder.node(
                 NodeBuilder::leaf(cell.id).icon(|ui| {
                     egui::Image::new(egui::include_image!("../../../../images/article.png"))
@@ -191,8 +191,8 @@ fn element_tree_node(builder: &mut TreeViewBuilder<Uuid>, element: &Element, met
                 },
             );
         }
-        (Method::Leave, Element::Cell(_)) => (),
-        (Method::Visit, Element::ClipArea(clip_area)) => {
+        (Method::Leave, GraphicItem::Cell(_)) => (),
+        (Method::Visit, GraphicItem::ClipArea(clip_area)) => {
             builder.node(
                 NodeBuilder::dir(clip_area.id).icon(|ui| {
                     egui::Image::new(egui::include_image!("../../../../images/array.png"))
@@ -208,28 +208,28 @@ fn element_tree_node(builder: &mut TreeViewBuilder<Uuid>, element: &Element, met
                 },
             );
         }
-        (Method::Leave, Element::ClipArea(_)) => {
+        (Method::Leave, GraphicItem::ClipArea(_)) => {
             builder.close_dir();
         }
     }
 }
 
-fn remove_element(component: &mut Component, id: Uuid) -> Option<Element> {
+fn remove_element(component: &mut Graphic, id: Uuid) -> Option<GraphicItem> {
     if let Some(index) = component
-        .elements
-        .elements
+        .items
+        .items
         .iter()
         .position(|e| e.id() == id)
     {
-        return Some(component.elements.elements.remove(index));
+        return Some(component.items.items.remove(index));
     }
-    let r = component.elements.walk_mut(&mut |e, method| {
+    let r = component.items.walk_mut(&mut |e, method| {
         if method != Method::Visit {
             return ControlFlow::Continue(());
         }
         match e {
-            Element::Cell(_) => ControlFlow::Continue(()),
-            Element::ClipArea(clip_area) => {
+            GraphicItem::Cell(_) => ControlFlow::Continue(()),
+            GraphicItem::ClipArea(clip_area) => {
                 if let Some(index) = clip_area.elements.iter().position(|e| e.id() == id) {
                     ControlFlow::Break(Some(clip_area.elements.remove(index)))
                 } else {
@@ -245,24 +245,24 @@ fn remove_element(component: &mut Component, id: Uuid) -> Option<Element> {
 }
 
 fn insert_element(
-    component: &mut Component,
+    component: &mut Graphic,
     target: Uuid,
     position: DropPosition<Uuid>,
-    element: Element,
+    element: GraphicItem,
 ) {
     if target == component.id {
-        insert_into_vec(&mut component.elements.elements, position, element);
+        insert_into_vec(&mut component.items.items, position, element);
     } else {
-        component.elements.search_mut(target, |e| match e {
-            Element::Cell(_) => (),
-            Element::ClipArea(clip_area) => {
+        component.items.search_mut(target, |e| match e {
+            GraphicItem::Cell(_) => (),
+            GraphicItem::ClipArea(clip_area) => {
                 insert_into_vec(&mut clip_area.elements, position, element);
             }
         });
     }
 }
 
-fn insert_into_vec(vec: &mut Vec<Element>, position: DropPosition<Uuid>, element: Element) {
+fn insert_into_vec(vec: &mut Vec<GraphicItem>, position: DropPosition<Uuid>, element: GraphicItem) {
     match position {
         DropPosition::First => vec.insert(0, element),
         DropPosition::Last => vec.push(element),

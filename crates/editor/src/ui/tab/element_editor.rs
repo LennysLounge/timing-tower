@@ -1,5 +1,5 @@
 use backend::{
-    style::{elements::Element, NodeMut, StyleDefinition, StyleNode},
+    style::{elements::GraphicItem, StyleItemMut, StyleDefinition, StyleItem},
     tree_iterator::TreeIteratorMut,
 };
 use bevy_egui::egui::Ui;
@@ -31,10 +31,10 @@ pub fn element_editor(
     let Some(secondary_selection) = secondary_selection else {
         return;
     };
-    style.as_node_mut().search_mut(*selection, |node| {
-        if let NodeMut::Component(component) = node {
+    style.as_mut().search_mut(*selection, |node| {
+        if let StyleItemMut::Graphic(component) = node {
             let edit_result = component
-                .elements
+                .items
                 .search_mut(*secondary_selection, |element| {
                     editor(ui, element, reference_store)
                 });
@@ -49,9 +49,9 @@ pub fn element_editor(
     });
 }
 
-fn editor(ui: &mut Ui, element: &mut Element, reference_store: &ReferenceStore) -> EditResult {
+fn editor(ui: &mut Ui, element: &mut GraphicItem, reference_store: &ReferenceStore) -> EditResult {
     match element {
-        Element::Cell(cell) => {
+        GraphicItem::Cell(cell) => {
             let mut edit_result = EditResult::None;
 
             ui.label("Name:");
@@ -60,7 +60,7 @@ fn editor(ui: &mut Ui, element: &mut Element, reference_store: &ReferenceStore) 
             edit_result |= cell::cell_property_editor(ui, &mut cell.cell, reference_store).into();
             edit_result
         }
-        Element::ClipArea(clip_area) => {
+        GraphicItem::ClipArea(clip_area) => {
             let mut edit_result = EditResult::None;
 
             ui.label("Name:");

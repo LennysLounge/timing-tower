@@ -8,7 +8,7 @@ use backend::{
         self,
         cell::{FreeCellFolder, FreeCellOrFolder},
         variables::VariableOrFolder,
-        NodeMut, OwnedNode, StyleDefinition, StyleNode,
+        OwnedStyleItem, StyleDefinition, StyleItem, StyleItemMut,
     },
     tree_iterator::{TreeItem, TreeIteratorMut},
 };
@@ -18,12 +18,12 @@ use super::{remove_node::remove_node, EditorCommand};
 pub struct InsertNode {
     pub target_node: Uuid,
     pub position: DropPosition<Uuid>,
-    pub node: OwnedNode,
+    pub node: OwnedStyleItem,
 }
 impl InsertNode {
     pub fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
         let id = self.node.id();
-        style.as_node_mut().search_mut(self.target_node, |node| {
+        style.as_mut().search_mut(self.target_node, |node| {
             insert(node, self.position, self.node)
         });
         Some(InsertNodeUndo { id }.into())
@@ -41,7 +41,7 @@ pub struct InsertNodeUndo {
 }
 impl InsertNodeUndo {
     pub fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
-        remove_node(&self.id, &mut style.as_node_mut()).map(|removed_node| {
+        remove_node(&self.id, &mut style.as_mut()).map(|removed_node| {
             InsertNode {
                 target_node: removed_node.parent_id,
                 position: removed_node.position,
@@ -58,15 +58,15 @@ impl From<InsertNodeUndo> for EditorCommand {
 }
 
 pub fn insert(
-    node: &mut NodeMut,
+    node: &mut StyleItemMut,
     position: DropPosition<Uuid>,
-    insert: OwnedNode,
+    insert: OwnedStyleItem,
 ) -> ControlFlow<()> {
     match node {
-        NodeMut::AssetFolder(folder) => {
+        StyleItemMut::AssetFolder(folder) => {
             let folder_or_asset = match insert {
-                OwnedNode::Asset(asset) => style::assets::AssetOrFolder::Asset(asset),
-                OwnedNode::AssetFolder(folder) => style::assets::AssetOrFolder::Folder(folder),
+                OwnedStyleItem::Asset(asset) => style::assets::AssetOrFolder::Asset(asset),
+                OwnedStyleItem::AssetFolder(folder) => style::assets::AssetOrFolder::Folder(folder),
                 _ => unreachable!("No other types are allowed to be inserted"),
             };
             match &position {
@@ -85,10 +85,10 @@ pub fn insert(
             }
             ControlFlow::Break(())
         }
-        NodeMut::VariableFolder(folder) => {
+        StyleItemMut::VariableFolder(folder) => {
             let folder_or_asset = match insert {
-                OwnedNode::Variable(asset) => VariableOrFolder::Variable(asset),
-                OwnedNode::VariableFolder(folder) => VariableOrFolder::Folder(folder),
+                OwnedStyleItem::Variable(asset) => VariableOrFolder::Variable(asset),
+                OwnedStyleItem::VariableFolder(folder) => VariableOrFolder::Folder(folder),
                 _ => unreachable!("No other types are allowed to be inserted"),
             };
             match &position {
@@ -108,57 +108,36 @@ pub fn insert(
             ControlFlow::Break(())
         }
 
-        NodeMut::TimingTower(tower) => {
+        StyleItemMut::TimingTower(tower) => {
             insert_into_free_cell_folder(&mut tower.cells, position, insert);
             ControlFlow::Break(())
         }
-        NodeMut::TimingTowerRow(tower_row) => {
+        StyleItemMut::TimingTowerRow(tower_row) => {
             insert_into_free_cell_folder(&mut tower_row.columns, position, insert);
             ControlFlow::Break(())
         }
-        NodeMut::FreeCellFolder(folder) => {
+        StyleItemMut::FreeCellFolder(folder) => {
             insert_into_free_cell_folder(folder, position, insert);
             ControlFlow::Break(())
         }
 
-        NodeMut::Scene(scene) => {
-            let OwnedNode::Component(component) = insert else {
-                unreachable!("No other types are allowed to be inserted");
-            };
-            match &position {
-                DropPosition::First => scene.components.insert(0, component),
-                DropPosition::Last => scene.components.push(component),
-                DropPosition::After(id) => {
-                    if let Some(index) = scene.components.iter().position(|c| c.id() == id) {
-                        scene.components.insert(index + 1, component);
-                    }
-                }
-                DropPosition::Before(id) => {
-                    if let Some(index) = scene.components.iter().position(|c| c.id() == id) {
-                        scene.components.insert(index, component);
-                    }
-                }
-            }
-
-            ControlFlow::Break(())
-        }
-
-        NodeMut::Style(_) => ControlFlow::Continue(()),
-        NodeMut::Variable(_) => ControlFlow::Continue(()),
-        NodeMut::Asset(_) => ControlFlow::Continue(()),
-        NodeMut::FreeCell(_) => ControlFlow::Continue(()),
-        NodeMut::Component(_) => ControlFlow::Continue(()),
+        StyleItemMut::Scene(_) => ControlFlow::Continue(()),
+        StyleItemMut::Style(_) => ControlFlow::Continue(()),
+        StyleItemMut::Variable(_) => ControlFlow::Continue(()),
+        StyleItemMut::Asset(_) => ControlFlow::Continue(()),
+        StyleItemMut::FreeCell(_) => ControlFlow::Continue(()),
+        StyleItemMut::Graphic(_) => ControlFlow::Continue(()),
     }
 }
 
 fn insert_into_free_cell_folder(
     folder: &mut FreeCellFolder,
     position: DropPosition<Uuid>,
-    insert: OwnedNode,
+    insert: OwnedStyleItem,
 ) {
     let column_or_folder = match insert {
-        OwnedNode::FreeCellFolder(folder) => FreeCellOrFolder::Folder(folder),
-        OwnedNode::FreeCell(cell) => FreeCellOrFolder::Cell(cell),
+        OwnedStyleItem::FreeCellFolder(folder) => FreeCellOrFolder::Folder(folder),
+        OwnedStyleItem::FreeCell(cell) => FreeCellOrFolder::Cell(cell),
         _ => unreachable!("No other types are allowed to be inserted"),
     };
 

@@ -6,7 +6,7 @@ use crate::value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, V
 
 use self::{condition::Condition, fixed_value::FixedValue, map::Map};
 
-use super::{Node, NodeMut, OwnedNode, StyleNode};
+use super::{StyleItemRef, StyleItemMut, OwnedStyleItem, StyleItem};
 
 pub mod condition;
 pub mod fixed_value;
@@ -47,18 +47,18 @@ impl IntoValueProducer for VariableDefinition {
         (self.id, producer)
     }
 }
-impl StyleNode for VariableDefinition {
+impl StyleItem for VariableDefinition {
     fn id(&self) -> &Uuid {
         &self.id
     }
-    fn as_node<'a>(&'a self) -> Node<'a> {
-        Node::Variable(self)
+    fn as_ref<'a>(&'a self) -> StyleItemRef<'a> {
+        StyleItemRef::Variable(self)
     }
-    fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
-        NodeMut::Variable(self)
+    fn as_mut<'a>(&'a mut self) -> StyleItemMut<'a> {
+        StyleItemMut::Variable(self)
     }
-    fn to_node(self) -> OwnedNode {
-        OwnedNode::Variable(self)
+    fn to_owned(self) -> OwnedStyleItem {
+        OwnedStyleItem::Variable(self)
     }
 }
 
@@ -96,19 +96,19 @@ impl VariableFolder {
             .collect()
     }
 }
-impl StyleNode for VariableFolder {
+impl StyleItem for VariableFolder {
     fn id(&self) -> &Uuid {
         &self.id
     }
 
-    fn as_node<'a>(&'a self) -> Node<'a> {
-        Node::VariableFolder(self)
+    fn as_ref<'a>(&'a self) -> StyleItemRef<'a> {
+        StyleItemRef::VariableFolder(self)
     }
-    fn as_node_mut<'a>(&'a mut self) -> NodeMut<'a> {
-        NodeMut::VariableFolder(self)
+    fn as_mut<'a>(&'a mut self) -> StyleItemMut<'a> {
+        StyleItemMut::VariableFolder(self)
     }
-    fn to_node(self) -> OwnedNode {
-        OwnedNode::VariableFolder(self)
+    fn to_owned(self) -> OwnedStyleItem {
+        OwnedStyleItem::VariableFolder(self)
     }
 }
 

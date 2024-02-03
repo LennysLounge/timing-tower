@@ -9,7 +9,7 @@ use bevy::{
         system::{Commands, Local, Query, Res, ResMut},
     },
     hierarchy::DespawnRecursiveExt,
-    math::{vec2, Vec2, Vec3},
+    math::{vec2, vec3, Vec2, Vec3},
     render::color::Color,
     utils::hashbrown::HashSet,
 };
@@ -101,14 +101,27 @@ fn update_graphics(
     for graphic in graphics.iter_mut() {
         savefile.style().as_ref().search(graphic.id, |item| {
             if let StyleItemRef::Graphic(graphic) = item {
-                let resolver = StyleResolver::new(&*value_store, session);
-                update_graphic_items(
-                    &graphic.items.items,
-                    &mut batcher,
-                    &mut graphic_item_data,
-                    resolver,
-                    &*model,
-                );
+                let mut resolver = StyleResolver::new(&*value_store, session);
+                resolver.set_position(vec3(
+                    resolver
+                        .property(&graphic.items.position.x)
+                        .unwrap_or_default()
+                        .0,
+                    -resolver
+                        .property(&graphic.items.position.y)
+                        .unwrap_or_default()
+                        .0,
+                    0.0,
+                ));
+                graphic.items.items.iter().for_each(|item| {
+                    update_graphic_item(
+                        item,
+                        &mut *batcher,
+                        &mut *graphic_item_data,
+                        &resolver,
+                        &*model,
+                    );
+                });
             }
         });
     }
@@ -120,28 +133,26 @@ fn update_graphics(
         .for_each(|data| data.updated = false);
 }
 
-fn update_graphic_items(
-    items: &Vec<GraphicItem>,
+fn update_graphic_item(
+    item: &GraphicItem,
     batcher: &mut StyleBatcher,
     graphic_item_data: &mut HashMap<Uuid, GraphicItemData>,
-    style_resolver: StyleResolver,
+    style_resolver: &StyleResolver,
     _model: &Model,
 ) {
-    for graphic_item in items.iter() {
-        match graphic_item {
-            style::elements::GraphicItem::Cell(cell) => {
-                let data = graphic_item_data
-                    .entry(cell.id)
-                    .or_insert_with(|| GraphicItemData {
-                        cell_id: CellId::new(),
-                        updated: false,
-                    });
+    match item {
+        style::elements::GraphicItem::Cell(cell) => {
+            let data = graphic_item_data
+                .entry(cell.id)
+                .or_insert_with(|| GraphicItemData {
+                    cell_id: CellId::new(),
+                    updated: false,
+                });
 
-                batcher.add(&data.cell_id, style_resolver.cell(&cell.cell));
-                data.updated = true;
-            }
-            style::elements::GraphicItem::ClipArea(_) => (),
+            batcher.add(&data.cell_id, style_resolver.cell(&cell.cell));
+            data.updated = true;
         }
+        style::elements::GraphicItem::ClipArea(_) => (),
     }
 }
 
@@ -161,6 +172,10 @@ impl<'a> StyleResolver<'a> {
             position: Vec3::ZERO,
             render_layer: 0,
         }
+    }
+
+    fn set_position(&mut self, position: Vec3) {
+        self.position = position;
     }
 
     fn property<T>(&self, property: &Property<T>) -> Option<T>

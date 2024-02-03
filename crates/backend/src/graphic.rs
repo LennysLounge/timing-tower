@@ -65,6 +65,23 @@ enum GraphicItemData {
         scroll_position: f32,
     },
 }
+impl GraphicItemData {
+    fn was_updated(&self) -> bool {
+        match self {
+            GraphicItemData::Cell { updated, .. } => *updated,
+            GraphicItemData::ClipArea { updated, .. } => *updated,
+            GraphicItemData::DriverTable { updated, .. } => *updated,
+        }
+    }
+
+    fn reset_update(&mut self) {
+        match self {
+            GraphicItemData::Cell { updated, .. } => *updated = false,
+            GraphicItemData::ClipArea { updated, .. } => *updated = false,
+            GraphicItemData::DriverTable { updated, .. } => *updated = false,
+        }
+    }
+}
 
 fn spawn_or_delete_graphics(
     mut commands: Commands,
@@ -138,6 +155,7 @@ fn update_graphics(
     }
 
     // Remove stale data
+    remove_stale_items(&mut graphic_item_data);
     // graphic_item_data.retain(|_, data| data.updated);
     // graphic_item_data
     //     .values_mut()
@@ -243,8 +261,7 @@ fn update_graphic_item(
                     let new_resolver = resolver
                         .clone()
                         .with_position(
-                            resolver.position
-                                - row_offset * *scroll_position
+                            resolver.position - row_offset * *scroll_position
                                 + row_offset * index as f32,
                         )
                         .with_entry(entry);
@@ -255,6 +272,22 @@ fn update_graphic_item(
                 }
             }
         }
+    }
+}
+
+fn remove_stale_items(graphic_item_data: &mut HashMap<Uuid, GraphicItemData>) {
+    graphic_item_data.retain(|_, d| d.was_updated());
+    for data in graphic_item_data.values_mut() {
+        match data {
+            GraphicItemData::Cell { .. } => (),
+            GraphicItemData::ClipArea { data, .. } => {
+                remove_stale_items(data);
+            }
+            GraphicItemData::DriverTable { rows, .. } => {
+                rows.values_mut().for_each(|row| remove_stale_items(row));
+            }
+        }
+        data.reset_update();
     }
 }
 

@@ -273,6 +273,19 @@
               "blue": 0.0,
               "alpha": 0.6904762
             }
+          },
+          {
+            "element_type": "Variable",
+            "id": "82c2beb4-6524-42c9-afb7-f9fdda17f21f",
+            "name": "Green Flag",
+            "behavior": "FixedValue",
+            "output_type": "Tint",
+            "Rgba": {
+              "red": 0.10651037,
+              "green": 0.48264638,
+              "blue": 0.07124781,
+              "alpha": 1.0
+            }
           }
         ]
       },
@@ -1050,22 +1063,21 @@
     "content": [
       {
         "element_type": "Graphic",
-        "id": "032f8808-fe8e-48de-9c5c-91f4504dfe21",
-        "name": "Timing Tower",
+        "id": "42bf7ac6-3075-47fa-a0d8-96325a625b6b",
+        "name": "Clock",
         "items": {
-          "id": "970bc518-aba2-41ff-ae2c-9c962c71f2df",
           "items": [
             {
               "Cell": {
-                "id": "91a1e256-8d9d-4798-b090-8ad4a08dc4ef",
-                "name": "Heading",
+                "id": "b0a00c09-17a2-4976-bbb2-aebf113e390d",
+                "name": "Background",
                 "cell": {
-                  "text": "Column",
+                  "text": "",
                   "text_color": {
                     "Rgba": {
-                      "red": 0.0,
-                      "green": 0.0,
-                      "blue": 0.0,
+                      "red": 1.0,
+                      "green": 1.0,
+                      "blue": 1.0,
                       "alpha": 1.0
                     }
                   },
@@ -1073,21 +1085,84 @@
                   "font": "Default",
                   "color": {
                     "Rgba": {
-                      "red": 0.49999976,
+                      "red": 0.0,
                       "green": 0.0,
-                      "blue": 0.5,
-                      "alpha": 1.0
+                      "blue": 0.0,
+                      "alpha": 0.9238095
                     }
                   },
                   "image": "None",
                   "pos": {
-                    "x": 10.0,
-                    "y": 10.0,
+                    "x": 0.0,
+                    "y": 0.0,
                     "z": 0.0
                   },
                   "size": {
-                    "x": 30.0,
-                    "y": 30.0
+                    "x": 310.0,
+                    "y": 36.0
+                  },
+                  "skew": 0.0,
+                  "corner_offsets": {
+                    "top_left": {
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "top_right": {
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "bot_left": {
+                      "x": 18.0,
+                      "y": 0.0
+                    },
+                    "bot_right": {
+                      "x": -18.0,
+                      "y": 0.0
+                    }
+                  },
+                  "visible": true,
+                  "rounding": {
+                    "top_left": 0.0,
+                    "top_right": 0.0,
+                    "bot_left": 11.0,
+                    "bot_right": 11.0
+                  },
+                  "text_alginment": "Left",
+                  "text_position": {
+                    "x": 5.0,
+                    "y": 15.0
+                  }
+                }
+              }
+            },
+            {
+              "Cell": {
+                "id": "53b8ee9f-f768-4314-ba72-b5c05d2b47ed",
+                "name": "Flag 1",
+                "cell": {
+                  "text": "",
+                  "text_color": {
+                    "Rgba": {
+                      "red": 1.0,
+                      "green": 1.0,
+                      "blue": 1.0,
+                      "alpha": 1.0
+                    }
+                  },
+                  "text_size": 20.0,
+                  "font": "Default",
+                  "color": {
+                    "ValueRef": "82c2beb4-6524-42c9-afb7-f9fdda17f21f"
+                  },
+                  "image": "None",
+                  "pos": {
+                    "x": 112.0,
+                    "y": 2.0,
+                    "z": 0.0
+                  },
+                  "size": {
+                    "x": 9.0,
+                    "y": 32.0
                   },
                   "skew": 0.0,
                   "corner_offsets": {
@@ -1124,13 +1199,96 @@
               }
             },
             {
-              "ClipArea": {
-                "id": "e1f8321a-dba9-49e8-845d-aac53e0b5516",
-                "name": "Clip area",
-                "clip_area": {
+              "Cell": {
+                "id": "113db4ad-0d84-41f0-898b-634a90af4c3c",
+                "name": "Flag 2",
+                "cell": {
+                  "text": "",
+                  "text_color": {
+                    "Rgba": {
+                      "red": 1.0,
+                      "green": 1.0,
+                      "blue": 1.0,
+                      "alpha": 1.0
+                    }
+                  },
+                  "text_size": 20.0,
+                  "font": "Default",
+                  "color": {
+                    "ValueRef": "82c2beb4-6524-42c9-afb7-f9fdda17f21f"
+                  },
+                  "image": "None",
                   "pos": {
-                    "x": 0.0,
-                    "y": 0.0,
+                    "x": 171.0,
+                    "y": 2.0,
+                    "z": 0.0
+                  },
+                  "size": {
+                    "x": 9.0,
+                    "y": 32.0
+                  },
+                  "skew": 0.0,
+                  "corner_offsets": {
+                    "top_left": {
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "top_right": {
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "bot_left": {
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "bot_right": {
+                      "x": 0.0,
+                      "y": 0.0
+                    }
+                  },
+                  "visible": true,
+                  "rounding": {
+                    "top_left": 0.0,
+                    "top_right": 0.0,
+                    "bot_left": 0.0,
+                    "bot_right": 0.0
+                  },
+                  "text_alginment": "Left",
+                  "text_position": {
+                    "x": 5.0,
+                    "y": 15.0
+                  }
+                }
+              }
+            },
+            {
+              "Cell": {
+                "id": "96d59867-87cd-47ca-a675-733f3bb71326",
+                "name": "Race",
+                "cell": {
+                  "text": "RACE",
+                  "text_color": {
+                    "Rgba": {
+                      "red": 0.8549927,
+                      "green": 0.8549927,
+                      "blue": 0.8549927,
+                      "alpha": 1.0
+                    }
+                  },
+                  "text_size": 20.0,
+                  "font": "Default",
+                  "color": {
+                    "Rgba": {
+                      "red": 0.0,
+                      "green": 0.0,
+                      "blue": 0.0,
+                      "alpha": 0.0
+                    }
+                  },
+                  "image": "None",
+                  "pos": {
+                    "x": 145.0,
+                    "y": 18.0,
                     "z": 0.0
                   },
                   "size": {
@@ -1138,158 +1296,251 @@
                     "y": 100.0
                   },
                   "skew": 0.0,
+                  "corner_offsets": {
+                    "top_left": {
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "top_right": {
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "bot_left": {
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "bot_right": {
+                      "x": 0.0,
+                      "y": 0.0
+                    }
+                  },
+                  "visible": true,
                   "rounding": {
                     "top_left": 0.0,
                     "top_right": 0.0,
                     "bot_left": 0.0,
                     "bot_right": 0.0
                   },
-                  "render_layer": 0
-                },
-                "items": [
-                  {
-                    "Cell": {
-                      "id": "e2dcb2ca-185a-4766-b5d2-bd394b851c99",
-                      "name": "First",
-                      "cell": {
-                        "text": "Column",
-                        "text_color": {
-                          "Rgba": {
-                            "red": 0.0,
-                            "green": 0.0,
-                            "blue": 0.0,
-                            "alpha": 1.0
-                          }
-                        },
-                        "text_size": 20.0,
-                        "font": "Default",
-                        "color": {
-                          "Rgba": {
-                            "red": 0.49999976,
-                            "green": 0.0,
-                            "blue": 0.5,
-                            "alpha": 1.0
-                          }
-                        },
-                        "image": "None",
-                        "pos": {
-                          "x": 10.0,
-                          "y": 10.0,
-                          "z": 0.0
-                        },
-                        "size": {
-                          "x": 30.0,
-                          "y": 30.0
-                        },
-                        "skew": 0.0,
-                        "corner_offsets": {
-                          "top_left": {
-                            "x": 0.0,
-                            "y": 0.0
-                          },
-                          "top_right": {
-                            "x": 0.0,
-                            "y": 0.0
-                          },
-                          "bot_left": {
-                            "x": 0.0,
-                            "y": 0.0
-                          },
-                          "bot_right": {
-                            "x": 0.0,
-                            "y": 0.0
-                          }
-                        },
-                        "visible": true,
-                        "rounding": {
-                          "top_left": 0.0,
-                          "top_right": 0.0,
-                          "bot_left": 0.0,
-                          "bot_right": 0.0
-                        },
-                        "text_alginment": "Left",
-                        "text_position": {
-                          "x": 5.0,
-                          "y": 15.0
-                        }
-                      }
+                  "text_alginment": "Center",
+                  "text_position": {
+                    "x": 0.0,
+                    "y": 0.0
+                  }
+                }
+              }
+            },
+            {
+              "Cell": {
+                "id": "02df8524-4f32-436d-a88c-fe8ff2a56df2",
+                "name": "Time remaining",
+                "cell": {
+                  "text": "14:36",
+                  "text_color": {
+                    "Rgba": {
+                      "red": 1.0,
+                      "green": 1.0,
+                      "blue": 1.0,
+                      "alpha": 1.0
                     }
                   },
-                  {
-                    "Cell": {
-                      "id": "77fd9838-8ce5-4cb5-8c67-6a880d3d1576",
-                      "name": "Second",
-                      "cell": {
-                        "text": "Column",
-                        "text_color": {
-                          "Rgba": {
-                            "red": 0.0,
-                            "green": 0.0,
-                            "blue": 0.0,
-                            "alpha": 1.0
-                          }
-                        },
-                        "text_size": 20.0,
-                        "font": "Default",
-                        "color": {
-                          "Rgba": {
-                            "red": 0.49999976,
-                            "green": 0.0,
-                            "blue": 0.5,
-                            "alpha": 1.0
-                          }
-                        },
-                        "image": "None",
-                        "pos": {
-                          "x": 10.0,
-                          "y": 10.0,
-                          "z": 0.0
-                        },
-                        "size": {
-                          "x": 30.0,
-                          "y": 30.0
-                        },
-                        "skew": 0.0,
-                        "corner_offsets": {
-                          "top_left": {
-                            "x": 0.0,
-                            "y": 0.0
-                          },
-                          "top_right": {
-                            "x": 0.0,
-                            "y": 0.0
-                          },
-                          "bot_left": {
-                            "x": 0.0,
-                            "y": 0.0
-                          },
-                          "bot_right": {
-                            "x": 0.0,
-                            "y": 0.0
-                          }
-                        },
-                        "visible": true,
-                        "rounding": {
-                          "top_left": 0.0,
-                          "top_right": 0.0,
-                          "bot_left": 0.0,
-                          "bot_right": 0.0
-                        },
-                        "text_alginment": "Left",
-                        "text_position": {
-                          "x": 5.0,
-                          "y": 15.0
-                        }
-                      }
+                  "text_size": 28.0,
+                  "font": {
+                    "ValueRef": "28fc93a6-a776-4b91-b0f1-89e09f4a771f"
+                  },
+                  "color": {
+                    "Rgba": {
+                      "red": 0.0,
+                      "green": 0.0,
+                      "blue": 0.0,
+                      "alpha": 0.0
                     }
+                  },
+                  "image": "None",
+                  "pos": {
+                    "x": 106.0,
+                    "y": 18.0,
+                    "z": 0.0
+                  },
+                  "size": {
+                    "x": 100.0,
+                    "y": 100.0
+                  },
+                  "skew": 0.0,
+                  "corner_offsets": {
+                    "top_left": {
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "top_right": {
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "bot_left": {
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "bot_right": {
+                      "x": 0.0,
+                      "y": 0.0
+                    }
+                  },
+                  "visible": true,
+                  "rounding": {
+                    "top_left": 0.0,
+                    "top_right": 0.0,
+                    "bot_left": 0.0,
+                    "bot_right": 0.0
+                  },
+                  "text_alginment": "Right",
+                  "text_position": {
+                    "x": 0.0,
+                    "y": 0.0
                   }
-                ]
+                }
+              }
+            },
+            {
+              "Cell": {
+                "id": "28502815-8931-4deb-8789-246b78776ae6",
+                "name": "Local time",
+                "cell": {
+                  "text": "2:07",
+                  "text_color": {
+                    "Rgba": {
+                      "red": 1.0,
+                      "green": 1.0,
+                      "blue": 1.0,
+                      "alpha": 1.0
+                    }
+                  },
+                  "text_size": 28.0,
+                  "font": {
+                    "ValueRef": "28fc93a6-a776-4b91-b0f1-89e09f4a771f"
+                  },
+                  "color": {
+                    "Rgba": {
+                      "red": 0.0,
+                      "green": 0.0,
+                      "blue": 0.0,
+                      "alpha": 0.0
+                    }
+                  },
+                  "image": "None",
+                  "pos": {
+                    "x": 183.0,
+                    "y": 18.0,
+                    "z": 0.0
+                  },
+                  "size": {
+                    "x": 100.0,
+                    "y": 100.0
+                  },
+                  "skew": 0.0,
+                  "corner_offsets": {
+                    "top_left": {
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "top_right": {
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "bot_left": {
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "bot_right": {
+                      "x": 0.0,
+                      "y": 0.0
+                    }
+                  },
+                  "visible": true,
+                  "rounding": {
+                    "top_left": 0.0,
+                    "top_right": 0.0,
+                    "bot_left": 0.0,
+                    "bot_right": 0.0
+                  },
+                  "text_alginment": "Left",
+                  "text_position": {
+                    "x": 0.0,
+                    "y": 0.0
+                  }
+                }
+              }
+            },
+            {
+              "Cell": {
+                "id": "9bdc59d3-221d-4c81-b1e0-ce9cd86cf824",
+                "name": "Am/Pm",
+                "cell": {
+                  "text": "PM",
+                  "text_color": {
+                    "Rgba": {
+                      "red": 0.8549927,
+                      "green": 0.8549927,
+                      "blue": 0.8549927,
+                      "alpha": 1.0
+                    }
+                  },
+                  "text_size": 20.0,
+                  "font": "Default",
+                  "color": {
+                    "Rgba": {
+                      "red": 0.0,
+                      "green": 0.0,
+                      "blue": 0.0,
+                      "alpha": 0.0
+                    }
+                  },
+                  "image": "None",
+                  "pos": {
+                    "x": 240.0,
+                    "y": 17.0,
+                    "z": 0.0
+                  },
+                  "size": {
+                    "x": 100.0,
+                    "y": 100.0
+                  },
+                  "skew": 0.0,
+                  "corner_offsets": {
+                    "top_left": {
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "top_right": {
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "bot_left": {
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "bot_right": {
+                      "x": 0.0,
+                      "y": 0.0
+                    }
+                  },
+                  "visible": true,
+                  "rounding": {
+                    "top_left": 0.0,
+                    "top_right": 0.0,
+                    "bot_left": 0.0,
+                    "bot_right": 0.0
+                  },
+                  "text_alginment": "Left",
+                  "text_position": {
+                    "x": 0.0,
+                    "y": 0.0
+                  }
+                }
               }
             }
           ],
           "position": {
-            "x": 0.0,
-            "y": 0.0
+            "x": 805.0,
+            "y": 37.0
           }
         }
       }

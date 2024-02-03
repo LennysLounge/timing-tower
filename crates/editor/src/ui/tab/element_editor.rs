@@ -4,7 +4,7 @@ use backend::{
     },
     tree_iterator::TreeIteratorMut,
 };
-use bevy_egui::egui::Ui;
+use bevy_egui::egui::{ScrollArea, Ui};
 use unified_sim_model::Adapter;
 use uuid::Uuid;
 
@@ -33,24 +33,32 @@ pub fn element_editor(
     let Some(secondary_selection) = secondary_selection else {
         return;
     };
-    style.as_mut().search_mut(*selection, |node| {
-        if let StyleItemMut::Graphic(graphic) = node {
-            let mut edit_result = EditResult::None;
-            if *secondary_selection == graphic.id {
-                edit_result |= graphic_editor(ui, graphic, reference_store);
-            } else {
-                edit_result |= graphic
-                    .items
-                    .search_mut(*secondary_selection, |element| {
-                        editor(ui, element, reference_store)
-                    })
-                    .unwrap_or(EditResult::None);
-            }
-            if let EditResult::FromId(widget_id) = edit_result {
-                undo_redo_manager.queue(EditProperty::new(graphic.id, graphic.clone(), widget_id));
-            }
-        }
-    });
+    ScrollArea::vertical()
+        .auto_shrink([false, false])
+        .show(ui, |ui| {
+            style.as_mut().search_mut(*selection, |node| {
+                if let StyleItemMut::Graphic(graphic) = node {
+                    let mut edit_result = EditResult::None;
+                    if *secondary_selection == graphic.id {
+                        edit_result |= graphic_editor(ui, graphic, reference_store);
+                    } else {
+                        edit_result |= graphic
+                            .items
+                            .search_mut(*secondary_selection, |element| {
+                                editor(ui, element, reference_store)
+                            })
+                            .unwrap_or(EditResult::None);
+                    }
+                    if let EditResult::FromId(widget_id) = edit_result {
+                        undo_redo_manager.queue(EditProperty::new(
+                            graphic.id,
+                            graphic.clone(),
+                            widget_id,
+                        ));
+                    }
+                }
+            });
+        });
 }
 
 fn graphic_editor(

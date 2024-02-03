@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{cmp::max, collections::HashMap};
 
 use bevy::{
     core_pipeline::clear_color::ClearColorConfig,
@@ -86,8 +86,8 @@ impl CellManager {
 
                     if let Some(image) = images.get_mut(texture.id()) {
                         image.resize(Extent3d {
-                            width: style.size.x as u32,
-                            height: style.size.y as u32,
+                            width: max(style.size.x as u32, 1),
+                            height: max(style.size.y as u32, 1),
                             ..Default::default()
                         });
                     }

@@ -7,7 +7,7 @@ use crate::value_types::{
     Boolean, Font, Number, Property, Text, Texture, Tint, Vec2Property, Vec3Property,
 };
 
-use super::{StyleItemRef, StyleItemMut, OwnedStyleItem, StyleItem};
+use super::{OwnedStyleItem, StyleItem, StyleItemMut, StyleItemRef};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Cell {
@@ -30,19 +30,19 @@ pub struct Cell {
 impl Default for Cell {
     fn default() -> Self {
         Self {
-            text: Property::Fixed(Text("Column".to_string())),
-            text_color: Property::Fixed(Tint(Color::BLACK)),
+            text: Property::Fixed(Text("Cell".to_string())),
+            text_color: Property::Fixed(Tint(Color::WHITE)),
             text_size: Property::Fixed(Number(20.0)),
             font: Property::Fixed(Font::Default),
             color: Property::Fixed(Tint(Color::PURPLE)),
             pos: Vec3Property {
-                x: Property::Fixed(Number(10.0)),
-                y: Property::Fixed(Number(10.0)),
+                x: Property::Fixed(Number(0.0)),
+                y: Property::Fixed(Number(0.0)),
                 z: Property::Fixed(Number(0.0)),
             },
             size: Vec2Property {
-                x: Property::Fixed(Number(30.0)),
-                y: Property::Fixed(Number(30.0)),
+                x: Property::Fixed(Number(100.0)),
+                y: Property::Fixed(Number(100.0)),
             },
             skew: Property::Fixed(Number(0.0)),
             corner_offsets: CornerOffsets::default(),

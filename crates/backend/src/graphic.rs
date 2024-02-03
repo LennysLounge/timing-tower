@@ -14,7 +14,7 @@ use bevy::{
     utils::hashbrown::HashSet,
 };
 use common::communication::{CellStyle, ClipAreaStyle};
-use unified_sim_model::model::{Entry, Model, Session};
+use unified_sim_model::model::{Entry, EntryId, Model, Session};
 use uuid::Uuid;
 
 use crate::{
@@ -49,9 +49,21 @@ pub struct Graphic {
     id: Uuid,
 }
 
-struct GraphicItemData {
-    cell_id: CellId,
-    updated: bool,
+enum GraphicItemData {
+    Cell {
+        cell_id: CellId,
+        updated: bool,
+    },
+    ClipArea {
+        cell_id: CellId,
+        updated: bool,
+        data: HashMap<Uuid, GraphicItemData>,
+    },
+    DriverTable {
+        updated: bool,
+        rows: HashMap<EntryId, HashMap<Uuid, GraphicItemData>>,
+        scroll_position: f32,
+    },
 }
 
 fn spawn_or_delete_graphics(
@@ -126,10 +138,10 @@ fn update_graphics(
     }
 
     // Remove stale data
-    graphic_item_data.retain(|_, data| data.updated);
-    graphic_item_data
-        .values_mut()
-        .for_each(|data| data.updated = false);
+    // graphic_item_data.retain(|_, data| data.updated);
+    // graphic_item_data
+    //     .values_mut()
+    //     .for_each(|data| data.updated = false);
 }
 
 fn update_graphic_item(
@@ -143,41 +155,113 @@ fn update_graphic_item(
         GraphicItem::Cell(cell) => {
             let data = graphic_item_data
                 .entry(cell.id)
-                .or_insert_with(|| GraphicItemData {
+                .or_insert_with(|| GraphicItemData::Cell {
                     cell_id: CellId::new(),
                     updated: false,
                 });
-
-            batcher.add(&data.cell_id, resolver.cell(&cell.cell));
-            data.updated = true;
-        }
-        GraphicItem::ClipArea(clip_area) => {
-            let data = graphic_item_data
-                .entry(clip_area.id)
-                .or_insert_with(|| GraphicItemData {
-                    cell_id: CellId::new(),
-                    updated: false,
-                });
-            data.updated = true;
-
-            let clip_area_style = resolver.clip_area(&clip_area.clip_area);
-            let new_resolver = resolver
-                .clone()
-                .with_position(clip_area_style.pos)
-                .with_render_layer(clip_area_style.render_layer);
-            batcher.add_clip_area(&data.cell_id, clip_area_style);
-            for item in clip_area.items.iter() {
-                update_graphic_item(item, batcher, graphic_item_data, &new_resolver, _model);
+            if let GraphicItemData::Cell { cell_id, updated } = data {
+                batcher.add(&cell_id, resolver.cell(&cell.cell));
+                *updated = true;
             }
         }
-        GraphicItem::DriverTable(_) => (),
+        GraphicItem::ClipArea(clip_area) => {
+            let data = graphic_item_data.entry(clip_area.id).or_insert_with(|| {
+                GraphicItemData::ClipArea {
+                    cell_id: CellId::new(),
+                    updated: false,
+                    data: HashMap::new(),
+                }
+            });
+            if let GraphicItemData::ClipArea {
+                cell_id,
+                updated,
+                data: graphic_item_data,
+            } = data
+            {
+                *updated = true;
+                let clip_area_style = resolver.clip_area(&clip_area.clip_area);
+                let new_resolver = resolver
+                    .clone()
+                    .with_position(clip_area_style.pos)
+                    .with_render_layer(clip_area_style.render_layer);
+                batcher.add_clip_area(&cell_id, clip_area_style);
+                for item in clip_area.items.iter() {
+                    update_graphic_item(item, batcher, graphic_item_data, &new_resolver, _model);
+                }
+            }
+        }
+        GraphicItem::DriverTable(driver_table) => {
+            let data = graphic_item_data.entry(driver_table.id).or_insert_with(|| {
+                GraphicItemData::DriverTable {
+                    updated: false,
+                    rows: HashMap::new(),
+                    scroll_position: 0.0,
+                }
+            });
+            if let GraphicItemData::DriverTable {
+                updated,
+                rows,
+                scroll_position,
+            } = data
+            {
+                *updated = true;
+
+                let row_offset = vec3(
+                    resolver
+                        .property(&driver_table.row_offset.x)
+                        .unwrap_or_default()
+                        .0,
+                    -resolver
+                        .property(&driver_table.row_offset.y)
+                        .unwrap_or_default()
+                        .0,
+                    0.0,
+                );
+
+                // Get entries sorted by position
+                let mut entries: Vec<&Entry> = resolver.session.entries.values().collect();
+                entries.sort_by(|e1, e2| {
+                    let is_connected = e2.connected.cmp(&e1.connected);
+                    let position = e1
+                        .position
+                        .partial_cmp(&e2.position)
+                        .unwrap_or(std::cmp::Ordering::Equal);
+                    is_connected.then(position)
+                });
+
+                // Move rows to make sure the focused entry is visible
+                if let Some(focused_entry_index) = entries.iter().position(|entry| entry.focused) {
+                    let rows_to_skip = (focused_entry_index as f32 - 12.0)
+                        .min(entries.len() as f32 - 23.0)
+                        .max(0.0);
+                    *scroll_position = *scroll_position - (*scroll_position - rows_to_skip) * 0.2;
+                }
+
+                for (index, entry) in entries.iter().enumerate() {
+                    let data = rows.entry(entry.id).or_insert(HashMap::new());
+
+                    let new_resolver = resolver
+                        .clone()
+                        .with_position(
+                            resolver.position
+                                - row_offset * *scroll_position
+                                + row_offset * index as f32,
+                        )
+                        .with_entry(entry);
+
+                    for column in driver_table.columns.iter() {
+                        update_graphic_item(column, batcher, data, &new_resolver, _model);
+                    }
+                }
+            }
+        }
     }
 }
 
 #[derive(Clone)]
 struct StyleResolver<'a> {
     value_store: &'a ValueStore,
-    _session: &'a Session,
+    session: &'a Session,
     entry: Option<&'a Entry>,
     position: Vec3,
     render_layer: u8,
@@ -186,7 +270,7 @@ impl<'a> StyleResolver<'a> {
     fn new(value_store: &'a ValueStore, session: &'a Session) -> Self {
         Self {
             value_store,
-            _session: session,
+            session,
             entry: None,
             position: Vec3::ZERO,
             render_layer: 0,
@@ -204,6 +288,11 @@ impl<'a> StyleResolver<'a> {
 
     fn with_render_layer(mut self, render_layer: u8) -> Self {
         self.render_layer = render_layer;
+        self
+    }
+
+    fn with_entry(mut self, entry: &'a Entry) -> Self {
+        self.entry = Some(entry);
         self
     }
 

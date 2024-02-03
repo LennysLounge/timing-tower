@@ -160,7 +160,7 @@ fn show_node(
         (Method::Visit, StyleItemMut::FreeCell(cell)) => {
             builder.node(
                 NodeBuilder::leaf(cell.id).icon(|ui| {
-                    egui::Image::new(egui::include_image!("../../../images/article.png"))
+                    egui::Image::new(egui::include_image!("../../../images/cell.png"))
                         .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
                         .paint_at(ui, ui.max_rect());
                 }),
@@ -263,10 +263,17 @@ fn show_node(
             builder.close_dir();
             ControlFlow::Continue(())
         }
-        (Method::Visit, StyleItemMut::Graphic(comp)) => {
-            builder.leaf(comp.id, |ui| {
-                ui.label(&comp.name);
-            });
+        (Method::Visit, StyleItemMut::Graphic(graphic)) => {
+            builder.node(
+                NodeBuilder::leaf(graphic.id).icon(|ui| {
+                    egui::Image::new(egui::include_image!("../../../images/graphic.png"))
+                        .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
+                        .paint_at(ui, ui.max_rect());
+                }),
+                |ui| {
+                    ui.label(&graphic.name);
+                },
+            );
             ControlFlow::Continue(())
         }
         (Method::Leave, StyleItemMut::Variable(_)) => ControlFlow::Continue(()),

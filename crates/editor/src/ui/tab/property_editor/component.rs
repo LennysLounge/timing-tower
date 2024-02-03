@@ -83,7 +83,7 @@ fn show_element_tree(
     graphic: &mut Graphic,
 ) -> EditResult {
     let res = TreeView::new(ui.make_persistent_id("Component element tree"))
-        .row_layout(RowLayout::CompactAlignedLables)
+        .row_layout(RowLayout::AlignedIcons)
         .show(ui, |mut builder| {
             builder.node(NodeBuilder::dir(graphic.id).flatten(true), |_| {});
             graphic.items.walk(&mut |element, method| {
@@ -180,7 +180,7 @@ fn element_tree_node(builder: &mut TreeViewBuilder<Uuid>, element: &GraphicItem,
         (Method::Visit, GraphicItem::Cell(cell)) => {
             builder.node(
                 NodeBuilder::leaf(cell.id).icon(|ui| {
-                    egui::Image::new(egui::include_image!("../../../../images/article.png"))
+                    egui::Image::new(egui::include_image!("../../../../images/cell.png"))
                         .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
                         .paint_at(ui, ui.max_rect());
                 }),
@@ -195,8 +195,8 @@ fn element_tree_node(builder: &mut TreeViewBuilder<Uuid>, element: &GraphicItem,
         (Method::Leave, GraphicItem::Cell(_)) => (),
         (Method::Visit, GraphicItem::ClipArea(clip_area)) => {
             builder.node(
-                NodeBuilder::dir(clip_area.id).closer(|ui, _| {
-                    egui::Image::new(egui::include_image!("../../../../images/array.png"))
+                NodeBuilder::dir(clip_area.id).icon(|ui| {
+                    egui::Image::new(egui::include_image!("../../../../images/clip_area.png"))
                         .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
                         .paint_at(ui, ui.max_rect());
                 }),

@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::{
     tree_iterator::{Method, TreeItem, TreeIterator, TreeIteratorMut},
-    value_types::Vec2Property,
+    value_types::{Number, Property, Vec2Property},
 };
 
 use super::cell::{ClipArea, FreeCell};
@@ -38,18 +38,20 @@ impl TreeIteratorMut for GraphicItems {
     }
 }
 
-/// A visual element that implements some functionality
-/// or graphic.
+/// A item inside a graphic that implements some functionality
+/// or visual.
 #[derive(Serialize, Deserialize, Clone)]
 pub enum GraphicItem {
     Cell(FreeCell),
     ClipArea(FreeClipArea),
+    DriverTable(DriverTable),
 }
 impl TreeItem for GraphicItem {
     fn id(&self) -> Uuid {
         match self {
             GraphicItem::Cell(cell) => cell.id,
             GraphicItem::ClipArea(clip_area) => clip_area.id,
+            GraphicItem::DriverTable(driver_table) => driver_table.id,
         }
     }
 }
@@ -67,6 +69,9 @@ impl TreeIterator for GraphicItem {
             GraphicItem::ClipArea(clip_area) => {
                 clip_area.items.iter().try_for_each(|e| e.walk(f))?;
             }
+            GraphicItem::DriverTable(driver_table) => {
+                driver_table.columns.iter().try_for_each(|c| c.walk(f))?;
+            }
         }
         f(self, Method::Leave)
     }
@@ -83,17 +88,20 @@ impl TreeIteratorMut for GraphicItem {
         match self {
             GraphicItem::Cell(_) => (),
             GraphicItem::ClipArea(clip_area) => {
-                clip_area
-                    .items
+                clip_area.items.iter_mut().try_for_each(|e| e.walk_mut(f))?;
+            }
+            GraphicItem::DriverTable(driver_table) => {
+                driver_table
+                    .columns
                     .iter_mut()
-                    .try_for_each(|e| e.walk_mut(f))?;
+                    .try_for_each(|c| c.walk_mut(f))?;
             }
         }
         f(self, Method::Leave)
     }
 }
 
-/// An element that restaints the contained elements
+/// An item that restaints the contained elements
 /// to a sepcified area in the scene.
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct FreeClipArea {
@@ -109,6 +117,28 @@ impl FreeClipArea {
             name: String::from("Clip area"),
             clip_area: ClipArea::default(),
             items: Vec::new(),
+        }
+    }
+}
+
+// An item that displays a table of all drivers in the session.
+#[derive(Serialize, Deserialize, Clone, Default)]
+pub struct DriverTable {
+    pub id: Uuid,
+    pub name: String,
+    pub row_offset: Vec2Property,
+    pub columns: Vec<GraphicItem>,
+}
+impl DriverTable {
+    pub fn new() -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            name: String::from("Driver table"),
+            row_offset: Vec2Property {
+                x: Property::Fixed(Number(30.0)),
+                y: Property::Fixed(Number(30.0)),
+            },
+            columns: Vec::new(),
         }
     }
 }

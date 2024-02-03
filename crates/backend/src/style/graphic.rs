@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::{elements::GraphicItems, OwnedStyleItem, StyleItem, StyleItemMut, StyleItemRef};
+use super::{graphic_items::GraphicItems, OwnedStyleItem, StyleItem, StyleItemMut, StyleItemRef};
 
 /// A visual graphic component in the scene.
 #[derive(Serialize, Deserialize, Clone, Default)]

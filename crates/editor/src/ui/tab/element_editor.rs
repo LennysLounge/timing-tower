@@ -1,6 +1,7 @@
 use backend::{
     style::{
-        elements::GraphicItem, graphic::GraphicDefinition, StyleDefinition, StyleItem, StyleItemMut,
+        graphic::GraphicDefinition, graphic_items::GraphicItem, StyleDefinition, StyleItem,
+        StyleItemMut,
     },
     tree_iterator::TreeIteratorMut,
 };
@@ -107,6 +108,35 @@ fn editor(ui: &mut Ui, element: &mut GraphicItem, reference_store: &ReferenceSto
             edit_result |= ui.text_edit_singleline(&mut clip_area.name).into();
             ui.separator();
             edit_result |= cell::clip_area_editor(ui, &mut clip_area.clip_area, reference_store);
+            edit_result
+        }
+        GraphicItem::DriverTable(driver_table) => {
+            let mut edit_result = EditResult::None;
+
+            ui.label("Name:");
+            edit_result |= ui.text_edit_singleline(&mut driver_table.name).into();
+            ui.separator();
+
+            ui.label("Row offset:");
+            ui.horizontal(|ui| {
+                ui.label("Offset x:");
+                edit_result |= ui
+                    .add(PropertyEditor::new(
+                        &mut driver_table.row_offset.x,
+                        reference_store,
+                    ))
+                    .into();
+            });
+            ui.horizontal(|ui| {
+                ui.label("Offset y:");
+                edit_result |= ui
+                    .add(PropertyEditor::new(
+                        &mut driver_table.row_offset.y,
+                        reference_store,
+                    ))
+                    .into();
+            });
+
             edit_result
         }
     }

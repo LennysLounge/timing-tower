@@ -3,8 +3,8 @@ use std::ops::ControlFlow;
 use backend::{
     style::{
         cell::FreeCell,
-        elements::{FreeClipArea, GraphicItem},
         graphic::GraphicDefinition,
+        graphic_items::{DriverTable, FreeClipArea, GraphicItem},
     },
     tree_iterator::{Method, TreeItem, TreeIterator, TreeIteratorMut},
 };
@@ -66,6 +66,14 @@ pub fn component_property_editor(
                 edit_result = EditResult::FromId(ui.id());
                 ui.close_menu();
             }
+            if ui.selectable_label(false, "Driver Table").clicked() {
+                component
+                    .items
+                    .items
+                    .push(GraphicItem::DriverTable(DriverTable::new()));
+                edit_result = EditResult::FromId(ui.id());
+                ui.close_menu();
+            }
         });
 
     if let EditResult::FromId(widget_id) = edit_result {
@@ -82,6 +90,7 @@ fn show_element_tree(
     secondary_selection: &mut Option<Uuid>,
     graphic: &mut GraphicDefinition,
 ) -> EditResult {
+    let mut edit_result = EditResult::None;
     let res = TreeView::new(ui.make_persistent_id("Component element tree"))
         .row_layout(RowLayout::AlignedIcons)
         .show(ui, |mut builder| {
@@ -107,6 +116,7 @@ fn show_element_tree(
             } => {
                 if let Some(element) = remove_element(graphic, *source) {
                     insert_element(graphic, *target, *position, element);
+                    edit_result |= EditResult::FromId(Id::new("Graphic item moved"));
                 }
             }
             Action::Drag { .. } => (),
@@ -135,7 +145,9 @@ fn show_element_tree(
                     res.parent_of(node_id).unwrap_or_default(),
                     DropPosition::After(node_id),
                 ),
-                GraphicItem::ClipArea(_) => (node_id, DropPosition::Last),
+                GraphicItem::ClipArea(_) | GraphicItem::DriverTable(_) => {
+                    (node_id, DropPosition::Last)
+                }
             };
             if ui.button("add cell").clicked() {
                 commands.push(Command::Add {
@@ -153,10 +165,16 @@ fn show_element_tree(
                 });
                 ui.close_menu();
             }
+            if ui.button("add driver table").clicked() {
+                commands.push(Command::Add {
+                    element: GraphicItem::DriverTable(DriverTable::new()),
+                    target,
+                    position,
+                });
+                ui.close_menu();
+            }
         });
     });
-
-    let mut edit_result = EditResult::None;
     for command in commands {
         match command {
             Command::Add {
@@ -213,6 +231,24 @@ fn element_tree_node(builder: &mut TreeViewBuilder<Uuid>, element: &GraphicItem,
         (Method::Leave, GraphicItem::ClipArea(_)) => {
             builder.close_dir();
         }
+        (Method::Visit, GraphicItem::DriverTable(driver_table)) => {
+            builder.node(
+                NodeBuilder::dir(driver_table.id).icon(|ui| {
+                    egui::Image::new(egui::include_image!("../../../../images/driver_table.png"))
+                        .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
+                        .paint_at(ui, ui.max_rect());
+                }),
+                |ui| {
+                    ui.horizontal(|ui| {
+                        ui.colored_label(Color32::from_gray(120), "Driver table");
+                        ui.label(&driver_table.name);
+                    });
+                },
+            );
+        }
+        (Method::Leave, GraphicItem::DriverTable(_)) => {
+            builder.close_dir();
+        }
     }
 }
 
@@ -229,6 +265,13 @@ fn remove_element(component: &mut GraphicDefinition, id: Uuid) -> Option<Graphic
             GraphicItem::ClipArea(clip_area) => {
                 if let Some(index) = clip_area.items.iter().position(|e| e.id() == id) {
                     ControlFlow::Break(Some(clip_area.items.remove(index)))
+                } else {
+                    ControlFlow::Continue(())
+                }
+            }
+            GraphicItem::DriverTable(driver_table) => {
+                if let Some(index) = driver_table.columns.iter().position(|e| e.id() == id) {
+                    ControlFlow::Break(Some(driver_table.columns.remove(index)))
                 } else {
                     ControlFlow::Continue(())
                 }
@@ -254,6 +297,9 @@ fn insert_element(
             GraphicItem::Cell(_) => (),
             GraphicItem::ClipArea(clip_area) => {
                 insert_into_vec(&mut clip_area.items, position, element);
+            }
+            GraphicItem::DriverTable(driver_table) => {
+                insert_into_vec(&mut driver_table.columns, position, element);
             }
         });
     }

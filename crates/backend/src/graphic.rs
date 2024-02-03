@@ -20,9 +20,8 @@ use uuid::Uuid;
 use crate::{
     savefile::Savefile,
     style::{
-        self,
         cell::{Cell, ClipArea},
-        elements::GraphicItem,
+        graphic_items::GraphicItem,
         StyleItem, StyleItemRef,
     },
     style_batcher::{CellId, StyleBatcher},
@@ -141,7 +140,7 @@ fn update_graphic_item(
     _model: &Model,
 ) {
     match item {
-        style::elements::GraphicItem::Cell(cell) => {
+        GraphicItem::Cell(cell) => {
             let data = graphic_item_data
                 .entry(cell.id)
                 .or_insert_with(|| GraphicItemData {
@@ -152,7 +151,7 @@ fn update_graphic_item(
             batcher.add(&data.cell_id, resolver.cell(&cell.cell));
             data.updated = true;
         }
-        style::elements::GraphicItem::ClipArea(clip_area) => {
+        GraphicItem::ClipArea(clip_area) => {
             let data = graphic_item_data
                 .entry(clip_area.id)
                 .or_insert_with(|| GraphicItemData {
@@ -164,13 +163,14 @@ fn update_graphic_item(
             let clip_area_style = resolver.clip_area(&clip_area.clip_area);
             let new_resolver = resolver
                 .clone()
-                .with_add_position(clip_area_style.pos)
+                .with_position(clip_area_style.pos)
                 .with_render_layer(clip_area_style.render_layer);
             batcher.add_clip_area(&data.cell_id, clip_area_style);
             for item in clip_area.items.iter() {
                 update_graphic_item(item, batcher, graphic_item_data, &new_resolver, _model);
             }
         }
+        GraphicItem::DriverTable(_) => (),
     }
 }
 
@@ -197,8 +197,8 @@ impl<'a> StyleResolver<'a> {
         self.position = position;
     }
 
-    fn with_add_position(mut self, position: Vec3) -> Self {
-        self.position += position;
+    fn with_position(mut self, position: Vec3) -> Self {
+        self.position = position;
         self
     }
 

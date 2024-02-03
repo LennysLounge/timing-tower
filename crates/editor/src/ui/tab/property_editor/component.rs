@@ -3,8 +3,8 @@ use std::ops::ControlFlow;
 use backend::{
     style::{
         cell::FreeCell,
+        elements::{FreeClipArea, GraphicItem},
         graphic::Graphic,
-        elements::{GraphicItem, FreeClipArea},
     },
     tree_iterator::{Method, TreeItem, TreeIterator, TreeIteratorMut},
 };
@@ -80,15 +80,17 @@ pub fn component_property_editor(
 fn show_element_tree(
     ui: &mut Ui,
     secondary_selection: &mut Option<Uuid>,
-    component: &mut Graphic,
+    graphic: &mut Graphic,
 ) -> EditResult {
     let res = TreeView::new(ui.make_persistent_id("Component element tree"))
-        .row_layout(RowLayout::AlignedIcons)
+        .row_layout(RowLayout::CompactAlignedLables)
         .show(ui, |mut builder| {
-            component.items.walk(&mut |element, method| {
+            builder.node(NodeBuilder::dir(graphic.id).flatten(true), |_| {});
+            graphic.items.walk(&mut |element, method| {
                 element_tree_node(&mut builder, element, method);
                 ControlFlow::Continue::<()>(())
             });
+            builder.close_dir();
         });
 
     for action in res.actions.iter() {
@@ -101,8 +103,8 @@ fn show_element_tree(
                 target,
                 position,
             } => {
-                if let Some(element) = remove_element(component, *source) {
-                    insert_element(component, *target, *position, element);
+                if let Some(element) = remove_element(graphic, *source) {
+                    insert_element(graphic, *target, *position, element);
                 }
             }
             Action::Drag { .. } => (),
@@ -121,7 +123,7 @@ fn show_element_tree(
     }
     let mut commands = Vec::new();
     res.context_menu(ui, |ui, node_id| {
-        component.items.search_mut(node_id, |element| {
+        graphic.items.search_mut(node_id, |element| {
             if ui.button("delete").clicked() {
                 commands.push(Command::Remove { id: node_id });
                 ui.close_menu();
@@ -160,11 +162,11 @@ fn show_element_tree(
                 target,
                 position,
             } => {
-                insert_element(component, target, position, element);
+                insert_element(graphic, target, position, element);
                 edit_result = EditResult::FromId(Id::new("Component element Tree view edit"));
             }
             Command::Remove { id } => {
-                remove_element(component, id);
+                remove_element(graphic, id);
                 edit_result = EditResult::FromId(Id::new("Component element Tree view edit"));
             }
         }
@@ -193,16 +195,15 @@ fn element_tree_node(builder: &mut TreeViewBuilder<Uuid>, element: &GraphicItem,
         (Method::Leave, GraphicItem::Cell(_)) => (),
         (Method::Visit, GraphicItem::ClipArea(clip_area)) => {
             builder.node(
-                NodeBuilder::dir(clip_area.id).icon(|ui| {
+                NodeBuilder::dir(clip_area.id).closer(|ui, _| {
                     egui::Image::new(egui::include_image!("../../../../images/array.png"))
                         .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
                         .paint_at(ui, ui.max_rect());
-                }), // .closer(folder_closer)
+                }),
                 |ui| {
                     ui.horizontal(|ui| {
                         ui.colored_label(Color32::from_gray(120), "Clip area");
                         ui.label(&clip_area.name);
-
                     });
                 },
             );
@@ -214,12 +215,7 @@ fn element_tree_node(builder: &mut TreeViewBuilder<Uuid>, element: &GraphicItem,
 }
 
 fn remove_element(component: &mut Graphic, id: Uuid) -> Option<GraphicItem> {
-    if let Some(index) = component
-        .items
-        .items
-        .iter()
-        .position(|e| e.id() == id)
-    {
+    if let Some(index) = component.items.items.iter().position(|e| e.id() == id) {
         return Some(component.items.items.remove(index));
     }
     let r = component.items.walk_mut(&mut |e, method| {

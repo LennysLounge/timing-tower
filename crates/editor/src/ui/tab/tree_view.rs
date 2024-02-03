@@ -124,7 +124,7 @@ fn show_node(
 ) -> ControlFlow<()> {
     match (method, node) {
         (Method::Visit, StyleItemMut::Style(style)) => {
-            builder.node(NodeBuilder::dir(style.id), |ui| {
+            builder.node(NodeBuilder::dir(style.id).flatten(true), |ui| {
                 ui.label("Style");
             });
             ControlFlow::Continue(())

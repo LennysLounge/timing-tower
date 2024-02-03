@@ -136,10 +136,6 @@ fn show_element_tree(
     let mut commands = Vec::new();
     res.context_menu(ui, |ui, node_id| {
         graphic.items.search_mut(node_id, |element| {
-            if ui.button("delete").clicked() {
-                commands.push(Command::Remove { id: node_id });
-                ui.close_menu();
-            }
             let (target, position) = match element {
                 GraphicItem::Cell(_) => (
                     res.parent_of(node_id).unwrap_or_default(),
@@ -171,6 +167,11 @@ fn show_element_tree(
                     target,
                     position,
                 });
+                ui.close_menu();
+            }
+            ui.separator();
+            if ui.button("delete").clicked() {
+                commands.push(Command::Remove { id: node_id });
                 ui.close_menu();
             }
         });

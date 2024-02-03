@@ -50,6 +50,11 @@ pub struct Graphic {
     id: Uuid,
 }
 
+struct GraphicItemData {
+    cell_id: CellId,
+    updated: bool,
+}
+
 fn spawn_or_delete_graphics(
     mut commands: Commands,
     savefile: Res<Savefile>,
@@ -79,7 +84,7 @@ fn update_graphics(
     mut graphics: Query<&mut Graphic>,
     savefile: Res<Savefile>,
     mut batcher: ResMut<StyleBatcher>,
-    mut graphic_item_data: Local<HashMap<Uuid, CellId>>,
+    mut graphic_item_data: Local<HashMap<Uuid, GraphicItemData>>,
     value_store: Res<ValueStore>,
     game_adapter: Res<GameAdapterResource>,
 ) {
@@ -107,23 +112,33 @@ fn update_graphics(
             }
         });
     }
+
+    // Remove stale data
+    graphic_item_data.retain(|_, data| data.updated);
+    graphic_item_data
+        .values_mut()
+        .for_each(|data| data.updated = false);
 }
 
 fn update_graphic_items(
     items: &Vec<GraphicItem>,
     batcher: &mut StyleBatcher,
-    graphic_item_data: &mut HashMap<Uuid, CellId>,
+    graphic_item_data: &mut HashMap<Uuid, GraphicItemData>,
     style_resolver: StyleResolver,
     _model: &Model,
 ) {
     for graphic_item in items.iter() {
         match graphic_item {
             style::elements::GraphicItem::Cell(cell) => {
-                let cell_id = graphic_item_data
+                let data = graphic_item_data
                     .entry(cell.id)
-                    .or_insert_with(|| CellId::new());
+                    .or_insert_with(|| GraphicItemData {
+                        cell_id: CellId::new(),
+                        updated: false,
+                    });
 
-                batcher.add(cell_id, style_resolver.cell(&cell.cell));
+                batcher.add(&data.cell_id, style_resolver.cell(&cell.cell));
+                data.updated = true;
             }
             style::elements::GraphicItem::ClipArea(_) => (),
         }

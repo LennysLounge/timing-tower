@@ -3,13 +3,18 @@ use std::ops::ControlFlow;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::tree_iterator::{Method, TreeItem, TreeIterator, TreeIteratorMut};
+use crate::{
+    tree_iterator::{Method, TreeItem, TreeIterator, TreeIteratorMut},
+    value_types::Vec2Property,
+};
 
 use super::cell::{ClipArea, FreeCell};
 
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct GraphicItems {
     pub items: Vec<GraphicItem>,
+    #[serde(default)]
+    pub position: Vec2Property,
 }
 
 impl TreeIterator for GraphicItems {

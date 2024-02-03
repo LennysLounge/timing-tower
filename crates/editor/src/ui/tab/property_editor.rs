@@ -21,11 +21,11 @@ use crate::{
     ui::combo_box::LComboBox,
 };
 
-use self::{component::component_property_editor, property::PropertyEditor};
+use self::{graphic::component_property_editor, property::PropertyEditor};
 
 pub mod cell;
-mod component;
-mod property;
+mod graphic;
+pub mod property;
 mod variable;
 
 pub fn property_editor(

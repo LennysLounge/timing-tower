@@ -1049,10 +1049,11 @@
     "name": "Graphics",
     "content": [
       {
+        "element_type": "Graphic",
         "id": "032f8808-fe8e-48de-9c5c-91f4504dfe21",
         "name": "Timing Tower",
-        "element_type": "Graphic",
         "items": {
+          "id": "970bc518-aba2-41ff-ae2c-9c962c71f2df",
           "items": [
             {
               "Cell": {
@@ -1285,7 +1286,11 @@
                 ]
               }
             }
-          ]
+          ],
+          "position": {
+            "x": 0.0,
+            "y": 0.0
+          }
         }
       }
     ]

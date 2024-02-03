@@ -1,5 +1,7 @@
 use backend::{
-    style::{elements::GraphicItem, StyleItemMut, StyleDefinition, StyleItem},
+    style::{
+        elements::GraphicItem, graphic::GraphicDefinition, StyleDefinition, StyleItem, StyleItemMut,
+    },
     tree_iterator::TreeIteratorMut,
 };
 use bevy_egui::egui::Ui;
@@ -14,7 +16,7 @@ use crate::{
     reference_store::ReferenceStore,
 };
 
-use super::property_editor::cell;
+use super::property_editor::{cell, property::PropertyEditor};
 
 pub fn element_editor(
     ui: &mut Ui,
@@ -32,21 +34,51 @@ pub fn element_editor(
         return;
     };
     style.as_mut().search_mut(*selection, |node| {
-        if let StyleItemMut::Graphic(component) = node {
-            let edit_result = component
-                .items
-                .search_mut(*secondary_selection, |element| {
-                    editor(ui, element, reference_store)
-                });
-            if let Some(EditResult::FromId(widget_id)) = edit_result {
-                undo_redo_manager.queue(EditProperty::new(
-                    component.id,
-                    component.clone(),
-                    widget_id,
-                ));
+        if let StyleItemMut::Graphic(graphic) = node {
+            let mut edit_result = EditResult::None;
+            if *secondary_selection == graphic.id {
+                edit_result |= graphic_editor(ui, graphic, reference_store);
+            } else {
+                edit_result |= graphic
+                    .items
+                    .search_mut(*secondary_selection, |element| {
+                        editor(ui, element, reference_store)
+                    })
+                    .unwrap_or(EditResult::None);
+            }
+            if let EditResult::FromId(widget_id) = edit_result {
+                undo_redo_manager.queue(EditProperty::new(graphic.id, graphic.clone(), widget_id));
             }
         }
     });
+}
+
+fn graphic_editor(
+    ui: &mut Ui,
+    graphic: &mut GraphicDefinition,
+    reference_store: &ReferenceStore,
+) -> EditResult {
+    let mut edit_result = EditResult::None;
+    ui.label("Position:");
+    ui.horizontal(|ui| {
+        ui.label("X:");
+        edit_result |= ui
+            .add(PropertyEditor::new(
+                &mut graphic.items.position.x,
+                reference_store,
+            ))
+            .into();
+    });
+    ui.horizontal(|ui| {
+        ui.label("Y:");
+        edit_result |= ui
+            .add(PropertyEditor::new(
+                &mut graphic.items.position.y,
+                reference_store,
+            ))
+            .into();
+    });
+    edit_result
 }
 
 fn editor(ui: &mut Ui, element: &mut GraphicItem, reference_store: &ReferenceStore) -> EditResult {

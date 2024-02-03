@@ -85,7 +85,9 @@ fn show_element_tree(
     let res = TreeView::new(ui.make_persistent_id("Component element tree"))
         .row_layout(RowLayout::AlignedIcons)
         .show(ui, |mut builder| {
-            builder.node(NodeBuilder::dir(graphic.id).flatten(true), |_| {});
+            builder.node(NodeBuilder::dir(graphic.id), |ui| {
+                _ = ui.label(&graphic.name)
+            });
             graphic.items.walk(&mut |element, method| {
                 element_tree_node(&mut builder, element, method);
                 ControlFlow::Continue::<()>(())

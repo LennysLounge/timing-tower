@@ -1,16 +1,16 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::{elements::GraphicItems, StyleItemRef, StyleItemMut, OwnedStyleItem, StyleItem};
+use super::{elements::GraphicItems, OwnedStyleItem, StyleItem, StyleItemMut, StyleItemRef};
 
 /// A visual graphic component in the scene.
 #[derive(Serialize, Deserialize, Clone, Default)]
-pub struct Graphic {
+pub struct GraphicDefinition {
     pub id: Uuid,
     pub name: String,
     pub items: GraphicItems,
 }
-impl Graphic {
+impl GraphicDefinition {
     pub fn new() -> Self {
         Self {
             id: Uuid::new_v4(),
@@ -20,7 +20,7 @@ impl Graphic {
     }
 }
 
-impl StyleItem for Graphic {
+impl StyleItem for GraphicDefinition {
     fn id(&self) -> &uuid::Uuid {
         &self.id
     }
@@ -34,5 +34,60 @@ impl StyleItem for Graphic {
     }
     fn to_owned(self) -> OwnedStyleItem {
         OwnedStyleItem::Graphic(self)
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Default)]
+pub struct GraphicFolder {
+    pub id: Uuid,
+    pub name: String,
+    pub content: Vec<GraphicOrFolder>,
+}
+impl GraphicFolder {
+    pub fn new() -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            name: String::from("Graphics"),
+            content: Vec::new(),
+        }
+    }
+    pub fn contained_graphics(&self) -> Vec<&GraphicDefinition> {
+        self.content
+            .iter()
+            .flat_map(|af| match af {
+                GraphicOrFolder::Graphic(a) => vec![a],
+                GraphicOrFolder::Folder(f) => f.contained_graphics(),
+            })
+            .collect()
+    }
+}
+impl StyleItem for GraphicFolder {
+    fn id(&self) -> &Uuid {
+        &self.id
+    }
+
+    fn as_ref<'a>(&'a self) -> StyleItemRef<'a> {
+        StyleItemRef::GraphicFolder(self)
+    }
+    fn as_mut<'a>(&'a mut self) -> StyleItemMut<'a> {
+        StyleItemMut::GraphicFolder(self)
+    }
+    fn to_owned(self) -> OwnedStyleItem {
+        OwnedStyleItem::GraphicFolder(self)
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+#[serde(tag = "element_type")]
+pub enum GraphicOrFolder {
+    Graphic(GraphicDefinition),
+    Folder(GraphicFolder),
+}
+impl GraphicOrFolder {
+    pub fn id(&self) -> &Uuid {
+        match self {
+            GraphicOrFolder::Graphic(o) => &o.id,
+            GraphicOrFolder::Folder(o) => &o.id,
+        }
     }
 }

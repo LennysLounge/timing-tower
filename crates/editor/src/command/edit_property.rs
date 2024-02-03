@@ -1,7 +1,7 @@
 use std::{any::Any, ops::BitOrAssign, time::Instant};
 
 use backend::{
-    style::{StyleItemMut, StyleDefinition, StyleItem},
+    style::{StyleDefinition, StyleItem, StyleItemMut},
     tree_iterator::TreeIteratorMut,
 };
 use bevy_egui::egui::{self, Response};
@@ -44,6 +44,7 @@ impl EditProperty {
                     StyleItemMut::FreeCellFolder(o) => apply_edit(*o, self.value),
                     StyleItemMut::FreeCell(o) => apply_edit(*o, self.value),
                     StyleItemMut::Graphic(o) => apply_edit(*o, self.value),
+                    StyleItemMut::GraphicFolder(o) => apply_edit(*o, self.value),
                 };
                 EditProperty {
                     timestamp: self.timestamp,

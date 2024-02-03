@@ -7,6 +7,7 @@ use backend::{
     style::{
         self,
         cell::{FreeCellFolder, FreeCellOrFolder},
+        graphic::GraphicOrFolder,
         variables::VariableOrFolder,
         OwnedStyleItem, StyleDefinition, StyleItem, StyleItemMut,
     },
@@ -118,6 +119,29 @@ pub fn insert(
         }
         StyleItemMut::FreeCellFolder(folder) => {
             insert_into_free_cell_folder(folder, position, insert);
+            ControlFlow::Break(())
+        }
+        StyleItemMut::GraphicFolder(folder) => {
+            let column_or_folder = match insert {
+                OwnedStyleItem::GraphicFolder(folder) => GraphicOrFolder::Folder(folder),
+                OwnedStyleItem::Graphic(cell) => GraphicOrFolder::Graphic(cell),
+                _ => unreachable!("No other types are allowed to be inserted"),
+            };
+
+            match &position {
+                DropPosition::First => folder.content.insert(0, column_or_folder),
+                DropPosition::Last => folder.content.push(column_or_folder),
+                DropPosition::After(id) => {
+                    if let Some(index) = folder.content.iter().position(|c| c.id() == id) {
+                        folder.content.insert(index + 1, column_or_folder);
+                    }
+                }
+                DropPosition::Before(id) => {
+                    if let Some(index) = folder.content.iter().position(|c| c.id() == id) {
+                        folder.content.insert(index, column_or_folder);
+                    }
+                }
+            }
             ControlFlow::Break(())
         }
 

@@ -4,7 +4,7 @@ use backend::{
     style::{
         cell::FreeCell,
         elements::{FreeClipArea, GraphicItem},
-        graphic::Graphic,
+        graphic::GraphicDefinition,
     },
     tree_iterator::{Method, TreeItem, TreeIterator, TreeIteratorMut},
 };
@@ -24,7 +24,7 @@ use crate::{
 
 pub fn component_property_editor(
     ui: &mut Ui,
-    component: &mut Graphic,
+    component: &mut GraphicDefinition,
     secondary_selection: &mut Option<Uuid>,
     _reference_store: &ReferenceStore,
     undo_redo_manager: &mut UndoRedoManager,
@@ -80,7 +80,7 @@ pub fn component_property_editor(
 fn show_element_tree(
     ui: &mut Ui,
     secondary_selection: &mut Option<Uuid>,
-    graphic: &mut Graphic,
+    graphic: &mut GraphicDefinition,
 ) -> EditResult {
     let res = TreeView::new(ui.make_persistent_id("Component element tree"))
         .row_layout(RowLayout::AlignedIcons)
@@ -214,7 +214,7 @@ fn element_tree_node(builder: &mut TreeViewBuilder<Uuid>, element: &GraphicItem,
     }
 }
 
-fn remove_element(component: &mut Graphic, id: Uuid) -> Option<GraphicItem> {
+fn remove_element(component: &mut GraphicDefinition, id: Uuid) -> Option<GraphicItem> {
     if let Some(index) = component.items.items.iter().position(|e| e.id() == id) {
         return Some(component.items.items.remove(index));
     }
@@ -240,7 +240,7 @@ fn remove_element(component: &mut Graphic, id: Uuid) -> Option<GraphicItem> {
 }
 
 fn insert_element(
-    component: &mut Graphic,
+    component: &mut GraphicDefinition,
     target: Uuid,
     position: DropPosition<Uuid>,
     element: GraphicItem,

@@ -111,6 +111,24 @@ fn remove(node: &mut StyleItemMut, method: Method, node_id: &Uuid) -> ControlFlo
         (Method::Visit, StyleItemMut::FreeCellFolder(folder)) => {
             remove_node_from_folder(folder, node_id)
         }
+        (Method::Visit, StyleItemMut::GraphicFolder(folder)) => {
+            if let Some(index) = folder.content.iter().position(|s| s.id() == node_id) {
+                ControlFlow::Break(RemovedNode {
+                    parent_id: *folder.id(),
+                    node: match folder.content.remove(index) {
+                        backend::style::graphic::GraphicOrFolder::Graphic(t) => t.to_owned(),
+                        backend::style::graphic::GraphicOrFolder::Folder(f) => f.to_owned(),
+                    },
+                    position: (index == 0)
+                        .then_some(DropPosition::First)
+                        .unwrap_or_else(|| {
+                            DropPosition::After(*folder.content.get(index - 1).unwrap().id())
+                        }),
+                })
+            } else {
+                ControlFlow::Continue(())
+            }
+        }
 
         (Method::Visit, StyleItemMut::Scene(_)) => ControlFlow::Continue(()),
         (Method::Visit, StyleItemMut::Style(_)) => ControlFlow::Continue(()),

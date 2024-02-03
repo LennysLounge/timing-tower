@@ -9,7 +9,7 @@ use crate::tree_iterator::{Method, TreeItem, TreeIterator, TreeIteratorMut};
 use self::{
     assets::{AssetDefinition, AssetFolder, AssetOrFolder},
     cell::{FreeCell, FreeCellFolder, FreeCellOrFolder},
-    graphic::Graphic,
+    graphic::{GraphicDefinition, GraphicFolder, GraphicOrFolder},
     scene::SceneDefinition,
     timing_tower::{TimingTower, TimingTowerRow},
     variables::{VariableDefinition, VariableFolder, VariableOrFolder},
@@ -37,7 +37,7 @@ pub struct StyleDefinition {
     pub assets: AssetFolder,
     pub vars: VariableFolder,
     pub scene: SceneDefinition,
-    pub graphics: Vec<Graphic>,
+    pub graphics: GraphicFolder,
 }
 impl StyleItem for StyleDefinition {
     fn id(&self) -> &Uuid {
@@ -65,7 +65,8 @@ pub enum OwnedStyleItem {
     TimingTowerRow(TimingTowerRow),
     FreeCellFolder(FreeCellFolder),
     FreeCell(FreeCell),
-    Graphic(Graphic),
+    Graphic(GraphicDefinition),
+    GraphicFolder(GraphicFolder),
 }
 
 impl TreeItem for OwnedStyleItem {
@@ -82,6 +83,7 @@ impl TreeItem for OwnedStyleItem {
             OwnedStyleItem::FreeCellFolder(o) => o.id,
             OwnedStyleItem::FreeCell(o) => o.id,
             OwnedStyleItem::Graphic(o) => o.id,
+            OwnedStyleItem::GraphicFolder(o) => o.id,
         }
     }
 }
@@ -98,7 +100,8 @@ pub enum StyleItemRef<'a> {
     TimingTowerRow(&'a TimingTowerRow),
     FreeCellFolder(&'a FreeCellFolder),
     FreeCell(&'a FreeCell),
-    Graphic(&'a Graphic),
+    Graphic(&'a GraphicDefinition),
+    GraphicFolder(&'a GraphicFolder),
 }
 
 impl TreeItem for StyleItemRef<'_> {
@@ -115,6 +118,7 @@ impl TreeItem for StyleItemRef<'_> {
             StyleItemRef::FreeCellFolder(o) => o.id,
             StyleItemRef::FreeCell(o) => o.id,
             StyleItemRef::Graphic(o) => o.id,
+            StyleItemRef::GraphicFolder(o) => o.id,
         }
     }
 }
@@ -132,7 +136,7 @@ impl TreeIterator for StyleItemRef<'_> {
                 style.assets.as_ref().walk(f)?;
                 style.vars.as_ref().walk(f)?;
                 style.scene.as_ref().walk(f)?;
-                style.graphics.iter().try_for_each(|c| c.as_ref().walk(f))?;
+                style.graphics.as_ref().walk(f)?;
             }
             StyleItemRef::Variable(_) => (),
             StyleItemRef::VariableFolder(var_folder) => {
@@ -172,6 +176,12 @@ impl TreeIterator for StyleItemRef<'_> {
             }
             StyleItemRef::FreeCell(_) => (),
             StyleItemRef::Graphic(_) => (),
+            StyleItemRef::GraphicFolder(folder) => {
+                folder.content.iter().try_for_each(|v| match v {
+                    GraphicOrFolder::Graphic(o) => o.as_ref().walk(f),
+                    GraphicOrFolder::Folder(o) => o.as_ref().walk(f),
+                })?;
+            }
         }
         f(self, Method::Leave)
     }
@@ -188,7 +198,8 @@ pub enum StyleItemMut<'a> {
     TimingTowerRow(&'a mut TimingTowerRow),
     FreeCellFolder(&'a mut FreeCellFolder),
     FreeCell(&'a mut FreeCell),
-    Graphic(&'a mut Graphic),
+    Graphic(&'a mut GraphicDefinition),
+    GraphicFolder(&'a mut GraphicFolder),
 }
 
 impl TreeItem for StyleItemMut<'_> {
@@ -205,6 +216,7 @@ impl TreeItem for StyleItemMut<'_> {
             StyleItemMut::FreeCellFolder(o) => o.id,
             StyleItemMut::FreeCell(o) => o.id,
             StyleItemMut::Graphic(o) => o.id,
+            StyleItemMut::GraphicFolder(o) => o.id,
         }
     }
 }
@@ -222,10 +234,7 @@ impl TreeIteratorMut for StyleItemMut<'_> {
                 style.assets.as_mut().walk_mut(f)?;
                 style.vars.as_mut().walk_mut(f)?;
                 style.scene.as_mut().walk_mut(f)?;
-                style
-                    .graphics
-                    .iter_mut()
-                    .try_for_each(|c| c.as_mut().walk_mut(f))?;
+                style.graphics.as_mut().walk_mut(f)?;
             }
             StyleItemMut::Variable(_) => (),
             StyleItemMut::VariableFolder(var_folder) => {
@@ -269,6 +278,12 @@ impl TreeIteratorMut for StyleItemMut<'_> {
             }
             StyleItemMut::FreeCell(_) => (),
             StyleItemMut::Graphic(_) => (),
+            StyleItemMut::GraphicFolder(folder) => {
+                folder.content.iter_mut().try_for_each(|v| match v {
+                    GraphicOrFolder::Graphic(o) => o.as_mut().walk_mut(f),
+                    GraphicOrFolder::Folder(o) => o.as_mut().walk_mut(f),
+                })?;
+            }
         }
         f(self, Method::Leave)
     }

@@ -1044,245 +1044,250 @@
       }
     }
   },
-  "graphics": [
-    {
-      "id": "032f8808-fe8e-48de-9c5c-91f4504dfe21",
-      "name": "Timing Tower",
-      "items": {
-        "items": [
-          {
-            "Cell": {
-              "id": "91a1e256-8d9d-4798-b090-8ad4a08dc4ef",
-              "name": "Heading",
-              "cell": {
-                "text": "Column",
-                "text_color": {
-                  "Rgba": {
-                    "red": 0.0,
-                    "green": 0.0,
-                    "blue": 0.0,
-                    "alpha": 1.0
-                  }
-                },
-                "text_size": 20.0,
-                "font": "Default",
-                "color": {
-                  "Rgba": {
-                    "red": 0.49999976,
-                    "green": 0.0,
-                    "blue": 0.5,
-                    "alpha": 1.0
-                  }
-                },
-                "image": "None",
-                "pos": {
-                  "x": 10.0,
-                  "y": 10.0,
-                  "z": 0.0
-                },
-                "size": {
-                  "x": 30.0,
-                  "y": 30.0
-                },
-                "skew": 0.0,
-                "corner_offsets": {
-                  "top_left": {
-                    "x": 0.0,
-                    "y": 0.0
+  "graphics": {
+    "id": "60d75e2a-9bd8-429d-88e0-6fac72e757cf",
+    "name": "Graphics",
+    "content": [
+      {
+        "id": "032f8808-fe8e-48de-9c5c-91f4504dfe21",
+        "name": "Timing Tower",
+        "element_type": "Graphic",
+        "items": {
+          "items": [
+            {
+              "Cell": {
+                "id": "91a1e256-8d9d-4798-b090-8ad4a08dc4ef",
+                "name": "Heading",
+                "cell": {
+                  "text": "Column",
+                  "text_color": {
+                    "Rgba": {
+                      "red": 0.0,
+                      "green": 0.0,
+                      "blue": 0.0,
+                      "alpha": 1.0
+                    }
                   },
-                  "top_right": {
-                    "x": 0.0,
-                    "y": 0.0
+                  "text_size": 20.0,
+                  "font": "Default",
+                  "color": {
+                    "Rgba": {
+                      "red": 0.49999976,
+                      "green": 0.0,
+                      "blue": 0.5,
+                      "alpha": 1.0
+                    }
                   },
-                  "bot_left": {
-                    "x": 0.0,
-                    "y": 0.0
+                  "image": "None",
+                  "pos": {
+                    "x": 10.0,
+                    "y": 10.0,
+                    "z": 0.0
                   },
-                  "bot_right": {
-                    "x": 0.0,
-                    "y": 0.0
+                  "size": {
+                    "x": 30.0,
+                    "y": 30.0
+                  },
+                  "skew": 0.0,
+                  "corner_offsets": {
+                    "top_left": {
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "top_right": {
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "bot_left": {
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "bot_right": {
+                      "x": 0.0,
+                      "y": 0.0
+                    }
+                  },
+                  "visible": true,
+                  "rounding": {
+                    "top_left": 0.0,
+                    "top_right": 0.0,
+                    "bot_left": 0.0,
+                    "bot_right": 0.0
+                  },
+                  "text_alginment": "Left",
+                  "text_position": {
+                    "x": 5.0,
+                    "y": 15.0
                   }
-                },
-                "visible": true,
-                "rounding": {
-                  "top_left": 0.0,
-                  "top_right": 0.0,
-                  "bot_left": 0.0,
-                  "bot_right": 0.0
-                },
-                "text_alginment": "Left",
-                "text_position": {
-                  "x": 5.0,
-                  "y": 15.0
                 }
               }
-            }
-          },
-          {
-            "ClipArea": {
-              "id": "e1f8321a-dba9-49e8-845d-aac53e0b5516",
-              "name": "Clip area",
-              "clip_area": {
-                "pos": {
-                  "x": 0.0,
-                  "y": 0.0,
-                  "z": 0.0
+            },
+            {
+              "ClipArea": {
+                "id": "e1f8321a-dba9-49e8-845d-aac53e0b5516",
+                "name": "Clip area",
+                "clip_area": {
+                  "pos": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "size": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "skew": 0.0,
+                  "rounding": {
+                    "top_left": 0.0,
+                    "top_right": 0.0,
+                    "bot_left": 0.0,
+                    "bot_right": 0.0
+                  },
+                  "render_layer": 0
                 },
-                "size": {
-                  "x": 0.0,
-                  "y": 0.0
-                },
-                "skew": 0.0,
-                "rounding": {
-                  "top_left": 0.0,
-                  "top_right": 0.0,
-                  "bot_left": 0.0,
-                  "bot_right": 0.0
-                },
-                "render_layer": 0
-              },
-              "elements": [
-                {
-                  "Cell": {
-                    "id": "e2dcb2ca-185a-4766-b5d2-bd394b851c99",
-                    "name": "First",
-                    "cell": {
-                      "text": "Column",
-                      "text_color": {
-                        "Rgba": {
-                          "red": 0.0,
-                          "green": 0.0,
-                          "blue": 0.0,
-                          "alpha": 1.0
-                        }
-                      },
-                      "text_size": 20.0,
-                      "font": "Default",
-                      "color": {
-                        "Rgba": {
-                          "red": 0.49999976,
-                          "green": 0.0,
-                          "blue": 0.5,
-                          "alpha": 1.0
-                        }
-                      },
-                      "image": "None",
-                      "pos": {
-                        "x": 10.0,
-                        "y": 10.0,
-                        "z": 0.0
-                      },
-                      "size": {
-                        "x": 30.0,
-                        "y": 30.0
-                      },
-                      "skew": 0.0,
-                      "corner_offsets": {
-                        "top_left": {
-                          "x": 0.0,
-                          "y": 0.0
+                "elements": [
+                  {
+                    "Cell": {
+                      "id": "e2dcb2ca-185a-4766-b5d2-bd394b851c99",
+                      "name": "First",
+                      "cell": {
+                        "text": "Column",
+                        "text_color": {
+                          "Rgba": {
+                            "red": 0.0,
+                            "green": 0.0,
+                            "blue": 0.0,
+                            "alpha": 1.0
+                          }
                         },
-                        "top_right": {
-                          "x": 0.0,
-                          "y": 0.0
+                        "text_size": 20.0,
+                        "font": "Default",
+                        "color": {
+                          "Rgba": {
+                            "red": 0.49999976,
+                            "green": 0.0,
+                            "blue": 0.5,
+                            "alpha": 1.0
+                          }
                         },
-                        "bot_left": {
-                          "x": 0.0,
-                          "y": 0.0
+                        "image": "None",
+                        "pos": {
+                          "x": 10.0,
+                          "y": 10.0,
+                          "z": 0.0
                         },
-                        "bot_right": {
-                          "x": 0.0,
-                          "y": 0.0
+                        "size": {
+                          "x": 30.0,
+                          "y": 30.0
+                        },
+                        "skew": 0.0,
+                        "corner_offsets": {
+                          "top_left": {
+                            "x": 0.0,
+                            "y": 0.0
+                          },
+                          "top_right": {
+                            "x": 0.0,
+                            "y": 0.0
+                          },
+                          "bot_left": {
+                            "x": 0.0,
+                            "y": 0.0
+                          },
+                          "bot_right": {
+                            "x": 0.0,
+                            "y": 0.0
+                          }
+                        },
+                        "visible": true,
+                        "rounding": {
+                          "top_left": 0.0,
+                          "top_right": 0.0,
+                          "bot_left": 0.0,
+                          "bot_right": 0.0
+                        },
+                        "text_alginment": "Left",
+                        "text_position": {
+                          "x": 5.0,
+                          "y": 15.0
                         }
-                      },
-                      "visible": true,
-                      "rounding": {
-                        "top_left": 0.0,
-                        "top_right": 0.0,
-                        "bot_left": 0.0,
-                        "bot_right": 0.0
-                      },
-                      "text_alginment": "Left",
-                      "text_position": {
-                        "x": 5.0,
-                        "y": 15.0
+                      }
+                    }
+                  },
+                  {
+                    "Cell": {
+                      "id": "77fd9838-8ce5-4cb5-8c67-6a880d3d1576",
+                      "name": "Second",
+                      "cell": {
+                        "text": "Column",
+                        "text_color": {
+                          "Rgba": {
+                            "red": 0.0,
+                            "green": 0.0,
+                            "blue": 0.0,
+                            "alpha": 1.0
+                          }
+                        },
+                        "text_size": 20.0,
+                        "font": "Default",
+                        "color": {
+                          "Rgba": {
+                            "red": 0.49999976,
+                            "green": 0.0,
+                            "blue": 0.5,
+                            "alpha": 1.0
+                          }
+                        },
+                        "image": "None",
+                        "pos": {
+                          "x": 10.0,
+                          "y": 10.0,
+                          "z": 0.0
+                        },
+                        "size": {
+                          "x": 30.0,
+                          "y": 30.0
+                        },
+                        "skew": 0.0,
+                        "corner_offsets": {
+                          "top_left": {
+                            "x": 0.0,
+                            "y": 0.0
+                          },
+                          "top_right": {
+                            "x": 0.0,
+                            "y": 0.0
+                          },
+                          "bot_left": {
+                            "x": 0.0,
+                            "y": 0.0
+                          },
+                          "bot_right": {
+                            "x": 0.0,
+                            "y": 0.0
+                          }
+                        },
+                        "visible": true,
+                        "rounding": {
+                          "top_left": 0.0,
+                          "top_right": 0.0,
+                          "bot_left": 0.0,
+                          "bot_right": 0.0
+                        },
+                        "text_alginment": "Left",
+                        "text_position": {
+                          "x": 5.0,
+                          "y": 15.0
+                        }
                       }
                     }
                   }
-                },
-                {
-                  "Cell": {
-                    "id": "77fd9838-8ce5-4cb5-8c67-6a880d3d1576",
-                    "name": "Second",
-                    "cell": {
-                      "text": "Column",
-                      "text_color": {
-                        "Rgba": {
-                          "red": 0.0,
-                          "green": 0.0,
-                          "blue": 0.0,
-                          "alpha": 1.0
-                        }
-                      },
-                      "text_size": 20.0,
-                      "font": "Default",
-                      "color": {
-                        "Rgba": {
-                          "red": 0.49999976,
-                          "green": 0.0,
-                          "blue": 0.5,
-                          "alpha": 1.0
-                        }
-                      },
-                      "image": "None",
-                      "pos": {
-                        "x": 10.0,
-                        "y": 10.0,
-                        "z": 0.0
-                      },
-                      "size": {
-                        "x": 30.0,
-                        "y": 30.0
-                      },
-                      "skew": 0.0,
-                      "corner_offsets": {
-                        "top_left": {
-                          "x": 0.0,
-                          "y": 0.0
-                        },
-                        "top_right": {
-                          "x": 0.0,
-                          "y": 0.0
-                        },
-                        "bot_left": {
-                          "x": 0.0,
-                          "y": 0.0
-                        },
-                        "bot_right": {
-                          "x": 0.0,
-                          "y": 0.0
-                        }
-                      },
-                      "visible": true,
-                      "rounding": {
-                        "top_left": 0.0,
-                        "top_right": 0.0,
-                        "bot_left": 0.0,
-                        "bot_right": 0.0
-                      },
-                      "text_alginment": "Left",
-                      "text_position": {
-                        "x": 5.0,
-                        "y": 15.0
-                      }
-                    }
-                  }
-                }
-              ]
+                ]
+              }
             }
-          }
-        ]
+          ]
+        }
       }
-    }
-  ]
+    ]
+  }
 }

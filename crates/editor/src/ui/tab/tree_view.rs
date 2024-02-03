@@ -4,7 +4,7 @@ use backend::{
     style::{
         assets::{AssetDefinition, AssetFolder},
         cell::{FreeCell, FreeCellFolder},
-        graphic::Graphic,
+        graphic::GraphicDefinition,
         variables::{VariableDefinition, VariableFolder},
         StyleDefinition, StyleItem, StyleItemMut, StyleItemRef,
     },
@@ -276,6 +276,17 @@ fn show_node(
             );
             ControlFlow::Continue(())
         }
+        (Method::Visit, StyleItemMut::GraphicFolder(folder)) => {
+            builder.node(NodeBuilder::dir(folder.id).closer(folder_closer), |ui| {
+                ui.label(&folder.name);
+            });
+            ControlFlow::Continue(())
+        }
+        (Method::Leave, StyleItemMut::GraphicFolder(_)) => {
+            builder.close_dir();
+            ControlFlow::Continue(())
+        }
+
         (Method::Leave, StyleItemMut::Variable(_)) => ControlFlow::Continue(()),
         (Method::Leave, StyleItemMut::Asset(_)) => ControlFlow::Continue(()),
         (Method::Leave, StyleItemMut::FreeCell(_)) => ControlFlow::Continue(()),
@@ -401,7 +412,7 @@ fn context_menu(
                 undo_redo_manager.queue(InsertNode {
                     target_node: scene.id,
                     position: DropPosition::Last,
-                    node: Graphic::new().to_owned(),
+                    node: GraphicDefinition::new().to_owned(),
                 });
                 ui.close_menu();
             }
@@ -492,6 +503,9 @@ fn context_menu(
         }
         StyleItemMut::Graphic(comp) => {
             ui.label(&comp.name);
+        }
+        StyleItemMut::GraphicFolder(folder) => {
+            ui.label(&folder.name);
         }
     }
 }

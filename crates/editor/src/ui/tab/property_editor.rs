@@ -312,6 +312,16 @@ pub fn edit_node(
                 undo_redo_manager,
             );
         }
+        StyleItemMut::GraphicFolder(folder) => {
+            let mut edit_result = EditResult::None;
+
+            ui.label("Name:");
+            edit_result |= ui.text_edit_singleline(&mut folder.name).into();
+
+            if let EditResult::FromId(widget_id) = edit_result {
+                undo_redo_manager.queue(EditProperty::new(folder.id, folder.clone(), widget_id));
+            }
+        }
 
         StyleItemMut::Style(_) => (),
     }

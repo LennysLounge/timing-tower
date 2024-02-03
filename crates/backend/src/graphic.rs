@@ -57,7 +57,7 @@ fn spawn_or_delete_graphics(
 ) {
     let mut known_graphics = HashSet::new();
     // spawn new graphics
-    for graphic in savefile.style().graphics.iter() {
+    for graphic in savefile.style().graphics.contained_graphics() {
         if !id_to_entity_map.contains_key(&graphic.id) {
             let entity = commands.spawn(Graphic { id: graphic.id }).id();
             id_to_entity_map.insert(graphic.id, entity);

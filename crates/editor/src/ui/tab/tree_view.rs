@@ -501,11 +501,31 @@ fn context_menu(
                 ui.close_menu();
             }
         }
-        StyleItemMut::Graphic(comp) => {
-            ui.label(&comp.name);
+        StyleItemMut::Graphic(graphic) => {
+            if ui.button("add graphic").clicked() {
+                undo_redo_manager.queue(InsertNode {
+                    target_node: tree_response
+                        .parent_of(graphic.id)
+                        .expect("Should have parent"),
+                    position: DropPosition::After(graphic.id),
+                    node: GraphicDefinition::new().to_owned(),
+                });
+                ui.close_menu();
+            }
+            if ui.button("delete").clicked() {
+                undo_redo_manager.queue(RemoveNode { id: graphic.id });
+                ui.close_menu();
+            }
         }
         StyleItemMut::GraphicFolder(folder) => {
-            ui.label(&folder.name);
+            if ui.button("add graphic").clicked() {
+                undo_redo_manager.queue(InsertNode {
+                    target_node: folder.id,
+                    position: DropPosition::Last,
+                    node: GraphicDefinition::new().to_owned(),
+                });
+                ui.close_menu();
+            }
         }
     }
 }

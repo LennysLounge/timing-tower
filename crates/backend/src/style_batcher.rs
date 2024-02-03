@@ -19,7 +19,7 @@ use bevy::{
 use common::communication::{CellStyle, ClipAreaStyle, StyleCommand};
 use uuid::Uuid;
 
-use crate::timing_tower::StyleElementUpdate;
+use crate::graphic::StyleElementUpdate;
 
 pub struct StyleBatcherPlugin;
 impl Plugin for StyleBatcherPlugin {

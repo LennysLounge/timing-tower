@@ -102,12 +102,6 @@ fn remove(node: &mut StyleItemMut, method: Method, node_id: &Uuid) -> ControlFlo
             }
         }
 
-        (Method::Visit, StyleItemMut::TimingTower(tower)) => {
-            remove_node_from_folder(&mut tower.cells, node_id)
-        }
-        (Method::Visit, StyleItemMut::TimingTowerRow(tower_row)) => {
-            remove_node_from_folder(&mut tower_row.columns, node_id)
-        }
         (Method::Visit, StyleItemMut::FreeCellFolder(folder)) => {
             remove_node_from_folder(folder, node_id)
         }

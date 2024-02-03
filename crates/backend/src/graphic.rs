@@ -5,7 +5,7 @@ use bevy::{
     ecs::{
         component::Component,
         entity::Entity,
-        schedule::IntoSystemConfigs,
+        schedule::{IntoSystemConfigs, SystemSet},
         system::{Commands, Local, Query, Res, ResMut},
     },
     hierarchy::DespawnRecursiveExt,
@@ -25,7 +25,6 @@ use crate::{
         StyleItem, StyleItemRef,
     },
     style_batcher::{CellId, StyleBatcher},
-    timing_tower::StyleElementUpdate,
     tree_iterator::TreeIterator,
     value_store::{TypedValueResolver, ValueStore},
     value_types::{Boolean, Font, Number, Property, Text, Texture, Tint, Vec2Property},
@@ -43,6 +42,9 @@ impl Plugin for GraphicPlugin {
         );
     }
 }
+
+#[derive(SystemSet, Hash, Debug, PartialEq, Eq, Clone)]
+pub struct StyleElementUpdate;
 
 #[derive(Component)]
 pub struct Graphic {

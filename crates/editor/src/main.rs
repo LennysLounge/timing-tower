@@ -1,7 +1,6 @@
 use asset_path_store::EditorAssetPathStorePlugin;
 use backend::{
     savefile::{Savefile, SavefileChanged},
-    timing_tower::TimingTower,
     BackendPlugin, GameAdapterResource,
 };
 use bevy::{
@@ -124,7 +123,6 @@ fn setup(
             render_layer: 0,
         },
     });
-    commands.spawn(TimingTower::new());
 }
 
 pub trait SpawnAndInitWorld {

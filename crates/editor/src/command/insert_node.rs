@@ -109,14 +109,6 @@ pub fn insert(
             ControlFlow::Break(())
         }
 
-        StyleItemMut::TimingTower(tower) => {
-            insert_into_free_cell_folder(&mut tower.cells, position, insert);
-            ControlFlow::Break(())
-        }
-        StyleItemMut::TimingTowerRow(tower_row) => {
-            insert_into_free_cell_folder(&mut tower_row.columns, position, insert);
-            ControlFlow::Break(())
-        }
         StyleItemMut::FreeCellFolder(folder) => {
             insert_into_free_cell_folder(folder, position, insert);
             ControlFlow::Break(())

@@ -1,7 +1,7 @@
 use backend::{
     savefile::{Savefile, SavefileChanged},
     style_batcher::{PrepareBatcher, StyleBatcher},
-    BackendPlugin, GameAdapterResource, timing_tower::TimingTower,
+    BackendPlugin, GameAdapterResource,
 };
 use ball::Ball;
 use bevy::{
@@ -57,7 +57,6 @@ fn setup(
     commands.insert_resource(GameAdapterResource {
         adapter: Adapter::new_dummy(),
     });
-    commands.spawn(TimingTower::new());
 }
 
 fn spawn_balls(mut commands: Commands) {

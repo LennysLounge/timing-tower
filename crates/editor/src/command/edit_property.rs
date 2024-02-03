@@ -39,8 +39,6 @@ impl EditProperty {
                     StyleItemMut::Asset(o) => apply_edit(*o, self.value),
                     StyleItemMut::AssetFolder(o) => apply_edit(*o, self.value),
                     StyleItemMut::Scene(o) => apply_edit(*o, self.value),
-                    StyleItemMut::TimingTower(o) => apply_edit(*o, self.value),
-                    StyleItemMut::TimingTowerRow(o) => apply_edit(*o, self.value),
                     StyleItemMut::FreeCellFolder(o) => apply_edit(*o, self.value),
                     StyleItemMut::FreeCell(o) => apply_edit(*o, self.value),
                     StyleItemMut::Graphic(o) => apply_edit(*o, self.value),

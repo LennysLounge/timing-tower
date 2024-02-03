@@ -2,13 +2,12 @@ use bevy::math::Vec2;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::{timing_tower::TimingTower, OwnedStyleItem, StyleItem, StyleItemMut, StyleItemRef};
+use super::{OwnedStyleItem, StyleItem, StyleItemMut, StyleItemRef};
 
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct SceneDefinition {
     pub id: Uuid,
     pub prefered_size: Vec2,
-    pub timing_tower: TimingTower,
 }
 impl StyleItem for SceneDefinition {
     fn id(&self) -> &Uuid {

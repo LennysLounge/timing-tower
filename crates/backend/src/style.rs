@@ -11,16 +11,14 @@ use self::{
     cell::{FreeCell, FreeCellFolder, FreeCellOrFolder},
     graphic::{GraphicDefinition, GraphicFolder, GraphicOrFolder},
     scene::SceneDefinition,
-    timing_tower::{TimingTower, TimingTowerRow},
     variables::{VariableDefinition, VariableFolder, VariableOrFolder},
 };
 
 pub mod assets;
 pub mod cell;
-pub mod graphic_items;
 pub mod graphic;
+pub mod graphic_items;
 pub mod scene;
-pub mod timing_tower;
 pub mod variables;
 
 /// Base trait for all elements in the style definition.
@@ -61,8 +59,6 @@ pub enum OwnedStyleItem {
     Asset(AssetDefinition),
     AssetFolder(AssetFolder),
     Scene(SceneDefinition),
-    TimingTower(TimingTower),
-    TimingTowerRow(TimingTowerRow),
     FreeCellFolder(FreeCellFolder),
     FreeCell(FreeCell),
     Graphic(GraphicDefinition),
@@ -78,8 +74,6 @@ impl TreeItem for OwnedStyleItem {
             OwnedStyleItem::Asset(o) => o.id,
             OwnedStyleItem::AssetFolder(o) => o.id,
             OwnedStyleItem::Scene(o) => o.id,
-            OwnedStyleItem::TimingTower(o) => o.id,
-            OwnedStyleItem::TimingTowerRow(o) => o.id,
             OwnedStyleItem::FreeCellFolder(o) => o.id,
             OwnedStyleItem::FreeCell(o) => o.id,
             OwnedStyleItem::Graphic(o) => o.id,
@@ -96,8 +90,6 @@ pub enum StyleItemRef<'a> {
     Asset(&'a AssetDefinition),
     AssetFolder(&'a AssetFolder),
     Scene(&'a SceneDefinition),
-    TimingTower(&'a TimingTower),
-    TimingTowerRow(&'a TimingTowerRow),
     FreeCellFolder(&'a FreeCellFolder),
     FreeCell(&'a FreeCell),
     Graphic(&'a GraphicDefinition),
@@ -113,8 +105,6 @@ impl TreeItem for StyleItemRef<'_> {
             StyleItemRef::Asset(o) => o.id,
             StyleItemRef::AssetFolder(o) => o.id,
             StyleItemRef::Scene(o) => o.id,
-            StyleItemRef::TimingTower(o) => o.id,
-            StyleItemRef::TimingTowerRow(o) => o.id,
             StyleItemRef::FreeCellFolder(o) => o.id,
             StyleItemRef::FreeCell(o) => o.id,
             StyleItemRef::Graphic(o) => o.id,
@@ -152,22 +142,7 @@ impl TreeIterator for StyleItemRef<'_> {
                     AssetOrFolder::Folder(o) => o.as_ref().walk(f),
                 })?;
             }
-            StyleItemRef::Scene(scene) => {
-                scene.timing_tower.as_ref().walk(f)?;
-            }
-            StyleItemRef::TimingTower(tower) => {
-                tower.row.as_ref().walk(f)?;
-                tower.cells.content.iter().try_for_each(|c| match c {
-                    FreeCellOrFolder::Cell(o) => o.as_ref().walk(f),
-                    FreeCellOrFolder::Folder(o) => o.as_ref().walk(f),
-                })?;
-            }
-            StyleItemRef::TimingTowerRow(tower_row) => {
-                tower_row.columns.content.iter().try_for_each(|c| match c {
-                    FreeCellOrFolder::Cell(o) => o.as_ref().walk(f),
-                    FreeCellOrFolder::Folder(o) => o.as_ref().walk(f),
-                })?;
-            }
+            StyleItemRef::Scene(_) => (),
             StyleItemRef::FreeCellFolder(cell_folder) => {
                 cell_folder.content.iter().try_for_each(|v| match v {
                     FreeCellOrFolder::Cell(o) => o.as_ref().walk(f),
@@ -194,8 +169,6 @@ pub enum StyleItemMut<'a> {
     Asset(&'a mut AssetDefinition),
     AssetFolder(&'a mut AssetFolder),
     Scene(&'a mut SceneDefinition),
-    TimingTower(&'a mut TimingTower),
-    TimingTowerRow(&'a mut TimingTowerRow),
     FreeCellFolder(&'a mut FreeCellFolder),
     FreeCell(&'a mut FreeCell),
     Graphic(&'a mut GraphicDefinition),
@@ -211,8 +184,6 @@ impl TreeItem for StyleItemMut<'_> {
             StyleItemMut::Asset(o) => o.id,
             StyleItemMut::AssetFolder(o) => o.id,
             StyleItemMut::Scene(o) => o.id,
-            StyleItemMut::TimingTower(o) => o.id,
-            StyleItemMut::TimingTowerRow(o) => o.id,
             StyleItemMut::FreeCellFolder(o) => o.id,
             StyleItemMut::FreeCell(o) => o.id,
             StyleItemMut::Graphic(o) => o.id,
@@ -250,26 +221,7 @@ impl TreeIteratorMut for StyleItemMut<'_> {
                     AssetOrFolder::Folder(o) => o.as_mut().walk_mut(f),
                 })?;
             }
-            StyleItemMut::Scene(scene) => {
-                scene.timing_tower.as_mut().walk_mut(f)?;
-            }
-            StyleItemMut::TimingTower(tower) => {
-                tower.row.as_mut().walk_mut(f)?;
-                tower.cells.content.iter_mut().try_for_each(|c| match c {
-                    FreeCellOrFolder::Cell(o) => o.as_mut().walk_mut(f),
-                    FreeCellOrFolder::Folder(o) => o.as_mut().walk_mut(f),
-                })?;
-            }
-            StyleItemMut::TimingTowerRow(tower_row) => {
-                tower_row
-                    .columns
-                    .content
-                    .iter_mut()
-                    .try_for_each(|c| match c {
-                        FreeCellOrFolder::Cell(o) => o.as_mut().walk_mut(f),
-                        FreeCellOrFolder::Folder(o) => o.as_mut().walk_mut(f),
-                    })?;
-            }
+            StyleItemMut::Scene(_) => (),
             StyleItemMut::FreeCellFolder(cell_folder) => {
                 cell_folder.content.iter_mut().try_for_each(|v| match v {
                     FreeCellOrFolder::Cell(o) => o.as_mut().walk_mut(f),

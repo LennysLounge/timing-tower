@@ -82,14 +82,8 @@ fn drop_allowed(target: &StyleItemRef, dragged: &StyleItemRef) -> bool {
         (StyleItemRef::AssetFolder(_), StyleItemRef::AssetFolder(_)) => true,
         (StyleItemRef::AssetFolder(_), StyleItemRef::Asset(_)) => true,
 
-        (StyleItemRef::TimingTowerRow(_), StyleItemRef::FreeCellFolder(_)) => true,
-        (StyleItemRef::TimingTowerRow(_), StyleItemRef::FreeCell(_)) => true,
-
         (StyleItemRef::FreeCellFolder(_), StyleItemRef::FreeCellFolder(_)) => true,
         (StyleItemRef::FreeCellFolder(_), StyleItemRef::FreeCell(_)) => true,
-
-        (StyleItemRef::TimingTower(_), StyleItemRef::FreeCell(_)) => true,
-        (StyleItemRef::TimingTower(_), StyleItemRef::FreeCellFolder(_)) => true,
 
         (StyleItemRef::Scene(_), StyleItemRef::Graphic(_)) => true,
 
@@ -129,29 +123,6 @@ fn show_node(
             ControlFlow::Continue(())
         }
         (Method::Leave, StyleItemMut::Style(_)) => {
-            builder.close_dir();
-            ControlFlow::Continue(())
-        }
-
-        (Method::Visit, StyleItemMut::TimingTower(tower)) => {
-            builder.node(NodeBuilder::dir(tower.id).closer(folder_closer), |ui| {
-                ui.label("Timing tower");
-            });
-            ControlFlow::Continue(())
-        }
-        (Method::Leave, StyleItemMut::TimingTower(_)) => {
-            builder.close_dir();
-            ControlFlow::Continue(())
-        }
-
-        (Method::Visit, StyleItemMut::TimingTowerRow(row)) => {
-            builder.node(NodeBuilder::dir(row.id).closer(folder_closer), |ui| {
-                ui.label("Row");
-            });
-            ControlFlow::Continue(())
-        }
-
-        (Method::Leave, StyleItemMut::TimingTowerRow(_)) => {
             builder.close_dir();
             ControlFlow::Continue(())
         }
@@ -412,42 +383,6 @@ fn context_menu(
                     target_node: scene.id,
                     position: DropPosition::Last,
                     node: GraphicDefinition::new().to_owned(),
-                });
-                ui.close_menu();
-            }
-        }
-        StyleItemMut::TimingTower(tower) => {
-            if ui.button("add column").clicked() {
-                undo_redo_manager.queue(InsertNode {
-                    target_node: tower.id,
-                    position: DropPosition::Last,
-                    node: FreeCell::new().to_owned(),
-                });
-                ui.close_menu();
-            }
-            if ui.button("add group").clicked() {
-                undo_redo_manager.queue(InsertNode {
-                    target_node: tower.id,
-                    position: DropPosition::Last,
-                    node: FreeCellFolder::new().to_owned(),
-                });
-                ui.close_menu();
-            }
-        }
-        StyleItemMut::TimingTowerRow(row) => {
-            if ui.button("add column").clicked() {
-                undo_redo_manager.queue(InsertNode {
-                    target_node: row.id,
-                    position: DropPosition::Last,
-                    node: FreeCell::new().to_owned(),
-                });
-                ui.close_menu();
-            }
-            if ui.button("add group").clicked() {
-                undo_redo_manager.queue(InsertNode {
-                    target_node: row.id,
-                    position: DropPosition::Last,
-                    node: FreeCellFolder::new().to_owned(),
                 });
                 ui.close_menu();
             }

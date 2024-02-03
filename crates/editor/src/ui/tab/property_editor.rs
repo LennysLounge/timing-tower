@@ -21,7 +21,7 @@ use crate::{
     ui::combo_box::LComboBox,
 };
 
-use self::{graphic::component_property_editor, property::PropertyEditor};
+use self::graphic::component_property_editor;
 
 pub mod cell;
 mod graphic;
@@ -66,51 +66,6 @@ pub fn edit_node(
     secondary_selection: &mut Option<Uuid>,
 ) {
     match node {
-        StyleItemMut::TimingTower(tower) => {
-            let mut edit_result = EditResult::None;
-
-            ui.label("Position:");
-            ui.horizontal(|ui| {
-                ui.label("X:");
-                edit_result |= ui
-                    .add(PropertyEditor::new(&mut tower.position.x, reference_store))
-                    .into();
-            });
-            ui.horizontal(|ui| {
-                ui.label("Y:");
-                edit_result |= ui
-                    .add(PropertyEditor::new(&mut tower.position.y, reference_store))
-                    .into();
-            });
-            if let EditResult::FromId(widget_id) = edit_result {
-                undo_redo_manager.queue(EditProperty::new(tower.id, tower.clone(), widget_id));
-            }
-        }
-
-        StyleItemMut::TimingTowerRow(row) => {
-            let mut edit_result = EditResult::None;
-
-            ui.label("Row offset:");
-            ui.horizontal(|ui| {
-                ui.label("Offset x:");
-                edit_result |= ui
-                    .add(PropertyEditor::new(&mut row.row_offset.x, reference_store))
-                    .into();
-            });
-            ui.horizontal(|ui| {
-                ui.label("Offset y:");
-                edit_result |= ui
-                    .add(PropertyEditor::new(&mut row.row_offset.y, reference_store))
-                    .into();
-            });
-            ui.separator();
-            edit_result |= cell::clip_area_editor(ui, &mut row.clip_area, reference_store);
-
-            if let EditResult::FromId(widget_id) = edit_result {
-                undo_redo_manager.queue(EditProperty::new(row.id, row.clone(), widget_id));
-            }
-        }
-
         StyleItemMut::FreeCell(cell) => {
             let mut edit_result = EditResult::None;
 

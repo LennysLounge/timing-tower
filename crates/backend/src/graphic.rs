@@ -137,7 +137,7 @@ fn update_graphic_item(
     item: &GraphicItem,
     batcher: &mut StyleBatcher,
     graphic_item_data: &mut HashMap<Uuid, GraphicItemData>,
-    style_resolver: &StyleResolver,
+    resolver: &StyleResolver,
     _model: &Model,
 ) {
     match item {
@@ -149,13 +149,32 @@ fn update_graphic_item(
                     updated: false,
                 });
 
-            batcher.add(&data.cell_id, style_resolver.cell(&cell.cell));
+            batcher.add(&data.cell_id, resolver.cell(&cell.cell));
             data.updated = true;
         }
-        style::elements::GraphicItem::ClipArea(_) => (),
+        style::elements::GraphicItem::ClipArea(clip_area) => {
+            let data = graphic_item_data
+                .entry(clip_area.id)
+                .or_insert_with(|| GraphicItemData {
+                    cell_id: CellId::new(),
+                    updated: false,
+                });
+            data.updated = true;
+
+            let clip_area_style = resolver.clip_area(&clip_area.clip_area);
+            let new_resolver = resolver
+                .clone()
+                .with_add_position(clip_area_style.pos)
+                .with_render_layer(clip_area_style.render_layer);
+            batcher.add_clip_area(&data.cell_id, clip_area_style);
+            for item in clip_area.items.iter() {
+                update_graphic_item(item, batcher, graphic_item_data, &new_resolver, _model);
+            }
+        }
     }
 }
 
+#[derive(Clone)]
 struct StyleResolver<'a> {
     value_store: &'a ValueStore,
     _session: &'a Session,
@@ -176,6 +195,16 @@ impl<'a> StyleResolver<'a> {
 
     fn set_position(&mut self, position: Vec3) {
         self.position = position;
+    }
+
+    fn with_add_position(mut self, position: Vec3) -> Self {
+        self.position += position;
+        self
+    }
+
+    fn with_render_layer(mut self, render_layer: u8) -> Self {
+        self.render_layer = render_layer;
+        self
     }
 
     fn property<T>(&self, property: &Property<T>) -> Option<T>

@@ -65,7 +65,7 @@ impl TreeIterator for GraphicItem {
         match self {
             GraphicItem::Cell(_) => (),
             GraphicItem::ClipArea(clip_area) => {
-                clip_area.elements.iter().try_for_each(|e| e.walk(f))?;
+                clip_area.items.iter().try_for_each(|e| e.walk(f))?;
             }
         }
         f(self, Method::Leave)
@@ -84,7 +84,7 @@ impl TreeIteratorMut for GraphicItem {
             GraphicItem::Cell(_) => (),
             GraphicItem::ClipArea(clip_area) => {
                 clip_area
-                    .elements
+                    .items
                     .iter_mut()
                     .try_for_each(|e| e.walk_mut(f))?;
             }
@@ -100,7 +100,7 @@ pub struct FreeClipArea {
     pub id: Uuid,
     pub name: String,
     pub clip_area: ClipArea,
-    pub elements: Vec<GraphicItem>,
+    pub items: Vec<GraphicItem>,
 }
 impl FreeClipArea {
     pub fn new() -> Self {
@@ -108,7 +108,7 @@ impl FreeClipArea {
             id: Uuid::new_v4(),
             name: String::from("Clip area"),
             clip_area: ClipArea::default(),
-            elements: Vec::new(),
+            items: Vec::new(),
         }
     }
 }

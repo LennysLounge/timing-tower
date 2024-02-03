@@ -227,8 +227,8 @@ fn remove_element(component: &mut GraphicDefinition, id: Uuid) -> Option<Graphic
         match e {
             GraphicItem::Cell(_) => ControlFlow::Continue(()),
             GraphicItem::ClipArea(clip_area) => {
-                if let Some(index) = clip_area.elements.iter().position(|e| e.id() == id) {
-                    ControlFlow::Break(Some(clip_area.elements.remove(index)))
+                if let Some(index) = clip_area.items.iter().position(|e| e.id() == id) {
+                    ControlFlow::Break(Some(clip_area.items.remove(index)))
                 } else {
                     ControlFlow::Continue(())
                 }
@@ -253,7 +253,7 @@ fn insert_element(
         component.items.search_mut(target, |e| match e {
             GraphicItem::Cell(_) => (),
             GraphicItem::ClipArea(clip_area) => {
-                insert_into_vec(&mut clip_area.elements, position, element);
+                insert_into_vec(&mut clip_area.items, position, element);
             }
         });
     }

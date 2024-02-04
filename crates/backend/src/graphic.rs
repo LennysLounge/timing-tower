@@ -53,12 +53,6 @@ pub struct Graphic {
     id: Uuid,
 }
 
-enum GraphicItemData {
-    Cell { cell_id: CellId },
-    ClipArea { cell_id: CellId },
-    DriverTable { scroll_position: f32 },
-}
-
 fn spawn_or_delete_graphics(
     mut commands: Commands,
     savefile: Res<Savefile>,
@@ -143,94 +137,85 @@ fn update_graphic_item(
 ) {
     match item {
         GraphicItem::Cell(cell) => {
-            let data = graphic_item_data_storage.get_or_create(cell.id, || GraphicItemData::Cell {
-                cell_id: CellId::new(),
-            });
-            if let GraphicItemData::Cell { cell_id } = data {
-                batcher.add(&cell_id, resolver.cell(&cell.cell));
-            }
+            let cell_id = graphic_item_data_storage.get_or_create(cell.id, || CellId::new());
+            batcher.add(&cell_id, resolver.cell(&cell.cell));
         }
         GraphicItem::ClipArea(clip_area) => {
-            let data = graphic_item_data_storage.get_or_create(clip_area.id, || {
-                GraphicItemData::ClipArea {
-                    cell_id: CellId::new(),
-                }
+            let cell_id = graphic_item_data_storage.get_or_create(clip_area.id, || CellId::new());
+            let clip_area_style = resolver.clip_area(&clip_area.clip_area);
+            let new_resolver = resolver
+                .clone()
+                .with_position(clip_area_style.pos)
+                .with_render_layer(clip_area_style.render_layer);
+            batcher.add_clip_area(&cell_id, clip_area_style);
+            for item in clip_area.items.iter() {
+                update_graphic_item(
+                    item,
+                    batcher,
+                    graphic_item_data_storage,
+                    &new_resolver,
+                    _model,
+                );
+            }
+        }
+        GraphicItem::DriverTable(driver_table) => {
+            let DriverTableData { scroll_position } =
+                graphic_item_data_storage.get_or_default(driver_table.id);
+
+            // Read the row offset.
+            let row_offset = vec3(
+                resolver
+                    .property(&driver_table.row_offset.x)
+                    .unwrap_or_default()
+                    .0,
+                -resolver
+                    .property(&driver_table.row_offset.y)
+                    .unwrap_or_default()
+                    .0,
+                0.0,
+            );
+
+            // Get entries sorted by position
+            let mut entries: Vec<&Entry> = resolver.session().entries.values().collect();
+            entries.sort_by(|e1, e2| {
+                let is_connected = e2.connected.cmp(&e1.connected);
+                let position = e1
+                    .position
+                    .partial_cmp(&e2.position)
+                    .unwrap_or(std::cmp::Ordering::Equal);
+                is_connected.then(position)
             });
-            if let GraphicItemData::ClipArea { cell_id } = data {
-                let clip_area_style = resolver.clip_area(&clip_area.clip_area);
+
+            // Update scroll position to make sure the focused entry is visible
+            if let Some(focused_entry_index) = entries.iter().position(|entry| entry.focused) {
+                let rows_to_skip = (focused_entry_index as f32 - 12.0)
+                    .min(entries.len() as f32 - 23.0)
+                    .max(0.0);
+                *scroll_position = *scroll_position - (*scroll_position - rows_to_skip) * 0.2;
+            }
+            let scroll_offset = row_offset * *scroll_position;
+
+            // Each column for all entries.
+            for (index, entry) in entries.iter().enumerate() {
                 let new_resolver = resolver
                     .clone()
-                    .with_position(clip_area_style.pos)
-                    .with_render_layer(clip_area_style.render_layer);
-                batcher.add_clip_area(&cell_id, clip_area_style);
-                for item in clip_area.items.iter() {
+                    .with_position(*resolver.position() - scroll_offset + row_offset * index as f32)
+                    .with_entry(entry);
+                for column in driver_table.columns.iter() {
                     update_graphic_item(
-                        item,
+                        column,
                         batcher,
-                        graphic_item_data_storage,
+                        &mut graphic_item_data_storage.make_context(entry.id),
                         &new_resolver,
                         _model,
                     );
                 }
             }
         }
-        GraphicItem::DriverTable(driver_table) => {
-            let data = graphic_item_data_storage.get_or_create(driver_table.id, || {
-                GraphicItemData::DriverTable {
-                    scroll_position: 0.0,
-                }
-            });
-            if let GraphicItemData::DriverTable { scroll_position } = data {
-                let row_offset = vec3(
-                    resolver
-                        .property(&driver_table.row_offset.x)
-                        .unwrap_or_default()
-                        .0,
-                    -resolver
-                        .property(&driver_table.row_offset.y)
-                        .unwrap_or_default()
-                        .0,
-                    0.0,
-                );
-
-                // Get entries sorted by position
-                let mut entries: Vec<&Entry> = resolver.session().entries.values().collect();
-                entries.sort_by(|e1, e2| {
-                    let is_connected = e2.connected.cmp(&e1.connected);
-                    let position = e1
-                        .position
-                        .partial_cmp(&e2.position)
-                        .unwrap_or(std::cmp::Ordering::Equal);
-                    is_connected.then(position)
-                });
-
-                // Update scroll position to make sure the focused entry is visible
-                if let Some(focused_entry_index) = entries.iter().position(|entry| entry.focused) {
-                    let rows_to_skip = (focused_entry_index as f32 - 12.0)
-                        .min(entries.len() as f32 - 23.0)
-                        .max(0.0);
-                    *scroll_position = *scroll_position - (*scroll_position - rows_to_skip) * 0.2;
-                }
-                let scroll_offset = row_offset * *scroll_position;
-
-                for (index, entry) in entries.iter().enumerate() {
-                    let new_resolver = resolver
-                        .clone()
-                        .with_position(
-                            *resolver.position() - scroll_offset + row_offset * index as f32,
-                        )
-                        .with_entry(entry);
-                    for column in driver_table.columns.iter() {
-                        update_graphic_item(
-                            column,
-                            batcher,
-                            &mut graphic_item_data_storage.make_context(entry.id),
-                            &new_resolver,
-                            _model,
-                        );
-                    }
-                }
-            }
-        }
     }
+}
+
+#[derive(Default)]
+struct DriverTableData {
+    scroll_position: f32,
 }

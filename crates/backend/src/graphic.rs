@@ -9,27 +9,29 @@ use bevy::{
         system::{Commands, Local, Query, Res, ResMut},
     },
     hierarchy::DespawnRecursiveExt,
-    math::{vec2, vec3, Vec2, Vec3},
-    render::color::Color,
+    math::vec3,
     utils::hashbrown::HashSet,
 };
-use common::communication::{CellStyle, ClipAreaStyle};
-use unified_sim_model::model::{Entry, EntryId, Model, Session};
+
+use unified_sim_model::model::{Entry, Model};
 use uuid::Uuid;
 
 use crate::{
     savefile::Savefile,
-    style::{
-        cell::{Cell, ClipArea},
-        graphic_items::GraphicItem,
-        StyleItem, StyleItemRef,
-    },
+    style::{graphic_items::GraphicItem, StyleItem, StyleItemRef},
     style_batcher::{CellId, StyleBatcher},
     tree_iterator::TreeIterator,
-    value_store::{TypedValueResolver, ValueStore},
-    value_types::{Boolean, Font, Number, Property, Text, Texture, Tint, Vec2Property},
+    value_store::ValueStore,
     GameAdapterResource,
 };
+
+use self::{
+    graphic_item_data_storage::{GraphicItemDataStorage, GraphicItemDataStorageContext},
+    style_resolver::StyleResolver,
+};
+
+mod graphic_item_data_storage;
+mod style_resolver;
 
 pub struct GraphicPlugin;
 impl Plugin for GraphicPlugin {
@@ -52,37 +54,9 @@ pub struct Graphic {
 }
 
 enum GraphicItemData {
-    Cell {
-        cell_id: CellId,
-        updated: bool,
-    },
-    ClipArea {
-        cell_id: CellId,
-        updated: bool,
-        data: HashMap<Uuid, GraphicItemData>,
-    },
-    DriverTable {
-        updated: bool,
-        rows: HashMap<EntryId, HashMap<Uuid, GraphicItemData>>,
-        scroll_position: f32,
-    },
-}
-impl GraphicItemData {
-    fn was_updated(&self) -> bool {
-        match self {
-            GraphicItemData::Cell { updated, .. } => *updated,
-            GraphicItemData::ClipArea { updated, .. } => *updated,
-            GraphicItemData::DriverTable { updated, .. } => *updated,
-        }
-    }
-
-    fn reset_update(&mut self) {
-        match self {
-            GraphicItemData::Cell { updated, .. } => *updated = false,
-            GraphicItemData::ClipArea { updated, .. } => *updated = false,
-            GraphicItemData::DriverTable { updated, .. } => *updated = false,
-        }
-    }
+    Cell { cell_id: CellId },
+    ClipArea { cell_id: CellId },
+    DriverTable { scroll_position: f32 },
 }
 
 fn spawn_or_delete_graphics(
@@ -114,7 +88,7 @@ fn update_graphics(
     mut graphics: Query<&mut Graphic>,
     savefile: Res<Savefile>,
     mut batcher: ResMut<StyleBatcher>,
-    mut graphic_item_data: Local<HashMap<Uuid, GraphicItemData>>,
+    mut graphic_item_data_storage: Local<GraphicItemDataStorage>,
     value_store: Res<ValueStore>,
     game_adapter: Res<GameAdapterResource>,
 ) {
@@ -147,7 +121,7 @@ fn update_graphics(
                     update_graphic_item(
                         item,
                         &mut *batcher,
-                        &mut *graphic_item_data,
+                        &mut graphic_item_data_storage.make_context(0),
                         &resolver,
                         &*model,
                     );
@@ -157,48 +131,32 @@ fn update_graphics(
     }
 
     // Remove stale data
-    remove_stale_items(&mut graphic_item_data);
-    // graphic_item_data.retain(|_, data| data.updated);
-    // graphic_item_data
-    //     .values_mut()
-    //     .for_each(|data| data.updated = false);
+    graphic_item_data_storage.clear_stale_data();
 }
 
 fn update_graphic_item(
     item: &GraphicItem,
     batcher: &mut StyleBatcher,
-    graphic_item_data: &mut HashMap<Uuid, GraphicItemData>,
+    graphic_item_data_storage: &mut GraphicItemDataStorageContext<'_>,
     resolver: &StyleResolver,
     _model: &Model,
 ) {
     match item {
         GraphicItem::Cell(cell) => {
-            let data = graphic_item_data
-                .entry(cell.id)
-                .or_insert_with(|| GraphicItemData::Cell {
-                    cell_id: CellId::new(),
-                    updated: false,
-                });
-            if let GraphicItemData::Cell { cell_id, updated } = data {
+            let data = graphic_item_data_storage.get_or_create(cell.id, || GraphicItemData::Cell {
+                cell_id: CellId::new(),
+            });
+            if let GraphicItemData::Cell { cell_id } = data {
                 batcher.add(&cell_id, resolver.cell(&cell.cell));
-                *updated = true;
             }
         }
         GraphicItem::ClipArea(clip_area) => {
-            let data = graphic_item_data.entry(clip_area.id).or_insert_with(|| {
+            let data = graphic_item_data_storage.get_or_create(clip_area.id, || {
                 GraphicItemData::ClipArea {
                     cell_id: CellId::new(),
-                    updated: false,
-                    data: HashMap::new(),
                 }
             });
-            if let GraphicItemData::ClipArea {
-                cell_id,
-                updated,
-                data: graphic_item_data,
-            } = data
-            {
-                *updated = true;
+            if let GraphicItemData::ClipArea { cell_id } = data {
                 let clip_area_style = resolver.clip_area(&clip_area.clip_area);
                 let new_resolver = resolver
                     .clone()
@@ -206,26 +164,23 @@ fn update_graphic_item(
                     .with_render_layer(clip_area_style.render_layer);
                 batcher.add_clip_area(&cell_id, clip_area_style);
                 for item in clip_area.items.iter() {
-                    update_graphic_item(item, batcher, graphic_item_data, &new_resolver, _model);
+                    update_graphic_item(
+                        item,
+                        batcher,
+                        graphic_item_data_storage,
+                        &new_resolver,
+                        _model,
+                    );
                 }
             }
         }
         GraphicItem::DriverTable(driver_table) => {
-            let data = graphic_item_data.entry(driver_table.id).or_insert_with(|| {
+            let data = graphic_item_data_storage.get_or_create(driver_table.id, || {
                 GraphicItemData::DriverTable {
-                    updated: false,
-                    rows: HashMap::new(),
                     scroll_position: 0.0,
                 }
             });
-            if let GraphicItemData::DriverTable {
-                updated,
-                rows,
-                scroll_position,
-            } = data
-            {
-                *updated = true;
-
+            if let GraphicItemData::DriverTable { scroll_position } = data {
                 let row_offset = vec3(
                     resolver
                         .property(&driver_table.row_offset.x)
@@ -239,7 +194,7 @@ fn update_graphic_item(
                 );
 
                 // Get entries sorted by position
-                let mut entries: Vec<&Entry> = resolver.session.entries.values().collect();
+                let mut entries: Vec<&Entry> = resolver.session().entries.values().collect();
                 entries.sort_by(|e1, e2| {
                     let is_connected = e2.connected.cmp(&e1.connected);
                     let position = e1
@@ -249,280 +204,33 @@ fn update_graphic_item(
                     is_connected.then(position)
                 });
 
-                // Move rows to make sure the focused entry is visible
+                // Update scroll position to make sure the focused entry is visible
                 if let Some(focused_entry_index) = entries.iter().position(|entry| entry.focused) {
                     let rows_to_skip = (focused_entry_index as f32 - 12.0)
                         .min(entries.len() as f32 - 23.0)
                         .max(0.0);
                     *scroll_position = *scroll_position - (*scroll_position - rows_to_skip) * 0.2;
                 }
+                let scroll_offset = row_offset * *scroll_position;
 
                 for (index, entry) in entries.iter().enumerate() {
-                    let data = rows.entry(entry.id).or_insert(HashMap::new());
-
                     let new_resolver = resolver
                         .clone()
                         .with_position(
-                            resolver.position - row_offset * *scroll_position
-                                + row_offset * index as f32,
+                            *resolver.position() - scroll_offset + row_offset * index as f32,
                         )
                         .with_entry(entry);
-
                     for column in driver_table.columns.iter() {
-                        update_graphic_item(column, batcher, data, &new_resolver, _model);
+                        update_graphic_item(
+                            column,
+                            batcher,
+                            &mut graphic_item_data_storage.make_context(entry.id),
+                            &new_resolver,
+                            _model,
+                        );
                     }
                 }
             }
-        }
-    }
-}
-
-fn remove_stale_items(graphic_item_data: &mut HashMap<Uuid, GraphicItemData>) {
-    graphic_item_data.retain(|_, d| d.was_updated());
-    for data in graphic_item_data.values_mut() {
-        match data {
-            GraphicItemData::Cell { .. } => (),
-            GraphicItemData::ClipArea { data, .. } => {
-                remove_stale_items(data);
-            }
-            GraphicItemData::DriverTable { rows, .. } => {
-                rows.values_mut().for_each(|row| remove_stale_items(row));
-            }
-        }
-        data.reset_update();
-    }
-}
-
-#[derive(Clone)]
-struct StyleResolver<'a> {
-    value_store: &'a ValueStore,
-    session: &'a Session,
-    entry: Option<&'a Entry>,
-    position: Vec3,
-    render_layer: u8,
-}
-impl<'a> StyleResolver<'a> {
-    fn new(value_store: &'a ValueStore, session: &'a Session) -> Self {
-        Self {
-            value_store,
-            session,
-            entry: None,
-            position: Vec3::ZERO,
-            render_layer: 0,
-        }
-    }
-
-    fn set_position(&mut self, position: Vec3) {
-        self.position = position;
-    }
-
-    fn with_position(mut self, position: Vec3) -> Self {
-        self.position = position;
-        self
-    }
-
-    fn with_render_layer(mut self, render_layer: u8) -> Self {
-        self.render_layer = render_layer;
-        self
-    }
-
-    fn with_entry(mut self, entry: &'a Entry) -> Self {
-        self.entry = Some(entry);
-        self
-    }
-
-    fn property<T>(&self, property: &Property<T>) -> Option<T>
-    where
-        ValueStore: TypedValueResolver<T>,
-        T: Clone,
-    {
-        self.value_store.get_property(property, self.entry)
-    }
-
-    fn clip_area(&self, clip_area: &ClipArea) -> ClipAreaStyle {
-        ClipAreaStyle {
-            pos: Vec3::new(
-                self.value_store
-                    .get_property(&clip_area.pos.x, self.entry)
-                    .unwrap_or_default()
-                    .0,
-                self.value_store
-                    .get_property(&clip_area.pos.y, self.entry)
-                    .unwrap_or_default()
-                    .0
-                    * -1.0,
-                self.value_store
-                    .get_property(&clip_area.pos.z, self.entry)
-                    .unwrap_or_default()
-                    .0,
-            ) + self.position,
-            size: Vec2::new(
-                self.value_store
-                    .get_property(&clip_area.size.x, self.entry)
-                    .unwrap_or_default()
-                    .0,
-                self.value_store
-                    .get_property(&clip_area.size.y, self.entry)
-                    .unwrap_or_default()
-                    .0,
-            ),
-            corner_offsets: {
-                let skew = self
-                    .value_store
-                    .get_property(&clip_area.skew, self.entry)
-                    .unwrap_or_default()
-                    .0;
-                [
-                    vec2(skew, 0.0),
-                    vec2(skew, 0.0),
-                    vec2(0.0, 0.0),
-                    vec2(0.0, 0.0),
-                ]
-            },
-            rounding: [
-                self.value_store
-                    .get_property(&clip_area.rounding.top_left, self.entry)
-                    .unwrap_or(Number(0.0))
-                    .0,
-                self.value_store
-                    .get_property(&clip_area.rounding.top_right, self.entry)
-                    .unwrap_or(Number(0.0))
-                    .0,
-                self.value_store
-                    .get_property(&clip_area.rounding.bot_left, self.entry)
-                    .unwrap_or(Number(0.0))
-                    .0,
-                self.value_store
-                    .get_property(&clip_area.rounding.bot_right, self.entry)
-                    .unwrap_or(Number(0.0))
-                    .0,
-            ],
-            render_layer: clip_area.render_layer,
-        }
-    }
-
-    fn cell(&self, cell: &Cell) -> CellStyle {
-        CellStyle {
-            text: self
-                .value_store
-                .get_property(&cell.text, self.entry)
-                .unwrap_or_else(|| Text("unavailable".to_string()))
-                .0,
-            text_color: self
-                .value_store
-                .get_property(&cell.text_color, self.entry)
-                .unwrap_or(Tint(Color::BLACK))
-                .0,
-            text_size: self
-                .value_store
-                .get_property(&cell.text_size, self.entry)
-                .unwrap_or(Number(20.0))
-                .0,
-            text_alignment: cell.text_alginment.clone(),
-            text_position: Vec2::new(
-                self.value_store
-                    .get_property(&cell.text_position.x, self.entry)
-                    .unwrap_or(Number(0.0))
-                    .0,
-                self.value_store
-                    .get_property(&cell.text_position.y, self.entry)
-                    .unwrap_or(Number(0.0))
-                    .0,
-            ),
-            font: self
-                .value_store
-                .get_property(&cell.font, self.entry)
-                .and_then(|f| match f {
-                    Font::Default => None,
-                    Font::Handle(handle) => Some(handle),
-                }),
-            color: self
-                .value_store
-                .get_property(&cell.color, self.entry)
-                .unwrap_or(Tint(Color::RED))
-                .0,
-            texture: self
-                .value_store
-                .get_property(&cell.image, self.entry)
-                .and_then(|t| match t {
-                    Texture::None => None,
-                    Texture::Handle(handle) => Some(handle),
-                }),
-            pos: Vec3::new(
-                self.value_store
-                    .get_property(&cell.pos.x, self.entry)
-                    .unwrap_or(Number(0.0))
-                    .0,
-                self.value_store
-                    .get_property(&cell.pos.y, self.entry)
-                    .unwrap_or(Number(0.0))
-                    .0
-                    * -1.0,
-                self.value_store
-                    .get_property(&cell.pos.z, self.entry)
-                    .unwrap_or(Number(0.0))
-                    .0,
-            ) + self.position,
-            size: Vec2::new(
-                self.value_store
-                    .get_property(&cell.size.x, self.entry)
-                    .unwrap_or(Number(0.0))
-                    .0,
-                self.value_store
-                    .get_property(&cell.size.y, self.entry)
-                    .unwrap_or(Number(0.0))
-                    .0,
-            ),
-            corner_offsets: {
-                let skew = self
-                    .value_store
-                    .get_property(&cell.skew, self.entry)
-                    .unwrap_or_default()
-                    .0;
-                let get_vec = |prop: &Vec2Property| {
-                    vec2(
-                        self.value_store
-                            .get_property(&prop.x, self.entry)
-                            .unwrap_or_default()
-                            .0,
-                        -self
-                            .value_store
-                            .get_property(&prop.y, self.entry)
-                            .unwrap_or_default()
-                            .0,
-                    )
-                };
-                [
-                    get_vec(&cell.corner_offsets.top_left) + vec2(skew, 0.0),
-                    get_vec(&cell.corner_offsets.top_right) + vec2(skew, 0.0),
-                    get_vec(&cell.corner_offsets.bot_left) + vec2(0.0, 0.0),
-                    get_vec(&cell.corner_offsets.bot_right) + vec2(0.0, 0.0),
-                ]
-            },
-            visible: self
-                .value_store
-                .get_property(&cell.visible, self.entry)
-                .unwrap_or(Boolean(true))
-                .0,
-            rounding: [
-                self.value_store
-                    .get_property(&cell.rounding.top_left, self.entry)
-                    .unwrap_or(Number(0.0))
-                    .0,
-                self.value_store
-                    .get_property(&cell.rounding.top_right, self.entry)
-                    .unwrap_or(Number(0.0))
-                    .0,
-                self.value_store
-                    .get_property(&cell.rounding.bot_left, self.entry)
-                    .unwrap_or(Number(0.0))
-                    .0,
-                self.value_store
-                    .get_property(&cell.rounding.bot_right, self.entry)
-                    .unwrap_or(Number(0.0))
-                    .0,
-            ],
-            render_layer: self.render_layer,
         }
     }
 }

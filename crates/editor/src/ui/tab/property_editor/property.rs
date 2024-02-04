@@ -1,7 +1,7 @@
 use backend::value_types::{
     Boolean, Font, Number, Property, Text, Texture, Tint, ValueType, ValueTypeOf,
 };
-use bevy_egui::egui::{ComboBox, DragValue, Response, TextEdit, Ui, Widget};
+use bevy_egui::egui::{self, vec2, DragValue, Rect, Response, Sense, TextEdit, Ui, Widget};
 
 use crate::reference_store::ReferenceStore;
 
@@ -33,7 +33,26 @@ where
     fn ui(self, ui: &mut Ui) -> Response {
         ui.scope(|ui| match self.property {
             Property::Fixed(c) => {
-                let value_res = c.editor(ui);
+                let mut child_ui = ui.child_ui(
+                    Rect::from_min_size(
+                        ui.cursor().min,
+                        vec2(
+                            if ui.layout().horizontal_justify() {
+                                ui.available_width() - 20.0
+                            } else {
+                                0.0
+                            },
+                            if ui.layout().vertical_justify() {
+                                ui.available_height()
+                            } else {
+                                0.0
+                            },
+                        ),
+                    ),
+                    *ui.layout(),
+                );
+                let value_res = c.editor(&mut child_ui);
+                ui.allocate_rect(child_ui.min_rect(), Sense::hover());
 
                 let editor_res = self.reference_store.editor_small::<T>(ui);
                 if let Some(new_value_ref) = editor_res.inner {
@@ -43,7 +62,26 @@ where
                 Response::union(&value_res, editor_res.response)
             }
             Property::ValueRef(value_ref) => {
-                let editor_res = self.reference_store.editor(ui, value_ref);
+                let editor_res = ui
+                    .allocate_ui_at_rect(
+                        Rect::from_min_size(
+                            ui.cursor().min,
+                            vec2(
+                                if ui.layout().horizontal_justify() {
+                                    ui.available_width() - 20.0
+                                } else {
+                                    0.0
+                                },
+                                if ui.layout().vertical_justify() {
+                                    ui.available_height()
+                                } else {
+                                    0.0
+                                },
+                            ),
+                        ),
+                        |ui| self.reference_store.editor(ui, value_ref),
+                    )
+                    .inner;
 
                 let mut button_res = ui.button("x");
                 if button_res.clicked() {
@@ -80,21 +118,7 @@ impl ValueTypeEditor for Tint {
 }
 impl ValueTypeEditor for Boolean {
     fn editor(&mut self, ui: &mut Ui) -> Response {
-        let mut changed = false;
-        let mut res = ComboBox::from_id_source(ui.next_auto_id())
-            .width(50.0)
-            .selected_text(match self.0 {
-                true => "Yes",
-                false => "No",
-            })
-            .show_ui(ui, |ui| {
-                changed |= ui.selectable_value(&mut self.0, true, "Yes").changed();
-                changed |= ui.selectable_value(&mut self.0, false, "No").changed();
-            });
-        if changed {
-            res.response.mark_changed();
-        }
-        res.response
+        ui.add(egui::Checkbox::new(&mut self.0, ""))
     }
 }
 

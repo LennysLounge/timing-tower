@@ -47,6 +47,11 @@ impl<T> Widget for LComboBox<'_, T> {
     fn ui(self, ui: &mut Ui) -> Response {
         let mut changed = false;
         let mut response = ComboBox::from_id_source(self.id.unwrap_or_else(|| ui.next_auto_id()))
+            .width(if ui.layout().horizontal_justify() {
+                ui.available_width()
+            } else {
+                ui.spacing().combo_width
+            })
             .selected_text(
                 self.options
                     .iter()

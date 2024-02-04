@@ -18,3 +18,12 @@ Adding a `priority: u8` to a `LayerId` could solve this problem as it allows to 
 
 * There is no way to make a custom Menu.
 ** If you need a context menu for a widget there is no (easy) way to make a custom one without relying on the provided `menu_button` or `Response::context_menu` implementations. From what i can tell, these are your only two options to make a menu that behaves like a menu. It might be possible to make a menu using an area, however this could not correctly interact with any other menus. For example it would not be possible to use `Ui::close_menu` or `Ui::menu_button` to create further sub menues.
+
+* No consistent options on how text is wrapped / truncated
+** For labels there is the option to truncate a label with "..." but for buttons this does not exists.
+
+* Some methods on Ui cannot be implemented using the public API.
+** A menu button for example cannot be implemented using the public api since it carries some state in the ui itself.
+As a result, a menu button should behave like a button but it does not. Since it does not implement the Widget trait it 
+cannot be added with `add_sized` for example. It is also not possible to have any sort of wrapping behavior a button has.
+

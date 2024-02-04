@@ -1560,6 +1560,87 @@
             "y": 35.0
           }
         }
+      },
+      {
+        "element_type": "Graphic",
+        "id": "39ef43bb-27c8-4597-93d9-d12c41c34a35",
+        "name": "Graphic",
+        "items": {
+          "items": [
+            {
+              "Cell": {
+                "id": "7d604bbd-981a-49d7-9735-ad6242a2c90d",
+                "name": "Cell",
+                "cell": {
+                  "text": "Cell",
+                  "text_color": {
+                    "Rgba": {
+                      "red": 1.0,
+                      "green": 1.0,
+                      "blue": 1.0,
+                      "alpha": 1.0
+                    }
+                  },
+                  "text_size": 20.0,
+                  "font": "Default",
+                  "color": {
+                    "Rgba": {
+                      "red": 0.49999976,
+                      "green": 0.0,
+                      "blue": 0.5,
+                      "alpha": 1.0
+                    }
+                  },
+                  "image": "None",
+                  "pos": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "size": {
+                    "x": 200.0,
+                    "y": 200.0
+                  },
+                  "skew": 0.0,
+                  "corner_offsets": {
+                    "top_left": {
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "top_right": {
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "bot_left": {
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "bot_right": {
+                      "x": 0.0,
+                      "y": 0.0
+                    }
+                  },
+                  "visible": true,
+                  "rounding": {
+                    "top_left": 0.0,
+                    "top_right": 0.0,
+                    "bot_left": 0.0,
+                    "bot_right": 0.0
+                  },
+                  "text_alginment": "Left",
+                  "text_position": {
+                    "x": 5.0,
+                    "y": 15.0
+                  }
+                }
+              }
+            }
+          ],
+          "position": {
+            "x": 918.0,
+            "y": 400.0
+          }
+        }
       }
     ]
   }

@@ -27,7 +27,7 @@ use uuid::Uuid;
 
 use crate::{
     camera::{AlignCamera, EditorCamera, ResetCamera},
-    command::UndoRedoManager,
+    command::{EditorCommand, UndoRedoManager},
     reference_store::ReferenceStore,
     GameAdapterResource, MainCamera,
 };
@@ -116,6 +116,12 @@ fn ui(
                     ui.close_menu();
                 }
             });
+            if ui.button("Undo").clicked() {
+                undo_redo_manager.queue(EditorCommand::Undo);
+            }
+            if ui.button("Redo").clicked() {
+                undo_redo_manager.queue(EditorCommand::Redo);
+            }
         });
     });
     egui::TopBottomPanel::bottom("Bottom panel").show(ctx.ctx_mut(), |ui| {

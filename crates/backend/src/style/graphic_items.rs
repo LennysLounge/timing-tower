@@ -1,3 +1,7 @@
+pub mod cell;
+pub mod clip_area;
+pub mod driver_table;
+
 use std::ops::ControlFlow;
 
 use serde::{Deserialize, Serialize};
@@ -5,10 +9,10 @@ use uuid::Uuid;
 
 use crate::{
     tree_iterator::{Method, TreeItem, TreeIterator, TreeIteratorMut},
-    value_types::{Number, Property, Vec2Property},
+    value_types::Vec2Property,
 };
 
-use super::cell::{ClipArea, FreeCell};
+use self::{cell::Cell, clip_area::ClipArea, driver_table::DriverTable};
 
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct GraphicItems {
@@ -42,8 +46,8 @@ impl TreeIteratorMut for GraphicItems {
 /// or visual.
 #[derive(Serialize, Deserialize, Clone)]
 pub enum GraphicItem {
-    Cell(FreeCell),
-    ClipArea(FreeClipArea),
+    Cell(Cell),
+    ClipArea(ClipArea),
     DriverTable(DriverTable),
 }
 impl TreeItem for GraphicItem {
@@ -98,47 +102,5 @@ impl TreeIteratorMut for GraphicItem {
             }
         }
         f(self, Method::Leave)
-    }
-}
-
-/// An item that restaints the contained elements
-/// to a sepcified area in the scene.
-#[derive(Serialize, Deserialize, Clone, Default)]
-pub struct FreeClipArea {
-    pub id: Uuid,
-    pub name: String,
-    pub clip_area: ClipArea,
-    pub items: Vec<GraphicItem>,
-}
-impl FreeClipArea {
-    pub fn new() -> Self {
-        Self {
-            id: Uuid::new_v4(),
-            name: String::from("Clip area"),
-            clip_area: ClipArea::default(),
-            items: Vec::new(),
-        }
-    }
-}
-
-// An item that displays a table of all drivers in the session.
-#[derive(Serialize, Deserialize, Clone, Default)]
-pub struct DriverTable {
-    pub id: Uuid,
-    pub name: String,
-    pub row_offset: Vec2Property,
-    pub columns: Vec<GraphicItem>,
-}
-impl DriverTable {
-    pub fn new() -> Self {
-        Self {
-            id: Uuid::new_v4(),
-            name: String::from("Driver table"),
-            row_offset: Vec2Property {
-                x: Property::Fixed(Number(30.0)),
-                y: Property::Fixed(Number(30.0)),
-            },
-            columns: Vec::new(),
-        }
     }
 }

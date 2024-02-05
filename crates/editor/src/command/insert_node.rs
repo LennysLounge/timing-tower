@@ -5,11 +5,8 @@ use uuid::Uuid;
 
 use backend::{
     style::{
-        self,
-        cell::{FreeCellFolder, FreeCellOrFolder},
-        graphic::GraphicOrFolder,
-        variables::VariableOrFolder,
-        OwnedStyleItem, StyleDefinition, StyleItem, StyleItemMut,
+        self, graphic::GraphicOrFolder, variables::VariableOrFolder, OwnedStyleItem,
+        StyleDefinition, StyleItem, StyleItemMut,
     },
     tree_iterator::{TreeItem, TreeIteratorMut},
 };
@@ -109,10 +106,6 @@ pub fn insert(
             ControlFlow::Break(())
         }
 
-        StyleItemMut::FreeCellFolder(folder) => {
-            insert_into_free_cell_folder(folder, position, insert);
-            ControlFlow::Break(())
-        }
         StyleItemMut::GraphicFolder(folder) => {
             let column_or_folder = match insert {
                 OwnedStyleItem::GraphicFolder(folder) => GraphicOrFolder::Folder(folder),
@@ -141,34 +134,6 @@ pub fn insert(
         StyleItemMut::Style(_) => ControlFlow::Continue(()),
         StyleItemMut::Variable(_) => ControlFlow::Continue(()),
         StyleItemMut::Asset(_) => ControlFlow::Continue(()),
-        StyleItemMut::FreeCell(_) => ControlFlow::Continue(()),
         StyleItemMut::Graphic(_) => ControlFlow::Continue(()),
-    }
-}
-
-fn insert_into_free_cell_folder(
-    folder: &mut FreeCellFolder,
-    position: DropPosition<Uuid>,
-    insert: OwnedStyleItem,
-) {
-    let column_or_folder = match insert {
-        OwnedStyleItem::FreeCellFolder(folder) => FreeCellOrFolder::Folder(folder),
-        OwnedStyleItem::FreeCell(cell) => FreeCellOrFolder::Cell(cell),
-        _ => unreachable!("No other types are allowed to be inserted"),
-    };
-
-    match &position {
-        DropPosition::First => folder.content.insert(0, column_or_folder),
-        DropPosition::Last => folder.content.push(column_or_folder),
-        DropPosition::After(id) => {
-            if let Some(index) = folder.content.iter().position(|c| c.id() == id) {
-                folder.content.insert(index + 1, column_or_folder);
-            }
-        }
-        DropPosition::Before(id) => {
-            if let Some(index) = folder.content.iter().position(|c| c.id() == id) {
-                folder.content.insert(index, column_or_folder);
-            }
-        }
     }
 }

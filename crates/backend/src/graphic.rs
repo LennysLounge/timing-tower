@@ -138,11 +138,11 @@ fn update_graphic_item(
     match item {
         GraphicItem::Cell(cell) => {
             let cell_id = graphic_item_data_storage.get_or_create(cell.id, || CellId::new());
-            batcher.add(&cell_id, resolver.cell(&cell.cell));
+            batcher.add(&cell_id, resolver.cell(&cell));
         }
         GraphicItem::ClipArea(clip_area) => {
             let cell_id = graphic_item_data_storage.get_or_create(clip_area.id, || CellId::new());
-            let clip_area_style = resolver.clip_area(&clip_area.clip_area);
+            let clip_area_style = resolver.clip_area(&clip_area);
             let new_resolver = resolver
                 .clone()
                 .with_position(clip_area_style.pos)

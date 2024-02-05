@@ -4,7 +4,7 @@ use egui_ltreeview::DropPosition;
 use uuid::Uuid;
 
 use backend::{
-    style::{cell::FreeCellFolder, OwnedStyleItem, StyleDefinition, StyleItem, StyleItemMut},
+    style::{OwnedStyleItem, StyleDefinition, StyleItem, StyleItemMut},
     tree_iterator::{Method, TreeItem, TreeIteratorMut},
 };
 
@@ -102,9 +102,6 @@ fn remove(node: &mut StyleItemMut, method: Method, node_id: &Uuid) -> ControlFlo
             }
         }
 
-        (Method::Visit, StyleItemMut::FreeCellFolder(folder)) => {
-            remove_node_from_folder(folder, node_id)
-        }
         (Method::Visit, StyleItemMut::GraphicFolder(folder)) => {
             if let Some(index) = folder.content.iter().position(|s| s.id() == node_id) {
                 ControlFlow::Break(RemovedNode {
@@ -128,30 +125,7 @@ fn remove(node: &mut StyleItemMut, method: Method, node_id: &Uuid) -> ControlFlo
         (Method::Visit, StyleItemMut::Style(_)) => ControlFlow::Continue(()),
         (Method::Visit, StyleItemMut::Variable(_)) => ControlFlow::Continue(()),
         (Method::Visit, StyleItemMut::Asset(_)) => ControlFlow::Continue(()),
-        (Method::Visit, StyleItemMut::FreeCell(_)) => ControlFlow::Continue(()),
         (Method::Visit, StyleItemMut::Graphic(_)) => ControlFlow::Continue(()),
         (Method::Leave, _) => ControlFlow::Continue(()),
-    }
-}
-
-fn remove_node_from_folder(
-    folder: &mut FreeCellFolder,
-    node_id: &Uuid,
-) -> ControlFlow<RemovedNode> {
-    if let Some(index) = folder.content.iter().position(|s| s.id() == node_id) {
-        ControlFlow::Break(RemovedNode {
-            parent_id: *folder.id(),
-            node: match folder.content.remove(index) {
-                backend::style::cell::FreeCellOrFolder::Cell(t) => t.to_owned(),
-                backend::style::cell::FreeCellOrFolder::Folder(f) => f.to_owned(),
-            },
-            position: (index == 0)
-                .then_some(DropPosition::First)
-                .unwrap_or_else(|| {
-                    DropPosition::After(*folder.content.get(index - 1).unwrap().id())
-                }),
-        })
-    } else {
-        ControlFlow::Continue(())
     }
 }

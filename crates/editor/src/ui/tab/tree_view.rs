@@ -3,7 +3,6 @@ use std::ops::ControlFlow;
 use backend::{
     style::{
         assets::{AssetDefinition, AssetFolder},
-        cell::{FreeCell, FreeCellFolder},
         graphic::GraphicDefinition,
         variables::{VariableDefinition, VariableFolder},
         StyleDefinition, StyleItem, StyleItemMut, StyleItemRef,
@@ -82,11 +81,7 @@ fn drop_allowed(target: &StyleItemRef, dragged: &StyleItemRef) -> bool {
         (StyleItemRef::AssetFolder(_), StyleItemRef::AssetFolder(_)) => true,
         (StyleItemRef::AssetFolder(_), StyleItemRef::Asset(_)) => true,
 
-        (StyleItemRef::FreeCellFolder(_), StyleItemRef::FreeCellFolder(_)) => true,
-        (StyleItemRef::FreeCellFolder(_), StyleItemRef::FreeCell(_)) => true,
-
         (StyleItemRef::Scene(_), StyleItemRef::Graphic(_)) => true,
-
         _ => false,
     }
 }
@@ -123,32 +118,6 @@ fn show_node(
             ControlFlow::Continue(())
         }
         (Method::Leave, StyleItemMut::Style(_)) => {
-            builder.close_dir();
-            ControlFlow::Continue(())
-        }
-
-        (Method::Visit, StyleItemMut::FreeCell(cell)) => {
-            builder.node(
-                NodeBuilder::leaf(cell.id).icon(|ui| {
-                    egui::Image::new(egui::include_image!("../../../images/cell.png"))
-                        .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
-                        .paint_at(ui, ui.max_rect());
-                }),
-                |ui| {
-                    ui.label(&cell.name);
-                },
-            );
-            ControlFlow::Continue(())
-        }
-
-        (Method::Visit, StyleItemMut::FreeCellFolder(folder)) => {
-            builder.node(NodeBuilder::dir(folder.id).closer(folder_closer), |ui| {
-                ui.label(&folder.name);
-            });
-            ControlFlow::Continue(())
-        }
-
-        (Method::Leave, StyleItemMut::FreeCellFolder(_)) => {
             builder.close_dir();
             ControlFlow::Continue(())
         }
@@ -259,7 +228,6 @@ fn show_node(
 
         (Method::Leave, StyleItemMut::Variable(_)) => ControlFlow::Continue(()),
         (Method::Leave, StyleItemMut::Asset(_)) => ControlFlow::Continue(()),
-        (Method::Leave, StyleItemMut::FreeCell(_)) => ControlFlow::Continue(()),
         (Method::Leave, StyleItemMut::Graphic(_)) => ControlFlow::Continue(()),
     }
 }
@@ -384,54 +352,6 @@ fn context_menu(
                     position: DropPosition::Last,
                     node: GraphicDefinition::new().to_owned(),
                 });
-                ui.close_menu();
-            }
-        }
-        StyleItemMut::FreeCellFolder(folder) => {
-            if ui.button("add column").clicked() {
-                undo_redo_manager.queue(InsertNode {
-                    target_node: folder.id,
-                    position: DropPosition::Last,
-                    node: FreeCell::new().to_owned(),
-                });
-                ui.close_menu();
-            }
-            if ui.button("add group").clicked() {
-                undo_redo_manager.queue(InsertNode {
-                    target_node: folder.id,
-                    position: DropPosition::Last,
-                    node: FreeCellFolder::new().to_owned(),
-                });
-                ui.close_menu();
-            }
-            if ui.button("delete").clicked() {
-                undo_redo_manager.queue(RemoveNode { id: folder.id });
-                ui.close_menu();
-            }
-        }
-        StyleItemMut::FreeCell(cell) => {
-            if ui.button("add column").clicked() {
-                undo_redo_manager.queue(InsertNode {
-                    target_node: tree_response
-                        .parent_of(cell.id)
-                        .expect("Should have a parent"),
-                    position: DropPosition::After(cell.id),
-                    node: FreeCell::new().to_owned(),
-                });
-                ui.close_menu();
-            }
-            if ui.button("add group").clicked() {
-                undo_redo_manager.queue(InsertNode {
-                    target_node: tree_response
-                        .parent_of(cell.id)
-                        .expect("Should have a parent"),
-                    position: DropPosition::After(cell.id),
-                    node: FreeCellFolder::new().to_owned(),
-                });
-                ui.close_menu();
-            }
-            if ui.button("delete").clicked() {
-                undo_redo_manager.queue(RemoveNode { id: cell.id });
                 ui.close_menu();
             }
         }

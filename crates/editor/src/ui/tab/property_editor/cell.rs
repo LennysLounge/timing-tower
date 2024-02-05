@@ -1,4 +1,4 @@
-use backend::style::cell::{Cell, ClipArea};
+use backend::style::graphic_items::{cell::Cell, clip_area::ClipArea};
 use bevy_egui::egui::{self, vec2, CollapsingHeader, DragValue, Layout, Rect, Ui, WidgetText};
 use common::communication::TextAlignment;
 

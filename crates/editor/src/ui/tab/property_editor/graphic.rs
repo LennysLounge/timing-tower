@@ -2,9 +2,8 @@ use std::ops::ControlFlow;
 
 use backend::{
     style::{
-        cell::FreeCell,
         graphic::GraphicDefinition,
-        graphic_items::{DriverTable, FreeClipArea, GraphicItem},
+        graphic_items::{cell::Cell, clip_area::ClipArea, driver_table::DriverTable, GraphicItem},
     },
     tree_iterator::{Method, TreeItem, TreeIterator, TreeIteratorMut},
 };
@@ -55,10 +54,7 @@ pub fn component_property_editor(
         .width(ui.available_width())
         .show_ui(ui, |ui| {
             if ui.selectable_label(false, "Cell").clicked() {
-                component
-                    .items
-                    .items
-                    .push(GraphicItem::Cell(FreeCell::new()));
+                component.items.items.push(GraphicItem::Cell(Cell::new()));
                 edit_result = EditResult::FromId(ui.id());
                 ui.close_menu();
             }
@@ -66,7 +62,7 @@ pub fn component_property_editor(
                 component
                     .items
                     .items
-                    .push(GraphicItem::ClipArea(FreeClipArea::new()));
+                    .push(GraphicItem::ClipArea(ClipArea::new()));
                 edit_result = EditResult::FromId(ui.id());
                 ui.close_menu();
             }
@@ -151,7 +147,7 @@ fn show_element_tree(
             };
             if ui.button("add cell").clicked() {
                 commands.push(Command::Add {
-                    element: GraphicItem::Cell(FreeCell::new()),
+                    element: GraphicItem::Cell(Cell::new()),
                     target,
                     position,
                 });
@@ -159,7 +155,7 @@ fn show_element_tree(
             }
             if ui.button("add clip area").clicked() {
                 commands.push(Command::Add {
-                    element: GraphicItem::ClipArea(FreeClipArea::new()),
+                    element: GraphicItem::ClipArea(ClipArea::new()),
                     target,
                     position,
                 });

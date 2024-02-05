@@ -8,14 +8,12 @@ use crate::tree_iterator::{Method, TreeItem, TreeIterator, TreeIteratorMut};
 
 use self::{
     assets::{AssetDefinition, AssetFolder, AssetOrFolder},
-    cell::{FreeCell, FreeCellFolder, FreeCellOrFolder},
     graphic::{GraphicDefinition, GraphicFolder, GraphicOrFolder},
     scene::SceneDefinition,
     variables::{VariableDefinition, VariableFolder, VariableOrFolder},
 };
 
 pub mod assets;
-pub mod cell;
 pub mod graphic;
 pub mod graphic_items;
 pub mod scene;
@@ -59,8 +57,6 @@ pub enum OwnedStyleItem {
     Asset(AssetDefinition),
     AssetFolder(AssetFolder),
     Scene(SceneDefinition),
-    FreeCellFolder(FreeCellFolder),
-    FreeCell(FreeCell),
     Graphic(GraphicDefinition),
     GraphicFolder(GraphicFolder),
 }
@@ -74,8 +70,6 @@ impl TreeItem for OwnedStyleItem {
             OwnedStyleItem::Asset(o) => o.id,
             OwnedStyleItem::AssetFolder(o) => o.id,
             OwnedStyleItem::Scene(o) => o.id,
-            OwnedStyleItem::FreeCellFolder(o) => o.id,
-            OwnedStyleItem::FreeCell(o) => o.id,
             OwnedStyleItem::Graphic(o) => o.id,
             OwnedStyleItem::GraphicFolder(o) => o.id,
         }
@@ -90,8 +84,6 @@ pub enum StyleItemRef<'a> {
     Asset(&'a AssetDefinition),
     AssetFolder(&'a AssetFolder),
     Scene(&'a SceneDefinition),
-    FreeCellFolder(&'a FreeCellFolder),
-    FreeCell(&'a FreeCell),
     Graphic(&'a GraphicDefinition),
     GraphicFolder(&'a GraphicFolder),
 }
@@ -105,8 +97,6 @@ impl TreeItem for StyleItemRef<'_> {
             StyleItemRef::Asset(o) => o.id,
             StyleItemRef::AssetFolder(o) => o.id,
             StyleItemRef::Scene(o) => o.id,
-            StyleItemRef::FreeCellFolder(o) => o.id,
-            StyleItemRef::FreeCell(o) => o.id,
             StyleItemRef::Graphic(o) => o.id,
             StyleItemRef::GraphicFolder(o) => o.id,
         }
@@ -143,13 +133,6 @@ impl TreeIterator for StyleItemRef<'_> {
                 })?;
             }
             StyleItemRef::Scene(_) => (),
-            StyleItemRef::FreeCellFolder(cell_folder) => {
-                cell_folder.content.iter().try_for_each(|v| match v {
-                    FreeCellOrFolder::Cell(o) => o.as_ref().walk(f),
-                    FreeCellOrFolder::Folder(o) => o.as_ref().walk(f),
-                })?;
-            }
-            StyleItemRef::FreeCell(_) => (),
             StyleItemRef::Graphic(_) => (),
             StyleItemRef::GraphicFolder(folder) => {
                 folder.content.iter().try_for_each(|v| match v {
@@ -169,8 +152,6 @@ pub enum StyleItemMut<'a> {
     Asset(&'a mut AssetDefinition),
     AssetFolder(&'a mut AssetFolder),
     Scene(&'a mut SceneDefinition),
-    FreeCellFolder(&'a mut FreeCellFolder),
-    FreeCell(&'a mut FreeCell),
     Graphic(&'a mut GraphicDefinition),
     GraphicFolder(&'a mut GraphicFolder),
 }
@@ -184,8 +165,6 @@ impl TreeItem for StyleItemMut<'_> {
             StyleItemMut::Asset(o) => o.id,
             StyleItemMut::AssetFolder(o) => o.id,
             StyleItemMut::Scene(o) => o.id,
-            StyleItemMut::FreeCellFolder(o) => o.id,
-            StyleItemMut::FreeCell(o) => o.id,
             StyleItemMut::Graphic(o) => o.id,
             StyleItemMut::GraphicFolder(o) => o.id,
         }
@@ -222,13 +201,6 @@ impl TreeIteratorMut for StyleItemMut<'_> {
                 })?;
             }
             StyleItemMut::Scene(_) => (),
-            StyleItemMut::FreeCellFolder(cell_folder) => {
-                cell_folder.content.iter_mut().try_for_each(|v| match v {
-                    FreeCellOrFolder::Cell(o) => o.as_mut().walk_mut(f),
-                    FreeCellOrFolder::Folder(o) => o.as_mut().walk_mut(f),
-                })?;
-            }
-            StyleItemMut::FreeCell(_) => (),
             StyleItemMut::Graphic(_) => (),
             StyleItemMut::GraphicFolder(folder) => {
                 folder.content.iter_mut().try_for_each(|v| match v {

@@ -7,10 +7,10 @@ use crate::value_types::{
     Boolean, Font, Number, Property, Text, Texture, Tint, Vec2Property, Vec3Property,
 };
 
-use super::{OwnedStyleItem, StyleItem, StyleItemMut, StyleItemRef};
-
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Cell {
+    pub id: Uuid,
+    pub name: String,
     pub text: Property<Text>,
     pub text_color: Property<Tint>,
     pub text_size: Property<Number>,
@@ -27,9 +27,11 @@ pub struct Cell {
     pub text_position: Vec2Property,
 }
 
-impl Default for Cell {
-    fn default() -> Self {
+impl Cell {
+    pub fn new() -> Self {
         Self {
+            id: Uuid::new_v4(),
+            name: String::from("Cell"),
             text: Property::Fixed(Text("Cell".to_string())),
             text_color: Property::Fixed(Tint(Color::WHITE)),
             text_size: Property::Fixed(Number(20.0)),
@@ -77,99 +79,4 @@ pub struct CornerOffsets {
     pub top_right: Vec2Property,
     pub bot_left: Vec2Property,
     pub bot_right: Vec2Property,
-}
-
-#[derive(Serialize, Deserialize, Clone, Default)]
-pub struct ClipArea {
-    pub pos: Vec3Property,
-    pub size: Vec2Property,
-    pub skew: Property<Number>,
-    pub rounding: Rounding,
-    pub render_layer: u8,
-}
-
-#[derive(Serialize, Deserialize, Clone, Default)]
-pub struct FreeCell {
-    pub id: Uuid,
-    pub name: String,
-    pub cell: Cell,
-}
-impl FreeCell {
-    pub fn new() -> Self {
-        Self {
-            id: Uuid::new_v4(),
-            name: String::from("Cell"),
-            cell: Cell::default(),
-        }
-    }
-}
-impl StyleItem for FreeCell {
-    fn id(&self) -> &Uuid {
-        &self.id
-    }
-
-    fn as_ref<'a>(&'a self) -> StyleItemRef<'a> {
-        StyleItemRef::FreeCell(self)
-    }
-
-    fn as_mut<'a>(&'a mut self) -> StyleItemMut<'a> {
-        StyleItemMut::FreeCell(self)
-    }
-    fn to_owned(self) -> OwnedStyleItem {
-        OwnedStyleItem::FreeCell(self)
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone, Default)]
-pub struct FreeCellFolder {
-    pub id: Uuid,
-    pub name: String,
-    pub content: Vec<FreeCellOrFolder>,
-}
-impl FreeCellFolder {
-    pub fn new() -> Self {
-        Self {
-            id: Uuid::new_v4(),
-            name: String::from("Group"),
-            content: Vec::new(),
-        }
-    }
-    pub fn contained_cells(&self) -> Vec<&FreeCell> {
-        self.content
-            .iter()
-            .flat_map(|af| match af {
-                FreeCellOrFolder::Cell(a) => vec![a],
-                FreeCellOrFolder::Folder(f) => f.contained_cells(),
-            })
-            .collect()
-    }
-}
-impl StyleItem for FreeCellFolder {
-    fn id(&self) -> &Uuid {
-        &self.id
-    }
-    fn as_ref<'a>(&'a self) -> StyleItemRef<'a> {
-        StyleItemRef::FreeCellFolder(self)
-    }
-    fn as_mut<'a>(&'a mut self) -> StyleItemMut<'a> {
-        StyleItemMut::FreeCellFolder(self)
-    }
-    fn to_owned(self) -> OwnedStyleItem {
-        OwnedStyleItem::FreeCellFolder(self)
-    }
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-#[serde(tag = "element_type")]
-pub enum FreeCellOrFolder {
-    Cell(FreeCell),
-    Folder(FreeCellFolder),
-}
-impl FreeCellOrFolder {
-    pub fn id(&self) -> &Uuid {
-        match self {
-            FreeCellOrFolder::Cell(o) => &o.id,
-            FreeCellOrFolder::Folder(o) => &o.id,
-        }
-    }
 }

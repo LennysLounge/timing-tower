@@ -38,7 +38,11 @@ pub fn component_property_editor(
 
     ui.label("Elements:");
     ui.group(|ui| {
-        edit_result |= show_element_tree(ui, secondary_selection, component);
+        egui::ScrollArea::horizontal()
+            .auto_shrink([false, true])
+            .show(ui, |ui| {
+                edit_result |= show_element_tree(ui, secondary_selection, component);
+            });
 
         ui.allocate_space(vec2(
             ui.available_width(),

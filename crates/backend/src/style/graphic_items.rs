@@ -108,7 +108,6 @@ impl<T: Serialize + ToString> Default for EnumSet<T> {
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct GraphicItems {
     pub items: Vec<GraphicItem>,
-    #[serde(default)]
     pub position: Vec2Property,
     pub attributes: HashMap<Uuid, EnumSet<GraphicItemsAttributes>>,
 }

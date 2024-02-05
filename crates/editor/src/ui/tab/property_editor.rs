@@ -32,6 +32,7 @@ pub fn property_editor(
     ui: &mut Ui,
     selected_id: &mut Option<Uuid>,
     secondary_selection: &mut Option<Uuid>,
+    graphic_state_selection: &mut Option<Uuid>,
     style: &mut StyleDefinition,
     reference_store: &ReferenceStore,
     undo_redo_manager: &mut UndoRedoManager,
@@ -52,6 +53,7 @@ pub fn property_editor(
                     game_adapter,
                     undo_redo_manager,
                     secondary_selection,
+                    graphic_state_selection,
                 );
             });
         });
@@ -63,7 +65,8 @@ pub fn edit_node(
     reference_store: &ReferenceStore,
     game_adapter: &Adapter,
     undo_redo_manager: &mut UndoRedoManager,
-    secondary_selection: &mut Option<Uuid>,
+    graphic_item_selection: &mut Option<Uuid>,
+    graphic_state_selection: &mut Option<Uuid>,
 ) {
     match node {
         StyleItemMut::Asset(asset) => {
@@ -235,13 +238,16 @@ pub fn edit_node(
         }
 
         StyleItemMut::Graphic(component) => {
-            component_property_editor(
-                ui,
-                component,
-                secondary_selection,
-                reference_store,
-                undo_redo_manager,
-            );
+            ui.push_id(component.id, |ui| {
+                component_property_editor(
+                    ui,
+                    component,
+                    graphic_item_selection,
+                    graphic_state_selection,
+                    reference_store,
+                    undo_redo_manager,
+                );
+            });
         }
         StyleItemMut::GraphicFolder(folder) => {
             let mut edit_result = EditResult::None;

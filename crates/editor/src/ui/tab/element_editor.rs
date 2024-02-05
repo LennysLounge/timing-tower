@@ -24,48 +24,75 @@ use super::property_editor::{
 
 pub fn element_editor(
     ui: &mut Ui,
-    selected_id: &mut Option<Uuid>,
-    secondary_selection: &mut Option<Uuid>,
+    style_item_selection: &mut Option<Uuid>,
+    graphic_item_selection: &mut Option<Uuid>,
+    graphic_state_selection: &mut Option<Uuid>,
     style: &mut StyleDefinition,
     reference_store: &ReferenceStore,
     undo_redo_manager: &mut UndoRedoManager,
     _game_adapter: &Adapter,
 ) {
-    let Some(selection) = selected_id else {
+    let Some(style_item_selection) = style_item_selection else {
         return;
     };
-    let Some(secondary_selection) = secondary_selection else {
+    let Some(graphic_item_selection) = graphic_item_selection else {
         return;
     };
     ScrollArea::vertical()
         .auto_shrink([false, false])
         .show(ui, |ui| {
-            style.as_mut().search_mut(*selection, |node| {
-                if let StyleItemMut::Graphic(graphic) = node {
-                    let mut edit_result = EditResult::None;
-                    if *secondary_selection == graphic.id {
-                        edit_result |= graphic_editor(ui, graphic, reference_store);
-                    } else {
-                        edit_result |= graphic
-                            .items
-                            .search_mut(*secondary_selection, |element| {
-                                editor(ui, element, reference_store)
-                            })
-                            .unwrap_or(EditResult::None);
+            style
+                .as_mut()
+                .search_mut(*style_item_selection, |style_item| {
+                    if let StyleItemMut::Graphic(graphic) = style_item {
+                        let edit_result = graphic_item(
+                            ui,
+                            graphic,
+                            *graphic_item_selection,
+                            graphic_state_selection,
+                            reference_store,
+                        );
+                        // if *graphic_item_selection == graphic.id {
+                        //     edit_result |= graphic_editor(ui, graphic, reference_store);
+                        // } else {
+                        //     edit_result |= graphic
+                        //         .items
+                        //         .search_mut(*graphic_item_selection, |element| {
+                        //             editor(ui, element, reference_store)
+                        //         })
+                        //         .unwrap_or(EditResult::None);
+                        // }
+                        if let Some(EditResult::FromId(widget_id)) = edit_result {
+                            undo_redo_manager.queue(EditProperty::new(
+                                graphic.id,
+                                graphic.clone(),
+                                widget_id,
+                            ));
+                        }
                     }
-                    if let EditResult::FromId(widget_id) = edit_result {
-                        undo_redo_manager.queue(EditProperty::new(
-                            graphic.id,
-                            graphic.clone(),
-                            widget_id,
-                        ));
-                    }
-                }
-            });
+                });
         });
 }
 
-fn graphic_editor(
+fn graphic_item(
+    ui: &mut Ui,
+    graphic: &mut GraphicDefinition,
+    graphic_item_selection: Uuid,
+    graphic_state_selection: &mut Option<Uuid>,
+    reference_store: &ReferenceStore,
+) -> Option<EditResult> {
+    graphic
+        .items
+        .search_mut(graphic_item_selection, |graphic_item| {
+            if let Some(selected_state) = graphic_state_selection {
+                state_editor(ui, graphic_item, *selected_state, reference_store)
+            } else {
+                editor(ui, graphic_item, reference_store)
+            }
+        })
+}
+
+fn _graphic_root_editor(
     ui: &mut Ui,
     graphic: &mut GraphicDefinition,
     reference_store: &ReferenceStore,
@@ -136,4 +163,31 @@ fn editor(ui: &mut Ui, element: &mut GraphicItem, reference_store: &ReferenceSto
             edit_result
         }
     }
+}
+
+fn state_editor(
+    ui: &mut Ui,
+    item: &mut GraphicItem,
+    _selected_state: Uuid,
+    _reference_store: &ReferenceStore,
+) -> EditResult {
+    let mut edit_result = EditResult::None;
+    match item {
+        GraphicItem::Cell(cell) => {
+            ui.label("Name:");
+            edit_result |= ui.text_edit_singleline(&mut cell.name).into();
+            ui.separator();
+        }
+        GraphicItem::ClipArea(clip_area) => {
+            ui.label("Name:");
+            edit_result |= ui.text_edit_singleline(&mut clip_area.name).into();
+            ui.separator();
+        }
+        GraphicItem::DriverTable(driver_table) => {
+            ui.label("Name:");
+            edit_result |= ui.text_edit_singleline(&mut driver_table.name).into();
+            ui.separator();
+        }
+    }
+    edit_result
 }

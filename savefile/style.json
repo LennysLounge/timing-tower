@@ -631,7 +631,8 @@
                 "text_position": {
                   "x": 5.0,
                   "y": 15.0
-                }
+                },
+                "attributes": {}
               }
             },
             {
@@ -692,7 +693,8 @@
                 "text_position": {
                   "x": 5.0,
                   "y": 15.0
-                }
+                },
+                "attributes": {}
               }
             },
             {
@@ -753,7 +755,8 @@
                 "text_position": {
                   "x": 5.0,
                   "y": 15.0
-                }
+                },
+                "attributes": {}
               }
             },
             {
@@ -819,7 +822,8 @@
                 "text_position": {
                   "x": 0.0,
                   "y": 0.0
-                }
+                },
+                "attributes": {}
               }
             },
             {
@@ -887,7 +891,8 @@
                 "text_position": {
                   "x": 0.0,
                   "y": 0.0
-                }
+                },
+                "attributes": {}
               }
             },
             {
@@ -955,7 +960,8 @@
                 "text_position": {
                   "x": 0.0,
                   "y": 0.0
-                }
+                },
+                "attributes": {}
               }
             },
             {
@@ -1021,15 +1027,18 @@
                 "text_position": {
                   "x": 0.0,
                   "y": 0.0
-                }
+                },
+                "attributes": {}
               }
             }
           ],
           "position": {
             "x": 805.0,
             "y": 37.0
-          }
-        }
+          },
+          "attributes": {}
+        },
+        "states": []
       },
       {
         "element_type": "Graphic",
@@ -1097,7 +1106,8 @@
                 "text_position": {
                   "x": 10.0,
                   "y": 11.0
-                }
+                },
+                "attributes": {}
               }
             },
             {
@@ -1193,7 +1203,8 @@
                             "text_position": {
                               "x": 24.5,
                               "y": 18.0
-                            }
+                            },
+                            "attributes": {}
                           }
                         },
                         {
@@ -1258,7 +1269,8 @@
                             "text_position": {
                               "x": 21.0,
                               "y": 18.0
-                            }
+                            },
+                            "attributes": {}
                           }
                         },
                         {
@@ -1319,7 +1331,8 @@
                             "text_position": {
                               "x": 5.0,
                               "y": 15.0
-                            }
+                            },
+                            "attributes": {}
                           }
                         },
                         {
@@ -1387,7 +1400,8 @@
                             "text_position": {
                               "x": 5.0,
                               "y": 15.0
-                            }
+                            },
+                            "attributes": {}
                           }
                         },
                         {
@@ -1447,7 +1461,8 @@
                             "text_position": {
                               "x": 23.0,
                               "y": 18.0
-                            }
+                            },
+                            "attributes": {}
                           }
                         },
                         {
@@ -1515,21 +1530,26 @@
                             "text_position": {
                               "x": 5.5,
                               "y": 18.0
-                            }
+                            },
+                            "attributes": {}
                           }
                         }
-                      ]
+                      ],
+                      "attributes": {}
                     }
                   }
-                ]
+                ],
+                "attributes": {}
               }
             }
           ],
           "position": {
             "x": 346.0,
             "y": 35.0
-          }
-        }
+          },
+          "attributes": {}
+        },
+        "states": []
       },
       {
         "element_type": "Graphic",
@@ -1600,15 +1620,18 @@
                 "text_position": {
                   "x": 5.0,
                   "y": 15.0
-                }
+                },
+                "attributes": {}
               }
             }
           ],
           "position": {
             "x": 918.0,
             "y": 400.0
-          }
-        }
+          },
+          "attributes": {}
+        },
+        "states": []
       }
     ]
   }

@@ -59,8 +59,9 @@ fn setup_egui_context(mut ctx: EguiContexts) {
 #[derive(Resource)]
 struct EditorState {
     dock_state: DockState<Tab>,
-    selected_node: Option<Uuid>,
-    secondary_selection: Option<Uuid>,
+    style_item_selection: Option<Uuid>,
+    graphic_item_selection: Option<Uuid>,
+    graphic_state_selection: Option<Uuid>,
     style: StyleDefinition,
 }
 impl EditorState {
@@ -78,8 +79,9 @@ impl EditorState {
         let [_scene, _element_editor] = tree.split_right(scene, 0.7, vec![Tab::ElementEditor]);
 
         Self {
-            selected_node: None,
-            secondary_selection: None,
+            style_item_selection: None,
+            graphic_item_selection: None,
+            graphic_state_selection: None,
             dock_state: state,
             style: StyleDefinition::default(),
         }
@@ -139,8 +141,9 @@ fn ui(
 
     let EditorState {
         dock_state,
-        selected_node,
-        secondary_selection,
+        style_item_selection,
+        graphic_item_selection,
+        graphic_state_selection,
         style,
     } = &mut *state;
     let viewport = &mut editor_camera.single_mut().0.raw_viewport;
@@ -150,8 +153,9 @@ fn ui(
             ctx.ctx_mut(),
             &mut tab::EditorTabViewer {
                 viewport,
-                selected_node,
-                secondary_selection,
+                style_item_selection,
+                graphic_item_selection,
+                graphic_state_selection,
                 style: style,
                 reference_store: &reference_store,
                 undo_redo_manager: undo_redo_manager.as_mut(),

@@ -2,7 +2,7 @@ use std::ops::ControlFlow;
 
 use backend::{
     style::{
-        graphic::GraphicDefinition,
+        graphic::{self, GraphicDefinition},
         graphic_items::{cell::Cell, clip_area::ClipArea, driver_table::DriverTable, GraphicItem},
     },
     tree_iterator::{Method, TreeItem, TreeIterator, TreeIteratorMut},
@@ -24,7 +24,8 @@ use crate::{
 pub fn component_property_editor(
     ui: &mut Ui,
     component: &mut GraphicDefinition,
-    secondary_selection: &mut Option<Uuid>,
+    graphic_item_selection: &mut Option<Uuid>,
+    graphic_state_selection: &mut Option<Uuid>,
     _reference_store: &ReferenceStore,
     undo_redo_manager: &mut UndoRedoManager,
 ) {
@@ -40,7 +41,7 @@ pub fn component_property_editor(
         egui::ScrollArea::horizontal()
             .auto_shrink([false, true])
             .show(ui, |ui| {
-                edit_result |= show_element_tree(ui, secondary_selection, component);
+                edit_result |= show_element_tree(ui, graphic_item_selection, component);
             });
 
         ui.allocate_space(vec2(
@@ -48,7 +49,6 @@ pub fn component_property_editor(
             -ui.spacing().item_spacing.y + (100.0 - ui.min_rect().height()),
         ));
     });
-
     egui::ComboBox::from_id_source(ui.next_auto_id())
         .selected_text("add element")
         .width(ui.available_width())
@@ -75,6 +75,40 @@ pub fn component_property_editor(
                 ui.close_menu();
             }
         });
+
+    ui.add_space(10.0);
+    ui.label("States:");
+    ui.group(|ui| {
+        let tree_res = TreeView::new(ui.make_persistent_id("State tree"))
+            .row_layout(RowLayout::Compact)
+            .show(ui, |mut builder| {
+                builder.leaf(Uuid::default(), |ui| _ = ui.label("Template"));
+                for state in component.states.iter() {
+                    builder.leaf(state.id, |ui| _ = ui.label(&state.name));
+                }
+            });
+        for action in tree_res.actions {
+            if let Action::SetSelected(id) = action {
+                if id.is_some_and(|id| id == Uuid::default()) {
+                    *graphic_state_selection = None;
+                } else {
+                    *graphic_state_selection = id;
+                }
+            }
+        }
+
+        ui.allocate_space(vec2(
+            ui.available_width(),
+            -ui.spacing().item_spacing.y + (100.0 - ui.min_rect().height()),
+        ));
+    });
+    let add_button_res = ui.add_sized(vec2(ui.available_width(), 0.0), egui::Button::new("Add"));
+    if add_button_res.clicked() {
+        component.states.push(graphic::State {
+            id: Uuid::new_v4(),
+            name: String::from("new state"),
+        });
+    }
 
     if let EditResult::FromId(widget_id) = edit_result {
         undo_redo_manager.queue(EditProperty::new(

@@ -3,12 +3,19 @@ use uuid::Uuid;
 
 use super::{graphic_items::GraphicItems, OwnedStyleItem, StyleItem, StyleItemMut, StyleItemRef};
 
+#[derive(Serialize, Deserialize, Clone)]
+pub struct State {
+    pub id: Uuid,
+    pub name: String,
+}
+
 /// A visual graphic component in the scene.
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct GraphicDefinition {
     pub id: Uuid,
     pub name: String,
     pub items: GraphicItems,
+    pub states: Vec<State>,
 }
 impl GraphicDefinition {
     pub fn new() -> Self {
@@ -16,6 +23,7 @@ impl GraphicDefinition {
             id: Uuid::new_v4(),
             name: String::from("Graphic"),
             items: GraphicItems::default(),
+            states: Vec::new(),
         }
     }
 }

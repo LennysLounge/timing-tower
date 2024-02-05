@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use bevy::prelude::Color;
 use common::communication::TextAlignment;
 use serde::{Deserialize, Serialize};
@@ -6,6 +8,8 @@ use uuid::Uuid;
 use crate::value_types::{
     Boolean, Font, Number, Property, Text, Texture, Tint, Vec2Property, Vec3Property,
 };
+
+use super::EnumSet;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Cell {
@@ -25,6 +29,7 @@ pub struct Cell {
     pub rounding: Rounding,
     pub text_alginment: TextAlignment,
     pub text_position: Vec2Property,
+    pub attributes: HashMap<Uuid, EnumSet<CellAttributes>>,
 }
 
 impl Cell {
@@ -61,6 +66,7 @@ impl Cell {
                 y: Property::Fixed(Number(15.0)),
             },
             image: Property::<Texture>::default(),
+            attributes: HashMap::new(),
         }
     }
 }
@@ -79,4 +85,42 @@ pub struct CornerOffsets {
     pub top_right: Vec2Property,
     pub bot_left: Vec2Property,
     pub bot_right: Vec2Property,
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub enum CellAttributes {
+    Text(Property<Text>),
+    TextColor(Property<Tint>),
+    TextSize(Property<Number>),
+    Font(Property<Font>),
+    Color(Property<Tint>),
+    Image(Property<Texture>),
+    Pos(Vec3Property),
+    Size(Vec2Property),
+    Skew(Property<Number>),
+    CornerOffsets(CornerOffsets),
+    Visible(Property<Boolean>),
+    Rounding(Rounding),
+    TextAlginment(TextAlignment),
+    TextPosition(Vec2Property),
+}
+impl ToString for CellAttributes {
+    fn to_string(&self) -> String {
+        String::from(match self {
+            CellAttributes::Text(_) => "Text",
+            CellAttributes::TextColor(_) => "TextColor",
+            CellAttributes::TextSize(_) => "TextSize",
+            CellAttributes::Font(_) => "Font",
+            CellAttributes::Color(_) => "Color",
+            CellAttributes::Image(_) => "Image",
+            CellAttributes::Pos(_) => "Pos",
+            CellAttributes::Size(_) => "Size",
+            CellAttributes::Skew(_) => "Skew",
+            CellAttributes::CornerOffsets(_) => "CornerOffsets",
+            CellAttributes::Visible(_) => "Visible",
+            CellAttributes::Rounding(_) => "Rounding",
+            CellAttributes::TextAlginment(_) => "TextAlginment",
+            CellAttributes::TextPosition(_) => "TextPosition",
+        })
+    }
 }

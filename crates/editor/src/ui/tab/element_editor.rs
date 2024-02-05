@@ -5,7 +5,7 @@ use backend::{
     },
     tree_iterator::TreeIteratorMut,
 };
-use bevy_egui::egui::{ScrollArea, Ui};
+use bevy_egui::egui::{vec2, ScrollArea, Ui};
 use unified_sim_model::Adapter;
 use uuid::Uuid;
 
@@ -17,7 +17,10 @@ use crate::{
     reference_store::ReferenceStore,
 };
 
-use super::property_editor::{cell, property::PropertyEditor};
+use super::property_editor::{
+    cell::{self, ui_split},
+    property::PropertyEditor,
+};
 
 pub fn element_editor(
     ui: &mut Ui,
@@ -68,23 +71,20 @@ fn graphic_editor(
     reference_store: &ReferenceStore,
 ) -> EditResult {
     let mut edit_result = EditResult::None;
-    ui.label("Position:");
-    ui.horizontal(|ui| {
-        ui.label("X:");
+    ui_split(ui, "Position X", |ui| {
         edit_result |= ui
-            .add(PropertyEditor::new(
-                &mut graphic.items.position.x,
-                reference_store,
-            ))
+            .add_sized(
+                vec2(ui.available_width(), 0.0),
+                PropertyEditor::new(&mut graphic.items.position.x, reference_store),
+            )
             .into();
     });
-    ui.horizontal(|ui| {
-        ui.label("Y:");
+    ui_split(ui, "Y", |ui| {
         edit_result |= ui
-            .add(PropertyEditor::new(
-                &mut graphic.items.position.y,
-                reference_store,
-            ))
+            .add_sized(
+                vec2(ui.available_width(), 0.0),
+                PropertyEditor::new(&mut graphic.items.position.y, reference_store),
+            )
             .into();
     });
     edit_result
@@ -117,26 +117,22 @@ fn editor(ui: &mut Ui, element: &mut GraphicItem, reference_store: &ReferenceSto
             edit_result |= ui.text_edit_singleline(&mut driver_table.name).into();
             ui.separator();
 
-            ui.label("Row offset:");
-            ui.horizontal(|ui| {
-                ui.label("Offset x:");
+            ui_split(ui, "Row offset X", |ui| {
                 edit_result |= ui
-                    .add(PropertyEditor::new(
-                        &mut driver_table.row_offset.x,
-                        reference_store,
-                    ))
+                    .add_sized(
+                        vec2(ui.available_width(), 0.0),
+                        PropertyEditor::new(&mut driver_table.row_offset.x, reference_store),
+                    )
                     .into();
             });
-            ui.horizontal(|ui| {
-                ui.label("Offset y:");
+            ui_split(ui, "Y", |ui| {
                 edit_result |= ui
-                    .add(PropertyEditor::new(
-                        &mut driver_table.row_offset.y,
-                        reference_store,
-                    ))
+                    .add_sized(
+                        vec2(ui.available_width(), 0.0),
+                        PropertyEditor::new(&mut driver_table.row_offset.y, reference_store),
+                    )
                     .into();
             });
-
             edit_result
         }
     }

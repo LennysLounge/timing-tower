@@ -8,7 +8,7 @@ use crate::{
 
 use super::property::PropertyEditor;
 
-fn ui_split(ui: &mut Ui, label: impl Into<WidgetText>, right: impl FnMut(&mut Ui)) {
+pub fn ui_split(ui: &mut Ui, label: impl Into<WidgetText>, right: impl FnMut(&mut Ui)) {
     ui.with_layout(Layout::left_to_right(egui::Align::Min), |ui| {
         ui.allocate_ui_with_layout(
             vec2((ui.available_width() - 20.0) * 0.4, 20.0),
@@ -291,96 +291,103 @@ pub fn clip_area_editor(
 ) -> EditResult {
     let mut edit_result = EditResult::None;
 
-    ui.horizontal(|ui| {
-        ui.label("Layer:");
-        let res = ui.add(DragValue::new(&mut clip_area.render_layer).clamp_range(0..=31));
-        if res.changed() {
-            edit_result = EditResult::FromId(res.id)
-        }
-    });
-    ui.horizontal(|ui| {
-        ui.label("Pos x:");
-        let res = ui.add(PropertyEditor::new(&mut clip_area.pos.x, reference_store));
-        if res.changed() {
-            edit_result = EditResult::FromId(res.id)
-        }
-    });
-    ui.horizontal(|ui| {
-        ui.label("Pos y:");
-        let res = ui.add(PropertyEditor::new(&mut clip_area.pos.y, reference_store));
-        if res.changed() {
-            edit_result = EditResult::FromId(res.id)
-        }
-    });
-    ui.horizontal(|ui| {
-        ui.label("Pos z:");
-        let res = ui.add(PropertyEditor::new(&mut clip_area.pos.z, reference_store));
-        if res.changed() {
-            edit_result = EditResult::FromId(res.id)
-        }
-    });
-    ui.horizontal(|ui| {
-        ui.label("Width:");
-        let res = ui.add(PropertyEditor::new(&mut clip_area.size.x, reference_store));
-        if res.changed() {
-            edit_result = EditResult::FromId(res.id)
-        }
-    });
-    ui.horizontal(|ui| {
-        ui.label("Height:");
-        let res = ui.add(PropertyEditor::new(&mut clip_area.size.y, reference_store));
-        if res.changed() {
-            edit_result = EditResult::FromId(res.id)
-        }
-    });
-    ui.horizontal(|ui| {
-        ui.label("Skew:");
-        let res = ui.add(PropertyEditor::new(&mut clip_area.skew, reference_store));
-        if res.changed() {
-            edit_result = EditResult::FromId(res.id)
-        }
-    });
-    ui.label("Rounding:");
-    ui.horizontal(|ui| {
-        ui.label("top left:");
-        let res = ui.add(PropertyEditor::new(
-            &mut clip_area.rounding.top_left,
-            reference_store,
-        ));
-        if res.changed() {
-            edit_result = EditResult::FromId(res.id)
-        }
-    });
-    ui.horizontal(|ui| {
-        ui.label("top right:");
-        let res = ui.add(PropertyEditor::new(
-            &mut clip_area.rounding.top_right,
-            reference_store,
-        ));
-        if res.changed() {
-            edit_result = EditResult::FromId(res.id)
-        }
-    });
-    ui.horizontal(|ui| {
-        ui.label("bottom right:");
-        let res = ui.add(PropertyEditor::new(
-            &mut clip_area.rounding.bot_right,
-            reference_store,
-        ));
-        if res.changed() {
-            edit_result = EditResult::FromId(res.id)
-        }
-    });
-    ui.horizontal(|ui| {
-        ui.label("bottom left:");
-        let res = ui.add(PropertyEditor::new(
-            &mut clip_area.rounding.bot_left,
-            reference_store,
-        ));
-        if res.changed() {
-            edit_result = EditResult::FromId(res.id)
-        }
-    });
+    ui.scope(|ui| {
+        ui.visuals_mut().collapsing_header_frame = false;
+        ui_split(ui, "Layer", |ui| {
+            edit_result |= ui
+                .add_sized(
+                    vec2(ui.available_width(), 0.0),
+                    DragValue::new(&mut clip_area.render_layer).clamp_range(0..=31), //PropertyEditor::new(&mut clip_area.render_layer, reference_store),
+                )
+                .into();
+        });
 
+        CollapsingHeader::new("Position").show_unindented(ui, |ui| {
+            ui_split(ui, "Position X", |ui| {
+                edit_result |= ui
+                    .add_sized(
+                        vec2(ui.available_width(), 0.0),
+                        PropertyEditor::new(&mut clip_area.pos.x, reference_store),
+                    )
+                    .into();
+            });
+            ui_split(ui, "Y", |ui| {
+                edit_result |= ui
+                    .add_sized(
+                        vec2(ui.available_width(), 0.0),
+                        PropertyEditor::new(&mut clip_area.pos.y, reference_store),
+                    )
+                    .into();
+            });
+            ui_split(ui, "Z", |ui| {
+                edit_result |= ui
+                    .add_sized(
+                        vec2(ui.available_width(), 0.0),
+                        PropertyEditor::new(&mut clip_area.pos.z, reference_store),
+                    )
+                    .into();
+            });
+        });
+        CollapsingHeader::new("Shape").show_unindented(ui, |ui| {
+            ui_split(ui, "Width", |ui| {
+                edit_result |= ui
+                    .add_sized(
+                        vec2(ui.available_width(), 0.0),
+                        PropertyEditor::new(&mut clip_area.size.x, reference_store),
+                    )
+                    .into();
+            });
+            ui_split(ui, "Height", |ui| {
+                edit_result |= ui
+                    .add_sized(
+                        vec2(ui.available_width(), 0.0),
+                        PropertyEditor::new(&mut clip_area.size.y, reference_store),
+                    )
+                    .into();
+            });
+            ui_split(ui, "Skew", |ui| {
+                edit_result |= ui
+                    .add_sized(
+                        vec2(ui.available_width(), 0.0),
+                        PropertyEditor::new(&mut clip_area.skew, reference_store),
+                    )
+                    .into();
+            });
+        });
+        CollapsingHeader::new("Rounding").show_unindented(ui, |ui| {
+            ui_split(ui, "Top left", |ui| {
+                edit_result |= ui
+                    .add_sized(
+                        vec2(ui.available_width(), 0.0),
+                        PropertyEditor::new(&mut clip_area.rounding.top_left, reference_store),
+                    )
+                    .into();
+            });
+            ui_split(ui, "Top right", |ui| {
+                edit_result |= ui
+                    .add_sized(
+                        vec2(ui.available_width(), 0.0),
+                        PropertyEditor::new(&mut clip_area.rounding.top_right, reference_store),
+                    )
+                    .into();
+            });
+            ui_split(ui, "Bottom left", |ui| {
+                edit_result |= ui
+                    .add_sized(
+                        vec2(ui.available_width(), 0.0),
+                        PropertyEditor::new(&mut clip_area.rounding.bot_left, reference_store),
+                    )
+                    .into();
+            });
+            ui_split(ui, "Bottom right", |ui| {
+                edit_result |= ui
+                    .add_sized(
+                        vec2(ui.available_width(), 0.0),
+                        PropertyEditor::new(&mut clip_area.rounding.bot_right, reference_store),
+                    )
+                    .into();
+            });
+        });
+    });
     edit_result
 }

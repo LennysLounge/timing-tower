@@ -119,6 +119,7 @@ fn _graphic_root_editor(
 
 fn editor(ui: &mut Ui, element: &mut GraphicItem, reference_store: &ReferenceStore) -> EditResult {
     match element {
+        GraphicItem::Root(_) => EditResult::None,
         GraphicItem::Cell(cell) => {
             let mut edit_result = EditResult::None;
 

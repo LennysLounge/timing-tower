@@ -136,6 +136,7 @@ fn update_graphic_item(
     _model: &Model,
 ) {
     match item {
+        GraphicItem::Root(_) => (),
         GraphicItem::Cell(cell) => {
             let cell_id = graphic_item_data_storage.get_or_create(cell.id, || CellId::new());
             batcher.add(&cell_id, resolver.cell(&cell));

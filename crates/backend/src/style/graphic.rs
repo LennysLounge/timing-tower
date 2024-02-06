@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::{graphic_items::GraphicItems, OwnedStyleItem, StyleItem, StyleItemMut, StyleItemRef};
+use super::{graphic_items::root::Root, OwnedStyleItem, StyleItem, StyleItemMut, StyleItemRef};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct State {
@@ -10,11 +10,11 @@ pub struct State {
 }
 
 /// A visual graphic component in the scene.
-#[derive(Serialize, Deserialize, Clone, Default)]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct GraphicDefinition {
     pub id: Uuid,
     pub name: String,
-    pub items: GraphicItems,
+    pub items: Root,
     pub states: Vec<State>,
 }
 impl GraphicDefinition {
@@ -22,7 +22,7 @@ impl GraphicDefinition {
         Self {
             id: Uuid::new_v4(),
             name: String::from("Graphic"),
-            items: GraphicItems::default(),
+            items: Root::new(),
             states: Vec::new(),
         }
     }

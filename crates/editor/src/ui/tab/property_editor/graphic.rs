@@ -54,13 +54,18 @@ pub fn component_property_editor(
         .width(ui.available_width())
         .show_ui(ui, |ui| {
             if ui.selectable_label(false, "Cell").clicked() {
-                component.items.items.push(GraphicItem::Cell(Cell::new()));
+                component
+                    .items
+                    .as_mut()
+                    .items
+                    .push(GraphicItem::Cell(Cell::new()));
                 edit_result = EditResult::FromId(ui.id());
                 ui.close_menu();
             }
             if ui.selectable_label(false, "Clip Area").clicked() {
                 component
                     .items
+                    .as_mut()
                     .items
                     .push(GraphicItem::ClipArea(ClipArea::new()));
                 edit_result = EditResult::FromId(ui.id());
@@ -69,6 +74,7 @@ pub fn component_property_editor(
             if ui.selectable_label(false, "Driver Table").clicked() {
                 component
                     .items
+                    .as_mut()
                     .items
                     .push(GraphicItem::DriverTable(DriverTable::new()));
                 edit_result = EditResult::FromId(ui.id());
@@ -131,7 +137,7 @@ fn show_element_tree(
             builder.node(NodeBuilder::dir(graphic.id), |ui| {
                 _ = ui.label(&graphic.name)
             });
-            graphic.items.walk(&mut |element, method| {
+            graphic.items.as_enum_ref().walk(&mut |element, method| {
                 element_tree_node(&mut builder, element, method);
                 ControlFlow::Continue::<()>(())
             });
@@ -169,13 +175,13 @@ fn show_element_tree(
     }
     let mut commands = Vec::new();
     res.context_menu(ui, |ui, node_id| {
-        graphic.items.search_mut(node_id, |element| {
+        graphic.items.as_enum_mut().search_mut(node_id, |element| {
             let (target, position) = match element {
                 GraphicItem::Cell(_) => (
                     res.parent_of(node_id).unwrap_or_default(),
                     DropPosition::After(node_id),
                 ),
-                GraphicItem::ClipArea(_) | GraphicItem::DriverTable(_) => {
+                GraphicItem::Root(_) | GraphicItem::ClipArea(_) | GraphicItem::DriverTable(_) => {
                     (node_id, DropPosition::Last)
                 }
             };
@@ -232,6 +238,9 @@ fn show_element_tree(
 
 fn element_tree_node(builder: &mut TreeViewBuilder<Uuid>, element: &GraphicItem, method: Method) {
     match (method, element) {
+        (Method::Visit, GraphicItem::Root(_)) => {}
+        (Method::Leave, GraphicItem::Root(_)) => {}
+
         (Method::Visit, GraphicItem::Cell(cell)) => {
             builder.node(
                 NodeBuilder::leaf(cell.id).icon(|ui| {
@@ -288,14 +297,21 @@ fn element_tree_node(builder: &mut TreeViewBuilder<Uuid>, element: &GraphicItem,
 }
 
 fn remove_element(component: &mut GraphicDefinition, id: Uuid) -> Option<GraphicItem> {
-    if let Some(index) = component.items.items.iter().position(|e| e.id() == id) {
-        return Some(component.items.items.remove(index));
+    if let Some(index) = component
+        .items
+        .as_ref()
+        .items
+        .iter()
+        .position(|e| e.id() == id)
+    {
+        return Some(component.items.as_mut().items.remove(index));
     }
-    let r = component.items.walk_mut(&mut |e, method| {
+    let r = component.items.as_enum_mut().walk_mut(&mut |e, method| {
         if method != Method::Visit {
             return ControlFlow::Continue(());
         }
         match e {
+            GraphicItem::Root(_) => ControlFlow::Continue(()),
             GraphicItem::Cell(_) => ControlFlow::Continue(()),
             GraphicItem::ClipArea(clip_area) => {
                 if let Some(index) = clip_area.items.iter().position(|e| e.id() == id) {
@@ -326,17 +342,21 @@ fn insert_element(
     element: GraphicItem,
 ) {
     if target == component.id {
-        insert_into_vec(&mut component.items.items, position, element);
+        insert_into_vec(&mut component.items.as_mut().items, position, element);
     } else {
-        component.items.search_mut(target, |e| match e {
-            GraphicItem::Cell(_) => (),
-            GraphicItem::ClipArea(clip_area) => {
-                insert_into_vec(&mut clip_area.items, position, element);
-            }
-            GraphicItem::DriverTable(driver_table) => {
-                insert_into_vec(&mut driver_table.columns, position, element);
-            }
-        });
+        component
+            .items
+            .as_enum_mut()
+            .search_mut(target, |e| match e {
+                GraphicItem::Root(_) => (),
+                GraphicItem::Cell(_) => (),
+                GraphicItem::ClipArea(clip_area) => {
+                    insert_into_vec(&mut clip_area.items, position, element);
+                }
+                GraphicItem::DriverTable(driver_table) => {
+                    insert_into_vec(&mut driver_table.columns, position, element);
+                }
+            });
     }
 }
 

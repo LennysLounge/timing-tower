@@ -1,9 +1,13 @@
 use std::marker::PhantomData;
 
-use enumcapsulate::{AsVariantMut, AsVariantRef};
+use enumcapsulate::{AsVariantMut, AsVariantRef, FromVariant};
+use serde::{Deserialize, Serialize};
 
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ExactVariant<E, V> {
     value: E,
+    #[serde(skip)]
+    #[serde(default)]
     _variant_type: PhantomData<V>,
 }
 
@@ -20,6 +24,14 @@ where
         } else {
             None
         }
+    }
+
+    pub fn as_enum_ref(&self) -> &E {
+        &self.value
+    }
+
+    pub fn as_enum_mut(&mut self) -> &mut E {
+        &mut self.value
     }
 }
 
@@ -42,5 +54,17 @@ where
         self.value
             .as_variant_mut()
             .expect("Variant should always match")
+    }
+}
+
+impl<E, V> From<V> for ExactVariant<E, V>
+where
+    E: FromVariant<V>,
+{
+    fn from(value: V) -> Self {
+        Self {
+            value: E::from_variant(value),
+            _variant_type: PhantomData,
+        }
     }
 }

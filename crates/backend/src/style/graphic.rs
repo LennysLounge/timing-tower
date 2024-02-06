@@ -1,7 +1,12 @@
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use super::{graphic_items::root::Root, OwnedStyleItem, StyleItem, StyleItemMut, StyleItemRef};
+use crate::exact_variant::ExactVariant;
+
+use super::{
+    graphic_items::{root::Root, GraphicItem},
+    OwnedStyleItem, StyleItem, StyleItemMut, StyleItemRef,
+};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct State {
@@ -14,7 +19,7 @@ pub struct State {
 pub struct GraphicDefinition {
     pub id: Uuid,
     pub name: String,
-    pub items: Root,
+    pub items: ExactVariant<GraphicItem, Root>,
     pub states: Vec<State>,
 }
 impl GraphicDefinition {
@@ -22,7 +27,7 @@ impl GraphicDefinition {
         Self {
             id: Uuid::new_v4(),
             name: String::from("Graphic"),
-            items: Root::new(),
+            items: Root::new().into(),
             states: Vec::new(),
         }
     }

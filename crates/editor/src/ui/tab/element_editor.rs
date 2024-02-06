@@ -83,6 +83,7 @@ fn graphic_item(
 ) -> Option<EditResult> {
     graphic
         .items
+        .as_enum_mut()
         .search_mut(graphic_item_selection, |graphic_item| {
             if let Some(selected_state) = graphic_state_selection {
                 state_editor(ui, graphic_item, *selected_state, reference_store)
@@ -102,7 +103,7 @@ fn _graphic_root_editor(
         edit_result |= ui
             .add_sized(
                 vec2(ui.available_width(), 0.0),
-                PropertyEditor::new(&mut graphic.items.position.x, reference_store),
+                PropertyEditor::new(&mut graphic.items.as_mut().position.x, reference_store),
             )
             .into();
     });
@@ -110,7 +111,7 @@ fn _graphic_root_editor(
         edit_result |= ui
             .add_sized(
                 vec2(ui.available_width(), 0.0),
-                PropertyEditor::new(&mut graphic.items.position.y, reference_store),
+                PropertyEditor::new(&mut graphic.items.as_mut().position.y, reference_store),
             )
             .into();
     });
@@ -174,6 +175,7 @@ fn state_editor(
 ) -> EditResult {
     let mut edit_result = EditResult::None;
     match item {
+        GraphicItem::Root(_) => (),
         GraphicItem::Cell(cell) => {
             ui.label("Name:");
             edit_result |= ui.text_edit_singleline(&mut cell.name).into();

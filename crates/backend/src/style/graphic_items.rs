@@ -5,6 +5,7 @@ pub mod root;
 
 use std::{collections::HashMap, ops::ControlFlow};
 
+use enumcapsulate::macros::Encapsulate;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -14,7 +15,7 @@ use self::{cell::Cell, clip_area::ClipArea, driver_table::DriverTable, root::Roo
 
 /// A item inside a graphic that implements some functionality
 /// or visual.
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Encapsulate)]
 pub enum GraphicItem {
     Root(Root),
     Cell(Cell),

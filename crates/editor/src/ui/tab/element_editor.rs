@@ -83,7 +83,6 @@ fn graphic_item(
 ) -> Option<EditResult> {
     graphic
         .items
-        .as_enum_mut()
         .search_mut(graphic_item_selection, |graphic_item| {
             if let Some(selected_state) = graphic_state_selection {
                 state_editor(ui, graphic_item, *selected_state, reference_store)

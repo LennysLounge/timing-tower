@@ -6,6 +6,8 @@ use std::{
 use enumcapsulate::{AsVariantMut, AsVariantRef, FromVariant};
 use serde::{Deserialize, Serialize};
 
+use crate::tree_iterator::{TreeIterator, TreeIteratorMut};
+
 #[derive(Clone, Serialize, Deserialize)]
 pub struct ExactVariant<E, V> {
     #[serde(flatten)]
@@ -68,5 +70,33 @@ where
             value: E::from_variant(value),
             _variant_type: PhantomData,
         }
+    }
+}
+
+impl<E, V> TreeIterator for ExactVariant<E, V>
+where
+    E: TreeIterator,
+{
+    type Item<'item> = <E as TreeIterator>::Item<'item>;
+
+    fn walk<F, R>(&self, f: &mut F) -> std::ops::ControlFlow<R>
+    where
+        F: FnMut(&Self::Item<'_>, crate::tree_iterator::Method) -> std::ops::ControlFlow<R>,
+    {
+        self.value.walk(f)
+    }
+}
+
+impl<E, V> TreeIteratorMut for ExactVariant<E, V>
+where
+    E: TreeIteratorMut,
+{
+    type Item<'item> = <E as TreeIteratorMut>::Item<'item>;
+
+    fn walk_mut<F, R>(&mut self, f: &mut F) -> std::ops::ControlFlow<R>
+    where
+        F: FnMut(&mut Self::Item<'_>, crate::tree_iterator::Method) -> std::ops::ControlFlow<R>,
+    {
+        self.value.walk_mut(f)
     }
 }

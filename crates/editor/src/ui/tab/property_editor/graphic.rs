@@ -169,7 +169,7 @@ fn show_element_tree(
     }
     let mut commands = Vec::new();
     res.context_menu(ui, |ui, node_id| {
-        graphic.items.as_enum_mut().search_mut(node_id, |element| {
+        graphic.items.search_mut(node_id, |element| {
             let (target, position) = match element {
                 GraphicItem::Cell(_) => (
                     res.parent_of(node_id).unwrap_or_default(),
@@ -294,7 +294,7 @@ fn remove_element(component: &mut GraphicDefinition, id: Uuid) -> Option<Graphic
     if let Some(index) = component.items.items.iter().position(|e| e.id() == id) {
         return Some(component.items.items.remove(index));
     }
-    let r = component.items.as_enum_mut().walk_mut(&mut |e, method| {
+    let r = component.items.walk_mut(&mut |e, method| {
         if method != Method::Visit {
             return ControlFlow::Continue(());
         }
@@ -332,19 +332,16 @@ fn insert_element(
     if target == component.id {
         insert_into_vec(&mut component.items.items, position, element);
     } else {
-        component
-            .items
-            .as_enum_mut()
-            .search_mut(target, |e| match e {
-                GraphicItem::Root(_) => (),
-                GraphicItem::Cell(_) => (),
-                GraphicItem::ClipArea(clip_area) => {
-                    insert_into_vec(&mut clip_area.items, position, element);
-                }
-                GraphicItem::DriverTable(driver_table) => {
-                    insert_into_vec(&mut driver_table.columns, position, element);
-                }
-            });
+        component.items.search_mut(target, |e| match e {
+            GraphicItem::Root(_) => (),
+            GraphicItem::Cell(_) => (),
+            GraphicItem::ClipArea(clip_area) => {
+                insert_into_vec(&mut clip_area.items, position, element);
+            }
+            GraphicItem::DriverTable(driver_table) => {
+                insert_into_vec(&mut driver_table.columns, position, element);
+            }
+        });
     }
 }
 

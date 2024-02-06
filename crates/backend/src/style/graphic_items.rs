@@ -16,6 +16,7 @@ use self::{cell::Cell, clip_area::ClipArea, driver_table::DriverTable, root::Roo
 /// A item inside a graphic that implements some functionality
 /// or visual.
 #[derive(Serialize, Deserialize, Clone, Encapsulate)]
+#[serde(tag = "graphic_item_type")]
 pub enum GraphicItem {
     Root(Root),
     Cell(Cell),

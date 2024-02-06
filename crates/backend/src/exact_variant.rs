@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct ExactVariant<E, V> {
+    #[serde(flatten)]
     value: E,
     #[serde(skip)]
     #[serde(default)]

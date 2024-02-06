@@ -99,27 +99,14 @@ fn update_graphics(
     for graphic in graphics.iter_mut() {
         savefile.style().as_ref().search(graphic.id, |item| {
             if let StyleItemRef::Graphic(graphic) = item {
-                let mut resolver = StyleResolver::new(&*value_store, session);
-                resolver.set_position(vec3(
-                    resolver
-                        .property(&graphic.items.position.x)
-                        .unwrap_or_default()
-                        .0,
-                    -resolver
-                        .property(&graphic.items.position.y)
-                        .unwrap_or_default()
-                        .0,
-                    0.0,
-                ));
-                graphic.items.items.iter().for_each(|item| {
-                    update_graphic_item(
-                        item,
-                        &mut *batcher,
-                        &mut graphic_item_data_storage.make_context(0),
-                        &resolver,
-                        &*model,
-                    );
-                });
+                let resolver = StyleResolver::new(&*value_store, session);
+                update_graphic_item(
+                    graphic.items.as_enum_ref(),
+                    &mut *batcher,
+                    &mut graphic_item_data_storage.make_context(0),
+                    &resolver,
+                    &*model,
+                );
             }
         });
     }
@@ -136,7 +123,22 @@ fn update_graphic_item(
     _model: &Model,
 ) {
     match item {
-        GraphicItem::Root(_) => (),
+        GraphicItem::Root(root) => {
+            let new_resolver = resolver.clone().with_position(vec3(
+                resolver.property(&root.position.x).unwrap_or_default().0,
+                -resolver.property(&root.position.y).unwrap_or_default().0,
+                0.0,
+            ));
+            root.items.iter().for_each(|item| {
+                update_graphic_item(
+                    item,
+                    batcher,
+                    graphic_item_data_storage,
+                    &new_resolver,
+                    _model,
+                )
+            });
+        }
         GraphicItem::Cell(cell) => {
             let cell_id = graphic_item_data_storage.get_or_create(cell.id, || CellId::new());
             batcher.add(&cell_id, resolver.cell(&cell));

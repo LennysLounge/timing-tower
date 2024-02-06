@@ -30,10 +30,6 @@ impl<'a> StyleResolver<'a> {
         }
     }
 
-    pub fn set_position(&mut self, position: Vec3) {
-        self.position = position;
-    }
-
     pub fn with_position(mut self, position: Vec3) -> Self {
         self.position = position;
         self

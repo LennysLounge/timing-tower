@@ -119,7 +119,26 @@ fn _graphic_root_editor(
 
 fn editor(ui: &mut Ui, element: &mut GraphicItem, reference_store: &ReferenceStore) -> EditResult {
     match element {
-        GraphicItem::Root(_) => EditResult::None,
+        GraphicItem::Root(root) => {
+            let mut edit_result = EditResult::None;
+            ui_split(ui, "Position X", |ui| {
+                edit_result |= ui
+                    .add_sized(
+                        vec2(ui.available_width(), 0.0),
+                        PropertyEditor::new(&mut root.position.x, reference_store),
+                    )
+                    .into();
+            });
+            ui_split(ui, "Y", |ui| {
+                edit_result |= ui
+                    .add_sized(
+                        vec2(ui.available_width(), 0.0),
+                        PropertyEditor::new(&mut root.position.y, reference_store),
+                    )
+                    .into();
+            });
+            edit_result
+        }
         GraphicItem::Cell(cell) => {
             let mut edit_result = EditResult::None;
 
@@ -174,7 +193,9 @@ fn state_editor(
 ) -> EditResult {
     let mut edit_result = EditResult::None;
     match item {
-        GraphicItem::Root(_) => (),
+        GraphicItem::Root(_) => {
+            ui.label("todo");
+        }
         GraphicItem::Cell(cell) => {
             ui.label("Name:");
             edit_result |= ui.text_edit_singleline(&mut cell.name).into();

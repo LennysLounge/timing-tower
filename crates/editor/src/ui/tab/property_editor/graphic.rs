@@ -54,23 +54,17 @@ pub fn component_property_editor(
         .width(ui.available_width())
         .show_ui(ui, |ui| {
             if ui.selectable_label(false, "Cell").clicked() {
-                component.items.items.push(GraphicItem::Cell(Cell::new()));
+                component.items.items.push(Cell::new().into());
                 edit_result = EditResult::FromId(ui.id());
                 ui.close_menu();
             }
             if ui.selectable_label(false, "Clip Area").clicked() {
-                component
-                    .items
-                    .items
-                    .push(GraphicItem::ClipArea(ClipArea::new()));
+                component.items.items.push(ClipArea::new().into());
                 edit_result = EditResult::FromId(ui.id());
                 ui.close_menu();
             }
             if ui.selectable_label(false, "Driver Table").clicked() {
-                component
-                    .items
-                    .items
-                    .push(GraphicItem::DriverTable(DriverTable::new()));
+                component.items.items.push(DriverTable::new().into());
                 edit_result = EditResult::FromId(ui.id());
                 ui.close_menu();
             }
@@ -181,7 +175,7 @@ fn show_element_tree(
             };
             if ui.button("add cell").clicked() {
                 commands.push(Command::Add {
-                    element: GraphicItem::Cell(Cell::new()),
+                    element: Cell::new().into(),
                     target,
                     position,
                 });
@@ -189,7 +183,7 @@ fn show_element_tree(
             }
             if ui.button("add clip area").clicked() {
                 commands.push(Command::Add {
-                    element: GraphicItem::ClipArea(ClipArea::new()),
+                    element: ClipArea::new().into(),
                     target,
                     position,
                 });
@@ -197,7 +191,7 @@ fn show_element_tree(
             }
             if ui.button("add driver table").clicked() {
                 commands.push(Command::Add {
-                    element: GraphicItem::DriverTable(DriverTable::new()),
+                    element: DriverTable::new().into(),
                     target,
                     position,
                 });
@@ -299,7 +293,13 @@ fn remove_element(component: &mut GraphicDefinition, id: Uuid) -> Option<Graphic
             return ControlFlow::Continue(());
         }
         match e {
-            GraphicItem::Root(_) => ControlFlow::Continue(()),
+            GraphicItem::Root(root) => {
+                if let Some(index) = root.items.iter().position(|e| e.id() == id) {
+                    ControlFlow::Break(Some(root.items.remove(index)))
+                } else {
+                    ControlFlow::Continue(())
+                }
+            }
             GraphicItem::Cell(_) => ControlFlow::Continue(()),
             GraphicItem::ClipArea(clip_area) => {
                 if let Some(index) = clip_area.items.iter().position(|e| e.id() == id) {
@@ -333,7 +333,9 @@ fn insert_element(
         insert_into_vec(&mut component.items.items, position, element);
     } else {
         component.items.search_mut(target, |e| match e {
-            GraphicItem::Root(_) => (),
+            GraphicItem::Root(root) => {
+                insert_into_vec(&mut root.items, position, element);
+            }
             GraphicItem::Cell(_) => (),
             GraphicItem::ClipArea(clip_area) => {
                 insert_into_vec(&mut clip_area.items, position, element);

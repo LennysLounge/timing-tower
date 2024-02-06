@@ -13,6 +13,7 @@ pub mod style_batcher;
 pub mod tree_iterator;
 pub mod value_store;
 pub mod value_types;
+pub mod exact_variant;
 
 pub struct BackendPlugin;
 impl Plugin for BackendPlugin {

@@ -1,4 +1,7 @@
-use std::marker::PhantomData;
+use std::{
+    marker::PhantomData,
+    ops::{Deref, DerefMut},
+};
 
 use enumcapsulate::{AsVariantMut, AsVariantRef, FromVariant};
 use serde::{Deserialize, Serialize};
@@ -30,28 +33,26 @@ where
     pub fn as_enum_ref(&self) -> &E {
         &self.value
     }
-
-    pub fn as_enum_mut(&mut self) -> &mut E {
-        &mut self.value
-    }
 }
 
-impl<E, V> AsRef<V> for ExactVariant<E, V>
+impl<E, V> Deref for ExactVariant<E, V>
 where
     E: AsVariantRef<V>,
 {
-    fn as_ref(&self) -> &V {
+    type Target = V;
+
+    fn deref(&self) -> &Self::Target {
         self.value
             .as_variant_ref()
             .expect("Variant should always match")
     }
 }
 
-impl<E, V> AsMut<V> for ExactVariant<E, V>
+impl<E, V> DerefMut for ExactVariant<E, V>
 where
-    E: AsVariantMut<V>,
+    E: AsVariantRef<V> + AsVariantMut<V>,
 {
-    fn as_mut(&mut self) -> &mut V {
+    fn deref_mut(&mut self) -> &mut Self::Target {
         self.value
             .as_variant_mut()
             .expect("Variant should always match")

@@ -54,18 +54,13 @@ pub fn component_property_editor(
         .width(ui.available_width())
         .show_ui(ui, |ui| {
             if ui.selectable_label(false, "Cell").clicked() {
-                component
-                    .items
-                    .as_mut()
-                    .items
-                    .push(GraphicItem::Cell(Cell::new()));
+                component.items.items.push(GraphicItem::Cell(Cell::new()));
                 edit_result = EditResult::FromId(ui.id());
                 ui.close_menu();
             }
             if ui.selectable_label(false, "Clip Area").clicked() {
                 component
                     .items
-                    .as_mut()
                     .items
                     .push(GraphicItem::ClipArea(ClipArea::new()));
                 edit_result = EditResult::FromId(ui.id());
@@ -74,7 +69,6 @@ pub fn component_property_editor(
             if ui.selectable_label(false, "Driver Table").clicked() {
                 component
                     .items
-                    .as_mut()
                     .items
                     .push(GraphicItem::DriverTable(DriverTable::new()));
                 edit_result = EditResult::FromId(ui.id());
@@ -297,14 +291,8 @@ fn element_tree_node(builder: &mut TreeViewBuilder<Uuid>, element: &GraphicItem,
 }
 
 fn remove_element(component: &mut GraphicDefinition, id: Uuid) -> Option<GraphicItem> {
-    if let Some(index) = component
-        .items
-        .as_ref()
-        .items
-        .iter()
-        .position(|e| e.id() == id)
-    {
-        return Some(component.items.as_mut().items.remove(index));
+    if let Some(index) = component.items.items.iter().position(|e| e.id() == id) {
+        return Some(component.items.items.remove(index));
     }
     let r = component.items.as_enum_mut().walk_mut(&mut |e, method| {
         if method != Method::Visit {
@@ -342,7 +330,7 @@ fn insert_element(
     element: GraphicItem,
 ) {
     if target == component.id {
-        insert_into_vec(&mut component.items.as_mut().items, position, element);
+        insert_into_vec(&mut component.items.items, position, element);
     } else {
         component
             .items

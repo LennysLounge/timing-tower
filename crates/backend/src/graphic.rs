@@ -102,16 +102,16 @@ fn update_graphics(
                 let mut resolver = StyleResolver::new(&*value_store, session);
                 resolver.set_position(vec3(
                     resolver
-                        .property(&graphic.items.as_ref().position.x)
+                        .property(&graphic.items.position.x)
                         .unwrap_or_default()
                         .0,
                     -resolver
-                        .property(&graphic.items.as_ref().position.y)
+                        .property(&graphic.items.position.y)
                         .unwrap_or_default()
                         .0,
                     0.0,
                 ));
-                graphic.items.as_ref().items.iter().for_each(|item| {
+                graphic.items.items.iter().for_each(|item| {
                     update_graphic_item(
                         item,
                         &mut *batcher,

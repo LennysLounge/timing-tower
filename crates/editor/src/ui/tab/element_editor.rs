@@ -103,7 +103,7 @@ fn _graphic_root_editor(
         edit_result |= ui
             .add_sized(
                 vec2(ui.available_width(), 0.0),
-                PropertyEditor::new(&mut graphic.items.as_mut().position.x, reference_store),
+                PropertyEditor::new(&mut graphic.items.position.x, reference_store),
             )
             .into();
     });
@@ -111,7 +111,7 @@ fn _graphic_root_editor(
         edit_result |= ui
             .add_sized(
                 vec2(ui.available_width(), 0.0),
-                PropertyEditor::new(&mut graphic.items.as_mut().position.y, reference_store),
+                PropertyEditor::new(&mut graphic.items.position.y, reference_store),
             )
             .into();
     });

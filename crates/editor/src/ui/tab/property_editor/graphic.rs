@@ -21,7 +21,7 @@ use crate::{
     reference_store::ReferenceStore,
 };
 
-pub fn component_property_editor(
+pub fn graphic_property_editor(
     ui: &mut Ui,
     component: &mut GraphicDefinition,
     graphic_item_selection: &mut Option<Uuid>,
@@ -32,7 +32,12 @@ pub fn component_property_editor(
     let mut edit_result = EditResult::None;
 
     ui.label("Name:");
-    edit_result |= ui.text_edit_singleline(&mut component.name).into();
+    let res = ui.text_edit_singleline(&mut component.name);
+    if res.changed() {
+        // Keep the graphic item root in sync with the graphic name itself.
+        component.items.name = component.name.clone();
+    };
+    edit_result |= res.into();
 
     ui.separator();
 
@@ -122,14 +127,10 @@ fn show_element_tree(
     let res = TreeView::new(ui.make_persistent_id("Component element tree"))
         .row_layout(RowLayout::AlignedIcons)
         .show(ui, |mut builder| {
-            builder.node(NodeBuilder::dir(graphic.id), |ui| {
-                _ = ui.label(&graphic.name)
-            });
-            graphic.items.as_enum_ref().walk(&mut |element, method| {
-                element_tree_node(&mut builder, element, method);
+            graphic.items.walk(&mut |item, method| {
+                element_tree_node(&mut builder, item, method);
                 ControlFlow::Continue::<()>(())
             });
-            builder.close_dir();
         });
 
     for action in res.actions.iter() {
@@ -226,8 +227,17 @@ fn show_element_tree(
 
 fn element_tree_node(builder: &mut TreeViewBuilder<Uuid>, element: &GraphicItem, method: Method) {
     match (method, element) {
-        (Method::Visit, GraphicItem::Root(_)) => {}
-        (Method::Leave, GraphicItem::Root(_)) => {}
+        (Method::Visit, GraphicItem::Root(root)) => {
+            builder.node(NodeBuilder::dir(root.id), |ui| {
+                ui.horizontal(|ui| {
+                    ui.colored_label(Color32::from_gray(120), "Graphic");
+                    ui.label(&root.name);
+                });
+            });
+        }
+        (Method::Leave, GraphicItem::Root(_)) => {
+            builder.close_dir();
+        }
 
         (Method::Visit, GraphicItem::Cell(cell)) => {
             builder.node(

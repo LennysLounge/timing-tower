@@ -81,7 +81,7 @@ fn graphic_item(
     graphic_state_selection: &mut Option<Uuid>,
     reference_store: &ReferenceStore,
 ) -> Option<EditResult> {
-    graphic
+    let edit_result = graphic
         .items
         .search_mut(graphic_item_selection, |graphic_item| {
             if let Some(selected_state) = graphic_state_selection {
@@ -89,7 +89,12 @@ fn graphic_item(
             } else {
                 editor(ui, graphic_item, reference_store)
             }
-        })
+        });
+    // Copy the name of the root graphic item to the graphic to keep them synced.
+    if matches!(edit_result, Some(EditResult::FromId(_))) {
+        graphic.name = graphic.items.name.clone();
+    }
+    edit_result
 }
 
 fn _graphic_root_editor(
@@ -121,6 +126,10 @@ fn editor(ui: &mut Ui, element: &mut GraphicItem, reference_store: &ReferenceSto
     match element {
         GraphicItem::Root(root) => {
             let mut edit_result = EditResult::None;
+
+            ui.label("Name:");
+            edit_result |= ui.text_edit_singleline(&mut root.name).into();
+            ui.separator();
             ui_split(ui, "Position X", |ui| {
                 edit_result |= ui
                     .add_sized(

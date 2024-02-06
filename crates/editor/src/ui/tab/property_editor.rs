@@ -21,7 +21,7 @@ use crate::{
     ui::combo_box::LComboBox,
 };
 
-use self::graphic::component_property_editor;
+use self::graphic::graphic_property_editor;
 
 pub mod cell;
 mod graphic;
@@ -239,7 +239,7 @@ pub fn edit_node(
 
         StyleItemMut::Graphic(component) => {
             ui.push_id(component.id, |ui| {
-                component_property_editor(
+                graphic_property_editor(
                     ui,
                     component,
                     graphic_item_selection,

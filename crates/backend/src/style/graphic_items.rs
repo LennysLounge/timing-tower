@@ -3,7 +3,10 @@ pub mod clip_area;
 pub mod driver_table;
 pub mod root;
 
-use std::{collections::HashMap, ops::ControlFlow};
+use std::{
+    collections::HashMap,
+    ops::{ControlFlow, Deref, DerefMut},
+};
 
 use enumcapsulate::macros::Encapsulate;
 use serde::{Deserialize, Serialize};
@@ -84,31 +87,53 @@ impl TreeIteratorMut for GraphicItem {
         f(self, Method::Leave)
     }
 }
+#[derive(Serialize, Deserialize, Clone, Default)]
+pub struct Attribute<T> {
+    template: T,
+    states: HashMap<Uuid, T>,
+}
+impl<T> Attribute<T> {
+    pub fn template(&self) -> &T {
+        &self.template
+    }
+    pub fn template_mut(&mut self) -> &mut T {
+        &mut self.template
+    }
 
-#[derive(Serialize, Deserialize, Clone)]
-pub struct EnumSet<T: Serialize + ToString> {
-    data: HashMap<String, T>,
-}
-impl<T: Serialize + ToString> EnumSet<T> {
-    pub fn new() -> Self {
-        Self {
-            data: HashMap::new(),
-        }
+    pub fn get_state(&mut self, state_id: &Uuid) -> Option<&mut T> {
+        self.states.get_mut(state_id)
     }
-    pub fn insert(&mut self, value: T) {
-        self.data.insert(value.to_string(), value);
+    pub fn add_state(&mut self, state_id: Uuid)
+    where
+        T: Clone,
+    {
+        self.states.insert(state_id, self.template.clone());
     }
-    pub fn values(&self) -> impl Iterator<Item = &T> {
-        self.data.values()
+    pub fn remove_state(&mut self, state_id: &Uuid) {
+        self.states.remove(state_id);
     }
-    pub fn remove(&mut self, key: &String) -> Option<T> {
-        self.data.remove(key)
+    pub fn has_state(&self, state_id: &Uuid) -> bool {
+        self.states.contains_key(&state_id)
     }
 }
-impl<T: Serialize + ToString> Default for EnumSet<T> {
-    fn default() -> Self {
+impl<T> Deref for Attribute<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        self.template()
+    }
+}
+impl<T> DerefMut for Attribute<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self.template_mut()
+    }
+}
+
+impl<T> From<T> for Attribute<T> {
+    fn from(value: T) -> Self {
         Self {
-            data: Default::default(),
+            template: value,
+            states: HashMap::new(),
         }
     }
 }

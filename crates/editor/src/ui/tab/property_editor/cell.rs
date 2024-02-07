@@ -1,7 +1,4 @@
-use backend::style::graphic_items::{
-    cell::{Attribute, Cell},
-    clip_area::ClipArea,
-};
+use backend::style::graphic_items::{cell::Cell, clip_area::ClipArea, Attribute};
 use bevy_egui::egui::{self, vec2, CollapsingHeader, DragValue, Layout, Ui, WidgetText};
 use common::communication::TextAlignment;
 use uuid::Uuid;

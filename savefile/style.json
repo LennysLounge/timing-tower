@@ -1316,10 +1316,12 @@
             }
           ],
           "position": {
-            "x": 805.0,
-            "y": 37.0
-          },
-          "attributes": {}
+            "template": {
+              "x": 805.0,
+              "y": 37.0
+            },
+            "states": {}
+          }
         },
         "states": []
       },
@@ -1441,20 +1443,32 @@
               "id": "6dcf23fc-6410-4077-bc6a-2561f8ce4449",
               "name": "Clip area",
               "pos": {
-                "x": 0.0,
-                "y": 21.0,
-                "z": 0.0
+                "template": {
+                  "x": 0.0,
+                  "y": 21.0,
+                  "z": 0.0
+                },
+                "states": {}
               },
               "size": {
-                "x": 463.0,
-                "y": 874.0
+                "template": {
+                  "x": 463.0,
+                  "y": 874.0
+                },
+                "states": {}
               },
-              "skew": 0.0,
+              "skew": {
+                "template": 0.0,
+                "states": {}
+              },
               "rounding": {
-                "top_left": 0.0,
-                "top_right": 0.0,
-                "bot_left": 0.0,
-                "bot_right": 0.0
+                "template": {
+                  "top_left": 0.0,
+                  "top_right": 0.0,
+                  "bot_left": 0.0,
+                  "bot_right": 0.0
+                },
+                "states": {}
               },
               "render_layer": 1,
               "items": [
@@ -1463,8 +1477,11 @@
                   "id": "4a7c390b-1e91-416b-8d37-a15b7a327882",
                   "name": "Driver table",
                   "row_offset": {
-                    "x": 0.0,
-                    "y": 38.0
+                    "template": {
+                      "x": 0.0,
+                      "y": 38.0
+                    },
+                    "states": {}
                   },
                   "columns": [
                     {
@@ -2105,18 +2122,18 @@
                         "states": {}
                       }
                     }
-                  ],
-                  "attributes": {}
+                  ]
                 }
-              ],
-              "attributes": {}
+              ]
             }
           ],
           "position": {
-            "x": 346.0,
-            "y": 35.0
-          },
-          "attributes": {}
+            "template": {
+              "x": 346.0,
+              "y": 35.0
+            },
+            "states": {}
+          }
         },
         "states": [
           {
@@ -2243,10 +2260,12 @@
             }
           ],
           "position": {
-            "x": 918.0,
-            "y": 400.0
-          },
-          "attributes": {}
+            "template": {
+              "x": 918.0,
+              "y": 400.0
+            },
+            "states": {}
+          }
         },
         "states": []
       }

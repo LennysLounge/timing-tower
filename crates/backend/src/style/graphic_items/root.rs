@@ -1,19 +1,16 @@
-use std::collections::HashMap;
-
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::value_types::Vec2Property;
 
-use super::{EnumSet, GraphicItem};
+use super::{Attribute, GraphicItem};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Root {
     pub id: Uuid,
     pub name: String,
     pub items: Vec<GraphicItem>,
-    pub position: Vec2Property,
-    pub attributes: HashMap<Uuid, EnumSet<RootAttributes>>,
+    pub position: Attribute<Vec2Property>,
 }
 
 impl Root {
@@ -22,8 +19,7 @@ impl Root {
             id: Uuid::new_v4(),
             name: String::from("Graphic"),
             items: Vec::new(),
-            position: Vec2Property::default(),
-            attributes: HashMap::new(),
+            position: Vec2Property::default().into(),
         }
     }
 }

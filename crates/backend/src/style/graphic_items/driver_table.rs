@@ -1,20 +1,17 @@
-use std::collections::HashMap;
-
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::value_types::{Number, Property, Vec2Property};
 
-use super::{EnumSet, GraphicItem};
+use super::{Attribute, GraphicItem};
 
 // An item that displays a table of all drivers in the session.
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct DriverTable {
     pub id: Uuid,
     pub name: String,
-    pub row_offset: Vec2Property,
+    pub row_offset: Attribute<Vec2Property>,
     pub columns: Vec<GraphicItem>,
-    pub attributes: HashMap<Uuid, EnumSet<DriverTableAttributes>>,
 }
 impl DriverTable {
     pub fn new() -> Self {
@@ -24,9 +21,9 @@ impl DriverTable {
             row_offset: Vec2Property {
                 x: Property::Fixed(Number(30.0)),
                 y: Property::Fixed(Number(30.0)),
-            },
+            }
+            .into(),
             columns: Vec::new(),
-            attributes: HashMap::new(),
         }
     }
 }

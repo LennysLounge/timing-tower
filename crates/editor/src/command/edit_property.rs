@@ -74,8 +74,10 @@ impl From<EditProperty> for EditorCommand {
 }
 
 /// The result of a undo/redo context.
+#[derive(Default)]
 pub enum EditResult {
     /// No value were changed.
+    #[default]
     None,
     /// The value was changed by a widget with this id.
     FromId(bevy_egui::egui::Id),

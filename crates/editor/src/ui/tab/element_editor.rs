@@ -40,9 +40,9 @@ pub fn element_editor(
     let Some(style_item_selection) = style_item_selection else {
         return;
     };
-    let Some(graphic_item_selection) = graphic_item_selection else {
-        return;
-    };
+    // let Some(graphic_item_selection) = graphic_item_selection else {
+    //     return;
+    // };
     ScrollArea::vertical()
         .auto_shrink([false, false])
         .show(ui, |ui| {
@@ -53,11 +53,11 @@ pub fn element_editor(
                         let edit_result = graphic_item(
                             ui,
                             graphic,
-                            *graphic_item_selection,
-                            graphic_state_selection,
+                            graphic_item_selection.as_ref(),
+                            graphic_state_selection.as_ref(),
                             reference_store,
                         );
-                        if let Some(EditResult::FromId(widget_id)) = edit_result {
+                        if let EditResult::FromId(widget_id) = edit_result {
                             undo_redo_manager.queue(EditProperty::new(
                                 graphic.id,
                                 graphic.clone(),
@@ -72,49 +72,34 @@ pub fn element_editor(
 fn graphic_item(
     ui: &mut Ui,
     graphic: &mut GraphicDefinition,
-    graphic_item_selection: Uuid,
-    graphic_state_selection: &mut Option<Uuid>,
-    reference_store: &ReferenceStore,
-) -> Option<EditResult> {
-    let edit_result = graphic
-        .items
-        .search_mut(graphic_item_selection, |graphic_item| {
-            editor(
-                ui,
-                graphic_item,
-                graphic_state_selection.as_ref(),
-                reference_store,
-            )
-        });
-    // Copy the name of the root graphic item to the graphic to keep them synced.
-    if matches!(edit_result, Some(EditResult::FromId(_))) {
-        graphic.name = graphic.items.name.clone();
-    }
-    edit_result
-}
-
-fn _graphic_root_editor(
-    ui: &mut Ui,
-    graphic: &mut GraphicDefinition,
+    graphic_item_selection: Option<&Uuid>,
+    graphic_state_selection: Option<&Uuid>,
     reference_store: &ReferenceStore,
 ) -> EditResult {
     let mut edit_result = EditResult::None;
-    ui_split(ui, "Position X", |ui| {
-        edit_result |= ui
-            .add_sized(
-                vec2(ui.available_width(), 0.0),
-                PropertyEditor::new(&mut graphic.items.position.x, reference_store),
-            )
-            .into();
-    });
-    ui_split(ui, "Y", |ui| {
-        edit_result |= ui
-            .add_sized(
-                vec2(ui.available_width(), 0.0),
-                PropertyEditor::new(&mut graphic.items.position.y, reference_store),
-            )
-            .into();
-    });
+    if let Some(state) = graphic_state_selection.and_then(|state_id| {
+        graphic
+            .states
+            .iter_mut()
+            .find(|state| state.id == *state_id)
+    }) {
+        ui.label("State name:");
+        edit_result |= ui.text_edit_singleline(&mut state.name).into();
+        ui.separator();
+    }
+
+    if let Some(graphic_item_selection) = graphic_item_selection {
+        edit_result |= graphic
+            .items
+            .search_mut(*graphic_item_selection, |graphic_item| {
+                editor(ui, graphic_item, graphic_state_selection, reference_store)
+            })
+            .unwrap_or_default();
+    }
+    // Copy the name of the root graphic item to the graphic to keep them synced.
+    if matches!(edit_result, EditResult::FromId(_)) {
+        graphic.name = graphic.items.name.clone();
+    }
     edit_result
 }
 

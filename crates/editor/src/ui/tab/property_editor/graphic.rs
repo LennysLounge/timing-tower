@@ -82,7 +82,7 @@ pub fn graphic_property_editor(
             .row_layout(RowLayout::Compact)
             .show(ui, |mut builder| {
                 builder.leaf(Uuid::default(), |ui| _ = ui.label("Template"));
-                for state in component.states.iter() {
+                for state in component.states.iter_mut() {
                     builder.leaf(state.id, |ui| _ = ui.label(&state.name));
                 }
             });

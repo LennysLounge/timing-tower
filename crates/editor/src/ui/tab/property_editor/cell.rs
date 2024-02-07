@@ -1,5 +1,7 @@
 use backend::style::graphic_items::{cell::Cell, clip_area::ClipArea};
-use bevy_egui::egui::{self, vec2, CollapsingHeader, DragValue, Layout, Rect, Ui, WidgetText};
+use bevy_egui::egui::{
+    self, vec2, CollapsingHeader, DragValue, Layout, Rect, Ui, WidgetText,
+};
 use common::communication::TextAlignment;
 
 use crate::{
@@ -11,7 +13,7 @@ use super::property::PropertyEditor;
 pub fn ui_split(ui: &mut Ui, label: impl Into<WidgetText>, right: impl FnMut(&mut Ui)) {
     ui.with_layout(Layout::left_to_right(egui::Align::Min), |ui| {
         ui.allocate_ui_with_layout(
-            vec2((ui.available_width() - 20.0) * 0.4, 20.0),
+            vec2((ui.available_width() - 20.0) * 0.4, 18.0),
             Layout::right_to_left(egui::Align::Center),
             |ui| {
                 ui.add(egui::Label::new(label).truncate(true));

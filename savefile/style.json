@@ -1446,7 +1446,7 @@
                 "z": 0.0
               },
               "size": {
-                "x": 300.0,
+                "x": 463.0,
                 "y": 874.0
               },
               "skew": 0.0,
@@ -1627,7 +1627,12 @@
                           "x": 250.0,
                           "y": 36.0
                         },
-                        "states": {}
+                        "states": {
+                          "0c6aff6c-2995-4b6e-be5b-b88a76af76a8": {
+                            "x": 350.0,
+                            "y": 36.0
+                          }
+                        }
                       },
                       "skew": {
                         "template": 0.0,
@@ -2113,7 +2118,12 @@
           },
           "attributes": {}
         },
-        "states": []
+        "states": [
+          {
+            "id": "0c6aff6c-2995-4b6e-be5b-b88a76af76a8",
+            "name": "new state"
+          }
+        ]
       },
       {
         "element_type": "Graphic",

@@ -102,6 +102,22 @@ impl<T> Attribute<T> {
     pub fn template_mut(&mut self) -> &mut T {
         &mut self.template
     }
+
+    pub fn get_state(&mut self, state_id: &Uuid) -> Option<&mut T> {
+        self.states.get_mut(state_id)
+    }
+    pub fn add_state(&mut self, state_id: Uuid)
+    where
+        T: Clone,
+    {
+        self.states.insert(state_id, self.template.clone());
+    }
+    pub fn remove_state(&mut self, state_id: &Uuid) {
+        self.states.remove(state_id);
+    }
+    pub fn has_state(&self, state_id: &Uuid) -> bool {
+        self.states.contains_key(&state_id)
+    }
 }
 impl<T> Deref for Attribute<T> {
     type Target = T;

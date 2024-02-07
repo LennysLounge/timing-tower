@@ -154,7 +154,7 @@ fn editor(ui: &mut Ui, element: &mut GraphicItem, reference_store: &ReferenceSto
             ui.label("Name:");
             edit_result |= ui.text_edit_singleline(&mut cell.name).into();
             ui.separator();
-            edit_result |= cell::cell_property_editor(ui, cell, reference_store).into();
+            edit_result |= cell::cell_property_editor(ui, cell, None, reference_store).into();
             edit_result
         }
         GraphicItem::ClipArea(clip_area) => {
@@ -209,6 +209,9 @@ fn state_editor(
             ui.label("Name:");
             edit_result |= ui.text_edit_singleline(&mut cell.name).into();
             ui.separator();
+            edit_result |=
+                cell::cell_property_editor(ui, cell, Some(&_selected_state), _reference_store)
+                    .into();
         }
         GraphicItem::ClipArea(clip_area) => {
             ui.label("Name:");

@@ -23,7 +23,6 @@ use crate::{
 
 use self::graphic::graphic_property_editor;
 
-pub mod cell;
 mod graphic;
 pub mod property;
 mod variable;

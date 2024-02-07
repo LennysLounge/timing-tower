@@ -33,24 +33,24 @@ pub fn cell_property_editor(
 ) -> EditResult {
     let mut edit_result = EditResult::None;
 
+    let Cell { style, .. } = cell;
+
     ui.scope(|ui| {
         ui.visuals_mut().collapsing_header_frame = false;
-        CollapsingHeader::new("Visibility").show_unindented(ui, |ui| {
-            ui_split(ui, "Visible", |ui| {
-                edit_result |= ui
-                    .add_sized(
-                        vec2(ui.available_width(), 0.0),
-                        PropertyEditor::new(&mut cell.visible, reference_store),
-                    )
-                    .into();
-            });
+        ui_split(ui, "Visible", |ui| {
+            edit_result |= ui
+                .add_sized(
+                    vec2(ui.available_width(), 0.0),
+                    PropertyEditor::new(&mut style.visible, reference_store),
+                )
+                .into();
         });
         CollapsingHeader::new("Text").show_unindented(ui, |ui| {
             ui_split(ui, "Text", |ui| {
                 edit_result |= ui
                     .add_sized(
                         vec2(ui.available_width(), 0.0),
-                        PropertyEditor::new(&mut cell.text, reference_store),
+                        PropertyEditor::new(&mut style.text, reference_store),
                     )
                     .into();
             });
@@ -58,7 +58,7 @@ pub fn cell_property_editor(
                 edit_result |= ui
                     .add_sized(
                         vec2(ui.available_width(), 0.0),
-                        PropertyEditor::new(&mut cell.text_color, reference_store),
+                        PropertyEditor::new(&mut style.text_color, reference_store),
                     )
                     .into();
             });
@@ -66,7 +66,7 @@ pub fn cell_property_editor(
                 edit_result |= ui
                     .add_sized(
                         vec2(ui.available_width(), 0.0),
-                        PropertyEditor::new(&mut cell.text_size, reference_store),
+                        PropertyEditor::new(&mut style.text_size, reference_store),
                     )
                     .into();
             });
@@ -74,7 +74,7 @@ pub fn cell_property_editor(
                 edit_result |= ui
                     .add_sized(
                         vec2(ui.available_width(), 0.0),
-                        LComboBox::new(&mut cell.text_alginment)
+                        LComboBox::new(&mut style.text_alginment)
                             .with_id(ui.make_persistent_id("Text alginment combobox"))
                             .add_option(TextAlignment::Left, "Left")
                             .add_option(TextAlignment::Center, "Center")
@@ -86,7 +86,7 @@ pub fn cell_property_editor(
                 edit_result |= ui
                     .add_sized(
                         vec2(ui.available_width(), 0.0),
-                        PropertyEditor::new(&mut cell.font, reference_store),
+                        PropertyEditor::new(&mut style.font, reference_store),
                     )
                     .into();
             });
@@ -95,7 +95,7 @@ pub fn cell_property_editor(
                 edit_result |= ui
                     .add_sized(
                         vec2(ui.available_width(), 0.0),
-                        PropertyEditor::new(&mut cell.text_position.x, reference_store),
+                        PropertyEditor::new(&mut style.text_position.x, reference_store),
                     )
                     .into();
             });
@@ -103,7 +103,7 @@ pub fn cell_property_editor(
                 edit_result |= ui
                     .add_sized(
                         vec2(ui.available_width(), 0.0),
-                        PropertyEditor::new(&mut cell.text_position.y, reference_store),
+                        PropertyEditor::new(&mut style.text_position.y, reference_store),
                     )
                     .into();
             });
@@ -113,7 +113,7 @@ pub fn cell_property_editor(
                 edit_result |= ui
                     .add_sized(
                         vec2(ui.available_width(), 0.0),
-                        PropertyEditor::new(&mut cell.pos.x, reference_store),
+                        PropertyEditor::new(&mut style.pos.x, reference_store),
                     )
                     .into();
             });
@@ -121,7 +121,7 @@ pub fn cell_property_editor(
                 edit_result |= ui
                     .add_sized(
                         vec2(ui.available_width(), 0.0),
-                        PropertyEditor::new(&mut cell.pos.y, reference_store),
+                        PropertyEditor::new(&mut style.pos.y, reference_store),
                     )
                     .into();
             });
@@ -129,7 +129,7 @@ pub fn cell_property_editor(
                 edit_result |= ui
                     .add_sized(
                         vec2(ui.available_width(), 0.0),
-                        PropertyEditor::new(&mut cell.pos.z, reference_store),
+                        PropertyEditor::new(&mut style.pos.z, reference_store),
                     )
                     .into();
             });
@@ -139,7 +139,7 @@ pub fn cell_property_editor(
                 edit_result |= ui
                     .add_sized(
                         vec2(ui.available_width(), 0.0),
-                        PropertyEditor::new(&mut cell.size.x, reference_store),
+                        PropertyEditor::new(&mut style.size.x, reference_store),
                     )
                     .into();
             });
@@ -147,7 +147,7 @@ pub fn cell_property_editor(
                 edit_result |= ui
                     .add_sized(
                         vec2(ui.available_width(), 0.0),
-                        PropertyEditor::new(&mut cell.size.y, reference_store),
+                        PropertyEditor::new(&mut style.size.y, reference_store),
                     )
                     .into();
             });
@@ -155,7 +155,7 @@ pub fn cell_property_editor(
                 edit_result |= ui
                     .add_sized(
                         vec2(ui.available_width(), 0.0),
-                        PropertyEditor::new(&mut cell.skew, reference_store),
+                        PropertyEditor::new(&mut style.skew, reference_store),
                     )
                     .into();
             });
@@ -165,7 +165,7 @@ pub fn cell_property_editor(
                 edit_result |= ui
                     .add_sized(
                         vec2(ui.available_width(), 0.0),
-                        PropertyEditor::new(&mut cell.corner_offsets.top_left.x, reference_store),
+                        PropertyEditor::new(&mut style.corner_offsets.top_left.x, reference_store),
                     )
                     .into();
             });
@@ -173,7 +173,7 @@ pub fn cell_property_editor(
                 edit_result |= ui
                     .add_sized(
                         vec2(ui.available_width(), 0.0),
-                        PropertyEditor::new(&mut cell.corner_offsets.top_left.y, reference_store),
+                        PropertyEditor::new(&mut style.corner_offsets.top_left.y, reference_store),
                     )
                     .into();
             });
@@ -182,7 +182,7 @@ pub fn cell_property_editor(
                 edit_result |= ui
                     .add_sized(
                         vec2(ui.available_width(), 0.0),
-                        PropertyEditor::new(&mut cell.corner_offsets.top_right.x, reference_store),
+                        PropertyEditor::new(&mut style.corner_offsets.top_right.x, reference_store),
                     )
                     .into();
             });
@@ -190,7 +190,7 @@ pub fn cell_property_editor(
                 edit_result |= ui
                     .add_sized(
                         vec2(ui.available_width(), 0.0),
-                        PropertyEditor::new(&mut cell.corner_offsets.top_right.y, reference_store),
+                        PropertyEditor::new(&mut style.corner_offsets.top_right.y, reference_store),
                     )
                     .into();
             });
@@ -199,7 +199,7 @@ pub fn cell_property_editor(
                 edit_result |= ui
                     .add_sized(
                         vec2(ui.available_width(), 0.0),
-                        PropertyEditor::new(&mut cell.corner_offsets.bot_left.x, reference_store),
+                        PropertyEditor::new(&mut style.corner_offsets.bot_left.x, reference_store),
                     )
                     .into();
             });
@@ -207,7 +207,7 @@ pub fn cell_property_editor(
                 edit_result |= ui
                     .add_sized(
                         vec2(ui.available_width(), 0.0),
-                        PropertyEditor::new(&mut cell.corner_offsets.bot_left.y, reference_store),
+                        PropertyEditor::new(&mut style.corner_offsets.bot_left.y, reference_store),
                     )
                     .into();
             });
@@ -215,7 +215,7 @@ pub fn cell_property_editor(
                 edit_result |= ui
                     .add_sized(
                         vec2(ui.available_width(), 0.0),
-                        PropertyEditor::new(&mut cell.corner_offsets.bot_right.x, reference_store),
+                        PropertyEditor::new(&mut style.corner_offsets.bot_right.x, reference_store),
                     )
                     .into();
             });
@@ -223,7 +223,7 @@ pub fn cell_property_editor(
                 edit_result |= ui
                     .add_sized(
                         vec2(ui.available_width(), 0.0),
-                        PropertyEditor::new(&mut cell.corner_offsets.bot_right.y, reference_store),
+                        PropertyEditor::new(&mut style.corner_offsets.bot_right.y, reference_store),
                     )
                     .into();
             });
@@ -233,7 +233,7 @@ pub fn cell_property_editor(
                 edit_result |= ui
                     .add_sized(
                         vec2(ui.available_width(), 0.0),
-                        PropertyEditor::new(&mut cell.rounding.top_left, reference_store),
+                        PropertyEditor::new(&mut style.rounding.top_left, reference_store),
                     )
                     .into();
             });
@@ -241,7 +241,7 @@ pub fn cell_property_editor(
                 edit_result |= ui
                     .add_sized(
                         vec2(ui.available_width(), 0.0),
-                        PropertyEditor::new(&mut cell.rounding.top_right, reference_store),
+                        PropertyEditor::new(&mut style.rounding.top_right, reference_store),
                     )
                     .into();
             });
@@ -249,7 +249,7 @@ pub fn cell_property_editor(
                 edit_result |= ui
                     .add_sized(
                         vec2(ui.available_width(), 0.0),
-                        PropertyEditor::new(&mut cell.rounding.bot_left, reference_store),
+                        PropertyEditor::new(&mut style.rounding.bot_left, reference_store),
                     )
                     .into();
             });
@@ -257,7 +257,7 @@ pub fn cell_property_editor(
                 edit_result |= ui
                     .add_sized(
                         vec2(ui.available_width(), 0.0),
-                        PropertyEditor::new(&mut cell.rounding.bot_right, reference_store),
+                        PropertyEditor::new(&mut style.rounding.bot_right, reference_store),
                     )
                     .into();
             });
@@ -267,7 +267,7 @@ pub fn cell_property_editor(
                 edit_result |= ui
                     .add_sized(
                         vec2(ui.available_width(), 0.0),
-                        PropertyEditor::new(&mut cell.color, reference_store),
+                        PropertyEditor::new(&mut style.color, reference_store),
                     )
                     .into();
             });
@@ -275,7 +275,7 @@ pub fn cell_property_editor(
                 edit_result |= ui
                     .add_sized(
                         vec2(ui.available_width(), 0.0),
-                        PropertyEditor::new(&mut cell.image, reference_store),
+                        PropertyEditor::new(&mut style.image, reference_store),
                     )
                     .into();
             });

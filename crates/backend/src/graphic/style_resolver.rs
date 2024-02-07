@@ -6,7 +6,7 @@ use common::communication::{CellStyle, ClipAreaStyle};
 use unified_sim_model::model::{Entry, Session};
 
 use crate::{
-    style::graphic_items::{cell::CellStyleDefinition, clip_area::ClipArea},
+    style::graphic_items::{cell::Cell, clip_area::ClipArea},
     value_store::{TypedValueResolver, ValueStore},
     value_types::{Boolean, Font, Number, Property, Text, Texture, Tint, Vec2Property},
 };
@@ -123,7 +123,7 @@ impl<'a> StyleResolver<'a> {
         }
     }
 
-    pub fn cell(&self, cell: &CellStyleDefinition) -> CellStyle {
+    pub fn cell(&self, cell: &Cell) -> CellStyle {
         CellStyle {
             text: self
                 .value_store
@@ -140,7 +140,7 @@ impl<'a> StyleResolver<'a> {
                 .get_property(&cell.text_size, self.entry)
                 .unwrap_or(Number(20.0))
                 .0,
-            text_alignment: cell.text_alginment.clone(),
+            text_alignment: cell.text_alginment.template().clone(),
             text_position: Vec2::new(
                 self.value_store
                     .get_property(&cell.text_position.x, self.entry)

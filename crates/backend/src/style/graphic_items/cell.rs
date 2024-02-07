@@ -1,4 +1,7 @@
-use std::collections::HashMap;
+use std::{
+    collections::HashMap,
+    ops::{Deref, DerefMut},
+};
 
 use bevy::prelude::Color;
 use common::communication::TextAlignment;
@@ -13,10 +16,20 @@ use crate::value_types::{
 pub struct Cell {
     pub id: Uuid,
     pub name: String,
-    #[serde(flatten)]
-    pub style: CellStyleDefinition,
-    #[serde(default)]
-    pub states: HashMap<Uuid, CellAttributes>,
+    pub text: Attribute<Property<Text>>,
+    pub text_color: Attribute<Property<Tint>>,
+    pub text_size: Attribute<Property<Number>>,
+    pub font: Attribute<Property<Font>>,
+    pub color: Attribute<Property<Tint>>,
+    pub image: Attribute<Property<Texture>>,
+    pub pos: Attribute<Vec3Property>,
+    pub size: Attribute<Vec2Property>,
+    pub skew: Attribute<Property<Number>>,
+    pub corner_offsets: Attribute<CornerOffsets>,
+    pub visible: Attribute<Property<Boolean>>,
+    pub rounding: Attribute<Rounding>,
+    pub text_alginment: Attribute<TextAlignment>,
+    pub text_position: Attribute<Vec2Property>,
 }
 
 impl Cell {
@@ -24,38 +37,39 @@ impl Cell {
         Self {
             id: Uuid::new_v4(),
             name: String::from("Cell"),
-            style: CellStyleDefinition {
-                text: Property::Fixed(Text("Cell".to_string())),
-                text_color: Property::Fixed(Tint(Color::WHITE)),
-                text_size: Property::Fixed(Number(20.0)),
-                font: Property::Fixed(Font::Default),
-                color: Property::Fixed(Tint(Color::PURPLE)),
-                pos: Vec3Property {
-                    x: Property::Fixed(Number(0.0)),
-                    y: Property::Fixed(Number(0.0)),
-                    z: Property::Fixed(Number(0.0)),
-                },
-                size: Vec2Property {
-                    x: Property::Fixed(Number(100.0)),
-                    y: Property::Fixed(Number(100.0)),
-                },
-                skew: Property::Fixed(Number(0.0)),
-                corner_offsets: CornerOffsets::default(),
-                visible: Property::Fixed(Boolean(true)),
-                rounding: Rounding {
-                    top_left: Property::Fixed(Number(0.0)),
-                    top_right: Property::Fixed(Number(0.0)),
-                    bot_left: Property::Fixed(Number(0.0)),
-                    bot_right: Property::Fixed(Number(0.0)),
-                },
-                text_alginment: TextAlignment::default(),
-                text_position: Vec2Property {
-                    x: Property::Fixed(Number(5.0)),
-                    y: Property::Fixed(Number(15.0)),
-                },
-                image: Property::<Texture>::default(),
-            },
-            states: HashMap::new(),
+            text: Property::Fixed(Text("Cell".to_string())).into(),
+            text_color: Property::Fixed(Tint(Color::WHITE)).into(),
+            text_size: Property::Fixed(Number(20.0)).into(),
+            font: Property::Fixed(Font::Default).into(),
+            color: Property::Fixed(Tint(Color::PURPLE)).into(),
+            pos: Vec3Property {
+                x: Property::Fixed(Number(0.0)),
+                y: Property::Fixed(Number(0.0)),
+                z: Property::Fixed(Number(0.0)),
+            }
+            .into(),
+            size: Vec2Property {
+                x: Property::Fixed(Number(100.0)),
+                y: Property::Fixed(Number(100.0)),
+            }
+            .into(),
+            skew: Property::Fixed(Number(0.0)).into(),
+            corner_offsets: CornerOffsets::default().into(),
+            visible: Property::Fixed(Boolean(true)).into(),
+            rounding: Rounding {
+                top_left: Property::Fixed(Number(0.0)),
+                top_right: Property::Fixed(Number(0.0)),
+                bot_left: Property::Fixed(Number(0.0)),
+                bot_right: Property::Fixed(Number(0.0)),
+            }
+            .into(),
+            text_alginment: TextAlignment::default().into(),
+            text_position: Vec2Property {
+                x: Property::Fixed(Number(5.0)),
+                y: Property::Fixed(Number(15.0)),
+            }
+            .into(),
+            image: Property::<Texture>::default().into(),
         }
     }
 }
@@ -77,77 +91,36 @@ pub struct CornerOffsets {
 }
 
 #[derive(Serialize, Deserialize, Clone, Default)]
-pub struct CellStyleDefinition {
-    pub text: Property<Text>,
-    pub text_color: Property<Tint>,
-    pub text_size: Property<Number>,
-    pub font: Property<Font>,
-    pub color: Property<Tint>,
-    pub image: Property<Texture>,
-    pub pos: Vec3Property,
-    pub size: Vec2Property,
-    pub skew: Property<Number>,
-    pub corner_offsets: CornerOffsets,
-    pub visible: Property<Boolean>,
-    pub rounding: Rounding,
-    pub text_alginment: TextAlignment,
-    pub text_position: Vec2Property,
+pub struct Attribute<T> {
+    template: T,
+    states: HashMap<Uuid, T>,
+}
+impl<T> Attribute<T> {
+    pub fn template(&self) -> &T {
+        &self.template
+    }
+    pub fn template_mut(&mut self) -> &mut T {
+        &mut self.template
+    }
+}
+impl<T> Deref for Attribute<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        self.template()
+    }
+}
+impl<T> DerefMut for Attribute<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        self.template_mut()
+    }
 }
 
-#[derive(Serialize, Deserialize, Clone, Default)]
-pub struct CellAttributes {
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Override::is_disabled")]
-    pub text: Override<Property<Text>>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Override::is_disabled")]
-    pub text_color: Override<Property<Tint>>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Override::is_disabled")]
-    pub text_size: Override<Property<Number>>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Override::is_disabled")]
-    pub font: Override<Property<Font>>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Override::is_disabled")]
-    pub color: Override<Property<Tint>>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Override::is_disabled")]
-    pub image: Override<Property<Texture>>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Override::is_disabled")]
-    pub pos: Override<Vec3Property>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Override::is_disabled")]
-    pub size: Override<Vec2Property>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Override::is_disabled")]
-    pub skew: Override<Property<Number>>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Override::is_disabled")]
-    pub corner_offsets: Override<CornerOffsets>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Override::is_disabled")]
-    pub visible: Override<Property<Boolean>>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Override::is_disabled")]
-    pub rounding: Override<Rounding>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Override::is_disabled")]
-    pub text_alginment: Override<TextAlignment>,
-    #[serde(default)]
-    #[serde(skip_serializing_if = "Override::is_disabled")]
-    pub text_position: Override<Vec2Property>,
-}
-
-#[derive(Serialize, Deserialize, Clone, Default)]
-pub struct Override<T> {
-    enabled: bool,
-    value: T,
-}
-
-impl<T> Override<T> {
-    pub fn is_disabled(&self) -> bool {
-        !self.enabled
+impl<T> From<T> for Attribute<T> {
+    fn from(value: T) -> Self {
+        Self {
+            template: value,
+            states: HashMap::new(),
+        }
     }
 }

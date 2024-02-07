@@ -141,7 +141,7 @@ fn update_graphic_item(
         }
         GraphicItem::Cell(cell) => {
             let cell_id = graphic_item_data_storage.get_or_create(cell.id, || CellId::new());
-            batcher.add(&cell_id, resolver.cell(&cell.style));
+            batcher.add(&cell_id, resolver.cell(&cell));
         }
         GraphicItem::ClipArea(clip_area) => {
             let cell_id = graphic_item_data_storage.get_or_create(clip_area.id, || CellId::new());

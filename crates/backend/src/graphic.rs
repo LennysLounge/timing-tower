@@ -48,7 +48,7 @@ impl Plugin for GraphicPlugin {
 
 #[derive(Resource, Default)]
 pub struct GraphicStates {
-    states: HashMap<Uuid, Uuid>,
+    pub states: HashMap<Uuid, Uuid>,
 }
 
 #[derive(SystemSet, Hash, Debug, PartialEq, Eq, Clone)]

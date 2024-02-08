@@ -4,6 +4,7 @@ mod tab;
 use std::{fs::File, io::Write};
 
 use backend::{
+    graphic::GraphicStates,
     savefile::{Savefile, SavefileChanged},
     style::StyleDefinition,
 };
@@ -99,6 +100,7 @@ fn ui(
     mut editor_camera: Query<(&mut EditorCamera, &mut Transform), With<MainCamera>>,
     mut undo_redo_manager: ResMut<UndoRedoManager>,
     mut game_adapter: ResMut<GameAdapterResource>,
+    mut graphic_states: ResMut<GraphicStates>,
 ) {
     egui::TopBottomPanel::top("Top panel").show(ctx.ctx_mut(), |ui| {
         egui::menu::bar(ui, |ui| {
@@ -163,17 +165,19 @@ fn ui(
             },
         );
 
-    // if let Some(command) = extract_undo_redo_command(ctx.ctx_mut()) {
-    //     undo_redo_manager.queue(command);
-    // }
     undo_redo_manager.apply_queue(
         savefile.as_mut(),
         savefile_changed_event,
         &mut game_adapter.adapter,
     );
-    // if style_changed {
-    //     savefile.set(style.clone(), &mut save_file_changed);
-    // }
+
+    if let Some(graphic_item_selection) = state.style_item_selection {
+        if let Some(state) = state.graphic_state_selection {
+            graphic_states.states.insert(graphic_item_selection, state);
+        } else {
+            graphic_states.states.remove(&graphic_item_selection);
+        }
+    }
 }
 
 fn savefile_changed(

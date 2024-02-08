@@ -17,7 +17,7 @@ use tracing::info;
 use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
-use self::private::Unimplementable;
+use self::private::PrivateValueResolver;
 
 pub struct ValueStorePlugin;
 impl Plugin for ValueStorePlugin {
@@ -90,73 +90,106 @@ impl ValueStore {
     }
 }
 
-/// This trait is implemented by the [`ValueStore`] and is necessary for it to
-/// resolve values of type <T>.
-/// Since rust lacks specialization, it is necessairy for [`ValueStore`] to implement this
-/// trait for all type it would like to be able to resolve.
+/// This trait signals that the [`ValueStore`] can resolve values of type T.
 ///
-/// It is public so that others can require [`ValueStore`] to implement it aswell in a generic context.
-/// However it should not be implemented by others and therefore requires the Unimplementable trait.
-pub trait ValueResolver<T>: Unimplementable {
-    fn get_typed(&self, producer: &UntypedValueProducer, entry: Option<&Entry>) -> Option<T>;
-}
+/// It is necessary so that [`ValueStore`] can implement different behavior for
+/// different types `<T>`. Since rust lacks specialization, it is necessairy
+/// for [`ValueStore`] to implement this trait for all type it would like to be able to resolve.
+///
+/// To avoid leaking a private trait in the public api the [`ValueResolver`] is only
+/// a marker trait and requires the private inner trait to be implemented.
+pub trait ValueResolver<T>: PrivateValueResolver<T> {}
+impl<T> ValueResolver<T> for ValueStore where ValueStore: PrivateValueResolver<T> {}
 mod private {
-    pub trait Unimplementable {}
-    impl Unimplementable for super::ValueStore {}
-}
-impl ValueResolver<Number> for ValueStore {
-    fn get_typed(&self, producer: &UntypedValueProducer, entry: Option<&Entry>) -> Option<Number> {
-        match producer {
-            UntypedValueProducer::Number(p) => p.get(self, entry),
-            _ => None,
+    use unified_sim_model::model::Entry;
+
+    use crate::value_types::{Boolean, Font, Number, Text, Texture, Tint};
+
+    use super::{UntypedValueProducer, ValueStore};
+
+    pub trait PrivateValueResolver<T> {
+        fn get_typed(&self, producer: &UntypedValueProducer, entry: Option<&Entry>) -> Option<T>;
+    }
+    impl PrivateValueResolver<Number> for ValueStore {
+        fn get_typed(
+            &self,
+            producer: &UntypedValueProducer,
+            entry: Option<&Entry>,
+        ) -> Option<Number> {
+            match producer {
+                UntypedValueProducer::Number(p) => p.get(self, entry),
+                _ => None,
+            }
         }
     }
-}
-impl ValueResolver<Text> for ValueStore {
-    fn get_typed(&self, producer: &UntypedValueProducer, entry: Option<&Entry>) -> Option<Text> {
-        match producer {
-            UntypedValueProducer::Number(p) => p.get(self, entry).map(|n| Text(format!("{}", n.0))),
-            UntypedValueProducer::Boolean(p) => p.get(self, entry).map(|b| {
-                if b.0 {
-                    Text(String::from("Yes"))
-                } else {
-                    Text(String::from("No"))
+    impl PrivateValueResolver<Text> for ValueStore {
+        fn get_typed(
+            &self,
+            producer: &UntypedValueProducer,
+            entry: Option<&Entry>,
+        ) -> Option<Text> {
+            match producer {
+                UntypedValueProducer::Number(p) => {
+                    p.get(self, entry).map(|n| Text(format!("{}", n.0)))
                 }
-            }),
-            UntypedValueProducer::Text(p) => p.get(self, entry),
-            _ => None,
+                UntypedValueProducer::Boolean(p) => p.get(self, entry).map(|b| {
+                    if b.0 {
+                        Text(String::from("Yes"))
+                    } else {
+                        Text(String::from("No"))
+                    }
+                }),
+                UntypedValueProducer::Text(p) => p.get(self, entry),
+                _ => None,
+            }
         }
     }
-}
-impl ValueResolver<Tint> for ValueStore {
-    fn get_typed(&self, producer: &UntypedValueProducer, entry: Option<&Entry>) -> Option<Tint> {
-        match producer {
-            UntypedValueProducer::Tint(p) => p.get(self, entry),
-            _ => None,
+    impl PrivateValueResolver<Tint> for ValueStore {
+        fn get_typed(
+            &self,
+            producer: &UntypedValueProducer,
+            entry: Option<&Entry>,
+        ) -> Option<Tint> {
+            match producer {
+                UntypedValueProducer::Tint(p) => p.get(self, entry),
+                _ => None,
+            }
         }
     }
-}
-impl ValueResolver<Boolean> for ValueStore {
-    fn get_typed(&self, producer: &UntypedValueProducer, entry: Option<&Entry>) -> Option<Boolean> {
-        match producer {
-            UntypedValueProducer::Boolean(p) => p.get(self, entry),
-            _ => None,
+    impl PrivateValueResolver<Boolean> for ValueStore {
+        fn get_typed(
+            &self,
+            producer: &UntypedValueProducer,
+            entry: Option<&Entry>,
+        ) -> Option<Boolean> {
+            match producer {
+                UntypedValueProducer::Boolean(p) => p.get(self, entry),
+                _ => None,
+            }
         }
     }
-}
-impl ValueResolver<Texture> for ValueStore {
-    fn get_typed(&self, producer: &UntypedValueProducer, entry: Option<&Entry>) -> Option<Texture> {
-        match producer {
-            UntypedValueProducer::Texture(p) => p.get(self, entry),
-            _ => None,
+    impl PrivateValueResolver<Texture> for ValueStore {
+        fn get_typed(
+            &self,
+            producer: &UntypedValueProducer,
+            entry: Option<&Entry>,
+        ) -> Option<Texture> {
+            match producer {
+                UntypedValueProducer::Texture(p) => p.get(self, entry),
+                _ => None,
+            }
         }
     }
-}
-impl ValueResolver<Font> for ValueStore {
-    fn get_typed(&self, producer: &UntypedValueProducer, entry: Option<&Entry>) -> Option<Font> {
-        match producer {
-            UntypedValueProducer::Font(p) => p.get(self, entry),
-            _ => None,
+    impl PrivateValueResolver<Font> for ValueStore {
+        fn get_typed(
+            &self,
+            producer: &UntypedValueProducer,
+            entry: Option<&Entry>,
+        ) -> Option<Font> {
+            match producer {
+                UntypedValueProducer::Font(p) => p.get(self, entry),
+                _ => None,
+            }
         }
     }
 }

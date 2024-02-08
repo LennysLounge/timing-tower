@@ -60,10 +60,6 @@ pub trait ValueProducer {
     }
 }
 
-pub trait IntoValueProducer {
-    fn get_value_producer(&self) -> (Uuid, Box<dyn ValueProducer + Sync + Send>);
-}
-
 /// The value store that holds all [`ValueProducer`]s and can resolve
 /// value requests.
 #[derive(Resource, Default)]
@@ -71,24 +67,6 @@ pub struct ValueStore {
     values: HashMap<ValueId, Box<dyn ValueProducer + Sync + Send>>,
 }
 impl ValueStore {
-    pub fn reload_repo(
-        &mut self,
-        vars: Vec<&impl IntoValueProducer>,
-        assets: Vec<&impl IntoValueProducer>,
-    ) {
-        self.values.clear();
-        self.convert(vars);
-        self.convert(assets);
-        self.convert(game_sources::get_game_sources());
-    }
-
-    fn convert(&mut self, asset_defs: Vec<&impl IntoValueProducer>) {
-        for var_def in asset_defs {
-            let (id, value_producer) = var_def.get_value_producer();
-            self.values.insert(ValueId(id), value_producer);
-        }
-    }
-
     pub fn get<T>(&self, value_ref: &ValueRef<T>, entry: Option<&Entry>) -> Option<T>
     where
         Self: ValueResolver<T>,
@@ -212,8 +190,20 @@ fn savefile_changed(
     savefile_changed_event.clear();
 
     info!("Reload value store");
-    value_store.reload_repo(
-        savefile.style().vars.contained_variables(),
-        savefile.style().assets.contained_assets(),
-    );
+    value_store.values.clear();
+    for var in savefile.style().vars.contained_variables() {
+        value_store
+            .values
+            .insert(var.value_id(), var.value_producer());
+    }
+    for asset in savefile.style().assets.contained_assets() {
+        value_store
+            .values
+            .insert(asset.value_id(), asset.value_producer());
+    }
+    for game in game_sources::get_game_sources() {
+        value_store
+            .values
+            .insert(game.value_id(), game.value_producer());
+    }
 }

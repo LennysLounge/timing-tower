@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-    value_store::{IntoValueProducer, ValueProducer},
+    value_store::{ValueId, ValueProducer},
     value_types::{Font, Texture, ValueType},
 };
 
@@ -26,17 +26,17 @@ impl AssetDefinition {
             path: String::new(),
         }
     }
-}
-impl IntoValueProducer for AssetDefinition {
-    fn get_value_producer(&self) -> (Uuid, Box<dyn ValueProducer + Sync + Send>) {
-        let typed_value_producer: Box<dyn ValueProducer + Sync + Send> = match self.value_type {
+    pub fn value_producer(&self) -> Box<dyn ValueProducer + Sync + Send> {
+        match self.value_type {
             ValueType::Texture => Box::new(StaticValueProducer(Texture::Handle(self.id))),
             ValueType::Font => Box::new(StaticValueProducer(Font::Handle(self.id))),
             value_type @ _ => {
                 unreachable!("An asset cannot have a value type of {}", value_type.name())
             }
-        };
-        (self.id, typed_value_producer)
+        }
+    }
+    pub fn value_id(&self) -> ValueId {
+        ValueId(self.id)
     }
 }
 impl StyleItem for AssetDefinition {

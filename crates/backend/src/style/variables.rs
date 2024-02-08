@@ -3,7 +3,7 @@ use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
 use crate::{
-    value_store::{IntoValueProducer, ValueProducer, ValueStore},
+    value_store::{ValueId, ValueProducer, ValueStore},
     value_types::{Boolean, Font, Number, Text, Texture, Tint},
 };
 
@@ -39,15 +39,15 @@ impl VariableDefinition {
             behavior: VariableBehavior::FixedValue(FixedValue::default()),
         }
     }
-}
-impl IntoValueProducer for VariableDefinition {
-    fn get_value_producer(&self) -> (Uuid, Box<dyn ValueProducer + Sync + Send>) {
-        let producer = match &self.behavior {
+    pub fn value_producer(&self) -> Box<dyn ValueProducer + Sync + Send> {
+        match &self.behavior {
             VariableBehavior::FixedValue(o) => o.as_typed_producer(),
             VariableBehavior::Condition(o) => o.as_typed_producer(),
             VariableBehavior::Map(o) => o.as_typed_producer(),
-        };
-        (self.id, producer)
+        }
+    }
+    pub fn value_id(&self) -> ValueId {
+        ValueId(self.id)
     }
 }
 impl StyleItem for VariableDefinition {

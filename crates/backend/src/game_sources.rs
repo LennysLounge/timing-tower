@@ -4,7 +4,7 @@ use unified_sim_model::model::Entry;
 use uuid::{uuid, Uuid};
 
 use crate::{
-    value_store::{IntoValueProducer, ValueProducer, ValueStore},
+    value_store::{ValueId, ValueProducer, ValueStore},
     value_types::{Boolean, Number, Text, ValueType},
 };
 
@@ -117,15 +117,16 @@ pub struct GameSource {
     pub value_type: ValueType,
     extractor: Extractor,
 }
-
-impl IntoValueProducer for GameSource {
-    fn get_value_producer(&self) -> (Uuid, Box<dyn ValueProducer + Sync + Send>) {
-        let producer = match self.extractor {
+impl GameSource {
+    pub fn value_producer(&self) -> Box<dyn ValueProducer + Sync + Send> {
+        match self.extractor {
             Extractor::Number(_) => Box::new(self.extractor.clone()),
             Extractor::Text(_) => Box::new(self.extractor.clone()),
             Extractor::Boolean(_) => Box::new(self.extractor.clone()),
-        };
-        (self.id, producer)
+        }
+    }
+    pub fn value_id(&self) -> ValueId {
+        ValueId(self.id)
     }
 }
 

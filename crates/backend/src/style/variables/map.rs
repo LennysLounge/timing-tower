@@ -3,7 +3,7 @@ use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
 use crate::{
-    value_store::{UntypedValueProducer, ValueResolver, ValueProducer, ValueStore},
+    value_store::{UntypedValueProducer, ValueProducer, ValueResolver, ValueStore},
     value_types::{Boolean, Number, Property, Text, Texture, Tint, ValueRef, ValueType},
 };
 
@@ -55,14 +55,18 @@ impl Map {
                 cases,
                 output: output.clone(),
             })),
-            UntypedOutput::Boolean(output) => UntypedValueProducer::Boolean(Box::new(MapProducer {
-                cases,
-                output: output.clone(),
-            })),
-            UntypedOutput::Texture(output) => UntypedValueProducer::Texture(Box::new(MapProducer {
-                cases,
-                output: output.clone(),
-            })),
+            UntypedOutput::Boolean(output) => {
+                UntypedValueProducer::Boolean(Box::new(MapProducer {
+                    cases,
+                    output: output.clone(),
+                }))
+            }
+            UntypedOutput::Texture(output) => {
+                UntypedValueProducer::Texture(Box::new(MapProducer {
+                    cases,
+                    output: output.clone(),
+                }))
+            }
         }
     }
 

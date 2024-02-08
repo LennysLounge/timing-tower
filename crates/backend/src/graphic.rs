@@ -6,7 +6,7 @@ use bevy::{
         component::Component,
         entity::Entity,
         schedule::{IntoSystemConfigs, SystemSet},
-        system::{Commands, Local, Query, Res, ResMut},
+        system::{Commands, Local, Query, Res, ResMut, Resource},
     },
     hierarchy::DespawnRecursiveExt,
     math::vec3,
@@ -18,7 +18,7 @@ use uuid::Uuid;
 
 use crate::{
     savefile::Savefile,
-    style::{graphic_items::GraphicItem, StyleItem, StyleItemRef},
+    style::{graphic_items::ComputedGraphicItem, StyleItem, StyleItemRef},
     style_batcher::{CellId, StyleBatcher},
     tree_iterator::TreeIterator,
     value_store::ValueStore,
@@ -30,19 +30,25 @@ use self::{
     style_resolver::StyleResolver,
 };
 
+mod compute_style;
 mod graphic_item_data_storage;
 mod style_resolver;
 
 pub struct GraphicPlugin;
 impl Plugin for GraphicPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_systems(
+        app.init_resource::<GraphicStates>().add_systems(
             Update,
             (spawn_or_delete_graphics, update_graphics)
                 .chain()
                 .in_set(StyleElementUpdate),
         );
     }
+}
+
+#[derive(Resource, Default)]
+pub struct GraphicStates {
+    states: HashMap<Uuid, Uuid>,
 }
 
 #[derive(SystemSet, Hash, Debug, PartialEq, Eq, Clone)]
@@ -80,6 +86,7 @@ fn spawn_or_delete_graphics(
 
 fn update_graphics(
     mut graphics: Query<&mut Graphic>,
+    graphic_states: Res<GraphicStates>,
     savefile: Res<Savefile>,
     mut batcher: ResMut<StyleBatcher>,
     mut graphic_item_data_storage: Local<GraphicItemDataStorage>,
@@ -99,9 +106,10 @@ fn update_graphics(
     for graphic in graphics.iter_mut() {
         savefile.style().as_ref().search(graphic.id, |item| {
             if let StyleItemRef::Graphic(graphic) = item {
+                let computed_style = graphic.compute_style(graphic_states.states.get(graphic.id()));
                 let resolver = StyleResolver::new(&*value_store, session);
                 update_graphic_item(
-                    graphic.items.as_enum_ref(),
+                    &computed_style.root,
                     &mut *batcher,
                     &mut graphic_item_data_storage.make_context(0),
                     &resolver,
@@ -116,14 +124,14 @@ fn update_graphics(
 }
 
 fn update_graphic_item(
-    item: &GraphicItem,
+    item: &ComputedGraphicItem,
     batcher: &mut StyleBatcher,
     graphic_item_data_storage: &mut GraphicItemDataStorageContext<'_>,
     resolver: &StyleResolver,
     _model: &Model,
 ) {
     match item {
-        GraphicItem::Root(root) => {
+        ComputedGraphicItem::Root(root) => {
             let new_resolver = resolver.clone().with_position(vec3(
                 resolver.property(&root.position.x).unwrap_or_default().0,
                 -resolver.property(&root.position.y).unwrap_or_default().0,
@@ -139,11 +147,11 @@ fn update_graphic_item(
                 )
             });
         }
-        GraphicItem::Cell(cell) => {
+        ComputedGraphicItem::Cell(cell) => {
             let cell_id = graphic_item_data_storage.get_or_create(cell.id, || CellId::new());
             batcher.add(&cell_id, resolver.cell(&cell));
         }
-        GraphicItem::ClipArea(clip_area) => {
+        ComputedGraphicItem::ClipArea(clip_area) => {
             let cell_id = graphic_item_data_storage.get_or_create(clip_area.id, || CellId::new());
             let clip_area_style = resolver.clip_area(&clip_area);
             let new_resolver = resolver
@@ -161,7 +169,7 @@ fn update_graphic_item(
                 );
             }
         }
-        GraphicItem::DriverTable(driver_table) => {
+        ComputedGraphicItem::DriverTable(driver_table) => {
             let DriverTableData { scroll_position } =
                 graphic_item_data_storage.get_or_default(driver_table.id);
 

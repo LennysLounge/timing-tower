@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use crate::value_types::{Number, Property, Vec2Property, Vec3Property};
 
-use super::{cell::Rounding, Attribute, GraphicItem};
+use super::{cell::Rounding, Attribute, ComputedGraphicItem, GraphicItem};
 
 /// An item that restaints the contained elements
 /// to a sepcified area in the scene.
@@ -35,4 +35,29 @@ impl ClipArea {
             items: Vec::new(),
         }
     }
+    pub fn compute_for_state(&self, state: Option<&Uuid>) -> ComputedClipArea {
+        ComputedClipArea {
+            id: self.id,
+            pos: self.pos.get_state_or_template(state),
+            size: self.size.get_state_or_template(state),
+            skew: self.skew.get_state_or_template(state),
+            rounding: self.rounding.get_state_or_template(state),
+            render_layer: self.render_layer,
+            items: self
+                .items
+                .iter()
+                .map(|item| item.compute_for_state(state))
+                .collect(),
+        }
+    }
+}
+
+pub struct ComputedClipArea {
+    pub id: Uuid,
+    pub pos: Vec3Property,
+    pub size: Vec2Property,
+    pub skew: Property<Number>,
+    pub rounding: Rounding,
+    pub render_layer: u8,
+    pub items: Vec<ComputedGraphicItem>,
 }

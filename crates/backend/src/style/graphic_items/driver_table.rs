@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use crate::value_types::{Number, Property, Vec2Property};
 
-use super::{Attribute, GraphicItem};
+use super::{Attribute, ComputedGraphicItem, GraphicItem};
 
 // An item that displays a table of all drivers in the session.
 #[derive(Serialize, Deserialize, Clone, Default)]
@@ -26,6 +26,17 @@ impl DriverTable {
             columns: Vec::new(),
         }
     }
+    pub fn compute_for_state(&self, state: Option<&Uuid>) -> ComputedDriverTable {
+        ComputedDriverTable {
+            id: self.id,
+            row_offset: self.row_offset.get_state_or_template(state),
+            columns: self
+                .columns
+                .iter()
+                .map(|item| item.compute_for_state(state))
+                .collect(),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -38,4 +49,10 @@ impl ToString for DriverTableAttributes {
             DriverTableAttributes::RowOffset(_) => "RowOffset",
         })
     }
+}
+
+pub struct ComputedDriverTable {
+    pub id: Uuid,
+    pub row_offset: Vec2Property,
+    pub columns: Vec<ComputedGraphicItem>,
 }

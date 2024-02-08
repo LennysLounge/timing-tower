@@ -14,7 +14,12 @@ use uuid::Uuid;
 
 use crate::tree_iterator::{Method, TreeItem, TreeIterator, TreeIteratorMut};
 
-use self::{cell::Cell, clip_area::ClipArea, driver_table::DriverTable, root::Root};
+use self::{
+    cell::{Cell, ComputedCell},
+    clip_area::{ClipArea, ComputedClipArea},
+    driver_table::{ComputedDriverTable, DriverTable},
+    root::{ComputedRoot, Root},
+};
 
 /// A item inside a graphic that implements some functionality
 /// or visual.
@@ -26,6 +31,19 @@ pub enum GraphicItem {
     ClipArea(ClipArea),
     DriverTable(DriverTable),
 }
+impl GraphicItem {
+    pub fn compute_for_state(&self, state: Option<&Uuid>) -> ComputedGraphicItem {
+        match self {
+            GraphicItem::Root(o) => ComputedGraphicItem::Root(o.compute_for_state(state)),
+            GraphicItem::Cell(o) => ComputedGraphicItem::Cell(o.compute_for_state(state)),
+            GraphicItem::ClipArea(o) => ComputedGraphicItem::ClipArea(o.compute_for_state(state)),
+            GraphicItem::DriverTable(o) => {
+                ComputedGraphicItem::DriverTable(o.compute_for_state(state))
+            }
+        }
+    }
+}
+
 impl TreeItem for GraphicItem {
     fn id(&self) -> Uuid {
         match self {
@@ -115,6 +133,15 @@ impl<T> Attribute<T> {
     pub fn has_state(&self, state_id: &Uuid) -> bool {
         self.states.contains_key(&state_id)
     }
+    pub fn get_state_or_template(&self, state_id: Option<&Uuid>) -> T
+    where
+        T: Clone,
+    {
+        state_id
+            .and_then(|id| self.states.get(id))
+            .map(|maybe_state| maybe_state.clone())
+            .unwrap_or_else(|| self.template.clone())
+    }
 }
 impl<T> Deref for Attribute<T> {
     type Target = T;
@@ -136,4 +163,11 @@ impl<T> From<T> for Attribute<T> {
             states: HashMap::new(),
         }
     }
+}
+
+pub enum ComputedGraphicItem {
+    Root(ComputedRoot),
+    Cell(ComputedCell),
+    ClipArea(ComputedClipArea),
+    DriverTable(ComputedDriverTable),
 }

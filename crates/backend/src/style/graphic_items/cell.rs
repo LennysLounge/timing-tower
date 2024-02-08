@@ -69,6 +69,26 @@ impl Cell {
             image: Property::<Texture>::default().into(),
         }
     }
+
+    pub fn compute_for_state(&self, state: Option<&Uuid>) -> ComputedCell {
+        ComputedCell {
+            id: self.id,
+            text: self.text.get_state_or_template(state),
+            text_color: self.text_color.get_state_or_template(state),
+            text_size: self.text_size.get_state_or_template(state),
+            font: self.font.get_state_or_template(state),
+            color: self.color.get_state_or_template(state),
+            image: self.image.get_state_or_template(state),
+            pos: self.pos.get_state_or_template(state),
+            size: self.size.get_state_or_template(state),
+            skew: self.skew.get_state_or_template(state),
+            corner_offsets: self.corner_offsets.get_state_or_template(state),
+            visible: self.visible.get_state_or_template(state),
+            rounding: self.rounding.get_state_or_template(state),
+            text_alginment: self.text_alginment.get_state_or_template(state),
+            text_position: self.text_position.get_state_or_template(state),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone, Default)]
@@ -85,4 +105,22 @@ pub struct CornerOffsets {
     pub top_right: Vec2Property,
     pub bot_left: Vec2Property,
     pub bot_right: Vec2Property,
+}
+
+pub struct ComputedCell {
+    pub id: Uuid,
+    pub text: Property<Text>,
+    pub text_color: Property<Tint>,
+    pub text_size: Property<Number>,
+    pub font: Property<Font>,
+    pub color: Property<Tint>,
+    pub image: Property<Texture>,
+    pub pos: Vec3Property,
+    pub size: Vec2Property,
+    pub skew: Property<Number>,
+    pub corner_offsets: CornerOffsets,
+    pub visible: Property<Boolean>,
+    pub rounding: Rounding,
+    pub text_alginment: TextAlignment,
+    pub text_position: Vec2Property,
 }

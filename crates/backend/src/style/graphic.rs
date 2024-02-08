@@ -4,7 +4,7 @@ use uuid::Uuid;
 use crate::exact_variant::ExactVariant;
 
 use super::{
-    graphic_items::{root::Root, GraphicItem},
+    graphic_items::{root::Root, ComputedGraphicItem, GraphicItem},
     OwnedStyleItem, StyleItem, StyleItemMut, StyleItemRef,
 };
 
@@ -12,6 +12,11 @@ use super::{
 pub struct State {
     pub id: Uuid,
     pub name: String,
+}
+
+pub struct ComputedGraphic {
+    pub graphic_id: Uuid,
+    pub root: ComputedGraphicItem,
 }
 
 /// A visual graphic component in the scene.
@@ -29,6 +34,13 @@ impl GraphicDefinition {
             name: String::from("Graphic"),
             items: Root::new().into(),
             states: Vec::new(),
+        }
+    }
+
+    pub fn compute_style(&self, state: Option<&Uuid>) -> ComputedGraphic {
+        ComputedGraphic {
+            graphic_id: self.id,
+            root: self.items.as_enum_ref().compute_for_state(state),
         }
     }
 }

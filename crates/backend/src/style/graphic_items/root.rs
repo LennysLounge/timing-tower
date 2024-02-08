@@ -3,7 +3,7 @@ use uuid::Uuid;
 
 use crate::value_types::Vec2Property;
 
-use super::{Attribute, GraphicItem};
+use super::{Attribute, ComputedGraphicItem, GraphicItem};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Root {
@@ -22,6 +22,18 @@ impl Root {
             position: Vec2Property::default().into(),
         }
     }
+
+    pub fn compute_for_state(&self, state: Option<&Uuid>) -> ComputedRoot {
+        ComputedRoot {
+            id: self.id,
+            position: self.position.get_state_or_template(state),
+            items: self
+                .items
+                .iter()
+                .map(|item| item.compute_for_state(state))
+                .collect(),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -34,4 +46,10 @@ impl ToString for RootAttributes {
             RootAttributes::Position(_) => "Position",
         })
     }
+}
+
+pub struct ComputedRoot {
+    pub id: Uuid,
+    pub position: Vec2Property,
+    pub items: Vec<ComputedGraphicItem>,
 }

@@ -4,6 +4,8 @@ use bevy::render::color::Color;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
+use crate::value_store::ValueId;
+
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct Number(pub f32);
 
@@ -101,14 +103,14 @@ impl ValueTypeOf<Font> for ValueType {
 #[derive(Serialize, Deserialize, Clone, Default)]
 #[serde(transparent)]
 pub struct ValueRef<T> {
-    pub id: Uuid,
+    pub id: ValueId,
     #[serde(skip)]
     pub phantom: PhantomData<T>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct UntypedValueRef {
-    pub id: Uuid,
+    pub id: ValueId,
     pub value_type: ValueType,
 }
 

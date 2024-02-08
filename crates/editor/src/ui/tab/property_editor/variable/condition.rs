@@ -40,7 +40,7 @@ pub fn property_editor(ui: &mut Ui, value: &mut Condition, asset_repo: &Referenc
         let InnerResponse {
             inner: new_untyped_ref,
             response: _,
-        } = asset_repo.untyped_editor(ui, value.comparison.left_side_id(), |v| {
+        } = asset_repo.untyped_editor(ui, &value.comparison.left_side_id().0, |v| {
             return match v.value_type {
                 ValueType::Number => true,
                 ValueType::Text => true,

@@ -1,10 +1,9 @@
 use enumcapsulate::{macros::AsVariantRef, AsVariantRef};
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
-use uuid::Uuid;
 
 use crate::{
-    value_store::{ValueProducer, ValueResolver, ValueStore},
+    value_store::{ValueId, ValueProducer, ValueResolver, ValueStore},
     value_types::{
         Boolean, Number, Property, Text, Texture, Tint, UntypedValueRef, ValueRef, ValueType,
     },
@@ -101,7 +100,7 @@ pub enum Comparison {
 }
 
 impl Comparison {
-    pub fn left_side_id(&self) -> &Uuid {
+    pub fn left_side_id(&self) -> &ValueId {
         match self {
             Comparison::Number { left, .. } => &left.id,
             Comparison::Text { left, .. } => &left.id,

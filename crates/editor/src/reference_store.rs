@@ -14,6 +14,7 @@ use backend::{
     game_sources,
     savefile::{Savefile, SavefileChanged},
     style::{assets::AssetFolder, variables::VariableFolder},
+    value_store::ValueId,
     value_types::{UntypedValueRef, ValueRef, ValueType, ValueTypeOf},
 };
 
@@ -49,7 +50,7 @@ impl ProducerData {
     pub fn get_ref(&self) -> UntypedValueRef {
         UntypedValueRef {
             value_type: self.value_type.clone(),
-            id: self.id.clone(),
+            id: ValueId(self.id.clone()),
         }
     }
 }
@@ -74,7 +75,7 @@ impl ReferenceStore {
     {
         let target_type: ValueType = ValueTypeOf::<T>::get();
 
-        let mut editor_res = self.untyped_editor(ui, &value_ref.id, |v| {
+        let mut editor_res = self.untyped_editor(ui, &value_ref.id.0, |v| {
             v.value_type.can_cast_to(&target_type)
         });
         if let Some(UntypedValueRef { id, value_type }) = editor_res.inner {

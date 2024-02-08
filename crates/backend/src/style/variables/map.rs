@@ -1,10 +1,9 @@
 use enumcapsulate::{macros::AsVariantRef, AsVariantRef};
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
-use uuid::Uuid;
 
 use crate::{
-    value_store::{ValueProducer, ValueResolver, ValueStore},
+    value_store::{ValueId, ValueProducer, ValueResolver, ValueStore},
     value_types::{Boolean, Number, Property, Text, Texture, Tint, ValueRef, ValueType},
 };
 
@@ -111,7 +110,7 @@ impl Input {
             Input::Text { .. } => ValueType::Text,
         }
     }
-    pub fn input_id(&self) -> Uuid {
+    pub fn input_id(&self) -> ValueId {
         match self {
             Input::Number {
                 input_ref: input, ..

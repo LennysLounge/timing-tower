@@ -4,7 +4,7 @@ use unified_sim_model::model::Entry;
 use uuid::{uuid, Uuid};
 
 use crate::{
-    value_store::{IntoValueProducer, UntypedValueProducer, ValueProducer, ValueStore},
+    value_store::{IntoValueProducer, ValueProducer, ValueStore},
     value_types::{Boolean, Number, Text, ValueType},
 };
 
@@ -87,27 +87,22 @@ enum Extractor {
     Text(fn(&ValueStore, Option<&Entry>) -> Option<String>),
     Boolean(fn(&ValueStore, Option<&Entry>) -> Option<bool>),
 }
-
-impl ValueProducer<Number> for Extractor {
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
+impl ValueProducer for Extractor {
+    fn get_number(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
         if let Extractor::Number(f) = self {
             (f)(value_store, entry).map(|n| Number(n))
         } else {
             None
         }
     }
-}
-impl ValueProducer<Text> for Extractor {
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
+    fn get_text(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
         if let Extractor::Text(f) = self {
             (f)(value_store, entry).map(|t| Text(t))
         } else {
             None
         }
     }
-}
-impl ValueProducer<Boolean> for Extractor {
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
+    fn get_boolean(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
         if let Extractor::Boolean(f) = self {
             (f)(value_store, entry).map(|b| Boolean(b))
         } else {
@@ -124,13 +119,11 @@ pub struct GameSource {
 }
 
 impl IntoValueProducer for GameSource {
-    fn get_value_producer(&self) -> (Uuid, UntypedValueProducer) {
+    fn get_value_producer(&self) -> (Uuid, Box<dyn ValueProducer + Sync + Send>) {
         let producer = match self.extractor {
-            Extractor::Number(_) => UntypedValueProducer::Number(Box::new(self.extractor.clone())),
-            Extractor::Text(_) => UntypedValueProducer::Text(Box::new(self.extractor.clone())),
-            Extractor::Boolean(_) => {
-                UntypedValueProducer::Boolean(Box::new(self.extractor.clone()))
-            }
+            Extractor::Number(_) => Box::new(self.extractor.clone()),
+            Extractor::Text(_) => Box::new(self.extractor.clone()),
+            Extractor::Boolean(_) => Box::new(self.extractor.clone()),
         };
         (self.id, producer)
     }

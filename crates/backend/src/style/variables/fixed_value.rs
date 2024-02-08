@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    value_store::UntypedValueProducer,
+    value_store::ValueProducer,
     value_types::{Boolean, Number, Text, Tint, ValueType},
 };
 
@@ -31,14 +31,12 @@ impl FixedValue {
         }
     }
 
-    pub fn as_typed_producer(&self) -> UntypedValueProducer {
+    pub fn as_typed_producer(&self) -> Box<dyn ValueProducer + Sync + Send> {
         match self.clone() {
-            FixedValue::Number(n) => UntypedValueProducer::Number(Box::new(StaticValueProducer(n))),
-            FixedValue::Text(t) => UntypedValueProducer::Text(Box::new(StaticValueProducer(t))),
-            FixedValue::Tint(c) => UntypedValueProducer::Tint(Box::new(StaticValueProducer(c))),
-            FixedValue::Boolean(b) => {
-                UntypedValueProducer::Boolean(Box::new(StaticValueProducer(b)))
-            }
+            FixedValue::Number(n) => Box::new(StaticValueProducer(n)),
+            FixedValue::Text(t) => Box::new(StaticValueProducer(t)),
+            FixedValue::Tint(c) => Box::new(StaticValueProducer(c)),
+            FixedValue::Boolean(b) => Box::new(StaticValueProducer(b)),
         }
     }
 }

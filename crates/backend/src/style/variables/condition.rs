@@ -1,9 +1,10 @@
+use enumcapsulate::{macros::AsVariantRef, AsVariantRef};
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
 use crate::{
-    value_store::{UntypedValueProducer, ValueResolver, ValueProducer, ValueStore},
+    value_store::{ValueProducer, ValueResolver, ValueStore},
     value_types::{
         Boolean, Number, Property, Text, Texture, Tint, UntypedValueRef, ValueRef, ValueType,
     },
@@ -33,38 +34,38 @@ impl Default for Condition {
 }
 
 impl Condition {
-    pub fn as_typed_producer(&self) -> UntypedValueProducer {
+    pub fn as_typed_producer(&self) -> Box<dyn ValueProducer + Sync + Send> {
         match self.output.clone() {
-            UntypedOutput::Number(output) => UntypedValueProducer::Number(Box::new({
+            output @ UntypedOutput::Number(_) => Box::new({
                 ConditionProducer {
                     comparison: self.comparison.clone(),
                     output,
                 }
-            })),
-            UntypedOutput::Text(output) => UntypedValueProducer::Text(Box::new({
+            }),
+            output @ UntypedOutput::Text(_) => Box::new({
                 ConditionProducer {
                     comparison: self.comparison.clone(),
                     output,
                 }
-            })),
-            UntypedOutput::Color(output) => UntypedValueProducer::Tint(Box::new({
+            }),
+            output @ UntypedOutput::Color(_) => Box::new({
                 ConditionProducer {
                     comparison: self.comparison.clone(),
                     output,
                 }
-            })),
-            UntypedOutput::Boolean(output) => UntypedValueProducer::Boolean(Box::new({
+            }),
+            output @ UntypedOutput::Boolean(_) => Box::new({
                 ConditionProducer {
                     comparison: self.comparison.clone(),
                     output,
                 }
-            })),
-            UntypedOutput::Image(output) => UntypedValueProducer::Texture(Box::new({
+            }),
+            output @ UntypedOutput::Image(_) => Box::new({
                 ConditionProducer {
                     comparison: self.comparison.clone(),
                     output,
                 }
-            })),
+            }),
         }
     }
 
@@ -157,7 +158,7 @@ impl Comparison {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, AsVariantRef)]
 #[serde(tag = "output_type")]
 pub enum UntypedOutput {
     Number(Output<Number>),
@@ -173,12 +174,12 @@ pub struct Output<T> {
     pub falsee: Property<T>,
 }
 
-struct ConditionProducer<T> {
+struct ConditionProducer {
     comparison: Comparison,
-    output: Output<T>,
+    output: UntypedOutput,
 }
 
-impl<T> ConditionProducer<T> {
+impl ConditionProducer {
     fn evaluate_condition(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
         match &self.comparison {
             Comparison::Number {
@@ -207,20 +208,45 @@ impl<T> ConditionProducer<T> {
             )),
         }
     }
-}
-
-impl<T> ValueProducer<T> for ConditionProducer<T>
-where
-    ValueStore: ValueResolver<T>,
-    T: Clone,
-{
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<T> {
+    fn resolve<T>(
+        &self,
+        output: &Output<T>,
+        value_store: &ValueStore,
+        entry: Option<&Entry>,
+    ) -> Option<T>
+    where
+        ValueStore: ValueResolver<T>,
+        T: Clone,
+    {
         let condition = self.evaluate_condition(value_store, entry)?;
 
         if condition {
-            value_store.get_property(&self.output.truee, entry)
+            value_store.get_property(&output.truee, entry)
         } else {
-            value_store.get_property(&self.output.falsee, entry)
+            value_store.get_property(&output.falsee, entry)
         }
+    }
+}
+
+impl ValueProducer for ConditionProducer {
+    fn get_number(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
+        let output = self.output.as_variant_ref()?;
+        self.resolve(output, value_store, entry)
+    }
+    fn get_text(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
+        let output = self.output.as_variant_ref()?;
+        self.resolve(output, value_store, entry)
+    }
+    fn get_boolean(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
+        let output = self.output.as_variant_ref()?;
+        self.resolve(output, value_store, entry)
+    }
+    fn get_texture(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Texture> {
+        let output = self.output.as_variant_ref()?;
+        self.resolve(output, value_store, entry)
+    }
+    fn get_tint(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Tint> {
+        let output = self.output.as_variant_ref()?;
+        self.resolve(output, value_store, entry)
     }
 }

@@ -28,26 +28,40 @@ impl Plugin for ValueStorePlugin {
 }
 
 /// Implementors of this trait can produce a value for a [`ValueStore`].
-pub trait ValueProducer<T> {
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<T>;
+pub trait ValueProducer {
+    #[allow(unused)]
+    fn get_number(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
+        None
+    }
+    #[allow(unused)]
+    fn get_text(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
+        None
+    }
+    #[allow(unused)]
+    fn get_boolean(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
+        None
+    }
+    #[allow(unused)]
+    fn get_tint(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Tint> {
+        None
+    }
+    #[allow(unused)]
+    fn get_texture(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Texture> {
+        None
+    }
+    #[allow(unused)]
+    fn get_font(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Font> {
+        None
+    }
 }
 
 pub trait IntoValueProducer {
-    fn get_value_producer(&self) -> (Uuid, UntypedValueProducer);
-}
-
-pub enum UntypedValueProducer {
-    Number(Box<dyn ValueProducer<Number> + Send + Sync>),
-    Text(Box<dyn ValueProducer<Text> + Send + Sync>),
-    Tint(Box<dyn ValueProducer<Tint> + Send + Sync>),
-    Boolean(Box<dyn ValueProducer<Boolean> + Send + Sync>),
-    Texture(Box<dyn ValueProducer<Texture> + Send + Sync>),
-    Font(Box<dyn ValueProducer<Font> + Send + Sync>),
+    fn get_value_producer(&self) -> (Uuid, Box<dyn ValueProducer + Sync + Send>);
 }
 
 #[derive(Resource, Default)]
 pub struct ValueStore {
-    pub assets: HashMap<Uuid, UntypedValueProducer>,
+    assets: HashMap<Uuid, Box<dyn ValueProducer + Sync + Send>>,
 }
 
 impl ValueStore {
@@ -105,91 +119,78 @@ mod private {
 
     use crate::value_types::{Boolean, Font, Number, Text, Texture, Tint};
 
-    use super::{UntypedValueProducer, ValueStore};
+    use super::{ValueProducer, ValueStore};
 
     pub trait PrivateValueResolver<T> {
-        fn get_typed(&self, producer: &UntypedValueProducer, entry: Option<&Entry>) -> Option<T>;
+        fn get_typed(
+            &self,
+            producer: &Box<dyn ValueProducer + Sync + Send>,
+            entry: Option<&Entry>,
+        ) -> Option<T>;
     }
     impl PrivateValueResolver<Number> for ValueStore {
         fn get_typed(
             &self,
-            producer: &UntypedValueProducer,
+            producer: &Box<dyn ValueProducer + Sync + Send>,
             entry: Option<&Entry>,
         ) -> Option<Number> {
-            match producer {
-                UntypedValueProducer::Number(p) => p.get(self, entry),
-                _ => None,
-            }
+            producer.get_number(self, entry)
         }
     }
     impl PrivateValueResolver<Text> for ValueStore {
         fn get_typed(
             &self,
-            producer: &UntypedValueProducer,
+            producer: &Box<dyn ValueProducer + Sync + Send>,
             entry: Option<&Entry>,
         ) -> Option<Text> {
-            match producer {
-                UntypedValueProducer::Number(p) => {
-                    p.get(self, entry).map(|n| Text(format!("{}", n.0)))
-                }
-                UntypedValueProducer::Boolean(p) => p.get(self, entry).map(|b| {
-                    if b.0 {
+            producer
+                .get_text(self, entry)
+                .or(producer
+                    .get_number(self, entry)
+                    .map(|number| Text(format!("{}", number.0))))
+                .or(producer.get_boolean(self, entry).map(|bool| {
+                    if bool.0 {
                         Text(String::from("Yes"))
                     } else {
                         Text(String::from("No"))
                     }
-                }),
-                UntypedValueProducer::Text(p) => p.get(self, entry),
-                _ => None,
-            }
+                }))
         }
     }
     impl PrivateValueResolver<Tint> for ValueStore {
         fn get_typed(
             &self,
-            producer: &UntypedValueProducer,
+            producer: &Box<dyn ValueProducer + Sync + Send>,
             entry: Option<&Entry>,
         ) -> Option<Tint> {
-            match producer {
-                UntypedValueProducer::Tint(p) => p.get(self, entry),
-                _ => None,
-            }
+            producer.get_tint(self, entry)
         }
     }
     impl PrivateValueResolver<Boolean> for ValueStore {
         fn get_typed(
             &self,
-            producer: &UntypedValueProducer,
+            producer: &Box<dyn ValueProducer + Sync + Send>,
             entry: Option<&Entry>,
         ) -> Option<Boolean> {
-            match producer {
-                UntypedValueProducer::Boolean(p) => p.get(self, entry),
-                _ => None,
-            }
+            producer.get_boolean(self, entry)
         }
     }
     impl PrivateValueResolver<Texture> for ValueStore {
         fn get_typed(
             &self,
-            producer: &UntypedValueProducer,
+            producer: &Box<dyn ValueProducer + Sync + Send>,
             entry: Option<&Entry>,
         ) -> Option<Texture> {
-            match producer {
-                UntypedValueProducer::Texture(p) => p.get(self, entry),
-                _ => None,
-            }
+            producer.get_texture(self, entry)
         }
     }
     impl PrivateValueResolver<Font> for ValueStore {
         fn get_typed(
             &self,
-            producer: &UntypedValueProducer,
+            producer: &Box<dyn ValueProducer + Sync + Send>,
             entry: Option<&Entry>,
         ) -> Option<Font> {
-            match producer {
-                UntypedValueProducer::Font(p) => p.get(self, entry),
-                _ => None,
-            }
+            producer.get_font(self, entry)
         }
     }
 }

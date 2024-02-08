@@ -2,11 +2,14 @@ use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
-use crate::value_store::{IntoValueProducer, UntypedValueProducer, ValueProducer, ValueStore};
+use crate::{
+    value_store::{IntoValueProducer, ValueProducer, ValueStore},
+    value_types::{Boolean, Font, Number, Text, Texture, Tint},
+};
 
 use self::{condition::Condition, fixed_value::FixedValue, map::Map};
 
-use super::{StyleItemRef, StyleItemMut, OwnedStyleItem, StyleItem};
+use super::{OwnedStyleItem, StyleItem, StyleItemMut, StyleItemRef};
 
 pub mod condition;
 pub mod fixed_value;
@@ -38,7 +41,7 @@ impl VariableDefinition {
     }
 }
 impl IntoValueProducer for VariableDefinition {
-    fn get_value_producer(&self) -> (Uuid, UntypedValueProducer) {
+    fn get_value_producer(&self) -> (Uuid, Box<dyn ValueProducer + Sync + Send>) {
         let producer = match &self.behavior {
             VariableBehavior::FixedValue(o) => o.as_typed_producer(),
             VariableBehavior::Condition(o) => o.as_typed_producer(),
@@ -63,11 +66,33 @@ impl StyleItem for VariableDefinition {
 }
 
 pub struct StaticValueProducer<T>(pub T);
-impl<T> ValueProducer<T> for StaticValueProducer<T>
-where
-    T: Clone,
-{
-    fn get(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<T> {
+impl ValueProducer for StaticValueProducer<Number> {
+    fn get_number(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Number> {
+        Some(self.0.clone())
+    }
+}
+impl ValueProducer for StaticValueProducer<Text> {
+    fn get_text(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Text> {
+        Some(self.0.clone())
+    }
+}
+impl ValueProducer for StaticValueProducer<Boolean> {
+    fn get_boolean(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Boolean> {
+        Some(self.0.clone())
+    }
+}
+impl ValueProducer for StaticValueProducer<Tint> {
+    fn get_tint(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Tint> {
+        Some(self.0.clone())
+    }
+}
+impl ValueProducer for StaticValueProducer<Texture> {
+    fn get_texture(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Texture> {
+        Some(self.0.clone())
+    }
+}
+impl ValueProducer for StaticValueProducer<Font> {
+    fn get_font(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Font> {
         Some(self.0.clone())
     }
 }

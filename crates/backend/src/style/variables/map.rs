@@ -1,9 +1,10 @@
+use enumcapsulate::{macros::AsVariantRef, AsVariantRef};
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
 use crate::{
-    value_store::{UntypedValueProducer, ValueProducer, ValueResolver, ValueStore},
+    value_store::{ValueProducer, ValueResolver, ValueStore},
     value_types::{Boolean, Number, Property, Text, Texture, Tint, ValueRef, ValueType},
 };
 
@@ -40,33 +41,29 @@ impl Map {
         }
     }
 
-    pub fn as_typed_producer(&self) -> UntypedValueProducer {
+    pub fn as_typed_producer(&self) -> Box<dyn ValueProducer + Sync + Send> {
         let cases = self.generate_cases();
-        match &self.output {
-            UntypedOutput::Number(output) => UntypedValueProducer::Number(Box::new(MapProducer {
+        match self.output.clone() {
+            output @ UntypedOutput::Number(_) => Box::new(MapProducer {
                 cases,
                 output: output.clone(),
-            })),
-            UntypedOutput::Text(output) => UntypedValueProducer::Text(Box::new(MapProducer {
+            }),
+            output @ UntypedOutput::Text(_) => Box::new(MapProducer {
                 cases,
                 output: output.clone(),
-            })),
-            UntypedOutput::Tint(output) => UntypedValueProducer::Tint(Box::new(MapProducer {
+            }),
+            output @ UntypedOutput::Tint(_) => Box::new(MapProducer {
                 cases,
                 output: output.clone(),
-            })),
-            UntypedOutput::Boolean(output) => {
-                UntypedValueProducer::Boolean(Box::new(MapProducer {
-                    cases,
-                    output: output.clone(),
-                }))
-            }
-            UntypedOutput::Texture(output) => {
-                UntypedValueProducer::Texture(Box::new(MapProducer {
-                    cases,
-                    output: output.clone(),
-                }))
-            }
+            }),
+            output @ UntypedOutput::Boolean(_) => Box::new(MapProducer {
+                cases,
+                output: output.clone(),
+            }),
+            output @ UntypedOutput::Texture(_) => Box::new(MapProducer {
+                cases,
+                output: output.clone(),
+            }),
         }
     }
 
@@ -170,7 +167,7 @@ pub struct TextCase {
     pub comparator: TextComparator,
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, AsVariantRef)]
 #[serde(tag = "output_type")]
 pub enum UntypedOutput {
     Number(Output<Number>),
@@ -243,32 +240,58 @@ where
     }
 }
 
-struct MapProducer<T> {
+struct MapProducer {
     cases: Vec<CaseComparison>,
-    output: Output<T>,
+    output: UntypedOutput,
 }
 
-impl<T> ValueProducer<T> for MapProducer<T>
-where
-    ValueStore: ValueResolver<T>,
-    T: Clone,
-{
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<T> {
+impl MapProducer {
+    fn resolve<T: Clone>(
+        &self,
+        output: &Output<T>,
+        value_store: &ValueStore,
+        entry: Option<&Entry>,
+    ) -> Option<T>
+    where
+        ValueStore: ValueResolver<T>,
+    {
         let case_index = self
             .cases
             .iter()
             .enumerate()
             .find_map(|(index, case)| case.test(value_store, entry).then_some(index));
-
         if case_index.is_none() {
-            return value_store.get_property(&self.output.default, entry);
+            return value_store.get_property(&output.default, entry);
         }
 
         let output_property = case_index
-            .and_then(|index| self.output.cases.get(index))
+            .and_then(|index| output.cases.get(index))
             .expect("Index should be valid since cases and ouputs have the same length");
 
         value_store.get_property(output_property, entry)
+    }
+}
+
+impl ValueProducer for MapProducer {
+    fn get_number(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
+        let output = self.output.as_variant_ref()?;
+        self.resolve(output, value_store, entry)
+    }
+    fn get_text(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
+        let output = self.output.as_variant_ref()?;
+        self.resolve(output, value_store, entry)
+    }
+    fn get_boolean(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
+        let output = self.output.as_variant_ref()?;
+        self.resolve(output, value_store, entry)
+    }
+    fn get_texture(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Texture> {
+        let output = self.output.as_variant_ref()?;
+        self.resolve(output, value_store, entry)
+    }
+    fn get_tint(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Tint> {
+        let output = self.output.as_variant_ref()?;
+        self.resolve(output, value_store, entry)
     }
 }
 

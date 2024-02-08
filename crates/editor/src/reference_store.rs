@@ -8,7 +8,6 @@ use bevy::{
 use bevy_egui::egui::{InnerResponse, Response, Ui};
 use serde::{Deserialize, Serialize};
 use tracing::info;
-use uuid::Uuid;
 
 use backend::{
     game_sources,
@@ -32,25 +31,15 @@ pub trait IntoProducerData {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct ProducerData {
-    pub id: Uuid,
+    pub id: ValueId,
     pub name: String,
     pub value_type: ValueType,
-}
-
-impl Default for ProducerData {
-    fn default() -> Self {
-        Self {
-            name: "Variable".to_string(),
-            id: Uuid::new_v4(),
-            value_type: ValueType::default(),
-        }
-    }
 }
 impl ProducerData {
     pub fn get_ref(&self) -> UntypedValueRef {
         UntypedValueRef {
-            value_type: self.value_type.clone(),
-            id: ValueId(self.id.clone()),
+            value_type: self.value_type,
+            id: self.id,
         }
     }
 }
@@ -75,7 +64,7 @@ impl ReferenceStore {
     {
         let target_type: ValueType = ValueTypeOf::<T>::get();
 
-        let mut editor_res = self.untyped_editor(ui, &value_ref.id.0, |v| {
+        let mut editor_res = self.untyped_editor(ui, &value_ref.id, |v| {
             v.value_type.can_cast_to(&target_type)
         });
         if let Some(UntypedValueRef { id, value_type }) = editor_res.inner {
@@ -124,7 +113,7 @@ impl ReferenceStore {
     pub fn untyped_editor(
         &self,
         ui: &mut Ui,
-        asset_ref_key: &Uuid,
+        asset_ref_key: &ValueId,
         is_type_allowed: impl Fn(&ProducerData) -> bool,
     ) -> InnerResponse<Option<UntypedValueRef>> {
         let button_name = self
@@ -140,7 +129,7 @@ impl ReferenceStore {
         InnerResponse::new(selected_asset.map(|a| a.get_ref()), res.response)
     }
 
-    pub fn untyped_editor_small(
+    fn untyped_editor_small(
         &self,
         ui: &mut Ui,
         is_type_allowed: impl Fn(&ProducerData) -> bool,
@@ -152,7 +141,7 @@ impl ReferenceStore {
         InnerResponse::new(selected_asset.map(|a| a.get_ref()), res.response)
     }
 
-    fn get(&self, id: &Uuid) -> Option<&ProducerData> {
+    fn get(&self, id: &ValueId) -> Option<&ProducerData> {
         self.variables
             .get(id)
             .or_else(|| self.game_sources.get(id))
@@ -211,7 +200,7 @@ impl AssetOrFolder {
                 .into_iter()
                 .map(|s| {
                     Self::Asset(ProducerData {
-                        id: s.id,
+                        id: s.value_id(),
                         name: s.name.clone(),
                         value_type: s.value_type,
                     })
@@ -234,9 +223,9 @@ impl AssetOrFolder {
                 .collect(),
         }
     }
-    fn get(&self, id: &Uuid) -> Option<&ProducerData> {
+    fn get(&self, id: &ValueId) -> Option<&ProducerData> {
         match self {
-            AssetOrFolder::Asset(asset_id) => (&asset_id.id == id).then_some(asset_id),
+            AssetOrFolder::Asset(asset) => (&asset.id == id).then_some(asset),
             AssetOrFolder::Folder { name: _, assets } => assets.iter().find_map(|a| a.get(id)),
         }
     }
@@ -320,7 +309,7 @@ mod style {
     impl IntoProducerData for VariableDefinition {
         fn producer_data(&self) -> ProducerData {
             ProducerData {
-                id: self.id,
+                id: self.value_id(),
                 name: self.name.clone(),
                 value_type: match &self.behavior {
                     VariableBehavior::FixedValue(o) => o.output_type(),
@@ -334,7 +323,7 @@ mod style {
     impl IntoProducerData for AssetDefinition {
         fn producer_data(&self) -> ProducerData {
             ProducerData {
-                id: self.id.clone(),
+                id: self.value_id(),
                 name: self.name.clone(),
                 value_type: self.value_type.clone(),
             }

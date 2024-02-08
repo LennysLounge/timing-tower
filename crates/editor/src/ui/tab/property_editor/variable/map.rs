@@ -23,7 +23,7 @@ pub fn property_editor(ui: &mut Ui, value: &mut Map, asset_repo: &ReferenceStore
         let InnerResponse {
             inner: new_untyped_ref,
             response: _,
-        } = asset_repo.untyped_editor(ui, &value.input.input_id().0, |v| match v.value_type {
+        } = asset_repo.untyped_editor(ui, &value.input.input_id(), |v| match v.value_type {
             ValueType::Number => true,
             ValueType::Text => true,
             _ => false,

@@ -2061,7 +2061,13 @@
                           "y": 0.0,
                           "z": 0.0
                         },
-                        "states": {}
+                        "states": {
+                          "0c6aff6c-2995-4b6e-be5b-b88a76af76a8": {
+                            "x": 371.0,
+                            "y": 0.0,
+                            "z": 0.0
+                          }
+                        }
                       },
                       "size": {
                         "template": {
@@ -2120,6 +2126,144 @@
                           "y": 18.0
                         },
                         "states": {}
+                      }
+                    },
+                    {
+                      "graphic_item_type": "Cell",
+                      "id": "f5cf245b-079d-4d76-b788-4cad689c7595",
+                      "name": "Info text",
+                      "text": {
+                        "template": "Cell",
+                        "states": {
+                          "0c6aff6c-2995-4b6e-be5b-b88a76af76a8": "1:44.567"
+                        }
+                      },
+                      "text_color": {
+                        "template": {
+                          "Rgba": {
+                            "red": 1.0,
+                            "green": 1.0,
+                            "blue": 1.0,
+                            "alpha": 1.0
+                          }
+                        },
+                        "states": {
+                          "0c6aff6c-2995-4b6e-be5b-b88a76af76a8": {
+                            "Rgba": {
+                              "red": 1.0,
+                              "green": 0.97863966,
+                              "blue": 0.25238097,
+                              "alpha": 1.0
+                            }
+                          }
+                        }
+                      },
+                      "text_size": {
+                        "template": 20.0,
+                        "states": {
+                          "0c6aff6c-2995-4b6e-be5b-b88a76af76a8": 18.0
+                        }
+                      },
+                      "font": {
+                        "template": "Default",
+                        "states": {}
+                      },
+                      "color": {
+                        "template": {
+                          "Rgba": {
+                            "red": 0.5,
+                            "green": 0.0,
+                            "blue": 0.5,
+                            "alpha": 1.0
+                          }
+                        },
+                        "states": {}
+                      },
+                      "image": {
+                        "template": "None",
+                        "states": {}
+                      },
+                      "pos": {
+                        "template": {
+                          "x": 0.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "states": {
+                          "0c6aff6c-2995-4b6e-be5b-b88a76af76a8": {
+                            "x": 283.0,
+                            "y": 18.0,
+                            "z": 0.0
+                          }
+                        }
+                      },
+                      "size": {
+                        "template": {
+                          "x": 100.0,
+                          "y": 100.0
+                        },
+                        "states": {
+                          "0c6aff6c-2995-4b6e-be5b-b88a76af76a8": {
+                            "x": 0.0,
+                            "y": 0.0
+                          }
+                        }
+                      },
+                      "skew": {
+                        "template": 0.0,
+                        "states": {}
+                      },
+                      "corner_offsets": {
+                        "template": {
+                          "top_left": {
+                            "x": 0.0,
+                            "y": 0.0
+                          },
+                          "top_right": {
+                            "x": 0.0,
+                            "y": 0.0
+                          },
+                          "bot_left": {
+                            "x": 0.0,
+                            "y": 0.0
+                          },
+                          "bot_right": {
+                            "x": 0.0,
+                            "y": 0.0
+                          }
+                        },
+                        "states": {}
+                      },
+                      "visible": {
+                        "template": false,
+                        "states": {
+                          "0c6aff6c-2995-4b6e-be5b-b88a76af76a8": true
+                        }
+                      },
+                      "rounding": {
+                        "template": {
+                          "top_left": 0.0,
+                          "top_right": 0.0,
+                          "bot_left": 0.0,
+                          "bot_right": 0.0
+                        },
+                        "states": {}
+                      },
+                      "text_alginment": {
+                        "template": "Left",
+                        "states": {}
+                      },
+                      "text_position": {
+                        "template": {
+                          "x": 5.0,
+                          "y": 15.0
+                        },
+                        "states": {
+                          "0c6aff6c-2995-4b6e-be5b-b88a76af76a8": {
+                            "x": 0.0,
+                            "y": 0.0
+                          }
+                        }
                       }
                     }
                   ]

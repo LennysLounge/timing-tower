@@ -25,7 +25,8 @@ impl Plugin for CellPlugin {
             PostUpdate,
             (update_style, update_style_foreground)
                 .in_set(CellSystem)
-                .before(bevy::text::update_text2d_layout),
+                .before(bevy::text::update_text2d_layout)
+                .before(bevy::render::view::VisibilitySystems::VisibilityPropagate),
         );
     }
 }

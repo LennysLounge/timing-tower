@@ -7,7 +7,7 @@ use unified_sim_model::model::{Entry, Session};
 
 use crate::{
     style::graphic::graphic_items::{cell::ComputedCell, clip_area::ComputedClipArea},
-    value_store::{TypedValueResolver, ValueStore},
+    value_store::{ValueResolver, ValueStore},
     value_types::{Boolean, Font, Number, Property, Text, Texture, Tint, Vec2Property},
 };
 
@@ -47,7 +47,7 @@ impl<'a> StyleResolver<'a> {
 
     pub fn property<T>(&self, property: &Property<T>) -> Option<T>
     where
-        ValueStore: TypedValueResolver<T>,
+        ValueStore: ValueResolver<T>,
         T: Clone,
     {
         self.value_store.get_property(property, self.entry)

@@ -3,7 +3,7 @@ use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
 use crate::{
-    value_store::{TypedValueProducer, TypedValueResolver, ValueProducer, ValueStore},
+    value_store::{UntypedValueProducer, ValueResolver, ValueProducer, ValueStore},
     value_types::{
         Boolean, Number, Property, Text, Texture, Tint, UntypedValueRef, ValueRef, ValueType,
     },
@@ -33,33 +33,33 @@ impl Default for Condition {
 }
 
 impl Condition {
-    pub fn as_typed_producer(&self) -> TypedValueProducer {
+    pub fn as_typed_producer(&self) -> UntypedValueProducer {
         match self.output.clone() {
-            UntypedOutput::Number(output) => TypedValueProducer::Number(Box::new({
+            UntypedOutput::Number(output) => UntypedValueProducer::Number(Box::new({
                 ConditionProducer {
                     comparison: self.comparison.clone(),
                     output,
                 }
             })),
-            UntypedOutput::Text(output) => TypedValueProducer::Text(Box::new({
+            UntypedOutput::Text(output) => UntypedValueProducer::Text(Box::new({
                 ConditionProducer {
                     comparison: self.comparison.clone(),
                     output,
                 }
             })),
-            UntypedOutput::Color(output) => TypedValueProducer::Tint(Box::new({
+            UntypedOutput::Color(output) => UntypedValueProducer::Tint(Box::new({
                 ConditionProducer {
                     comparison: self.comparison.clone(),
                     output,
                 }
             })),
-            UntypedOutput::Boolean(output) => TypedValueProducer::Boolean(Box::new({
+            UntypedOutput::Boolean(output) => UntypedValueProducer::Boolean(Box::new({
                 ConditionProducer {
                     comparison: self.comparison.clone(),
                     output,
                 }
             })),
-            UntypedOutput::Image(output) => TypedValueProducer::Texture(Box::new({
+            UntypedOutput::Image(output) => UntypedValueProducer::Texture(Box::new({
                 ConditionProducer {
                     comparison: self.comparison.clone(),
                     output,
@@ -211,7 +211,7 @@ impl<T> ConditionProducer<T> {
 
 impl<T> ValueProducer<T> for ConditionProducer<T>
 where
-    ValueStore: TypedValueResolver<T>,
+    ValueStore: ValueResolver<T>,
     T: Clone,
 {
     fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<T> {

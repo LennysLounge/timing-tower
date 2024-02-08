@@ -2,11 +2,13 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
-    value_store::{IntoValueProducer, TypedValueProducer},
+    value_store::{IntoValueProducer, UntypedValueProducer},
     value_types::{Font, Texture, ValueType},
 };
 
-use super::{variables::StaticValueProducer, StyleItemRef, StyleItemMut, OwnedStyleItem, StyleItem};
+use super::{
+    variables::StaticValueProducer, OwnedStyleItem, StyleItem, StyleItemMut, StyleItemRef,
+};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct AssetDefinition {
@@ -26,13 +28,13 @@ impl AssetDefinition {
     }
 }
 impl IntoValueProducer for AssetDefinition {
-    fn get_value_producer(&self) -> (Uuid, TypedValueProducer) {
+    fn get_value_producer(&self) -> (Uuid, UntypedValueProducer) {
         let typed_value_producer = match self.value_type {
-            ValueType::Texture => {
-                TypedValueProducer::Texture(Box::new(StaticValueProducer(Texture::Handle(self.id))))
-            }
+            ValueType::Texture => UntypedValueProducer::Texture(Box::new(StaticValueProducer(
+                Texture::Handle(self.id),
+            ))),
             ValueType::Font => {
-                TypedValueProducer::Font(Box::new(StaticValueProducer(Font::Handle(self.id))))
+                UntypedValueProducer::Font(Box::new(StaticValueProducer(Font::Handle(self.id))))
             }
             value_type @ _ => {
                 unreachable!("An asset cannot have a value type of {}", value_type.name())

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
-use crate::value_store::{IntoValueProducer, TypedValueProducer, ValueProducer, ValueStore};
+use crate::value_store::{IntoValueProducer, UntypedValueProducer, ValueProducer, ValueStore};
 
 use self::{condition::Condition, fixed_value::FixedValue, map::Map};
 
@@ -38,7 +38,7 @@ impl VariableDefinition {
     }
 }
 impl IntoValueProducer for VariableDefinition {
-    fn get_value_producer(&self) -> (Uuid, TypedValueProducer) {
+    fn get_value_producer(&self) -> (Uuid, UntypedValueProducer) {
         let producer = match &self.behavior {
             VariableBehavior::FixedValue(o) => o.as_typed_producer(),
             VariableBehavior::Condition(o) => o.as_typed_producer(),

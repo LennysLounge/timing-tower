@@ -3,7 +3,7 @@ use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
 use crate::{
-    value_store::{TypedValueProducer, TypedValueResolver, ValueProducer, ValueStore},
+    value_store::{UntypedValueProducer, ValueResolver, ValueProducer, ValueStore},
     value_types::{Boolean, Number, Property, Text, Texture, Tint, ValueRef, ValueType},
 };
 
@@ -40,26 +40,26 @@ impl Map {
         }
     }
 
-    pub fn as_typed_producer(&self) -> TypedValueProducer {
+    pub fn as_typed_producer(&self) -> UntypedValueProducer {
         let cases = self.generate_cases();
         match &self.output {
-            UntypedOutput::Number(output) => TypedValueProducer::Number(Box::new(MapProducer {
+            UntypedOutput::Number(output) => UntypedValueProducer::Number(Box::new(MapProducer {
                 cases,
                 output: output.clone(),
             })),
-            UntypedOutput::Text(output) => TypedValueProducer::Text(Box::new(MapProducer {
+            UntypedOutput::Text(output) => UntypedValueProducer::Text(Box::new(MapProducer {
                 cases,
                 output: output.clone(),
             })),
-            UntypedOutput::Tint(output) => TypedValueProducer::Tint(Box::new(MapProducer {
+            UntypedOutput::Tint(output) => UntypedValueProducer::Tint(Box::new(MapProducer {
                 cases,
                 output: output.clone(),
             })),
-            UntypedOutput::Boolean(output) => TypedValueProducer::Boolean(Box::new(MapProducer {
+            UntypedOutput::Boolean(output) => UntypedValueProducer::Boolean(Box::new(MapProducer {
                 cases,
                 output: output.clone(),
             })),
-            UntypedOutput::Texture(output) => TypedValueProducer::Texture(Box::new(MapProducer {
+            UntypedOutput::Texture(output) => UntypedValueProducer::Texture(Box::new(MapProducer {
                 cases,
                 output: output.clone(),
             })),
@@ -246,7 +246,7 @@ struct MapProducer<T> {
 
 impl<T> ValueProducer<T> for MapProducer<T>
 where
-    ValueStore: TypedValueResolver<T>,
+    ValueStore: ValueResolver<T>,
     T: Clone,
 {
     fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<T> {

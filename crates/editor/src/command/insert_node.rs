@@ -4,9 +4,9 @@ use egui_ltreeview::DropPosition;
 use uuid::Uuid;
 
 use backend::{
+    exact_variant::ExactVariant,
     style::{
-        self, graphic::GraphicOrFolder, variables::VariableOrFolder, OwnedStyleItem,
-        StyleDefinition, StyleItem, StyleItemMut,
+        self, graphic::GraphicOrFolder, variables::VariableOrFolder, StyleDefinition, StyleItem,
     },
     tree_iterator::{TreeItem, TreeIteratorMut},
 };
@@ -16,12 +16,15 @@ use super::{remove_node::remove_node, EditorCommand};
 pub struct InsertNode {
     pub target_node: Uuid,
     pub position: DropPosition<Uuid>,
-    pub node: OwnedStyleItem,
+    pub node: StyleItem,
 }
 impl InsertNode {
-    pub fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
+    pub fn execute(
+        self,
+        style: &mut ExactVariant<StyleItem, StyleDefinition>,
+    ) -> Option<EditorCommand> {
         let id = self.node.id();
-        style.as_mut().search_mut(self.target_node, |node| {
+        style.search_mut(self.target_node, |node| {
             insert(node, self.position, self.node)
         });
         Some(InsertNodeUndo { id }.into())
@@ -38,8 +41,11 @@ pub struct InsertNodeUndo {
     id: Uuid,
 }
 impl InsertNodeUndo {
-    pub fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
-        remove_node(&self.id, &mut style.as_mut()).map(|removed_node| {
+    pub fn execute(
+        self,
+        style: &mut ExactVariant<StyleItem, StyleDefinition>,
+    ) -> Option<EditorCommand> {
+        remove_node(&self.id, style.as_enum_mut()).map(|removed_node| {
             InsertNode {
                 target_node: removed_node.parent_id,
                 position: removed_node.position,
@@ -56,15 +62,17 @@ impl From<InsertNodeUndo> for EditorCommand {
 }
 
 pub fn insert(
-    node: &mut StyleItemMut,
+    node: &mut StyleItem,
     position: DropPosition<Uuid>,
-    insert: OwnedStyleItem,
+    insert: StyleItem,
 ) -> ControlFlow<()> {
     match node {
-        StyleItemMut::AssetFolder(folder) => {
+        StyleItem::AssetFolder(folder) => {
             let folder_or_asset = match insert {
-                OwnedStyleItem::Asset(asset) => style::assets::AssetOrFolder::Asset(asset),
-                OwnedStyleItem::AssetFolder(folder) => style::assets::AssetOrFolder::Folder(folder),
+                StyleItem::Asset(asset) => style::assets::AssetOrFolder::Asset(asset.into()),
+                StyleItem::AssetFolder(folder) => {
+                    style::assets::AssetOrFolder::Folder(folder.into())
+                }
                 _ => unreachable!("No other types are allowed to be inserted"),
             };
             match &position {
@@ -83,10 +91,10 @@ pub fn insert(
             }
             ControlFlow::Break(())
         }
-        StyleItemMut::VariableFolder(folder) => {
+        StyleItem::VariableFolder(folder) => {
             let folder_or_asset = match insert {
-                OwnedStyleItem::Variable(asset) => VariableOrFolder::Variable(asset),
-                OwnedStyleItem::VariableFolder(folder) => VariableOrFolder::Folder(folder),
+                StyleItem::Variable(asset) => VariableOrFolder::Variable(asset.into()),
+                StyleItem::VariableFolder(folder) => VariableOrFolder::Folder(folder.into()),
                 _ => unreachable!("No other types are allowed to be inserted"),
             };
             match &position {
@@ -106,10 +114,10 @@ pub fn insert(
             ControlFlow::Break(())
         }
 
-        StyleItemMut::GraphicFolder(folder) => {
+        StyleItem::GraphicFolder(folder) => {
             let column_or_folder = match insert {
-                OwnedStyleItem::GraphicFolder(folder) => GraphicOrFolder::Folder(folder),
-                OwnedStyleItem::Graphic(cell) => GraphicOrFolder::Graphic(cell),
+                StyleItem::GraphicFolder(folder) => GraphicOrFolder::Folder(folder.into()),
+                StyleItem::Graphic(cell) => GraphicOrFolder::Graphic(cell.into()),
                 _ => unreachable!("No other types are allowed to be inserted"),
             };
 
@@ -130,10 +138,10 @@ pub fn insert(
             ControlFlow::Break(())
         }
 
-        StyleItemMut::Scene(_) => ControlFlow::Continue(()),
-        StyleItemMut::Style(_) => ControlFlow::Continue(()),
-        StyleItemMut::Variable(_) => ControlFlow::Continue(()),
-        StyleItemMut::Asset(_) => ControlFlow::Continue(()),
-        StyleItemMut::Graphic(_) => ControlFlow::Continue(()),
+        StyleItem::Scene(_) => ControlFlow::Continue(()),
+        StyleItem::Style(_) => ControlFlow::Continue(()),
+        StyleItem::Variable(_) => ControlFlow::Continue(()),
+        StyleItem::Asset(_) => ControlFlow::Continue(()),
+        StyleItem::Graphic(_) => ControlFlow::Continue(()),
     }
 }

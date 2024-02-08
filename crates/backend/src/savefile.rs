@@ -15,7 +15,10 @@ use bevy::{
     prelude::Plugin,
 };
 
-use crate::style::StyleDefinition;
+use crate::{
+    exact_variant::ExactVariant,
+    style::{StyleDefinition, StyleItem},
+};
 
 pub struct SavefilePlugin;
 impl Plugin for SavefilePlugin {
@@ -34,11 +37,20 @@ pub struct SavefileChanged {
     pub replace: bool,
 }
 
-#[derive(Resource, Default)]
+#[derive(Resource)]
 pub struct Savefile {
-    style: StyleDefinition,
+    style: ExactVariant<StyleItem, StyleDefinition>,
     base_path: PathBuf,
     working_directory_path: PathBuf,
+}
+impl Default for Savefile {
+    fn default() -> Self {
+        Self {
+            style: StyleDefinition::default().into(),
+            base_path: Default::default(),
+            working_directory_path: Default::default(),
+        }
+    }
 }
 
 impl Savefile {
@@ -82,7 +94,7 @@ impl Savefile {
         //     );
         // });
         Savefile {
-            style,
+            style: style.into(),
             base_path: base_path.to_owned(),
             working_directory_path: working_directory_path.to_owned(),
         }
@@ -96,12 +108,16 @@ impl Savefile {
         event.send(SavefileChanged { replace: true });
     }
 
-    pub fn set(&mut self, new_style: StyleDefinition, event: &mut EventWriter<SavefileChanged>) {
-        self.style = new_style;
+    pub fn set(
+        &mut self,
+        new_style: ExactVariant<StyleItem, StyleDefinition>,
+        event: &mut EventWriter<SavefileChanged>,
+    ) {
+        self.style = new_style.into();
         event.send(SavefileChanged { replace: false });
     }
 
-    pub fn style(&self) -> &StyleDefinition {
+    pub fn style(&self) -> &ExactVariant<StyleItem, StyleDefinition> {
         &self.style
     }
 

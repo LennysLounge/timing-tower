@@ -35,6 +35,12 @@ where
     pub fn as_enum_ref(&self) -> &E {
         &self.value
     }
+    pub fn as_enum_mut(&mut self) -> &mut E {
+        &mut self.value
+    }
+    pub fn to_enum(self) -> E {
+        self.value
+    }
 }
 
 impl<E, V> Deref for ExactVariant<E, V>

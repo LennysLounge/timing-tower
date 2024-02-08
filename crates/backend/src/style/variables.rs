@@ -1,15 +1,18 @@
+use std::ops::Deref;
+
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 use uuid::Uuid;
 
 use crate::{
+    exact_variant::ExactVariant,
     value_store::{ValueId, ValueProducer, ValueStore},
     value_types::{Boolean, Font, Number, Text, Texture, Tint},
 };
 
 use self::{condition::Condition, fixed_value::FixedValue, map::Map};
 
-use super::{OwnedStyleItem, StyleItem, StyleItemMut, StyleItemRef};
+use super::StyleItem;
 
 pub mod condition;
 pub mod fixed_value;
@@ -48,20 +51,6 @@ impl VariableDefinition {
     }
     pub fn value_id(&self) -> ValueId {
         ValueId(self.id)
-    }
-}
-impl StyleItem for VariableDefinition {
-    fn id(&self) -> &Uuid {
-        &self.id
-    }
-    fn as_ref<'a>(&'a self) -> StyleItemRef<'a> {
-        StyleItemRef::Variable(self)
-    }
-    fn as_mut<'a>(&'a mut self) -> StyleItemMut<'a> {
-        StyleItemMut::Variable(self)
-    }
-    fn to_owned(self) -> OwnedStyleItem {
-        OwnedStyleItem::Variable(self)
     }
 }
 
@@ -115,33 +104,17 @@ impl VariableFolder {
         self.content
             .iter()
             .flat_map(|af| match af {
-                VariableOrFolder::Variable(a) => vec![a],
+                VariableOrFolder::Variable(a) => vec![a.deref()],
                 VariableOrFolder::Folder(f) => f.contained_variables(),
             })
             .collect()
     }
 }
-impl StyleItem for VariableFolder {
-    fn id(&self) -> &Uuid {
-        &self.id
-    }
-
-    fn as_ref<'a>(&'a self) -> StyleItemRef<'a> {
-        StyleItemRef::VariableFolder(self)
-    }
-    fn as_mut<'a>(&'a mut self) -> StyleItemMut<'a> {
-        StyleItemMut::VariableFolder(self)
-    }
-    fn to_owned(self) -> OwnedStyleItem {
-        OwnedStyleItem::VariableFolder(self)
-    }
-}
-
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(tag = "element_type")]
 pub enum VariableOrFolder {
-    Variable(VariableDefinition),
-    Folder(VariableFolder),
+    Variable(ExactVariant<StyleItem, VariableDefinition>),
+    Folder(ExactVariant<StyleItem, VariableFolder>),
 }
 impl VariableOrFolder {
     pub fn id(&self) -> &Uuid {

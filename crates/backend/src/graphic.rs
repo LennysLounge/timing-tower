@@ -18,7 +18,7 @@ use uuid::Uuid;
 
 use crate::{
     savefile::Savefile,
-    style::{graphic::graphic_items::ComputedGraphicItem, StyleItem, StyleItemRef},
+    style::{graphic::graphic_items::ComputedGraphicItem, StyleItem},
     style_batcher::{CellId, StyleBatcher},
     tree_iterator::TreeIterator,
     value_store::ValueStore,
@@ -104,9 +104,9 @@ fn update_graphics(
     };
 
     for graphic in graphics.iter_mut() {
-        savefile.style().as_ref().search(graphic.id, |item| {
-            if let StyleItemRef::Graphic(graphic) = item {
-                let computed_style = graphic.compute_style(graphic_states.states.get(graphic.id()));
+        savefile.style().search(graphic.id, |item| {
+            if let StyleItem::Graphic(graphic) = item {
+                let computed_style = graphic.compute_style(graphic_states.states.get(&graphic.id));
                 let resolver = StyleResolver::new(&*value_store, session);
                 update_graphic_item(
                     &computed_style.root,

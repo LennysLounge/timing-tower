@@ -4,9 +4,10 @@ mod tab;
 use std::{fs::File, io::Write};
 
 use backend::{
+    exact_variant::ExactVariant,
     graphic::GraphicStates,
     savefile::{Savefile, SavefileChanged},
-    style::StyleDefinition,
+    style::{StyleDefinition, StyleItem},
 };
 use bevy::{
     app::{First, Update},
@@ -63,7 +64,7 @@ struct EditorState {
     style_item_selection: Option<Uuid>,
     graphic_item_selection: Option<Uuid>,
     graphic_state_selection: Option<Uuid>,
-    style: StyleDefinition,
+    style: ExactVariant<StyleItem, StyleDefinition>,
 }
 impl EditorState {
     pub fn new() -> Self {
@@ -84,7 +85,7 @@ impl EditorState {
             graphic_item_selection: None,
             graphic_state_selection: None,
             dock_state: state,
-            style: StyleDefinition::default(),
+            style: StyleDefinition::default().into(),
         }
     }
 }

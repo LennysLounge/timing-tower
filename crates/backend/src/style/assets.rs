@@ -1,14 +1,15 @@
+use std::ops::Deref;
+
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::{
+    exact_variant::ExactVariant,
     value_store::{ValueId, ValueProducer},
     value_types::{Font, Texture, ValueType},
 };
 
-use super::{
-    variables::StaticValueProducer, OwnedStyleItem, StyleItem, StyleItemMut, StyleItemRef,
-};
+use super::{variables::StaticValueProducer, StyleItem};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct AssetDefinition {
@@ -39,20 +40,6 @@ impl AssetDefinition {
         ValueId(self.id)
     }
 }
-impl StyleItem for AssetDefinition {
-    fn id(&self) -> &Uuid {
-        &self.id
-    }
-    fn as_ref<'a>(&'a self) -> StyleItemRef<'a> {
-        StyleItemRef::Asset(self)
-    }
-    fn as_mut<'a>(&'a mut self) -> StyleItemMut<'a> {
-        StyleItemMut::Asset(self)
-    }
-    fn to_owned(self) -> OwnedStyleItem {
-        OwnedStyleItem::Asset(self)
-    }
-}
 
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct AssetFolder {
@@ -72,33 +59,17 @@ impl AssetFolder {
         self.content
             .iter()
             .flat_map(|af| match af {
-                AssetOrFolder::Asset(a) => vec![a],
+                AssetOrFolder::Asset(a) => vec![a.deref()],
                 AssetOrFolder::Folder(f) => f.contained_assets(),
             })
             .collect()
     }
 }
-impl StyleItem for AssetFolder {
-    fn id(&self) -> &Uuid {
-        &self.id
-    }
-
-    fn as_ref<'a>(&'a self) -> StyleItemRef<'a> {
-        StyleItemRef::AssetFolder(self)
-    }
-    fn as_mut<'a>(&'a mut self) -> StyleItemMut<'a> {
-        StyleItemMut::AssetFolder(self)
-    }
-    fn to_owned(self) -> OwnedStyleItem {
-        OwnedStyleItem::AssetFolder(self)
-    }
-}
-
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(tag = "element_type")]
 pub enum AssetOrFolder {
-    Asset(AssetDefinition),
-    Folder(AssetFolder),
+    Asset(ExactVariant<StyleItem, AssetDefinition>),
+    Folder(ExactVariant<StyleItem, AssetFolder>),
 }
 impl AssetOrFolder {
     pub fn id(&self) -> &Uuid {

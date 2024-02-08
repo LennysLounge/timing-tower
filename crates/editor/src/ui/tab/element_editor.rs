@@ -1,4 +1,5 @@
 use backend::{
+    exact_variant::ExactVariant,
     style::{
         graphic::{
             graphic_items::{
@@ -7,7 +8,7 @@ use backend::{
             },
             GraphicDefinition,
         },
-        StyleDefinition, StyleItem, StyleItemMut,
+        StyleDefinition, StyleItem,
     },
     tree_iterator::TreeIteratorMut,
 };
@@ -34,7 +35,7 @@ pub fn element_editor(
     style_item_selection: &mut Option<Uuid>,
     graphic_item_selection: &mut Option<Uuid>,
     graphic_state_selection: &mut Option<Uuid>,
-    style: &mut StyleDefinition,
+    style: &mut ExactVariant<StyleItem, StyleDefinition>,
     reference_store: &ReferenceStore,
     undo_redo_manager: &mut UndoRedoManager,
     _game_adapter: &Adapter,
@@ -48,26 +49,24 @@ pub fn element_editor(
     ScrollArea::vertical()
         .auto_shrink([false, false])
         .show(ui, |ui| {
-            style
-                .as_mut()
-                .search_mut(*style_item_selection, |style_item| {
-                    if let StyleItemMut::Graphic(graphic) = style_item {
-                        let edit_result = graphic_item(
-                            ui,
-                            graphic,
-                            graphic_item_selection.as_ref(),
-                            graphic_state_selection.as_ref(),
-                            reference_store,
-                        );
-                        if let EditResult::FromId(widget_id) = edit_result {
-                            undo_redo_manager.queue(EditProperty::new(
-                                graphic.id,
-                                graphic.clone(),
-                                widget_id,
-                            ));
-                        }
+            style.search_mut(*style_item_selection, |style_item| {
+                if let StyleItem::Graphic(graphic) = style_item {
+                    let edit_result = graphic_item(
+                        ui,
+                        graphic,
+                        graphic_item_selection.as_ref(),
+                        graphic_state_selection.as_ref(),
+                        reference_store,
+                    );
+                    if let EditResult::FromId(widget_id) = edit_result {
+                        undo_redo_manager.queue(EditProperty::new(
+                            graphic.id,
+                            graphic.clone(),
+                            widget_id,
+                        ));
                     }
-                });
+                }
+            });
         });
 }
 

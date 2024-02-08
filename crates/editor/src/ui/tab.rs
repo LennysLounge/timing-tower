@@ -3,7 +3,10 @@ mod property_editor;
 mod tree_view;
 mod undo_redo;
 
-use backend::style::StyleDefinition;
+use backend::{
+    exact_variant::ExactVariant,
+    style::{StyleDefinition, StyleItem},
+};
 use bevy_egui::egui::{self, Rect};
 use egui_dock::TabViewer;
 use unified_sim_model::Adapter;
@@ -26,7 +29,7 @@ pub struct EditorTabViewer<'a> {
     pub style_item_selection: &'a mut Option<Uuid>,
     pub graphic_item_selection: &'a mut Option<Uuid>,
     pub graphic_state_selection: &'a mut Option<Uuid>,
-    pub style: &'a mut StyleDefinition,
+    pub style: &'a mut ExactVariant<StyleItem, StyleDefinition>,
     pub reference_store: &'a ReferenceStore,
     pub undo_redo_manager: &'a mut UndoRedoManager,
     pub game_adapter: &'a Adapter,

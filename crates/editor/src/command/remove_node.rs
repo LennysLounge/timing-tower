@@ -4,7 +4,8 @@ use egui_ltreeview::DropPosition;
 use uuid::Uuid;
 
 use backend::{
-    style::{OwnedStyleItem, StyleDefinition, StyleItem, StyleItemMut},
+    exact_variant::ExactVariant,
+    style::{StyleDefinition, StyleItem},
     tree_iterator::{Method, TreeItem, TreeIteratorMut},
 };
 
@@ -14,8 +15,11 @@ pub struct RemoveNode {
     pub id: Uuid,
 }
 impl RemoveNode {
-    pub fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
-        remove_node(&self.id, &mut style.as_mut())
+    pub fn execute(
+        self,
+        style: &mut ExactVariant<StyleItem, StyleDefinition>,
+    ) -> Option<EditorCommand> {
+        remove_node(&self.id, style.as_enum_mut())
             .map(|removed_node| RemoveNodeUndo { removed_node }.into())
     }
 }
@@ -30,16 +34,17 @@ pub struct RemoveNodeUndo {
     removed_node: RemovedNode,
 }
 impl RemoveNodeUndo {
-    pub fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
+    pub fn execute(
+        self,
+        style: &mut ExactVariant<StyleItem, StyleDefinition>,
+    ) -> Option<EditorCommand> {
         let RemovedNode {
             parent_id,
             node,
             position,
         } = self.removed_node;
         let node_id = node.id();
-        style
-            .as_mut()
-            .search_mut(parent_id, |parent_node| insert(parent_node, position, node));
+        style.search_mut(parent_id, |parent_node| insert(parent_node, position, node));
         Some(RemoveNode { id: node_id }.into())
     }
 }
@@ -51,11 +56,11 @@ impl From<RemoveNodeUndo> for EditorCommand {
 
 pub struct RemovedNode {
     pub parent_id: Uuid,
-    pub node: OwnedStyleItem,
+    pub node: StyleItem,
     pub position: DropPosition<Uuid>,
 }
 
-pub fn remove_node(node_id: &Uuid, root: &mut StyleItemMut) -> Option<RemovedNode> {
+pub fn remove_node(node_id: &Uuid, root: &mut StyleItem) -> Option<RemovedNode> {
     let output = root.walk_mut(&mut |node, method| remove(node, method, node_id));
     match output {
         ControlFlow::Continue(_) => None,
@@ -63,15 +68,15 @@ pub fn remove_node(node_id: &Uuid, root: &mut StyleItemMut) -> Option<RemovedNod
     }
 }
 
-fn remove(node: &mut StyleItemMut, method: Method, node_id: &Uuid) -> ControlFlow<RemovedNode> {
+fn remove(node: &mut StyleItem, method: Method, node_id: &Uuid) -> ControlFlow<RemovedNode> {
     match (method, node) {
-        (Method::Visit, StyleItemMut::AssetFolder(folder)) => {
+        (Method::Visit, StyleItem::AssetFolder(folder)) => {
             if let Some(index) = folder.content.iter().position(|s| s.id() == node_id) {
                 ControlFlow::Break(RemovedNode {
                     parent_id: folder.id,
                     node: match folder.content.remove(index) {
-                        backend::style::assets::AssetOrFolder::Asset(a) => a.to_owned(),
-                        backend::style::assets::AssetOrFolder::Folder(f) => f.to_owned(),
+                        backend::style::assets::AssetOrFolder::Asset(a) => a.to_enum(),
+                        backend::style::assets::AssetOrFolder::Folder(f) => f.to_enum(),
                     },
                     position: (index == 0)
                         .then_some(DropPosition::First)
@@ -83,13 +88,13 @@ fn remove(node: &mut StyleItemMut, method: Method, node_id: &Uuid) -> ControlFlo
                 ControlFlow::Continue(())
             }
         }
-        (Method::Visit, StyleItemMut::VariableFolder(folder)) => {
+        (Method::Visit, StyleItem::VariableFolder(folder)) => {
             if let Some(index) = folder.content.iter().position(|s| s.id() == node_id) {
                 ControlFlow::Break(RemovedNode {
                     parent_id: folder.id,
                     node: match folder.content.remove(index) {
-                        backend::style::variables::VariableOrFolder::Variable(a) => a.to_owned(),
-                        backend::style::variables::VariableOrFolder::Folder(f) => f.to_owned(),
+                        backend::style::variables::VariableOrFolder::Variable(a) => a.to_enum(),
+                        backend::style::variables::VariableOrFolder::Folder(f) => f.to_enum(),
                     },
                     position: (index == 0)
                         .then_some(DropPosition::First)
@@ -102,13 +107,13 @@ fn remove(node: &mut StyleItemMut, method: Method, node_id: &Uuid) -> ControlFlo
             }
         }
 
-        (Method::Visit, StyleItemMut::GraphicFolder(folder)) => {
+        (Method::Visit, StyleItem::GraphicFolder(folder)) => {
             if let Some(index) = folder.content.iter().position(|s| s.id() == node_id) {
                 ControlFlow::Break(RemovedNode {
-                    parent_id: *folder.id(),
+                    parent_id: folder.id,
                     node: match folder.content.remove(index) {
-                        backend::style::graphic::GraphicOrFolder::Graphic(t) => t.to_owned(),
-                        backend::style::graphic::GraphicOrFolder::Folder(f) => f.to_owned(),
+                        backend::style::graphic::GraphicOrFolder::Graphic(t) => t.to_enum(),
+                        backend::style::graphic::GraphicOrFolder::Folder(f) => f.to_enum(),
                     },
                     position: (index == 0)
                         .then_some(DropPosition::First)
@@ -121,11 +126,11 @@ fn remove(node: &mut StyleItemMut, method: Method, node_id: &Uuid) -> ControlFlo
             }
         }
 
-        (Method::Visit, StyleItemMut::Scene(_)) => ControlFlow::Continue(()),
-        (Method::Visit, StyleItemMut::Style(_)) => ControlFlow::Continue(()),
-        (Method::Visit, StyleItemMut::Variable(_)) => ControlFlow::Continue(()),
-        (Method::Visit, StyleItemMut::Asset(_)) => ControlFlow::Continue(()),
-        (Method::Visit, StyleItemMut::Graphic(_)) => ControlFlow::Continue(()),
+        (Method::Visit, StyleItem::Scene(_)) => ControlFlow::Continue(()),
+        (Method::Visit, StyleItem::Style(_)) => ControlFlow::Continue(()),
+        (Method::Visit, StyleItem::Variable(_)) => ControlFlow::Continue(()),
+        (Method::Visit, StyleItem::Asset(_)) => ControlFlow::Continue(()),
+        (Method::Visit, StyleItem::Graphic(_)) => ControlFlow::Continue(()),
         (Method::Leave, _) => ControlFlow::Continue(()),
     }
 }

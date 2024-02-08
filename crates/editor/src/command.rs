@@ -5,8 +5,9 @@ pub mod move_node;
 pub mod remove_node;
 
 use backend::{
+    exact_variant::ExactVariant,
     savefile::{Savefile, SavefileChanged},
-    style::StyleDefinition,
+    style::{StyleDefinition, StyleItem},
 };
 use bevy::{
     app::Plugin,
@@ -70,7 +71,11 @@ impl EditorCommand {
         }
     }
 
-    fn execute(self, style: &mut StyleDefinition, adapter: &mut Adapter) -> Option<EditorCommand> {
+    fn execute(
+        self,
+        style: &mut ExactVariant<StyleItem, StyleDefinition>,
+        adapter: &mut Adapter,
+    ) -> Option<EditorCommand> {
         match self {
             EditorCommand::Undo => unreachable!("Undo command should never be executed"),
             EditorCommand::Redo => unreachable!("Redo command should never be executed"),

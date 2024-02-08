@@ -1,10 +1,13 @@
+use std::ops::Deref;
+
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 use crate::exact_variant::ExactVariant;
 
-use super::{OwnedStyleItem, StyleItem, StyleItemMut, StyleItemRef};
 use graphic_items::{root::Root, ComputedGraphicItem, GraphicItem};
+
+use super::StyleItem;
 
 pub mod graphic_items;
 
@@ -45,23 +48,6 @@ impl GraphicDefinition {
     }
 }
 
-impl StyleItem for GraphicDefinition {
-    fn id(&self) -> &uuid::Uuid {
-        &self.id
-    }
-
-    fn as_ref<'a>(&'a self) -> StyleItemRef<'a> {
-        StyleItemRef::Graphic(self)
-    }
-
-    fn as_mut<'a>(&'a mut self) -> StyleItemMut<'a> {
-        StyleItemMut::Graphic(self)
-    }
-    fn to_owned(self) -> OwnedStyleItem {
-        OwnedStyleItem::Graphic(self)
-    }
-}
-
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct GraphicFolder {
     pub id: Uuid,
@@ -80,33 +66,17 @@ impl GraphicFolder {
         self.content
             .iter()
             .flat_map(|af| match af {
-                GraphicOrFolder::Graphic(a) => vec![a],
+                GraphicOrFolder::Graphic(a) => vec![a.deref()],
                 GraphicOrFolder::Folder(f) => f.contained_graphics(),
             })
             .collect()
     }
 }
-impl StyleItem for GraphicFolder {
-    fn id(&self) -> &Uuid {
-        &self.id
-    }
-
-    fn as_ref<'a>(&'a self) -> StyleItemRef<'a> {
-        StyleItemRef::GraphicFolder(self)
-    }
-    fn as_mut<'a>(&'a mut self) -> StyleItemMut<'a> {
-        StyleItemMut::GraphicFolder(self)
-    }
-    fn to_owned(self) -> OwnedStyleItem {
-        OwnedStyleItem::GraphicFolder(self)
-    }
-}
-
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(tag = "element_type")]
 pub enum GraphicOrFolder {
-    Graphic(GraphicDefinition),
-    Folder(GraphicFolder),
+    Graphic(ExactVariant<StyleItem, GraphicDefinition>),
+    Folder(ExactVariant<StyleItem, GraphicFolder>),
 }
 impl GraphicOrFolder {
     pub fn id(&self) -> &Uuid {

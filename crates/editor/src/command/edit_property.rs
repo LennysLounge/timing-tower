@@ -1,7 +1,8 @@
 use std::{any::Any, ops::BitOrAssign, time::Instant};
 
 use backend::{
-    style::{StyleDefinition, StyleItem, StyleItemMut},
+    exact_variant::ExactVariant,
+    style::{StyleDefinition, StyleItem},
     tree_iterator::TreeIteratorMut,
 };
 use bevy_egui::egui::{self, Response};
@@ -28,19 +29,21 @@ impl EditProperty {
         }
     }
 
-    pub fn execute(self, style: &mut StyleDefinition) -> Option<EditorCommand> {
+    pub fn execute(
+        self,
+        style: &mut ExactVariant<StyleItem, StyleDefinition>,
+    ) -> Option<EditorCommand> {
         style
-            .as_mut()
             .search_mut(self.node_id, |node| {
                 let old_value = match node {
-                    StyleItemMut::Style(o) => apply_edit(*o, self.value),
-                    StyleItemMut::Variable(o) => apply_edit(*o, self.value),
-                    StyleItemMut::VariableFolder(o) => apply_edit(*o, self.value),
-                    StyleItemMut::Asset(o) => apply_edit(*o, self.value),
-                    StyleItemMut::AssetFolder(o) => apply_edit(*o, self.value),
-                    StyleItemMut::Scene(o) => apply_edit(*o, self.value),
-                    StyleItemMut::Graphic(o) => apply_edit(*o, self.value),
-                    StyleItemMut::GraphicFolder(o) => apply_edit(*o, self.value),
+                    StyleItem::Style(o) => apply_edit(o, self.value),
+                    StyleItem::Variable(o) => apply_edit(o, self.value),
+                    StyleItem::VariableFolder(o) => apply_edit(o, self.value),
+                    StyleItem::Asset(o) => apply_edit(o, self.value),
+                    StyleItem::AssetFolder(o) => apply_edit(o, self.value),
+                    StyleItem::Scene(o) => apply_edit(o, self.value),
+                    StyleItem::Graphic(o) => apply_edit(o, self.value),
+                    StyleItem::GraphicFolder(o) => apply_edit(o, self.value),
                 };
                 EditProperty {
                     timestamp: self.timestamp,

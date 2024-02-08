@@ -1,7 +1,8 @@
 use backend::{
+    exact_variant::ExactVariant,
     style::{
         variables::{condition::Condition, fixed_value::FixedValue, map::Map, VariableBehavior},
-        StyleDefinition, StyleItem, StyleItemMut,
+        StyleDefinition, StyleItem,
     },
     tree_iterator::TreeIteratorMut,
     value_types::ValueType,
@@ -32,7 +33,7 @@ pub fn property_editor(
     selected_id: &mut Option<Uuid>,
     secondary_selection: &mut Option<Uuid>,
     graphic_state_selection: &mut Option<Uuid>,
-    style: &mut StyleDefinition,
+    style: &mut ExactVariant<StyleItem, StyleDefinition>,
     reference_store: &ReferenceStore,
     undo_redo_manager: &mut UndoRedoManager,
     game_adapter: &Adapter,
@@ -44,7 +45,7 @@ pub fn property_editor(
     ScrollArea::vertical()
         .auto_shrink([false, false])
         .show(ui, |ui| {
-            style.as_mut().search_mut(*selected_id, |node| {
+            style.search_mut(*selected_id, |node| {
                 edit_node(
                     ui,
                     node,
@@ -60,7 +61,7 @@ pub fn property_editor(
 
 pub fn edit_node(
     ui: &mut Ui,
-    node: &mut StyleItemMut,
+    node: &mut StyleItem,
     reference_store: &ReferenceStore,
     game_adapter: &Adapter,
     undo_redo_manager: &mut UndoRedoManager,
@@ -68,7 +69,7 @@ pub fn edit_node(
     graphic_state_selection: &mut Option<Uuid>,
 ) {
     match node {
-        StyleItemMut::Asset(asset) => {
+        StyleItem::Asset(asset) => {
             let mut edit_result = EditResult::None;
 
             ui.label("Name");
@@ -92,7 +93,7 @@ pub fn edit_node(
             }
         }
 
-        StyleItemMut::AssetFolder(folder) => {
+        StyleItem::AssetFolder(folder) => {
             let mut edit_result = EditResult::None;
 
             ui.label("Name:");
@@ -103,7 +104,7 @@ pub fn edit_node(
             }
         }
 
-        StyleItemMut::Variable(variable) => {
+        StyleItem::Variable(variable) => {
             let mut edit_result = EditResult::None;
 
             ui.label("Name:");
@@ -176,7 +177,7 @@ pub fn edit_node(
             }
         }
 
-        StyleItemMut::VariableFolder(folder) => {
+        StyleItem::VariableFolder(folder) => {
             let mut edit_result = EditResult::None;
 
             ui.label("Name:");
@@ -187,7 +188,7 @@ pub fn edit_node(
             }
         }
 
-        StyleItemMut::Scene(scene) => {
+        StyleItem::Scene(scene) => {
             let mut edit_result = EditResult::None;
 
             ui.label("Prefered size:");
@@ -236,7 +237,7 @@ pub fn edit_node(
             });
         }
 
-        StyleItemMut::Graphic(component) => {
+        StyleItem::Graphic(component) => {
             ui.push_id(component.id, |ui| {
                 graphic_property_editor(
                     ui,
@@ -248,7 +249,7 @@ pub fn edit_node(
                 );
             });
         }
-        StyleItemMut::GraphicFolder(folder) => {
+        StyleItem::GraphicFolder(folder) => {
             let mut edit_result = EditResult::None;
 
             ui.label("Name:");
@@ -259,6 +260,6 @@ pub fn edit_node(
             }
         }
 
-        StyleItemMut::Style(_) => (),
+        StyleItem::Style(_) => (),
     }
 }

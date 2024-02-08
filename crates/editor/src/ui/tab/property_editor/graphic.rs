@@ -1,9 +1,10 @@
 use std::ops::ControlFlow;
 
 use backend::{
-    style::{
-        graphic::{self, GraphicDefinition},
+    style::graphic::{
+        self,
         graphic_items::{cell::Cell, clip_area::ClipArea, driver_table::DriverTable, GraphicItem},
+        GraphicDefinition,
     },
     tree_iterator::{Method, TreeItem, TreeIterator, TreeIteratorMut},
 };

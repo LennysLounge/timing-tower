@@ -15,7 +15,6 @@ use self::{
 
 pub mod assets;
 pub mod graphic;
-pub mod graphic_items;
 pub mod scene;
 pub mod variables;
 

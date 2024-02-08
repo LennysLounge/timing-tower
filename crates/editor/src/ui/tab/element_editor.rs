@@ -1,20 +1,22 @@
 use backend::{
     style::{
-        graphic::GraphicDefinition, graphic_items::GraphicItem, StyleDefinition, StyleItem,
-        StyleItemMut,
+        graphic::{
+            graphic_items::{
+                cell::Cell, clip_area::ClipArea, driver_table::DriverTable, root::Root, Attribute,
+                GraphicItem,
+            },
+            GraphicDefinition,
+        },
+        StyleDefinition, StyleItem, StyleItemMut,
     },
     tree_iterator::TreeIteratorMut,
-};
-use unified_sim_model::Adapter;
-use uuid::Uuid;
-
-use backend::style::graphic_items::{
-    cell::Cell, clip_area::ClipArea, driver_table::DriverTable, root::Root, Attribute,
 };
 use bevy_egui::egui::{
     self, vec2, CollapsingHeader, DragValue, Layout, ScrollArea, Ui, WidgetText,
 };
 use common::communication::TextAlignment;
+use unified_sim_model::Adapter;
+use uuid::Uuid;
 
 use crate::{
     command::{

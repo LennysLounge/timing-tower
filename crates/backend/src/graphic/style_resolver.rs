@@ -6,7 +6,7 @@ use common::communication::{CellStyle, ClipAreaStyle};
 use unified_sim_model::model::{Entry, Session};
 
 use crate::{
-    style::graphic_items::{cell::ComputedCell, clip_area::ComputedClipArea},
+    style::graphic::graphic_items::{cell::ComputedCell, clip_area::ComputedClipArea},
     value_store::{TypedValueResolver, ValueStore},
     value_types::{Boolean, Font, Number, Property, Text, Texture, Tint, Vec2Property},
 };

@@ -3,10 +3,10 @@ use uuid::Uuid;
 
 use crate::exact_variant::ExactVariant;
 
-use super::{
-    graphic_items::{root::Root, ComputedGraphicItem, GraphicItem},
-    OwnedStyleItem, StyleItem, StyleItemMut, StyleItemRef,
-};
+use super::{OwnedStyleItem, StyleItem, StyleItemMut, StyleItemRef};
+use graphic_items::{root::Root, ComputedGraphicItem, GraphicItem};
+
+pub mod graphic_items;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct State {

@@ -18,7 +18,7 @@ use uuid::Uuid;
 
 use crate::{
     savefile::Savefile,
-    style::{graphic_items::ComputedGraphicItem, StyleItem, StyleItemRef},
+    style::{graphic::graphic_items::ComputedGraphicItem, StyleItem, StyleItemRef},
     style_batcher::{CellId, StyleBatcher},
     tree_iterator::TreeIterator,
     value_store::ValueStore,

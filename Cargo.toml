@@ -7,9 +7,9 @@ members = ["crates/*"]
 # Bevy
 bevy = "0.12"
 # Dependencies that all use the same egui version
-egui = "0.24"
-bevy_egui = "0.24"
-egui_dock = "0.9"
+egui = "0.26"
+bevy_egui = { git = "https://github.com/LennysLounge/bevy_egui_l.git" }
+egui_dock = "0.11"
 
 tracing = "0.1.4"
 serde = "1.0.188"

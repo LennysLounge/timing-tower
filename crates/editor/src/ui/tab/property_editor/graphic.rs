@@ -10,7 +10,7 @@ use backend::{
     },
     tree_iterator::{Method, TreeItem, TreeIterator, TreeIteratorMut},
 };
-use bevy_egui::egui::{self, vec2, Color32, Id, Ui};
+use bevy_egui::egui::{self, vec2, Color32, Id, RichText, Ui};
 use egui_ltreeview::{
     builder::NodeBuilder, Action, DropPosition, RowLayout, TreeView, TreeViewBuilder,
 };
@@ -84,11 +84,9 @@ pub fn graphic_property_editor(
         let tree_res = TreeView::new(ui.make_persistent_id("State tree"))
             .row_layout(RowLayout::Compact)
             .show(ui, |mut builder| {
-                builder.leaf(GraphicStateId(Uuid::default()), |ui| {
-                    _ = ui.label("Template")
-                });
+                builder.leaf(GraphicStateId(Uuid::default()), "Template");
                 for state in component.states.iter_mut() {
-                    builder.leaf(state.id, |ui| _ = ui.label(&state.name));
+                    builder.leaf(state.id, &state.name);
                 }
             });
         for action in tree_res.actions {
@@ -239,8 +237,11 @@ fn element_tree_node(
         (Method::Visit, GraphicItem::Root(root)) => {
             builder.node(NodeBuilder::dir(root.id), |ui| {
                 ui.horizontal(|ui| {
-                    ui.colored_label(Color32::from_gray(120), "Graphic");
-                    ui.label(&root.name);
+                    ui.add(
+                        egui::Label::new(RichText::new("Graphic").color(Color32::from_gray(120)))
+                            .selectable(false),
+                    );
+                    ui.add(egui::Label::new(&root.name).selectable(false));
                 });
             });
         }
@@ -257,8 +258,11 @@ fn element_tree_node(
                 }),
                 |ui| {
                     ui.horizontal(|ui| {
-                        ui.colored_label(Color32::from_gray(120), "Cell");
-                        ui.label(&cell.name);
+                        ui.add(
+                            egui::Label::new(RichText::new("Cell").color(Color32::from_gray(120)))
+                                .selectable(false),
+                        );
+                        ui.add(egui::Label::new(&cell.name).selectable(false));
                     });
                 },
             );
@@ -273,8 +277,13 @@ fn element_tree_node(
                 }),
                 |ui| {
                     ui.horizontal(|ui| {
-                        ui.colored_label(Color32::from_gray(120), "Clip area");
-                        ui.label(&clip_area.name);
+                        ui.add(
+                            egui::Label::new(
+                                RichText::new("Clip area").color(Color32::from_gray(120)),
+                            )
+                            .selectable(false),
+                        );
+                        ui.add(egui::Label::new(&clip_area.name).selectable(false));
                     });
                 },
             );
@@ -291,8 +300,13 @@ fn element_tree_node(
                 }),
                 |ui| {
                     ui.horizontal(|ui| {
-                        ui.colored_label(Color32::from_gray(120), "Driver table");
-                        ui.label(&driver_table.name);
+                        ui.add(
+                            egui::Label::new(
+                                RichText::new("Driver table").color(Color32::from_gray(120)),
+                            )
+                            .selectable(false),
+                        );
+                        ui.add(egui::Label::new(&driver_table.name).selectable(false));
                     });
                 },
             );

@@ -112,7 +112,7 @@ fn show_node(
     match (method, node) {
         (Method::Visit, StyleItem::Style(style)) => {
             builder.node(NodeBuilder::dir(style.id).flatten(true), |ui| {
-                ui.label("Style");
+                ui.add(egui::Label::new("Style").selectable(false));
             });
             ControlFlow::Continue(())
         }
@@ -138,7 +138,7 @@ fn show_node(
                 };
             });
             builder.node(node_config, |ui| {
-                ui.label(&asset.name);
+                ui.add(egui::Label::new(&asset.name).selectable(false));
             });
             ControlFlow::Continue(())
         }
@@ -149,7 +149,7 @@ fn show_node(
                     .closer(folder_closer)
                     .default_open(false),
                 |ui| {
-                    ui.label(&folder.name);
+                    ui.add(egui::Label::new(&folder.name).selectable(false));
                 },
             );
             ControlFlow::Continue(())
@@ -168,7 +168,7 @@ fn show_node(
                         .paint_at(ui, ui.max_rect());
                 }),
                 |ui| {
-                    ui.label(&variable.name);
+                    ui.add(egui::Label::new(&variable.name).selectable(false));
                 },
             );
             ControlFlow::Continue(())
@@ -180,7 +180,7 @@ fn show_node(
                     .closer(folder_closer)
                     .default_open(false),
                 |ui| {
-                    ui.label(&folder.name);
+                    ui.add(egui::Label::new(&folder.name).selectable(false));
                 },
             );
             ControlFlow::Continue(())
@@ -193,7 +193,7 @@ fn show_node(
 
         (Method::Visit, StyleItem::Scene(scene)) => {
             builder.node(NodeBuilder::dir(scene.id).closer(folder_closer), |ui| {
-                ui.label("Scene");
+                ui.add(egui::Label::new("Scene").selectable(false));
             });
             ControlFlow::Continue(())
         }
@@ -209,14 +209,14 @@ fn show_node(
                         .paint_at(ui, ui.max_rect());
                 }),
                 |ui| {
-                    ui.label(&graphic.name);
+                    ui.add(egui::Label::new(&graphic.name).selectable(false));
                 },
             );
             ControlFlow::Continue(())
         }
         (Method::Visit, StyleItem::GraphicFolder(folder)) => {
             builder.node(NodeBuilder::dir(folder.id).closer(folder_closer), |ui| {
-                ui.label(&folder.name);
+                ui.add(egui::Label::new(&folder.name).selectable(false));
             });
             ControlFlow::Continue(())
         }

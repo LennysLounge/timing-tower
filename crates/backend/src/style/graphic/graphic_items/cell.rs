@@ -1,10 +1,12 @@
 use bevy::prelude::Color;
 use common::communication::TextAlignment;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
-use crate::value_types::{
-    Boolean, Font, Number, Property, Text, Texture, Tint, Vec2Property, Vec3Property,
+use crate::{
+    style::graphic::GraphicStateId,
+    value_types::{
+        Boolean, Font, Number, Property, Text, Texture, Tint, Vec2Property, Vec3Property,
+    },
 };
 
 use super::{Attribute, GraphicItemId};
@@ -70,7 +72,7 @@ impl Cell {
         }
     }
 
-    pub fn compute_for_state(&self, state: Option<&Uuid>) -> ComputedCell {
+    pub fn compute_for_state(&self, state: Option<&GraphicStateId>) -> ComputedCell {
         ComputedCell {
             id: self.id,
             text: self.text.get_state_or_template(state),

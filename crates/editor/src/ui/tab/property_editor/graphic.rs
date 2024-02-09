@@ -6,7 +6,7 @@ use backend::{
         graphic_items::{
             cell::Cell, clip_area::ClipArea, driver_table::DriverTable, GraphicItem, GraphicItemId,
         },
-        GraphicDefinition,
+        GraphicDefinition, GraphicStateId,
     },
     tree_iterator::{Method, TreeItem, TreeIterator, TreeIteratorMut},
 };
@@ -28,7 +28,7 @@ pub fn graphic_property_editor(
     ui: &mut Ui,
     component: &mut GraphicDefinition,
     graphic_item_selection: &mut Option<GraphicItemId>,
-    graphic_state_selection: &mut Option<Uuid>,
+    graphic_state_selection: &mut Option<GraphicStateId>,
     _reference_store: &ReferenceStore,
     undo_redo_manager: &mut UndoRedoManager,
 ) {
@@ -84,14 +84,16 @@ pub fn graphic_property_editor(
         let tree_res = TreeView::new(ui.make_persistent_id("State tree"))
             .row_layout(RowLayout::Compact)
             .show(ui, |mut builder| {
-                builder.leaf(Uuid::default(), |ui| _ = ui.label("Template"));
+                builder.leaf(GraphicStateId(Uuid::default()), |ui| {
+                    _ = ui.label("Template")
+                });
                 for state in component.states.iter_mut() {
                     builder.leaf(state.id, |ui| _ = ui.label(&state.name));
                 }
             });
         for action in tree_res.actions {
             if let Action::SetSelected(id) = action {
-                if id.is_some_and(|id| id == Uuid::default()) {
+                if id.is_some_and(|id| id.0 == Uuid::default()) {
                     *graphic_state_selection = None;
                 } else {
                     *graphic_state_selection = id;
@@ -106,8 +108,8 @@ pub fn graphic_property_editor(
     });
     let add_button_res = ui.add_sized(vec2(ui.available_width(), 0.0), egui::Button::new("Add"));
     if add_button_res.clicked() {
-        component.states.push(graphic::State {
-            id: Uuid::new_v4(),
+        component.states.push(graphic::GraphicState {
+            id: GraphicStateId::new(),
             name: String::from("new state"),
         });
     }

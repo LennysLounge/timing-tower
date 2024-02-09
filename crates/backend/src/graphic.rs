@@ -14,11 +14,13 @@ use bevy::{
 };
 
 use unified_sim_model::model::{Entry, Model};
-use uuid::Uuid;
 
 use crate::{
     savefile::Savefile,
-    style::{graphic::graphic_items::ComputedGraphicItem, StyleId, StyleItem},
+    style::{
+        graphic::{graphic_items::ComputedGraphicItem, GraphicStateId},
+        StyleId, StyleItem,
+    },
     style_batcher::{CellId, StyleBatcher},
     tree_iterator::TreeIterator,
     value_store::ValueStore,
@@ -48,7 +50,7 @@ impl Plugin for GraphicPlugin {
 
 #[derive(Resource, Default)]
 pub struct GraphicStates {
-    pub states: HashMap<StyleId, Uuid>,
+    pub states: HashMap<StyleId, GraphicStateId>,
 }
 
 #[derive(SystemSet, Hash, Debug, PartialEq, Eq, Clone)]

@@ -12,9 +12,18 @@ use super::{StyleId, StyleItem};
 pub mod graphic_items;
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct State {
-    pub id: Uuid,
+pub struct GraphicState {
+    pub id: GraphicStateId,
     pub name: String,
+}
+
+/// Id that identifies a graphic state item.
+#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub struct GraphicStateId(pub Uuid);
+impl GraphicStateId {
+    pub fn new() -> Self {
+        GraphicStateId(Uuid::new_v4())
+    }
 }
 
 pub struct ComputedGraphic {
@@ -28,7 +37,7 @@ pub struct GraphicDefinition {
     pub id: StyleId,
     pub name: String,
     pub items: ExactVariant<GraphicItem, Root>,
-    pub states: Vec<State>,
+    pub states: Vec<GraphicState>,
 }
 impl GraphicDefinition {
     pub fn new() -> Self {
@@ -40,7 +49,7 @@ impl GraphicDefinition {
         }
     }
 
-    pub fn compute_style(&self, state: Option<&Uuid>) -> ComputedGraphic {
+    pub fn compute_style(&self, state: Option<&GraphicStateId>) -> ComputedGraphic {
         ComputedGraphic {
             graphic_id: self.id.0,
             root: self.items.as_enum_ref().compute_for_state(state),

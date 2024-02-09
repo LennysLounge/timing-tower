@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
-use crate::value_types::{Number, Property, Vec2Property, Vec3Property};
+use crate::{style::graphic::GraphicStateId, value_types::{Number, Property, Vec2Property, Vec3Property}};
 
 use super::{cell::Rounding, Attribute, ComputedGraphicItem, GraphicItem, GraphicItemId};
 
@@ -35,7 +34,7 @@ impl ClipArea {
             items: Vec::new(),
         }
     }
-    pub fn compute_for_state(&self, state: Option<&Uuid>) -> ComputedClipArea {
+    pub fn compute_for_state(&self, state: Option<&GraphicStateId>) -> ComputedClipArea {
         ComputedClipArea {
             id: self.id,
             pos: self.pos.get_state_or_template(state),

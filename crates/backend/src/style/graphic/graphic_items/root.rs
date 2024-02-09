@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
-use crate::value_types::Vec2Property;
+use crate::{style::graphic::GraphicStateId, value_types::Vec2Property};
 
 use super::{Attribute, ComputedGraphicItem, GraphicItem, GraphicItemId};
 
@@ -23,7 +22,7 @@ impl Root {
         }
     }
 
-    pub fn compute_for_state(&self, state: Option<&Uuid>) -> ComputedRoot {
+    pub fn compute_for_state(&self, state: Option<&GraphicStateId>) -> ComputedRoot {
         ComputedRoot {
             id: self.id,
             position: self.position.get_state_or_template(state),

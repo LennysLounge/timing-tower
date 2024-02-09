@@ -6,7 +6,7 @@ use backend::{
                 cell::Cell, clip_area::ClipArea, driver_table::DriverTable, root::Root, Attribute,
                 GraphicItem, GraphicItemId,
             },
-            GraphicDefinition,
+            GraphicDefinition, GraphicStateId,
         },
         StyleDefinition, StyleId, StyleItem,
     },
@@ -17,7 +17,6 @@ use bevy_egui::egui::{
 };
 use common::communication::TextAlignment;
 use unified_sim_model::Adapter;
-use uuid::Uuid;
 
 use crate::{
     command::{
@@ -34,7 +33,7 @@ pub fn element_editor(
     ui: &mut Ui,
     style_item_selection: &mut Option<StyleId>,
     graphic_item_selection: &mut Option<GraphicItemId>,
-    graphic_state_selection: &mut Option<Uuid>,
+    graphic_state_selection: &mut Option<GraphicStateId>,
     style: &mut ExactVariant<StyleItem, StyleDefinition>,
     reference_store: &ReferenceStore,
     undo_redo_manager: &mut UndoRedoManager,
@@ -74,7 +73,7 @@ fn graphic_item(
     ui: &mut Ui,
     graphic: &mut GraphicDefinition,
     graphic_item_selection: Option<&GraphicItemId>,
-    graphic_state_selection: Option<&Uuid>,
+    graphic_state_selection: Option<&GraphicStateId>,
     reference_store: &ReferenceStore,
 ) -> EditResult {
     let mut edit_result = EditResult::None;
@@ -107,7 +106,7 @@ fn graphic_item(
 fn editor(
     ui: &mut Ui,
     element: &mut GraphicItem,
-    state_id: Option<&Uuid>,
+    state_id: Option<&GraphicStateId>,
     reference_store: &ReferenceStore,
 ) -> EditResult {
     match element {
@@ -170,7 +169,7 @@ pub fn ui_split(ui: &mut Ui, label: impl Into<WidgetText>, right: impl FnMut(&mu
 fn ui_attribute<T: Clone>(
     ui: &mut Ui,
     attr: &mut Attribute<T>,
-    state_id: Option<&Uuid>,
+    state_id: Option<&GraphicStateId>,
     mut add_content: impl FnMut(&mut Ui, &mut T),
 ) {
     if let Some(state_id) = state_id {
@@ -209,7 +208,7 @@ fn ui_attribute<T: Clone>(
 pub fn cell_property_editor(
     ui: &mut Ui,
     cell: &mut Cell,
-    state_id: Option<&Uuid>,
+    state_id: Option<&GraphicStateId>,
     reference_store: &ReferenceStore,
 ) -> EditResult {
     let mut edit_result = EditResult::None;
@@ -397,7 +396,7 @@ pub fn cell_property_editor(
 pub fn clip_area_editor(
     ui: &mut Ui,
     clip_area: &mut ClipArea,
-    state_id: Option<&Uuid>,
+    state_id: Option<&GraphicStateId>,
     reference_store: &ReferenceStore,
 ) -> EditResult {
     let mut edit_result = EditResult::None;
@@ -484,7 +483,7 @@ pub fn clip_area_editor(
 pub fn root_editor(
     ui: &mut Ui,
     root: &mut Root,
-    state_id: Option<&Uuid>,
+    state_id: Option<&GraphicStateId>,
     reference_store: &ReferenceStore,
 ) -> EditResult {
     let mut edit_result = EditResult::None;
@@ -510,7 +509,7 @@ pub fn root_editor(
 pub fn driver_table_editor(
     ui: &mut Ui,
     driver_table: &mut DriverTable,
-    state_id: Option<&Uuid>,
+    state_id: Option<&GraphicStateId>,
     reference_store: &ReferenceStore,
 ) -> EditResult {
     let mut edit_result = EditResult::None;

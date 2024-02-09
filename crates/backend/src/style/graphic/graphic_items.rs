@@ -21,6 +21,8 @@ use self::{
     root::{ComputedRoot, Root},
 };
 
+use super::GraphicStateId;
+
 /// Id that identifies a graphic item.
 #[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct GraphicItemId(pub Uuid);
@@ -41,7 +43,7 @@ pub enum GraphicItem {
     DriverTable(DriverTable),
 }
 impl GraphicItem {
-    pub fn compute_for_state(&self, state: Option<&Uuid>) -> ComputedGraphicItem {
+    pub fn compute_for_state(&self, state: Option<&GraphicStateId>) -> ComputedGraphicItem {
         match self {
             GraphicItem::Root(o) => ComputedGraphicItem::Root(o.compute_for_state(state)),
             GraphicItem::Cell(o) => ComputedGraphicItem::Cell(o.compute_for_state(state)),
@@ -119,7 +121,7 @@ impl TreeIteratorMut for GraphicItem {
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct Attribute<T> {
     template: T,
-    states: HashMap<Uuid, T>,
+    states: HashMap<GraphicStateId, T>,
 }
 impl<T> Attribute<T> {
     pub fn template(&self) -> &T {
@@ -129,22 +131,22 @@ impl<T> Attribute<T> {
         &mut self.template
     }
 
-    pub fn get_state(&mut self, state_id: &Uuid) -> Option<&mut T> {
+    pub fn get_state(&mut self, state_id: &GraphicStateId) -> Option<&mut T> {
         self.states.get_mut(state_id)
     }
-    pub fn add_state(&mut self, state_id: Uuid)
+    pub fn add_state(&mut self, state_id: GraphicStateId)
     where
         T: Clone,
     {
         self.states.insert(state_id, self.template.clone());
     }
-    pub fn remove_state(&mut self, state_id: &Uuid) {
+    pub fn remove_state(&mut self, state_id: &GraphicStateId) {
         self.states.remove(state_id);
     }
-    pub fn has_state(&self, state_id: &Uuid) -> bool {
+    pub fn has_state(&self, state_id: &GraphicStateId) -> bool {
         self.states.contains_key(&state_id)
     }
-    pub fn get_state_or_template(&self, state_id: Option<&Uuid>) -> T
+    pub fn get_state_or_template(&self, state_id: Option<&GraphicStateId>) -> T
     where
         T: Clone,
     {

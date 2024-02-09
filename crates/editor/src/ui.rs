@@ -7,7 +7,10 @@ use backend::{
     exact_variant::ExactVariant,
     graphic::GraphicStates,
     savefile::{Savefile, SavefileChanged},
-    style::{graphic::graphic_items::GraphicItemId, StyleDefinition, StyleId, StyleItem},
+    style::{
+        graphic::{graphic_items::GraphicItemId, GraphicStateId},
+        StyleDefinition, StyleId, StyleItem,
+    },
 };
 use bevy::{
     app::{First, Update},
@@ -25,7 +28,6 @@ use bevy_egui::{
 };
 use egui_dock::{DockArea, DockState, NodeIndex};
 use tracing::error;
-use uuid::Uuid;
 
 use crate::{
     camera::{AlignCamera, EditorCamera, ResetCamera},
@@ -63,7 +65,7 @@ struct EditorState {
     dock_state: DockState<Tab>,
     style_item_selection: Option<StyleId>,
     graphic_item_selection: Option<GraphicItemId>,
-    graphic_state_selection: Option<Uuid>,
+    graphic_state_selection: Option<GraphicStateId>,
     style: ExactVariant<StyleItem, StyleDefinition>,
 }
 impl EditorState {

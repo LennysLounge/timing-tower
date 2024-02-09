@@ -1,7 +1,7 @@
 use backend::{
     exact_variant::ExactVariant,
     style::{
-        graphic::graphic_items::GraphicItemId,
+        graphic::{graphic_items::GraphicItemId, GraphicStateId},
         variables::{condition::Condition, fixed_value::FixedValue, map::Map, VariableBehavior},
         StyleDefinition, StyleId, StyleItem,
     },
@@ -11,7 +11,6 @@ use backend::{
 use bevy_egui::egui::{ComboBox, DragValue, ScrollArea, Ui};
 use rand::{seq::IteratorRandom, thread_rng};
 use unified_sim_model::{games::dummy::DummyCommands, Adapter, GameAdapterCommand};
-use uuid::Uuid;
 
 use crate::{
     command::{
@@ -33,7 +32,7 @@ pub fn property_editor(
     ui: &mut Ui,
     selected_id: &mut Option<StyleId>,
     secondary_selection: &mut Option<GraphicItemId>,
-    graphic_state_selection: &mut Option<Uuid>,
+    graphic_state_selection: &mut Option<GraphicStateId>,
     style: &mut ExactVariant<StyleItem, StyleDefinition>,
     reference_store: &ReferenceStore,
     undo_redo_manager: &mut UndoRedoManager,
@@ -67,7 +66,7 @@ pub fn edit_node(
     game_adapter: &Adapter,
     undo_redo_manager: &mut UndoRedoManager,
     graphic_item_selection: &mut Option<GraphicItemId>,
-    graphic_state_selection: &mut Option<Uuid>,
+    graphic_state_selection: &mut Option<GraphicStateId>,
 ) {
     match node {
         StyleItem::Asset(asset) => {

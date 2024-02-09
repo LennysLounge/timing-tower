@@ -5,12 +5,14 @@ mod undo_redo;
 
 use backend::{
     exact_variant::ExactVariant,
-    style::{graphic::graphic_items::GraphicItemId, StyleDefinition, StyleId, StyleItem},
+    style::{
+        graphic::{graphic_items::GraphicItemId, GraphicStateId},
+        StyleDefinition, StyleId, StyleItem,
+    },
 };
 use bevy_egui::egui::{self, Rect};
 use egui_dock::TabViewer;
 use unified_sim_model::Adapter;
-use uuid::Uuid;
 
 use crate::{command::UndoRedoManager, reference_store::ReferenceStore};
 
@@ -28,7 +30,7 @@ pub struct EditorTabViewer<'a> {
     pub viewport: &'a mut Rect,
     pub style_item_selection: &'a mut Option<StyleId>,
     pub graphic_item_selection: &'a mut Option<GraphicItemId>,
-    pub graphic_state_selection: &'a mut Option<Uuid>,
+    pub graphic_state_selection: &'a mut Option<GraphicStateId>,
     pub style: &'a mut ExactVariant<StyleItem, StyleDefinition>,
     pub reference_store: &'a ReferenceStore,
     pub undo_redo_manager: &'a mut UndoRedoManager,

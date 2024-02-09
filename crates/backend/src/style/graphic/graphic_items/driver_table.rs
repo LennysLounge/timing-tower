@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
-use crate::value_types::{Number, Property, Vec2Property};
+use crate::{
+    style::graphic::GraphicStateId,
+    value_types::{Number, Property, Vec2Property},
+};
 
 use super::{Attribute, ComputedGraphicItem, GraphicItem, GraphicItemId};
 
@@ -26,7 +28,7 @@ impl DriverTable {
             columns: Vec::new(),
         }
     }
-    pub fn compute_for_state(&self, state: Option<&Uuid>) -> ComputedDriverTable {
+    pub fn compute_for_state(&self, state: Option<&GraphicStateId>) -> ComputedDriverTable {
         ComputedDriverTable {
             id: self.id,
             row_offset: self.row_offset.get_state_or_template(state),

@@ -1,17 +1,16 @@
 use backend::{
     exact_variant::ExactVariant,
-    style::{StyleDefinition, StyleItem},
+    style::{StyleDefinition, StyleId, StyleItem},
     tree_iterator::TreeIteratorMut,
 };
 use egui_ltreeview::DropPosition;
-use uuid::Uuid;
 
 use super::{insert_node::insert, remove_node::remove_node, EditorCommand};
 
 pub struct MoveNode {
-    pub id: Uuid,
-    pub target_id: Uuid,
-    pub position: DropPosition<Uuid>,
+    pub id: StyleId,
+    pub target_id: StyleId,
+    pub position: DropPosition<StyleId>,
 }
 impl MoveNode {
     pub fn execute(

@@ -21,9 +21,18 @@ pub mod graphic;
 pub mod scene;
 pub mod variables;
 
+/// Id that identifies a style item.
+#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub struct StyleId(pub Uuid);
+impl StyleId {
+    pub fn new() -> Self {
+        StyleId(Uuid::new_v4())
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone)]
 pub struct StyleDefinition {
-    pub id: Uuid,
+    pub id: StyleId,
     pub assets: Box<ExactVariant<StyleItem, AssetFolder>>,
     pub vars: Box<ExactVariant<StyleItem, VariableFolder>>,
     pub scene: Box<ExactVariant<StyleItem, SceneDefinition>>,
@@ -55,7 +64,9 @@ pub enum StyleItem {
 }
 
 impl TreeItem for StyleItem {
-    fn id(&self) -> Uuid {
+    type Id = StyleId;
+
+    fn id(&self) -> Self::Id {
         match self {
             StyleItem::Style(o) => o.id,
             StyleItem::Variable(o) => o.id,
@@ -70,11 +81,11 @@ impl TreeItem for StyleItem {
 }
 
 impl TreeIterator for StyleItem {
-    type Item<'item> = StyleItem;
+    type Item = StyleItem;
 
     fn walk<F, R>(&self, f: &mut F) -> ControlFlow<R>
     where
-        F: FnMut(&Self::Item<'_>, Method) -> ControlFlow<R>,
+        F: FnMut(&Self::Item, Method) -> ControlFlow<R>,
     {
         f(self, Method::Visit)?;
         match self {
@@ -112,11 +123,11 @@ impl TreeIterator for StyleItem {
 }
 
 impl TreeIteratorMut for StyleItem {
-    type Item<'item> = StyleItem;
+    type Item = StyleItem;
 
     fn walk_mut<F, R>(&mut self, f: &mut F) -> ControlFlow<R>
     where
-        F: FnMut(&mut Self::Item<'_>, Method) -> ControlFlow<R>,
+        F: FnMut(&mut Self::Item, Method) -> ControlFlow<R>,
     {
         f(self, Method::Visit)?;
         match self {

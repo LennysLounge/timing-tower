@@ -8,7 +8,7 @@ use backend::{
             },
             GraphicDefinition,
         },
-        StyleDefinition, StyleItem,
+        StyleDefinition, StyleId, StyleItem,
     },
     tree_iterator::TreeIteratorMut,
 };
@@ -32,7 +32,7 @@ use super::property_editor::property::PropertyEditor;
 
 pub fn element_editor(
     ui: &mut Ui,
-    style_item_selection: &mut Option<Uuid>,
+    style_item_selection: &mut Option<StyleId>,
     graphic_item_selection: &mut Option<Uuid>,
     graphic_state_selection: &mut Option<Uuid>,
     style: &mut ExactVariant<StyleItem, StyleDefinition>,

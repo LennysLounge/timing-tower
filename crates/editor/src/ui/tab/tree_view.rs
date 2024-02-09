@@ -6,7 +6,7 @@ use backend::{
         assets::{AssetDefinition, AssetFolder},
         graphic::GraphicDefinition,
         variables::{VariableDefinition, VariableFolder},
-        StyleDefinition, StyleItem,
+        StyleDefinition, StyleId, StyleItem,
     },
     tree_iterator::{Method, TreeIterator, TreeIteratorMut},
 };
@@ -23,7 +23,7 @@ use crate::command::{
 
 pub fn tree_view(
     ui: &mut Ui,
-    selected_node: &mut Option<Uuid>,
+    selected_node: &mut Option<StyleId>,
     _secondary_selection: &mut Option<Uuid>,
     base_node: &mut ExactVariant<StyleItem, StyleDefinition>,
     undo_redo_manager: &mut UndoRedoManager,
@@ -90,7 +90,7 @@ fn show(
     ui: &mut Ui,
     root: &mut StyleItem,
     undo_redo_manager: &mut UndoRedoManager,
-) -> TreeViewResponse<Uuid> {
+) -> TreeViewResponse<StyleId> {
     let response = egui_ltreeview::TreeView::new(ui.make_persistent_id("element_tree_view"))
         .row_layout(egui_ltreeview::RowLayout::CompactAlignedLables)
         .show(ui, |mut builder| {
@@ -108,7 +108,7 @@ fn show(
 fn show_node(
     node: &mut StyleItem,
     method: Method,
-    builder: &mut TreeViewBuilder<Uuid>,
+    builder: &mut TreeViewBuilder<StyleId>,
 ) -> ControlFlow<()> {
     match (method, node) {
         (Method::Visit, StyleItem::Style(style)) => {
@@ -253,7 +253,7 @@ fn context_menu(
     ui: &mut Ui,
     node: &mut StyleItem,
     undo_redo_manager: &mut UndoRedoManager,
-    tree_response: &TreeViewResponse<Uuid>,
+    tree_response: &TreeViewResponse<StyleId>,
 ) {
     match node {
         StyleItem::Style(_) => _ = ui.label("Style"),

@@ -18,7 +18,7 @@ use uuid::Uuid;
 
 use crate::{
     savefile::Savefile,
-    style::{graphic::graphic_items::ComputedGraphicItem, StyleItem},
+    style::{graphic::graphic_items::ComputedGraphicItem, StyleId, StyleItem},
     style_batcher::{CellId, StyleBatcher},
     tree_iterator::TreeIterator,
     value_store::ValueStore,
@@ -48,7 +48,7 @@ impl Plugin for GraphicPlugin {
 
 #[derive(Resource, Default)]
 pub struct GraphicStates {
-    pub states: HashMap<Uuid, Uuid>,
+    pub states: HashMap<StyleId, Uuid>,
 }
 
 #[derive(SystemSet, Hash, Debug, PartialEq, Eq, Clone)]
@@ -56,13 +56,13 @@ pub struct StyleElementUpdate;
 
 #[derive(Component)]
 pub struct Graphic {
-    id: Uuid,
+    id: StyleId,
 }
 
 fn spawn_or_delete_graphics(
     mut commands: Commands,
     savefile: Res<Savefile>,
-    mut id_to_entity_map: Local<HashMap<Uuid, Entity>>,
+    mut id_to_entity_map: Local<HashMap<StyleId, Entity>>,
 ) {
     let mut known_graphics = HashSet::new();
     // spawn new graphics

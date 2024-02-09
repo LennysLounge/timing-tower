@@ -7,7 +7,7 @@ use backend::{
     exact_variant::ExactVariant,
     graphic::GraphicStates,
     savefile::{Savefile, SavefileChanged},
-    style::{StyleDefinition, StyleItem},
+    style::{StyleDefinition, StyleId, StyleItem},
 };
 use bevy::{
     app::{First, Update},
@@ -61,7 +61,7 @@ fn setup_egui_context(mut ctx: EguiContexts) {
 #[derive(Resource)]
 struct EditorState {
     dock_state: DockState<Tab>,
-    style_item_selection: Option<Uuid>,
+    style_item_selection: Option<StyleId>,
     graphic_item_selection: Option<Uuid>,
     graphic_state_selection: Option<Uuid>,
     style: ExactVariant<StyleItem, StyleDefinition>,

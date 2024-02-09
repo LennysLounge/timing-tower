@@ -146,7 +146,7 @@ fn make_assets_message(savefile: &Savefile) -> ToRendererMessage {
         .assets
         .contained_assets()
         .into_iter()
-        .map(|asset| (asset.id, asset_to_uuid_asset_path(asset).into()))
+        .map(|asset| (asset.id.0, asset_to_uuid_asset_path(asset).into()))
         .collect();
     ToRendererMessage::Init {
         images,
@@ -161,6 +161,7 @@ pub fn asset_to_uuid_asset_path(asset: &AssetDefinition) -> String {
 
     let mut uuid_string = asset
         .id
+        .0
         .as_hyphenated()
         .encode_lower(&mut Uuid::encode_buffer())
         .to_owned();

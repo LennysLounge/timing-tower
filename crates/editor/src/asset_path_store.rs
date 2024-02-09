@@ -46,7 +46,7 @@ fn savefile_changed(
     for asset in savefile.style().assets.contained_assets() {
         let asset_path = savefile.base_path().join(&asset.path);
         store.map.insert(
-            asset.id,
+            asset.id.0,
             AssetPath::from_path(&asset_path)
                 .clone_owned()
                 .with_source("savefile"),

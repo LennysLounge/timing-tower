@@ -7,7 +7,7 @@ use crate::exact_variant::ExactVariant;
 
 use graphic_items::{root::Root, ComputedGraphicItem, GraphicItem};
 
-use super::StyleItem;
+use super::{StyleId, StyleItem};
 
 pub mod graphic_items;
 
@@ -25,7 +25,7 @@ pub struct ComputedGraphic {
 /// A visual graphic component in the scene.
 #[derive(Serialize, Deserialize, Clone)]
 pub struct GraphicDefinition {
-    pub id: Uuid,
+    pub id: StyleId,
     pub name: String,
     pub items: ExactVariant<GraphicItem, Root>,
     pub states: Vec<State>,
@@ -33,7 +33,7 @@ pub struct GraphicDefinition {
 impl GraphicDefinition {
     pub fn new() -> Self {
         Self {
-            id: Uuid::new_v4(),
+            id: StyleId::new(),
             name: String::from("Graphic"),
             items: Root::new().into(),
             states: Vec::new(),
@@ -42,7 +42,7 @@ impl GraphicDefinition {
 
     pub fn compute_style(&self, state: Option<&Uuid>) -> ComputedGraphic {
         ComputedGraphic {
-            graphic_id: self.id,
+            graphic_id: self.id.0,
             root: self.items.as_enum_ref().compute_for_state(state),
         }
     }
@@ -50,14 +50,14 @@ impl GraphicDefinition {
 
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct GraphicFolder {
-    pub id: Uuid,
+    pub id: StyleId,
     pub name: String,
     pub content: Vec<GraphicOrFolder>,
 }
 impl GraphicFolder {
     pub fn new() -> Self {
         Self {
-            id: Uuid::new_v4(),
+            id: StyleId::new(),
             name: String::from("Graphics"),
             content: Vec::new(),
         }
@@ -79,7 +79,7 @@ pub enum GraphicOrFolder {
     Folder(ExactVariant<StyleItem, GraphicFolder>),
 }
 impl GraphicOrFolder {
-    pub fn id(&self) -> &Uuid {
+    pub fn id(&self) -> &StyleId {
         match self {
             GraphicOrFolder::Graphic(o) => &o.id,
             GraphicOrFolder::Folder(o) => &o.id,

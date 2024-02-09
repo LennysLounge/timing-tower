@@ -1,7 +1,5 @@
 use std::ops::ControlFlow;
 
-use uuid::Uuid;
-
 #[derive(PartialEq, Eq)]
 pub enum Method {
     Visit,
@@ -9,26 +7,32 @@ pub enum Method {
 }
 
 pub trait TreeItem {
-    fn id(&self) -> Uuid;
+    type Id: PartialEq + Eq;
+
+    fn id(&self) -> Self::Id;
 }
 
 pub trait TreeIterator {
-    type Item<'item>: TreeItem;
+    type Item: TreeItem;
 
     fn walk<F, R>(&self, f: &mut F) -> ControlFlow<R>
     where
-        F: FnMut(&Self::Item<'_>, Method) -> ControlFlow<R>;
+        F: FnMut(&Self::Item, Method) -> ControlFlow<R>;
 
-    fn search<T>(&self, node_id: Uuid, action: impl FnOnce(&Self::Item<'_>) -> T) -> Option<T> {
-        Self::search_key(&self, |node| node.id() == node_id, action)
+    fn search<T>(
+        &self,
+        key: <Self::Item as TreeItem>::Id,
+        action: impl FnOnce(&Self::Item) -> T,
+    ) -> Option<T> {
+        Self::search_key(&self, |node| node.id() == key, action)
     }
     fn search_key<T>(
         &self,
-        mut key: impl FnMut(&Self::Item<'_>) -> bool,
-        action: impl FnOnce(&Self::Item<'_>) -> T,
+        mut key: impl FnMut(&Self::Item) -> bool,
+        action: impl FnOnce(&Self::Item) -> T,
     ) -> Option<T> {
         let mut action = Some(action);
-        let output = self.walk(&mut |node: &Self::Item<'_>, method: Method| {
+        let output = self.walk(&mut |node: &Self::Item, method: Method| {
             if method == Method::Visit && key(&node) {
                 ControlFlow::Break(action.take().map(|action| (action)(node)))
             } else {
@@ -43,27 +47,27 @@ pub trait TreeIterator {
 }
 
 pub trait TreeIteratorMut {
-    type Item<'item>: TreeItem;
+    type Item: TreeItem;
 
     fn walk_mut<F, R>(&mut self, f: &mut F) -> ControlFlow<R>
     where
-        F: FnMut(&mut Self::Item<'_>, Method) -> ControlFlow<R>;
+        F: FnMut(&mut Self::Item, Method) -> ControlFlow<R>;
 
     fn search_mut<T>(
         &mut self,
-        node_id: Uuid,
-        action: impl FnOnce(&mut Self::Item<'_>) -> T,
+        key: <Self::Item as TreeItem>::Id,
+        action: impl FnOnce(&mut Self::Item) -> T,
     ) -> Option<T> {
-        Self::search_key_mut(self, |node| node.id() == node_id, action)
+        Self::search_key_mut(self, |node| node.id() == key, action)
     }
 
     fn search_key_mut<T>(
         &mut self,
-        mut key: impl FnMut(&Self::Item<'_>) -> bool,
-        action: impl FnOnce(&mut Self::Item<'_>) -> T,
+        mut key: impl FnMut(&Self::Item) -> bool,
+        action: impl FnOnce(&mut Self::Item) -> T,
     ) -> Option<T> {
         let mut action = Some(action);
-        let output = self.walk_mut(&mut |node: &mut Self::Item<'_>, method: Method| {
+        let output = self.walk_mut(&mut |node: &mut Self::Item, method: Method| {
             if method == Method::Visit && key(&node) {
                 ControlFlow::Break(action.take().map(|action| (action)(node)))
             } else {

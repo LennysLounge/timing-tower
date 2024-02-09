@@ -2,7 +2,7 @@ use backend::{
     exact_variant::ExactVariant,
     style::{
         variables::{condition::Condition, fixed_value::FixedValue, map::Map, VariableBehavior},
-        StyleDefinition, StyleItem,
+        StyleDefinition, StyleId, StyleItem,
     },
     tree_iterator::TreeIteratorMut,
     value_types::ValueType,
@@ -30,7 +30,7 @@ mod variable;
 
 pub fn property_editor(
     ui: &mut Ui,
-    selected_id: &mut Option<Uuid>,
+    selected_id: &mut Option<StyleId>,
     secondary_selection: &mut Option<Uuid>,
     graphic_state_selection: &mut Option<Uuid>,
     style: &mut ExactVariant<StyleItem, StyleDefinition>,

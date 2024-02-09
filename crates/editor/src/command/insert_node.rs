@@ -1,12 +1,12 @@
 use std::ops::ControlFlow;
 
 use egui_ltreeview::DropPosition;
-use uuid::Uuid;
 
 use backend::{
     exact_variant::ExactVariant,
     style::{
-        self, graphic::GraphicOrFolder, variables::VariableOrFolder, StyleDefinition, StyleItem,
+        self, graphic::GraphicOrFolder, variables::VariableOrFolder, StyleDefinition, StyleId,
+        StyleItem,
     },
     tree_iterator::{TreeItem, TreeIteratorMut},
 };
@@ -14,8 +14,8 @@ use backend::{
 use super::{remove_node::remove_node, EditorCommand};
 
 pub struct InsertNode {
-    pub target_node: Uuid,
-    pub position: DropPosition<Uuid>,
+    pub target_node: StyleId,
+    pub position: DropPosition<StyleId>,
     pub node: StyleItem,
 }
 impl InsertNode {
@@ -38,7 +38,7 @@ impl From<InsertNode> for EditorCommand {
 }
 
 pub struct InsertNodeUndo {
-    id: Uuid,
+    id: StyleId,
 }
 impl InsertNodeUndo {
     pub fn execute(
@@ -63,7 +63,7 @@ impl From<InsertNodeUndo> for EditorCommand {
 
 pub fn insert(
     node: &mut StyleItem,
-    position: DropPosition<Uuid>,
+    position: DropPosition<StyleId>,
     insert: StyleItem,
 ) -> ControlFlow<()> {
     match node {

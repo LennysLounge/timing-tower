@@ -45,7 +45,9 @@ impl GraphicItem {
 }
 
 impl TreeItem for GraphicItem {
-    fn id(&self) -> Uuid {
+    type Id = Uuid;
+
+    fn id(&self) -> Self::Id {
         match self {
             GraphicItem::Root(root) => root.id,
             GraphicItem::Cell(cell) => cell.id,
@@ -56,11 +58,11 @@ impl TreeItem for GraphicItem {
 }
 
 impl TreeIterator for GraphicItem {
-    type Item<'item> = GraphicItem;
+    type Item = GraphicItem;
 
     fn walk<F, R>(&self, f: &mut F) -> ControlFlow<R>
     where
-        F: FnMut(&Self::Item<'_>, Method) -> ControlFlow<R>,
+        F: FnMut(&Self::Item, Method) -> ControlFlow<R>,
     {
         f(self, Method::Visit)?;
         match self {
@@ -80,11 +82,11 @@ impl TreeIterator for GraphicItem {
 }
 
 impl TreeIteratorMut for GraphicItem {
-    type Item<'item> = GraphicItem;
+    type Item = GraphicItem;
 
     fn walk_mut<F, R>(&mut self, f: &mut F) -> ControlFlow<R>
     where
-        F: FnMut(&mut Self::Item<'_>, Method) -> ControlFlow<R>,
+        F: FnMut(&mut Self::Item, Method) -> ControlFlow<R>,
     {
         f(self, Method::Visit)?;
         match self {

@@ -5,7 +5,7 @@ mod undo_redo;
 
 use backend::{
     exact_variant::ExactVariant,
-    style::{StyleDefinition, StyleItem},
+    style::{StyleDefinition, StyleId, StyleItem},
 };
 use bevy_egui::egui::{self, Rect};
 use egui_dock::TabViewer;
@@ -26,7 +26,7 @@ pub enum Tab {
 
 pub struct EditorTabViewer<'a> {
     pub viewport: &'a mut Rect,
-    pub style_item_selection: &'a mut Option<Uuid>,
+    pub style_item_selection: &'a mut Option<StyleId>,
     pub graphic_item_selection: &'a mut Option<Uuid>,
     pub graphic_state_selection: &'a mut Option<Uuid>,
     pub style: &'a mut ExactVariant<StyleItem, StyleDefinition>,

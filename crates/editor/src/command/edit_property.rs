@@ -2,22 +2,21 @@ use std::{any::Any, ops::BitOrAssign, time::Instant};
 
 use backend::{
     exact_variant::ExactVariant,
-    style::{StyleDefinition, StyleItem},
+    style::{StyleDefinition, StyleId, StyleItem},
     tree_iterator::TreeIteratorMut,
 };
 use bevy_egui::egui::{self, Response};
-use uuid::Uuid;
 
 use super::EditorCommand;
 
 pub struct EditProperty {
     pub timestamp: Instant,
-    pub node_id: Uuid,
+    pub node_id: StyleId,
     pub widget_id: egui::Id,
     pub value: Box<dyn Any + Sync + Send>,
 }
 impl EditProperty {
-    pub fn new<T>(node_id: Uuid, new_value: T, widget_id: egui::Id) -> Self
+    pub fn new<T>(node_id: StyleId, new_value: T, widget_id: egui::Id) -> Self
     where
         T: Sync + Send + Clone + 'static,
     {

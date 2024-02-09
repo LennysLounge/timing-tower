@@ -1,18 +1,16 @@
 use std::ops::Deref;
 
-use serde::{Deserialize, Serialize};
-use unified_sim_model::model::Entry;
-use uuid::Uuid;
-
 use crate::{
     exact_variant::ExactVariant,
     value_store::{ValueId, ValueProducer, ValueStore},
     value_types::{Boolean, Font, Number, Text, Texture, Tint},
 };
+use serde::{Deserialize, Serialize};
+use unified_sim_model::model::Entry;
 
 use self::{condition::Condition, fixed_value::FixedValue, map::Map};
 
-use super::StyleItem;
+use super::{StyleId, StyleItem};
 
 pub mod condition;
 pub mod fixed_value;
@@ -20,7 +18,7 @@ pub mod map;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct VariableDefinition {
-    pub id: Uuid,
+    pub id: StyleId,
     pub name: String,
     #[serde(flatten)]
     pub behavior: VariableBehavior,
@@ -37,7 +35,7 @@ pub enum VariableBehavior {
 impl VariableDefinition {
     pub fn new() -> Self {
         Self {
-            id: Uuid::new_v4(),
+            id: StyleId::new(),
             name: "Variables".to_string(),
             behavior: VariableBehavior::FixedValue(FixedValue::default()),
         }
@@ -50,7 +48,7 @@ impl VariableDefinition {
         }
     }
     pub fn value_id(&self) -> ValueId {
-        ValueId(self.id)
+        ValueId(self.id.0)
     }
 }
 
@@ -88,14 +86,14 @@ impl ValueProducer for StaticValueProducer<Font> {
 
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct VariableFolder {
-    pub id: Uuid,
+    pub id: StyleId,
     pub name: String,
     pub content: Vec<VariableOrFolder>,
 }
 impl VariableFolder {
     pub fn new() -> Self {
         Self {
-            id: Uuid::new_v4(),
+            id: StyleId::new(),
             name: String::from("Group"),
             content: Vec::new(),
         }
@@ -117,7 +115,7 @@ pub enum VariableOrFolder {
     Folder(ExactVariant<StyleItem, VariableFolder>),
 }
 impl VariableOrFolder {
-    pub fn id(&self) -> &Uuid {
+    pub fn id(&self) -> &StyleId {
         match self {
             VariableOrFolder::Variable(o) => &o.id,
             VariableOrFolder::Folder(o) => &o.id,

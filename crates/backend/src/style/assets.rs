@@ -1,7 +1,6 @@
 use std::ops::Deref;
 
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use crate::{
     exact_variant::ExactVariant,
@@ -9,11 +8,11 @@ use crate::{
     value_types::{Font, Texture, ValueType},
 };
 
-use super::{variables::StaticValueProducer, StyleItem};
+use super::{variables::StaticValueProducer, StyleId, StyleItem};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct AssetDefinition {
-    pub id: Uuid,
+    pub id: StyleId,
     pub name: String,
     pub value_type: ValueType,
     pub path: String,
@@ -21,7 +20,7 @@ pub struct AssetDefinition {
 impl AssetDefinition {
     pub fn new() -> Self {
         Self {
-            id: Uuid::new_v4(),
+            id: StyleId::new(),
             name: String::from("image"),
             value_type: ValueType::Texture,
             path: String::new(),
@@ -29,28 +28,28 @@ impl AssetDefinition {
     }
     pub fn value_producer(&self) -> Box<dyn ValueProducer + Sync + Send> {
         match self.value_type {
-            ValueType::Texture => Box::new(StaticValueProducer(Texture::Handle(self.id))),
-            ValueType::Font => Box::new(StaticValueProducer(Font::Handle(self.id))),
+            ValueType::Texture => Box::new(StaticValueProducer(Texture::Handle(self.value_id().0))),
+            ValueType::Font => Box::new(StaticValueProducer(Font::Handle(self.value_id().0))),
             value_type @ _ => {
                 unreachable!("An asset cannot have a value type of {}", value_type.name())
             }
         }
     }
     pub fn value_id(&self) -> ValueId {
-        ValueId(self.id)
+        ValueId(self.id.0)
     }
 }
 
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct AssetFolder {
-    pub id: Uuid,
+    pub id: StyleId,
     pub name: String,
     pub content: Vec<AssetOrFolder>,
 }
 impl AssetFolder {
     pub fn new() -> Self {
         Self {
-            id: Uuid::new_v4(),
+            id: StyleId::new(),
             name: String::from("Group"),
             content: Vec::new(),
         }
@@ -72,7 +71,7 @@ pub enum AssetOrFolder {
     Folder(ExactVariant<StyleItem, AssetFolder>),
 }
 impl AssetOrFolder {
-    pub fn id(&self) -> &Uuid {
+    pub fn id(&self) -> &StyleId {
         match self {
             AssetOrFolder::Asset(o) => &o.id,
             AssetOrFolder::Folder(o) => &o.id,

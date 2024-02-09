@@ -340,22 +340,18 @@ fn insert_element(
     position: DropPosition<Uuid>,
     element: GraphicItem,
 ) {
-    if target == component.id {
-        insert_into_vec(&mut component.items.items, position, element);
-    } else {
-        component.items.search_mut(target, |e| match e {
-            GraphicItem::Root(root) => {
-                insert_into_vec(&mut root.items, position, element);
-            }
-            GraphicItem::Cell(_) => (),
-            GraphicItem::ClipArea(clip_area) => {
-                insert_into_vec(&mut clip_area.items, position, element);
-            }
-            GraphicItem::DriverTable(driver_table) => {
-                insert_into_vec(&mut driver_table.columns, position, element);
-            }
-        });
-    }
+    component.items.search_mut(target, |e| match e {
+        GraphicItem::Root(root) => {
+            insert_into_vec(&mut root.items, position, element);
+        }
+        GraphicItem::Cell(_) => (),
+        GraphicItem::ClipArea(clip_area) => {
+            insert_into_vec(&mut clip_area.items, position, element);
+        }
+        GraphicItem::DriverTable(driver_table) => {
+            insert_into_vec(&mut driver_table.columns, position, element);
+        }
+    });
 }
 
 fn insert_into_vec(vec: &mut Vec<GraphicItem>, position: DropPosition<Uuid>, element: GraphicItem) {

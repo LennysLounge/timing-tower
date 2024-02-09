@@ -1,18 +1,17 @@
 use std::ops::ControlFlow;
 
 use egui_ltreeview::DropPosition;
-use uuid::Uuid;
 
 use backend::{
     exact_variant::ExactVariant,
-    style::{StyleDefinition, StyleItem},
+    style::{StyleDefinition, StyleId, StyleItem},
     tree_iterator::{Method, TreeItem, TreeIteratorMut},
 };
 
 use super::{insert_node::insert, EditorCommand};
 
 pub struct RemoveNode {
-    pub id: Uuid,
+    pub id: StyleId,
 }
 impl RemoveNode {
     pub fn execute(
@@ -55,12 +54,12 @@ impl From<RemoveNodeUndo> for EditorCommand {
 }
 
 pub struct RemovedNode {
-    pub parent_id: Uuid,
+    pub parent_id: StyleId,
     pub node: StyleItem,
-    pub position: DropPosition<Uuid>,
+    pub position: DropPosition<StyleId>,
 }
 
-pub fn remove_node(node_id: &Uuid, root: &mut StyleItem) -> Option<RemovedNode> {
+pub fn remove_node(node_id: &StyleId, root: &mut StyleItem) -> Option<RemovedNode> {
     let output = root.walk_mut(&mut |node, method| remove(node, method, node_id));
     match output {
         ControlFlow::Continue(_) => None,
@@ -68,7 +67,7 @@ pub fn remove_node(node_id: &Uuid, root: &mut StyleItem) -> Option<RemovedNode> 
     }
 }
 
-fn remove(node: &mut StyleItem, method: Method, node_id: &Uuid) -> ControlFlow<RemovedNode> {
+fn remove(node: &mut StyleItem, method: Method, node_id: &StyleId) -> ControlFlow<RemovedNode> {
     match (method, node) {
         (Method::Visit, StyleItem::AssetFolder(folder)) => {
             if let Some(index) = folder.content.iter().position(|s| s.id() == node_id) {

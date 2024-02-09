@@ -3,11 +3,11 @@ use uuid::Uuid;
 
 use crate::value_types::Vec2Property;
 
-use super::{Attribute, ComputedGraphicItem, GraphicItem};
+use super::{Attribute, ComputedGraphicItem, GraphicItem, GraphicItemId};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Root {
-    pub id: Uuid,
+    pub id: GraphicItemId,
     pub name: String,
     pub items: Vec<GraphicItem>,
     pub position: Attribute<Vec2Property>,
@@ -16,7 +16,7 @@ pub struct Root {
 impl Root {
     pub fn new() -> Self {
         Self {
-            id: Uuid::new_v4(),
+            id: GraphicItemId::new(),
             name: String::from("Graphic"),
             items: Vec::new(),
             position: Vec2Property::default().into(),
@@ -49,7 +49,7 @@ impl ToString for RootAttributes {
 }
 
 pub struct ComputedRoot {
-    pub id: Uuid,
+    pub id: GraphicItemId,
     pub position: Vec2Property,
     pub items: Vec<ComputedGraphicItem>,
 }

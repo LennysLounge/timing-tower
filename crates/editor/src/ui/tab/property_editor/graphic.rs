@@ -3,7 +3,9 @@ use std::ops::ControlFlow;
 use backend::{
     style::graphic::{
         self,
-        graphic_items::{cell::Cell, clip_area::ClipArea, driver_table::DriverTable, GraphicItem},
+        graphic_items::{
+            cell::Cell, clip_area::ClipArea, driver_table::DriverTable, GraphicItem, GraphicItemId,
+        },
         GraphicDefinition,
     },
     tree_iterator::{Method, TreeItem, TreeIterator, TreeIteratorMut},
@@ -25,7 +27,7 @@ use crate::{
 pub fn graphic_property_editor(
     ui: &mut Ui,
     component: &mut GraphicDefinition,
-    graphic_item_selection: &mut Option<Uuid>,
+    graphic_item_selection: &mut Option<GraphicItemId>,
     graphic_state_selection: &mut Option<Uuid>,
     _reference_store: &ReferenceStore,
     undo_redo_manager: &mut UndoRedoManager,
@@ -121,7 +123,7 @@ pub fn graphic_property_editor(
 
 fn show_element_tree(
     ui: &mut Ui,
-    secondary_selection: &mut Option<Uuid>,
+    secondary_selection: &mut Option<GraphicItemId>,
     graphic: &mut GraphicDefinition,
 ) -> EditResult {
     let mut edit_result = EditResult::None;
@@ -156,11 +158,11 @@ fn show_element_tree(
     enum Command {
         Add {
             element: GraphicItem,
-            target: Uuid,
-            position: DropPosition<Uuid>,
+            target: GraphicItemId,
+            position: DropPosition<GraphicItemId>,
         },
         Remove {
-            id: Uuid,
+            id: GraphicItemId,
         },
     }
     let mut commands = Vec::new();
@@ -226,7 +228,11 @@ fn show_element_tree(
     edit_result
 }
 
-fn element_tree_node(builder: &mut TreeViewBuilder<Uuid>, element: &GraphicItem, method: Method) {
+fn element_tree_node(
+    builder: &mut TreeViewBuilder<GraphicItemId>,
+    element: &GraphicItem,
+    method: Method,
+) {
     match (method, element) {
         (Method::Visit, GraphicItem::Root(root)) => {
             builder.node(NodeBuilder::dir(root.id), |ui| {
@@ -295,7 +301,7 @@ fn element_tree_node(builder: &mut TreeViewBuilder<Uuid>, element: &GraphicItem,
     }
 }
 
-fn remove_element(component: &mut GraphicDefinition, id: Uuid) -> Option<GraphicItem> {
+fn remove_element(component: &mut GraphicDefinition, id: GraphicItemId) -> Option<GraphicItem> {
     if let Some(index) = component.items.items.iter().position(|e| e.id() == id) {
         return Some(component.items.items.remove(index));
     }
@@ -336,8 +342,8 @@ fn remove_element(component: &mut GraphicDefinition, id: Uuid) -> Option<Graphic
 
 fn insert_element(
     component: &mut GraphicDefinition,
-    target: Uuid,
-    position: DropPosition<Uuid>,
+    target: GraphicItemId,
+    position: DropPosition<GraphicItemId>,
     element: GraphicItem,
 ) {
     component.items.search_mut(target, |e| match e {
@@ -354,7 +360,11 @@ fn insert_element(
     });
 }
 
-fn insert_into_vec(vec: &mut Vec<GraphicItem>, position: DropPosition<Uuid>, element: GraphicItem) {
+fn insert_into_vec(
+    vec: &mut Vec<GraphicItem>,
+    position: DropPosition<GraphicItemId>,
+    element: GraphicItem,
+) {
     match position {
         DropPosition::First => vec.insert(0, element),
         DropPosition::Last => vec.push(element),

@@ -3,12 +3,12 @@ use uuid::Uuid;
 
 use crate::value_types::{Number, Property, Vec2Property};
 
-use super::{Attribute, ComputedGraphicItem, GraphicItem};
+use super::{Attribute, ComputedGraphicItem, GraphicItem, GraphicItemId};
 
 // An item that displays a table of all drivers in the session.
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct DriverTable {
-    pub id: Uuid,
+    pub id: GraphicItemId,
     pub name: String,
     pub row_offset: Attribute<Vec2Property>,
     pub columns: Vec<GraphicItem>,
@@ -16,7 +16,7 @@ pub struct DriverTable {
 impl DriverTable {
     pub fn new() -> Self {
         Self {
-            id: Uuid::new_v4(),
+            id: GraphicItemId::new(),
             name: String::from("Driver table"),
             row_offset: Vec2Property {
                 x: Property::Fixed(Number(30.0)),
@@ -52,7 +52,7 @@ impl ToString for DriverTableAttributes {
 }
 
 pub struct ComputedDriverTable {
-    pub id: Uuid,
+    pub id: GraphicItemId,
     pub row_offset: Vec2Property,
     pub columns: Vec<ComputedGraphicItem>,
 }

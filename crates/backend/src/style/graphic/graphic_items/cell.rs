@@ -7,11 +7,11 @@ use crate::value_types::{
     Boolean, Font, Number, Property, Text, Texture, Tint, Vec2Property, Vec3Property,
 };
 
-use super::Attribute;
+use super::{Attribute, GraphicItemId};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Cell {
-    pub id: Uuid,
+    pub id: GraphicItemId,
     pub name: String,
     pub text: Attribute<Property<Text>>,
     pub text_color: Attribute<Property<Tint>>,
@@ -32,7 +32,7 @@ pub struct Cell {
 impl Cell {
     pub fn new() -> Self {
         Self {
-            id: Uuid::new_v4(),
+            id: GraphicItemId::new(),
             name: String::from("Cell"),
             text: Property::Fixed(Text("Cell".to_string())).into(),
             text_color: Property::Fixed(Tint(Color::WHITE)).into(),
@@ -108,7 +108,7 @@ pub struct CornerOffsets {
 }
 
 pub struct ComputedCell {
-    pub id: Uuid,
+    pub id: GraphicItemId,
     pub text: Property<Text>,
     pub text_color: Property<Tint>,
     pub text_size: Property<Number>,

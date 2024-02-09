@@ -3,13 +3,13 @@ use uuid::Uuid;
 
 use crate::value_types::{Number, Property, Vec2Property, Vec3Property};
 
-use super::{cell::Rounding, Attribute, ComputedGraphicItem, GraphicItem};
+use super::{cell::Rounding, Attribute, ComputedGraphicItem, GraphicItem, GraphicItemId};
 
 /// An item that restaints the contained elements
 /// to a sepcified area in the scene.
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct ClipArea {
-    pub id: Uuid,
+    pub id: GraphicItemId,
     pub name: String,
     pub pos: Attribute<Vec3Property>,
     pub size: Attribute<Vec2Property>,
@@ -21,7 +21,7 @@ pub struct ClipArea {
 impl ClipArea {
     pub fn new() -> Self {
         Self {
-            id: Uuid::new_v4(),
+            id: GraphicItemId::new(),
             name: String::from("Clip area"),
             pos: Vec3Property::default().into(),
             size: Vec2Property {
@@ -53,7 +53,7 @@ impl ClipArea {
 }
 
 pub struct ComputedClipArea {
-    pub id: Uuid,
+    pub id: GraphicItemId,
     pub pos: Vec3Property,
     pub size: Vec2Property,
     pub skew: Property<Number>,

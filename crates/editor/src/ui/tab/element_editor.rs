@@ -4,7 +4,7 @@ use backend::{
         graphic::{
             graphic_items::{
                 cell::Cell, clip_area::ClipArea, driver_table::DriverTable, root::Root, Attribute,
-                GraphicItem,
+                GraphicItem, GraphicItemId,
             },
             GraphicDefinition,
         },
@@ -33,7 +33,7 @@ use super::property_editor::property::PropertyEditor;
 pub fn element_editor(
     ui: &mut Ui,
     style_item_selection: &mut Option<StyleId>,
-    graphic_item_selection: &mut Option<Uuid>,
+    graphic_item_selection: &mut Option<GraphicItemId>,
     graphic_state_selection: &mut Option<Uuid>,
     style: &mut ExactVariant<StyleItem, StyleDefinition>,
     reference_store: &ReferenceStore,
@@ -73,7 +73,7 @@ pub fn element_editor(
 fn graphic_item(
     ui: &mut Ui,
     graphic: &mut GraphicDefinition,
-    graphic_item_selection: Option<&Uuid>,
+    graphic_item_selection: Option<&GraphicItemId>,
     graphic_state_selection: Option<&Uuid>,
     reference_store: &ReferenceStore,
 ) -> EditResult {

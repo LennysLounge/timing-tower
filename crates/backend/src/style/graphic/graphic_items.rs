@@ -21,6 +21,15 @@ use self::{
     root::{ComputedRoot, Root},
 };
 
+/// Id that identifies a graphic item.
+#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Hash, Default)]
+pub struct GraphicItemId(pub Uuid);
+impl GraphicItemId {
+    pub fn new() -> Self {
+        GraphicItemId(Uuid::new_v4())
+    }
+}
+
 /// A item inside a graphic that implements some functionality
 /// or visual.
 #[derive(Serialize, Deserialize, Clone, Encapsulate)]
@@ -45,7 +54,7 @@ impl GraphicItem {
 }
 
 impl TreeItem for GraphicItem {
-    type Id = Uuid;
+    type Id = GraphicItemId;
 
     fn id(&self) -> Self::Id {
         match self {

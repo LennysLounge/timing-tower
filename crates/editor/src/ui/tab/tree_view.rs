@@ -4,7 +4,7 @@ use backend::{
     exact_variant::ExactVariant,
     style::{
         assets::{AssetDefinition, AssetFolder},
-        graphic::GraphicDefinition,
+        graphic::{graphic_items::GraphicItemId, GraphicDefinition},
         variables::{VariableDefinition, VariableFolder},
         StyleDefinition, StyleId, StyleItem,
     },
@@ -15,7 +15,6 @@ use egui_ltreeview::{
     builder::{CloserState, NodeBuilder},
     Action, DropPosition, TreeViewBuilder, TreeViewResponse,
 };
-use uuid::Uuid;
 
 use crate::command::{
     insert_node::InsertNode, move_node::MoveNode, remove_node::RemoveNode, UndoRedoManager,
@@ -24,7 +23,7 @@ use crate::command::{
 pub fn tree_view(
     ui: &mut Ui,
     selected_node: &mut Option<StyleId>,
-    _secondary_selection: &mut Option<Uuid>,
+    _secondary_selection: &mut Option<GraphicItemId>,
     base_node: &mut ExactVariant<StyleItem, StyleDefinition>,
     undo_redo_manager: &mut UndoRedoManager,
 ) -> bool {

@@ -1,3 +1,4 @@
+mod dashboard;
 mod element_editor;
 mod property_editor;
 mod tree_view;
@@ -18,6 +19,7 @@ use crate::{command::UndoRedoManager, reference_store::ReferenceStore};
 
 pub enum Tab {
     SceneView,
+    Dashboard,
     StyleItems,
     ComponentEditor,
     ElementEditor,
@@ -40,6 +42,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
     fn title(&mut self, tab: &mut Self::Tab) -> egui::WidgetText {
         match tab {
             Tab::SceneView => "Scene view".into(),
+            Tab::Dashboard => "Dashboard".into(),
             Tab::StyleItems => "Style".into(),
             Tab::ComponentEditor => "Component".into(),
             Tab::ElementEditor => "Element".into(),
@@ -51,6 +54,9 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
         match tab {
             Tab::SceneView => {
                 *self.viewport = ui.clip_rect();
+            }
+            Tab::Dashboard => {
+                dashboard::dashboard(ui, self.game_adapter);
             }
             Tab::StyleItems => {
                 tree_view::tree_view(

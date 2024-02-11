@@ -1899,6 +1899,7 @@ dependencies = [
  "dyn-clone",
  "egui_dock",
  "egui_extras",
+ "egui_ltable",
  "egui_ltreeview",
  "frontend",
  "rand 0.8.5",
@@ -1947,6 +1948,13 @@ dependencies = [
  "mime_guess2",
  "resvg",
  "serde",
+]
+
+[[package]]
+name = "egui_ltable"
+version = "0.1.0"
+dependencies = [
+ "egui",
 ]
 
 [[package]]

@@ -70,7 +70,7 @@ struct EditorState {
 }
 impl EditorState {
     pub fn new() -> Self {
-        let mut state = DockState::new(vec![Tab::SceneView]);
+        let mut state = DockState::new(vec![Tab::SceneView, Tab::Dashboard]);
         let tree = state.main_surface_mut();
         let [scene, _tree_view] = tree.split_left(NodeIndex::root(), 0.15, vec![Tab::StyleItems]);
         let [scene, _component_editor] =

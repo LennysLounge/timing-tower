@@ -55,6 +55,9 @@ fn show_graphic(ui: &mut Ui, graphic: &GraphicDefinition, graphic_states: &mut G
                     })
                     .fill_space_horizontal(true)
                     .show(ui, |mut builder| {
+                        if let Some(state) = graphic_states.states.get(&graphic.id) {
+                            builder.set_selected(*state);
+                        }
                         for state in graphic.states.iter() {
                             builder.leaf(state.id, &state.name);
                         }

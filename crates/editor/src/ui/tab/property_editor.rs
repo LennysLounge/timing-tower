@@ -1,7 +1,8 @@
 use backend::{
     exact_variant::ExactVariant,
+    graphic::GraphicStates,
     style::{
-        graphic::{graphic_items::GraphicItemId, GraphicStateId},
+        graphic::graphic_items::GraphicItemId,
         variables::{condition::Condition, fixed_value::FixedValue, map::Map, VariableBehavior},
         StyleDefinition, StyleId, StyleItem,
     },
@@ -32,11 +33,11 @@ pub fn property_editor(
     ui: &mut Ui,
     selected_id: &mut Option<StyleId>,
     secondary_selection: &mut Option<GraphicItemId>,
-    graphic_state_selection: &mut Option<GraphicStateId>,
     style: &mut ExactVariant<StyleItem, StyleDefinition>,
     reference_store: &ReferenceStore,
     undo_redo_manager: &mut UndoRedoManager,
     game_adapter: &Adapter,
+    graphic_states: &mut GraphicStates,
 ) {
     let Some(selected_id) = selected_id else {
         return;
@@ -53,7 +54,7 @@ pub fn property_editor(
                     game_adapter,
                     undo_redo_manager,
                     secondary_selection,
-                    graphic_state_selection,
+                    graphic_states,
                 );
             });
         });
@@ -66,7 +67,7 @@ pub fn edit_node(
     game_adapter: &Adapter,
     undo_redo_manager: &mut UndoRedoManager,
     graphic_item_selection: &mut Option<GraphicItemId>,
-    graphic_state_selection: &mut Option<GraphicStateId>,
+    graphic_states: &mut GraphicStates,
 ) {
     match node {
         StyleItem::Asset(asset) => {
@@ -243,9 +244,8 @@ pub fn edit_node(
                     ui,
                     component,
                     graphic_item_selection,
-                    graphic_state_selection,
-                    reference_store,
                     undo_redo_manager,
+                    graphic_states,
                 );
             });
         }

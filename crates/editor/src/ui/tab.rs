@@ -74,11 +74,11 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     ui,
                     self.style_item_selection,
                     self.graphic_item_selection,
-                    self.graphic_state_selection,
                     self.style,
                     self.reference_store,
                     self.undo_redo_manager,
                     self.game_adapter,
+                    self.graphic_states,
                 );
             }
             Tab::ElementEditor => {

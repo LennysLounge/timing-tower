@@ -1,6 +1,7 @@
 use std::ops::ControlFlow;
 
 use backend::{
+    graphic::GraphicStates,
     style::graphic::{
         self,
         graphic_items::{
@@ -16,21 +17,17 @@ use egui_ltreeview::{
 };
 use uuid::Uuid;
 
-use crate::{
-    command::{
-        edit_property::{EditProperty, EditResult},
-        UndoRedoManager,
-    },
-    reference_store::ReferenceStore,
+use crate::command::{
+    edit_property::{EditProperty, EditResult},
+    UndoRedoManager,
 };
 
 pub fn graphic_property_editor(
     ui: &mut Ui,
     component: &mut GraphicDefinition,
     graphic_item_selection: &mut Option<GraphicItemId>,
-    graphic_state_selection: &mut Option<GraphicStateId>,
-    _reference_store: &ReferenceStore,
     undo_redo_manager: &mut UndoRedoManager,
+    graphic_states: &mut GraphicStates,
 ) {
     let mut edit_result = EditResult::None;
 
@@ -84,17 +81,20 @@ pub fn graphic_property_editor(
         let tree_res = TreeView::new(ui.make_persistent_id("State tree"))
             .row_layout(RowLayout::Compact)
             .show(ui, |mut builder| {
+                if let Some(state) = graphic_states.states.get(&component.id) {
+                    builder.set_selected(*state);
+                }
                 builder.leaf(GraphicStateId(Uuid::default()), "Template");
                 for state in component.states.iter_mut() {
                     builder.leaf(state.id, &state.name);
                 }
             });
         for action in tree_res.actions {
-            if let Action::SetSelected(id) = action {
-                if id.is_some_and(|id| id.0 == Uuid::default()) {
-                    *graphic_state_selection = None;
+            if let Action::SetSelected(Some(id)) = action {
+                if id.0 == Uuid::default() {
+                    graphic_states.states.remove(&component.id);
                 } else {
-                    *graphic_state_selection = id;
+                    graphic_states.states.insert(component.id, id);
                 }
             }
         }

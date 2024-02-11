@@ -170,14 +170,6 @@ fn ui(
         savefile_changed_event,
         &mut game_adapter.adapter,
     );
-
-    if let Some(graphic_item_selection) = state.style_item_selection {
-        if let Some(state) = state.graphic_state_selection {
-            graphic_states.states.insert(graphic_item_selection, state);
-        } else {
-            graphic_states.states.remove(&graphic_item_selection);
-        }
-    }
 }
 
 fn savefile_changed(

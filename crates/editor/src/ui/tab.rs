@@ -18,9 +18,7 @@ use crate::{command::UndoRedoManager, reference_store::ReferenceStore};
 
 pub enum Tab {
     SceneView,
-    Elements,
-    Variables,
-    Assets,
+    StyleItems,
     ComponentEditor,
     ElementEditor,
     UndoRedo,
@@ -42,11 +40,9 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
     fn title(&mut self, tab: &mut Self::Tab) -> egui::WidgetText {
         match tab {
             Tab::SceneView => "Scene view".into(),
-            Tab::Elements => "Elements".into(),
+            Tab::StyleItems => "Style".into(),
             Tab::ComponentEditor => "Component".into(),
             Tab::ElementEditor => "Element".into(),
-            Tab::Variables => "Variables".into(),
-            Tab::Assets => "Assets".into(),
             Tab::UndoRedo => "Undo/Redo".into(),
         }
     }
@@ -56,7 +52,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
             Tab::SceneView => {
                 *self.viewport = ui.clip_rect();
             }
-            Tab::Elements => {
+            Tab::StyleItems => {
                 tree_view::tree_view(
                     ui,
                     self.style_item_selection,
@@ -88,24 +84,6 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     self.undo_redo_manager,
                     self.game_adapter,
                 );
-            }
-            Tab::Variables => {
-                // tree_view::tree_view(
-                //     ui,
-                //     self.selected_node,
-                //     self.secondary_selection,
-                //     &mut self.style.vars,
-                //     self.undo_redo_manager,
-                // );
-            }
-            Tab::Assets => {
-                // tree_view::tree_view(
-                //     ui,
-                //     self.selected_node,
-                //     self.secondary_selection,
-                //     &mut self.style.assets,
-                //     self.undo_redo_manager,
-                // );
             }
             Tab::UndoRedo => {
                 undo_redo::undo_redo(ui, &mut self.undo_redo_manager);

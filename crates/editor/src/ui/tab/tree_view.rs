@@ -92,6 +92,7 @@ fn show(
 ) -> TreeViewResponse<StyleId> {
     let response = egui_ltreeview::TreeView::new(ui.make_persistent_id("element_tree_view"))
         .row_layout(egui_ltreeview::RowLayout::CompactAlignedLables)
+        .fill_space_vertical(true)
         .show(ui, |mut builder| {
             root.walk_mut(&mut |node, method| show_node(node, method, &mut builder));
         });

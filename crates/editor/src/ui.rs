@@ -72,11 +72,7 @@ impl EditorState {
     pub fn new() -> Self {
         let mut state = DockState::new(vec![Tab::SceneView]);
         let tree = state.main_surface_mut();
-        let [scene, _tree_view] = tree.split_left(
-            NodeIndex::root(),
-            0.15,
-            vec![Tab::Elements, Tab::Variables, Tab::Assets],
-        );
+        let [scene, _tree_view] = tree.split_left(NodeIndex::root(), 0.15, vec![Tab::StyleItems]);
         let [scene, _component_editor] =
             tree.split_right(scene, 0.8, vec![Tab::ComponentEditor, Tab::UndoRedo]);
 

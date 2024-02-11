@@ -1,5 +1,6 @@
 use backend::{
     exact_variant::ExactVariant,
+    graphic::GraphicStates,
     style::{
         graphic::{
             graphic_items::{
@@ -16,7 +17,6 @@ use bevy_egui::egui::{
     self, vec2, CollapsingHeader, DragValue, Layout, ScrollArea, Ui, WidgetText,
 };
 use common::communication::TextAlignment;
-use unified_sim_model::Adapter;
 
 use crate::{
     command::{
@@ -33,11 +33,10 @@ pub fn element_editor(
     ui: &mut Ui,
     style_item_selection: &mut Option<StyleId>,
     graphic_item_selection: &mut Option<GraphicItemId>,
-    graphic_state_selection: &mut Option<GraphicStateId>,
     style: &mut ExactVariant<StyleItem, StyleDefinition>,
     reference_store: &ReferenceStore,
     undo_redo_manager: &mut UndoRedoManager,
-    _game_adapter: &Adapter,
+    graphic_states: &mut GraphicStates,
 ) {
     let Some(style_item_selection) = style_item_selection else {
         return;
@@ -54,8 +53,8 @@ pub fn element_editor(
                         ui,
                         graphic,
                         graphic_item_selection.as_ref(),
-                        graphic_state_selection.as_ref(),
                         reference_store,
+                        graphic_states,
                     );
                     if let EditResult::FromId(widget_id) = edit_result {
                         undo_redo_manager.queue(EditProperty::new(
@@ -73,11 +72,12 @@ fn graphic_item(
     ui: &mut Ui,
     graphic: &mut GraphicDefinition,
     graphic_item_selection: Option<&GraphicItemId>,
-    graphic_state_selection: Option<&GraphicStateId>,
     reference_store: &ReferenceStore,
+    graphic_states: &mut GraphicStates,
 ) -> EditResult {
     let mut edit_result = EditResult::None;
-    if let Some(state) = graphic_state_selection.and_then(|state_id| {
+
+    if let Some(state) = graphic_states.states.get(&graphic.id).and_then(|state_id| {
         graphic
             .states
             .iter_mut()
@@ -92,7 +92,12 @@ fn graphic_item(
         edit_result |= graphic
             .items
             .search_mut(*graphic_item_selection, |graphic_item| {
-                editor(ui, graphic_item, graphic_state_selection, reference_store)
+                editor(
+                    ui,
+                    graphic_item,
+                    graphic_states.states.get(&graphic.id),
+                    reference_store,
+                )
             })
             .unwrap_or_default();
     }

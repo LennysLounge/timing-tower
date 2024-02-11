@@ -6,6 +6,7 @@ mod undo_redo;
 
 use backend::{
     exact_variant::ExactVariant,
+    graphic::GraphicStates,
     style::{
         graphic::{graphic_items::GraphicItemId, GraphicStateId},
         StyleDefinition, StyleId, StyleItem,
@@ -35,6 +36,7 @@ pub struct EditorTabViewer<'a> {
     pub reference_store: &'a ReferenceStore,
     pub undo_redo_manager: &'a mut UndoRedoManager,
     pub game_adapter: &'a Adapter,
+    pub graphic_states: &'a mut GraphicStates,
 }
 impl<'a> TabViewer for EditorTabViewer<'a> {
     type Tab = Tab;
@@ -56,7 +58,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 *self.viewport = ui.clip_rect();
             }
             Tab::Dashboard => {
-                dashboard::dashboard(ui, self.game_adapter);
+                dashboard::dashboard(ui, self.game_adapter, &self.style, self.graphic_states);
             }
             Tab::StyleItems => {
                 tree_view::tree_view(

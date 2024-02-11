@@ -17,6 +17,9 @@ pub struct GraphicState {
     pub name: String,
 }
 
+pub const GRAPHIC_STATE_HIDDEN: GraphicStateId =
+    GraphicStateId(uuid::uuid!("5d493243-8787-4b4c-a06f-ceb17a35f10a"));
+
 /// Id that identifies a graphic state item.
 #[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct GraphicStateId(pub Uuid);

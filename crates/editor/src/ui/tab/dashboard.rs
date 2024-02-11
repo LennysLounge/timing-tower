@@ -1,7 +1,20 @@
+use backend::{
+    graphic::GraphicStates,
+    style::{
+        graphic::{GraphicDefinition, GRAPHIC_STATE_HIDDEN},
+        StyleDefinition,
+    },
+};
 use bevy_egui::egui::{self, vec2, Align, Direction, Layout, Rect, Sense, Ui};
+use egui_ltreeview::{Action, TreeView};
 use unified_sim_model::{model::Entry, Adapter, AdapterCommand};
 
-pub fn dashboard(ui: &mut Ui, adapter: &Adapter) {
+pub fn dashboard(
+    ui: &mut Ui,
+    adapter: &Adapter,
+    style: &StyleDefinition,
+    graphic_states: &mut GraphicStates,
+) {
     ui.allocate_ui_with_layout(
         ui.available_size_before_wrap(),
         Layout::left_to_right(Align::Min),
@@ -14,14 +27,46 @@ pub fn dashboard(ui: &mut Ui, adapter: &Adapter) {
             );
             ui.allocate_ui_with_layout(
                 ui.available_size_before_wrap(),
-                Layout::top_down(Align::Min),
+                Layout::top_down(Align::Min)
+                    .with_cross_justify(false)
+                    .with_main_justify(false),
                 |ui| {
-                    ui.label("after");
-                    ui.label("after");
+                    for graphic in style.graphics.contained_graphics() {
+                        show_graphic(ui, graphic, graphic_states);
+                    }
                 },
             )
         },
     );
+}
+
+fn show_graphic(ui: &mut Ui, graphic: &GraphicDefinition, graphic_states: &mut GraphicStates) {
+    ui.group(|ui| {
+        ui.heading(&graphic.name);
+
+        let min_width = ui.min_size().x;
+        ui.group(|ui| {
+            let tree_response =
+                TreeView::new(ui.make_persistent_id("__graphic").with(graphic.id.0))
+                    .max_width(if min_width > 150.0 {
+                        Some(min_width)
+                    } else {
+                        Some(150.0)
+                    })
+                    .fill_space_horizontal(true)
+                    .show(ui, |mut builder| {
+                        for state in graphic.states.iter() {
+                            builder.leaf(state.id, &state.name);
+                        }
+                        builder.leaf(GRAPHIC_STATE_HIDDEN, "Hidden");
+                    });
+            for action in tree_response.actions {
+                if let Action::SetSelected(Some(selected_state)) = action {
+                    graphic_states.states.insert(graphic.id, selected_state);
+                }
+            }
+        });
+    });
 }
 
 fn show_entry_table(ui: &mut Ui, adapter: &Adapter) {

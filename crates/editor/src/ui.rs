@@ -161,6 +161,7 @@ fn ui(
                 reference_store: &reference_store,
                 undo_redo_manager: undo_redo_manager.as_mut(),
                 game_adapter: &game_adapter.adapter,
+                graphic_states: &mut graphic_states,
             },
         );
 

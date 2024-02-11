@@ -6,166 +6,166 @@
     "name": "Assets",
     "content": [
       {
-        "style_item_type": "AssetFolder",
         "element_type": "Folder",
+        "style_item_type": "AssetFolder",
         "id": "bd6a3f41-6897-41d6-94ed-b02beaca3762",
         "name": "Constructors",
         "content": [
           {
-            "style_item_type": "Asset",
             "element_type": "Asset",
+            "style_item_type": "Asset",
             "id": "b7ba5250-cf78-4146-a7c8-f2b85adc4c5f",
             "name": "Alpine",
             "value_type": "Texture",
             "path": "constructors/Alpine.png"
           },
           {
-            "style_item_type": "Asset",
             "element_type": "Asset",
+            "style_item_type": "Asset",
             "id": "3eee3a38-140e-453e-8830-4f256ee83e07",
             "name": "Aston-Martin",
             "value_type": "Texture",
             "path": "constructors/Aston-Martin.png"
           },
           {
-            "style_item_type": "Asset",
             "element_type": "Asset",
+            "style_item_type": "Asset",
             "id": "1e8814f4-16dd-4ad9-be24-2ea075bcff6a",
             "name": "Audi",
             "value_type": "Texture",
             "path": "constructors/Audi.png"
           },
           {
-            "style_item_type": "Asset",
             "element_type": "Asset",
+            "style_item_type": "Asset",
             "id": "ecfb2bad-459a-4b64-b8ed-5d5147053ea2",
             "name": "Bentley",
             "value_type": "Texture",
             "path": "constructors/Bentley.png"
           },
           {
-            "style_item_type": "Asset",
             "element_type": "Asset",
+            "style_item_type": "Asset",
             "id": "ecd425a6-2490-484b-9979-a19933de1193",
             "name": "BMW",
             "value_type": "Texture",
             "path": "constructors/BMW.png"
           },
           {
-            "style_item_type": "Asset",
             "element_type": "Asset",
+            "style_item_type": "Asset",
             "id": "48368915-4dcb-443b-8f6e-d6ace044ced9",
             "name": "Chevrolet",
             "value_type": "Texture",
             "path": "constructors/Chevrolet.png"
           },
           {
-            "style_item_type": "Asset",
             "element_type": "Asset",
+            "style_item_type": "Asset",
             "id": "62823f7e-db28-4087-a148-79d943b6ecfc",
             "name": "Error",
             "value_type": "Texture",
             "path": "constructors/Error.png"
           },
           {
-            "style_item_type": "Asset",
             "element_type": "Asset",
+            "style_item_type": "Asset",
             "id": "afcae1d6-f887-4417-bdfb-c09e91116adb",
             "name": "Ferrari",
             "value_type": "Texture",
             "path": "constructors/Ferrari.png"
           },
           {
-            "style_item_type": "Asset",
             "element_type": "Asset",
+            "style_item_type": "Asset",
             "id": "77133dec-724a-491a-b2ce-fd2888a78ab1",
             "name": "Ginetta",
             "value_type": "Texture",
             "path": "constructors/Ginetta.png"
           },
           {
-            "style_item_type": "Asset",
             "element_type": "Asset",
+            "style_item_type": "Asset",
             "id": "c0432571-650f-4fdc-a708-aa9a01117590",
             "name": "Honda",
             "value_type": "Texture",
             "path": "constructors/Honda.png"
           },
           {
-            "style_item_type": "Asset",
             "element_type": "Asset",
+            "style_item_type": "Asset",
             "id": "95dc96a9-97ce-436b-bf78-8465e0929ce9",
             "name": "Jaguar",
             "value_type": "Texture",
             "path": "constructors/Jaguar.png"
           },
           {
-            "style_item_type": "Asset",
             "element_type": "Asset",
+            "style_item_type": "Asset",
             "id": "922570d9-792b-4555-aa52-65f1d890996b",
             "name": "KTM",
             "value_type": "Texture",
             "path": "constructors/KTM.png"
           },
           {
-            "style_item_type": "Asset",
             "element_type": "Asset",
+            "style_item_type": "Asset",
             "id": "fc0aba26-4d09-41a8-982a-d2534c9fdb8c",
             "name": "Lamborghini",
             "value_type": "Texture",
             "path": "constructors/Lamborghini.png"
           },
           {
-            "style_item_type": "Asset",
             "element_type": "Asset",
+            "style_item_type": "Asset",
             "id": "66146a86-cb01-437f-814d-5c86efd5a777",
             "name": "Lexus",
             "value_type": "Texture",
             "path": "constructors/Lexus.png"
           },
           {
-            "style_item_type": "Asset",
             "element_type": "Asset",
+            "style_item_type": "Asset",
             "id": "230297a5-ff60-494e-acba-5af35c4f7e99",
             "name": "Maserati",
             "value_type": "Texture",
             "path": "constructors/Maserati.png"
           },
           {
-            "style_item_type": "Asset",
             "element_type": "Asset",
+            "style_item_type": "Asset",
             "id": "2295c661-0609-483d-b3df-248efa705f9d",
             "name": "McLaren",
             "value_type": "Texture",
             "path": "constructors/McLaren.png"
           },
           {
-            "style_item_type": "Asset",
             "element_type": "Asset",
+            "style_item_type": "Asset",
             "id": "d0edeef4-f187-44df-9c65-d81d405d8062",
             "name": "Mercedes-AMG",
             "value_type": "Texture",
             "path": "constructors/Mercedes-AMG.png"
           },
           {
-            "style_item_type": "Asset",
             "element_type": "Asset",
+            "style_item_type": "Asset",
             "id": "1f2524af-9c72-495e-89e2-fda763f2ee18",
             "name": "Nissan",
             "value_type": "Texture",
             "path": "constructors/Nissan.png"
           },
           {
-            "style_item_type": "Asset",
             "element_type": "Asset",
+            "style_item_type": "Asset",
             "id": "4971fafb-479d-470f-8afd-b85e6820a396",
             "name": "Porsche",
             "value_type": "Texture",
             "path": "constructors/Porsche.png"
           },
           {
-            "style_item_type": "Asset",
             "element_type": "Asset",
+            "style_item_type": "Asset",
             "id": "109ecca7-9500-4c6a-b496-95a8da13d299",
             "name": "Reiter-Engineering",
             "value_type": "Texture",
@@ -174,16 +174,16 @@
         ]
       },
       {
-        "style_item_type": "Asset",
         "element_type": "Asset",
+        "style_item_type": "Asset",
         "id": "819d2f30-0d03-413a-8f09-9a0afa58b3ed",
         "name": "background",
         "value_type": "Texture",
         "path": "acc6.PNG"
       },
       {
-        "style_item_type": "Asset",
         "element_type": "Asset",
+        "style_item_type": "Asset",
         "id": "28fc93a6-a776-4b91-b0f1-89e09f4a771f",
         "name": "ACC-Font",
         "value_type": "Font",
@@ -197,20 +197,20 @@
     "name": "Variables",
     "content": [
       {
-        "style_item_type": "VariableFolder",
         "element_type": "Folder",
+        "style_item_type": "VariableFolder",
         "id": "a594010f-a612-402e-8bc7-6446c602e1bd",
         "name": "Colors",
         "content": [
           {
-            "style_item_type": "VariableFolder",
             "element_type": "Folder",
+            "style_item_type": "VariableFolder",
             "id": "f0fab6a7-a6c3-4d46-b05c-f417c04c5be1",
             "name": "Driver categories",
             "content": [
               {
-                "style_item_type": "Variable",
                 "element_type": "Variable",
+                "style_item_type": "Variable",
                 "id": "5a657363-96fc-4329-a580-8ed41b85405e",
                 "name": "Gold/Plat",
                 "behavior": "FixedValue",
@@ -223,8 +223,8 @@
                 }
               },
               {
-                "style_item_type": "Variable",
                 "element_type": "Variable",
+                "style_item_type": "Variable",
                 "id": "ecdfcaf2-d808-4fca-b118-88aee5d1b495",
                 "name": "Silver",
                 "behavior": "FixedValue",
@@ -237,8 +237,8 @@
                 }
               },
               {
-                "style_item_type": "Variable",
                 "element_type": "Variable",
+                "style_item_type": "Variable",
                 "id": "7a126bfa-2fb7-464f-9ed1-1f92665d9460",
                 "name": "Bronze",
                 "behavior": "FixedValue",
@@ -253,8 +253,8 @@
             ]
           },
           {
-            "style_item_type": "Variable",
             "element_type": "Variable",
+            "style_item_type": "Variable",
             "id": "e41f142f-2026-4126-9dc4-bed03fecd31e",
             "name": "Manufacturer",
             "behavior": "FixedValue",
@@ -267,8 +267,8 @@
             }
           },
           {
-            "style_item_type": "Variable",
             "element_type": "Variable",
+            "style_item_type": "Variable",
             "id": "e63c62b8-900a-476d-973b-2b0f12fb7b26",
             "name": "Position",
             "behavior": "FixedValue",
@@ -281,8 +281,8 @@
             }
           },
           {
-            "style_item_type": "Variable",
             "element_type": "Variable",
+            "style_item_type": "Variable",
             "id": "3b9c1864-f07f-46ca-aa86-01cba7629860",
             "name": "Position selected",
             "behavior": "FixedValue",
@@ -295,8 +295,8 @@
             }
           },
           {
-            "style_item_type": "Variable",
             "element_type": "Variable",
+            "style_item_type": "Variable",
             "id": "dc0105f9-83eb-4746-b2a5-dd19d9048301",
             "name": "Transparent Background",
             "behavior": "FixedValue",
@@ -309,8 +309,8 @@
             }
           },
           {
-            "style_item_type": "Variable",
             "element_type": "Variable",
+            "style_item_type": "Variable",
             "id": "82c2beb4-6524-42c9-afb7-f9fdda17f21f",
             "name": "Green Flag",
             "behavior": "FixedValue",
@@ -325,8 +325,8 @@
         ]
       },
       {
-        "style_item_type": "Variable",
         "element_type": "Variable",
+        "style_item_type": "Variable",
         "id": "e86a2ae3-6486-4941-bee9-b063f3ff0152",
         "name": "position color",
         "behavior": "Condition",
@@ -343,8 +343,8 @@
         }
       },
       {
-        "style_item_type": "Variable",
         "element_type": "Variable",
+        "style_item_type": "Variable",
         "id": "8536ebf5-82e1-41e3-bc37-b713534a7780",
         "name": "Cup category background",
         "behavior": "Map",
@@ -381,8 +381,8 @@
         }
       },
       {
-        "style_item_type": "Variable",
         "element_type": "Variable",
+        "style_item_type": "Variable",
         "id": "925dacee-265f-45ee-baf8-668e3005a03d",
         "name": "Cup Category text color",
         "behavior": "Map",
@@ -439,8 +439,8 @@
         }
       },
       {
-        "style_item_type": "Variable",
         "element_type": "Variable",
+        "style_item_type": "Variable",
         "id": "94d9d538-676d-4ea9-a72c-923b054a2b6d",
         "name": "Manufacturer icons",
         "behavior": "Map",
@@ -604,8 +604,8 @@
     "name": "Graphics",
     "content": [
       {
-        "style_item_type": "Graphic",
         "element_type": "Graphic",
+        "style_item_type": "Graphic",
         "id": "42bf7ac6-3075-47fa-a0d8-96325a625b6b",
         "name": "Clock",
         "items": {
@@ -1365,11 +1365,16 @@
             "states": {}
           }
         },
-        "states": []
+        "states": [
+          {
+            "id": "ce318e18-b70c-4604-9555-f3d60651cfa0",
+            "name": "Default"
+          }
+        ]
       },
       {
-        "style_item_type": "Graphic",
         "element_type": "Graphic",
+        "style_item_type": "Graphic",
         "id": "60f9b7e8-32ed-4e19-9ac7-78096708f5da",
         "name": "Timing Tower",
         "items": {
@@ -2330,8 +2335,8 @@
         ]
       },
       {
-        "style_item_type": "Graphic",
         "element_type": "Graphic",
+        "style_item_type": "Graphic",
         "id": "39ef43bb-27c8-4597-93d9-d12c41c34a35",
         "name": "Graphic",
         "items": {
@@ -2455,7 +2460,12 @@
             "states": {}
           }
         },
-        "states": []
+        "states": [
+          {
+            "id": "ae689ad4-d45f-4214-8e5d-0ca087b61733",
+            "name": "Default"
+          }
+        ]
       }
     ]
   }

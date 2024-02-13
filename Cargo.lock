@@ -1613,7 +1613,9 @@ version = "0.1.0"
 dependencies = [
  "backend",
  "bevy",
+ "bevy_egui",
  "common",
+ "dear_egui",
  "postcard",
  "rand 0.8.5",
  "rouille",

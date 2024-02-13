@@ -1,4 +1,4 @@
-use bevy_egui::egui::{vec2, Direction, Label, Layout, Sense, Ui};
+use bevy_egui::egui::{Direction, Label, Layout, Sense, Ui};
 use egui_ltreeview::{Action, TreeView};
 use unified_sim_model::{model::Entry, Adapter, AdapterCommand};
 
@@ -53,74 +53,70 @@ pub fn show_entry_table(ui: &mut Ui, adapter: &Adapter) {
             .unwrap_or(std::cmp::Ordering::Equal);
         is_connected.then(position)
     });
-    let height = ui.available_height();
-    ui.horizontal(|ui| {
-        ui.allocate_space(vec2(0.0, height));
-        egui_ltable::Table::new()
-            .scroll(false, true)
-            .resize_full_height(false)
-            .striped(true)
-            .column(
-                egui_ltable::Column::exact(30.0)
-                    .layout(Layout::centered_and_justified(Direction::LeftToRight)),
-            )
-            .column(egui_ltable::Column::exact(ui.available_width() - 80.0))
-            .column(
-                egui_ltable::Column::exact(30.0)
-                    .layout(Layout::centered_and_justified(Direction::LeftToRight)),
-            )
-            .show(ui, |table| {
-                table.row(egui_ltable::Row::new().height(30.0).fixed(true), |row| {
-                    row.cell(|ui| {
-                        ui.heading("#");
-                    });
-                    row.cell(|ui| {
-                        ui.heading("Name");
-                    });
-                    row.cell(|ui| {
-                        ui.heading("Nr");
-                    });
+    egui_ltable::Table::new()
+        .scroll(false, true)
+        .resize_full_height(false)
+        .striped(true)
+        .column(
+            egui_ltable::Column::exact(30.0)
+                .layout(Layout::centered_and_justified(Direction::LeftToRight)),
+        )
+        .column(egui_ltable::Column::exact(ui.available_width() - 80.0))
+        .column(
+            egui_ltable::Column::exact(30.0)
+                .layout(Layout::centered_and_justified(Direction::LeftToRight)),
+        )
+        .show(ui, |table| {
+            table.row(egui_ltable::Row::new().height(30.0).fixed(true), |row| {
+                row.cell(|ui| {
+                    ui.heading("#");
                 });
-                for (index, entry) in entries.iter().enumerate() {
-                    let r = table.row(
-                        egui_ltable::Row::new()
-                            .height(22.0)
-                            .sense(Sense::click())
-                            .hover_highlight(true)
-                            .highlight(entry.focused),
-                        |row| {
-                            row.cell(|ui| {
-                                ui.add(
-                                    Label::new(format!("{}", index + 1))
-                                        .selectable(false)
-                                        .wrap(false),
-                                );
-                            });
-                            row.cell(|ui| {
-                                if let Some(driver) = entry.drivers.get(&entry.current_driver) {
-                                    ui.add(
-                                        Label::new(format!(
-                                            "{} {}",
-                                            driver.first_name, driver.last_name
-                                        ))
-                                        .selectable(false)
-                                        .truncate(true),
-                                    );
-                                }
-                            });
-                            row.cell(|ui| {
-                                ui.add(
-                                    Label::new(format!("{}", entry.car_number))
-                                        .selectable(false)
-                                        .wrap(false),
-                                );
-                            });
-                        },
-                    );
-                    if r.clicked() {
-                        adapter.send(AdapterCommand::FocusOnCar(entry.id));
-                    }
-                }
+                row.cell(|ui| {
+                    ui.heading("Name");
+                });
+                row.cell(|ui| {
+                    ui.heading("Nr");
+                });
             });
-    });
+            for (index, entry) in entries.iter().enumerate() {
+                let r = table.row(
+                    egui_ltable::Row::new()
+                        .height(22.0)
+                        .sense(Sense::click())
+                        .hover_highlight(true)
+                        .highlight(entry.focused),
+                    |row| {
+                        row.cell(|ui| {
+                            ui.add(
+                                Label::new(format!("{}", index + 1))
+                                    .selectable(false)
+                                    .wrap(false),
+                            );
+                        });
+                        row.cell(|ui| {
+                            if let Some(driver) = entry.drivers.get(&entry.current_driver) {
+                                ui.add(
+                                    Label::new(format!(
+                                        "{} {}",
+                                        driver.first_name, driver.last_name
+                                    ))
+                                    .selectable(false)
+                                    .truncate(true),
+                                );
+                            }
+                        });
+                        row.cell(|ui| {
+                            ui.add(
+                                Label::new(format!("{}", entry.car_number))
+                                    .selectable(false)
+                                    .wrap(false),
+                            );
+                        });
+                    },
+                );
+                if r.clicked() {
+                    adapter.send(AdapterCommand::FocusOnCar(entry.id));
+                }
+            }
+        });
 }

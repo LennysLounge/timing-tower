@@ -18,6 +18,7 @@ use bevy::{
 };
 
 use common::communication::ToRendererMessage;
+use ui::UiPlugin;
 use unified_sim_model::Adapter;
 use webserver::WebserverPlugin;
 use websocket::{ClientState, WebsocketClient, WebsocketPlugin};
@@ -25,6 +26,7 @@ use websocket::{ClientState, WebsocketClient, WebsocketPlugin};
 use crate::ball::BallPlugin;
 
 mod ball;
+mod ui;
 mod webserver;
 mod websocket;
 
@@ -32,9 +34,11 @@ fn main() {
     App::new()
         .add_plugins(BackendPlugin)
         .add_plugins(DefaultPlugins)
+        .add_plugins(bevy_egui::EguiPlugin)
         .add_plugins(WebsocketPlugin)
         .add_plugins(WebserverPlugin)
         .add_plugins(BallPlugin)
+        .add_plugins(UiPlugin)
         .insert_resource(RenderTimer(Timer::from_seconds(
             0.001,
             TimerMode::Repeating,

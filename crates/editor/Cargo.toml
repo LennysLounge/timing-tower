@@ -13,10 +13,10 @@ serde = { workspace = true }
 frontend = { path = "../frontend" }
 backend = { path = "../backend" }
 common = { path = "../common" }
-unified_sim_model = { path = "../../../unified_sim_model/unified_sim_model" }
-dear_egui = { git = "https://github.com/LennysLounge/dear_egui.git" }
+unified_sim_model = { workspace = true }
+dear_egui = { workspace = true }
 egui_ltreeview = { workspace = true }
-egui_ltable = {workspace = true}
+egui_ltable = { workspace = true }
 serde_json = "1.0.107"
 tracing = "0.1.37"
 uuid = { version = "1.4.1", features = ["v4"] }

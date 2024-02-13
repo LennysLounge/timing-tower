@@ -8,9 +8,11 @@ edition = "2021"
 [dependencies]
 common = { path = "../common" }
 backend = { path = "../backend" }
-unified_sim_model = { path = "../../../unified_sim_model/unified_sim_model" }
+unified_sim_model = { workspace = true }
 
 bevy = { workspace = true }
+bevy_egui = { workspace = true }
+dear_egui = { workspace = true }
 postcard = { workspace = true, features = ["alloc"] }
 tracing = { workspace = true }
 uuid = { workspace = true, features = ["v4"] }

@@ -12,11 +12,14 @@ bevy_egui = { git = "https://github.com/LennysLounge/bevy_egui_l.git" }
 egui_ltreeview = { git = "https://github.com/LennysLounge/egui_ltreeview.git" }
 egui_ltable = { path = "../egui_ltable" }
 egui_dock = "0.11"
+dear_egui = { git = "https://github.com/LennysLounge/dear_egui.git" }
 
 tracing = "0.1.4"
 serde = "1.0.188"
 postcard = "1.0.8"
 uuid = "1.5"
+
+unified_sim_model = { path = "../unified_sim_model/unified_sim_model" }
 
 
 [profile.dev]

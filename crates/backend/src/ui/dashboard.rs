@@ -7,7 +7,7 @@ use crate::{
     style::graphic::{GraphicDefinition, GRAPHIC_STATE_HIDDEN},
 };
 
-fn show_graphic(ui: &mut Ui, graphic: &GraphicDefinition, graphic_states: &mut GraphicStates) {
+pub fn show_graphic(ui: &mut Ui, graphic: &GraphicDefinition, graphic_states: &mut GraphicStates) {
     ui.group(|ui| {
         ui.heading(&graphic.name);
 
@@ -39,7 +39,7 @@ fn show_graphic(ui: &mut Ui, graphic: &GraphicDefinition, graphic_states: &mut G
     });
 }
 
-fn show_entry_table(ui: &mut Ui, adapter: &Adapter) {
+pub fn show_entry_table(ui: &mut Ui, adapter: &Adapter) {
     let model = adapter.model.read().expect("Cannot lock model for reading");
     let current_session = model.current_session().unwrap();
 
@@ -64,7 +64,7 @@ fn show_entry_table(ui: &mut Ui, adapter: &Adapter) {
                 egui_ltable::Column::exact(30.0)
                     .layout(Layout::centered_and_justified(Direction::LeftToRight)),
             )
-            .column(egui_ltable::Column::auto().resizeable(true))
+            .column(egui_ltable::Column::exact(ui.available_width() - 80.0))
             .column(
                 egui_ltable::Column::exact(30.0)
                     .layout(Layout::centered_and_justified(Direction::LeftToRight)),

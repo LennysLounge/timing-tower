@@ -14,6 +14,7 @@ pub mod tree_iterator;
 pub mod value_store;
 pub mod value_types;
 pub mod exact_variant;
+pub mod ui;
 
 pub struct BackendPlugin;
 impl Plugin for BackendPlugin {

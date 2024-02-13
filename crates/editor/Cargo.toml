@@ -15,8 +15,8 @@ backend = { path = "../backend" }
 common = { path = "../common" }
 unified_sim_model = { path = "../../../unified_sim_model/unified_sim_model" }
 dear_egui = { git = "https://github.com/LennysLounge/dear_egui.git" }
-egui_ltreeview = { git = "https://github.com/LennysLounge/egui_ltreeview.git" }
-egui_ltable = {path = "../../../egui_ltable"}
+egui_ltreeview = { workspace = true }
+egui_ltable = {workspace = true}
 serde_json = "1.0.107"
 tracing = "0.1.37"
 uuid = { version = "1.4.1", features = ["v4"] }

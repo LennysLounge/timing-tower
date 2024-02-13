@@ -9,6 +9,8 @@ bevy = "0.12"
 # Dependencies that all use the same egui version
 egui = "0.26"
 bevy_egui = { git = "https://github.com/LennysLounge/bevy_egui_l.git" }
+egui_ltreeview = { git = "https://github.com/LennysLounge/egui_ltreeview.git" }
+egui_ltable = { path = "../egui_ltable" }
 egui_dock = "0.11"
 
 tracing = "0.1.4"

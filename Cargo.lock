@@ -383,8 +383,11 @@ name = "backend"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "bevy_egui",
  "common",
  "dyn-clone",
+ "egui_ltable",
+ "egui_ltreeview",
  "enumcapsulate",
  "serde",
  "serde_json",

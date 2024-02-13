@@ -8,6 +8,9 @@ edition = "2021"
 [dependencies]
 common = { path = "../common" }
 bevy = { workspace = true }
+bevy_egui = { workspace = true }
+egui_ltreeview = { workspace = true }
+egui_ltable = {workspace = true}
 serde = { workspace = true, features = ["rc"] }
 tracing = { workspace = true }
 serde_json = "1.0.107"

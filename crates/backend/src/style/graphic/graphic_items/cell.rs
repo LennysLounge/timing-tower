@@ -3,7 +3,7 @@ use common::communication::TextAlignment;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    style::graphic::GraphicStateId,
+    style::graphic::{GraphicStateId, GRAPHIC_STATE_HIDDEN},
     value_types::{
         Boolean, Font, Number, Property, Text, Texture, Tint, Vec2Property, Vec3Property,
     },
@@ -85,7 +85,9 @@ impl Cell {
             size: self.size.get_state_or_template(state),
             skew: self.skew.get_state_or_template(state),
             corner_offsets: self.corner_offsets.get_state_or_template(state),
-            visible: self.visible.get_state_or_template(state),
+            visible: (state.is_some_and(|state| state == &GRAPHIC_STATE_HIDDEN))
+                .then_some(Property::Fixed(Boolean(false)))
+                .unwrap_or(self.visible.get_state_or_template(state)),
             rounding: self.rounding.get_state_or_template(state),
             text_alginment: self.text_alginment.get_state_or_template(state),
             text_position: self.text_position.get_state_or_template(state),

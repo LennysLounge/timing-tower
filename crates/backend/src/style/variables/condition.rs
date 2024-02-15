@@ -1,9 +1,9 @@
-use enumcapsulate::{macros::AsVariantRef, AsVariantRef};
+use enumcapsulate::macros::AsVariantRef;
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 
 use crate::{
-    value_store::{ValueId, ValueProducer, ValueResolver, ValueStore},
+    value_store::{AnyValueProducer, ValueId, ValueProducer, ValueResolver, ValueStore},
     value_types::{
         Boolean, Number, Property, Text, Texture, Tint, UntypedValueRef, ValueRef, ValueType,
     },
@@ -33,38 +33,33 @@ impl Default for Condition {
 }
 
 impl Condition {
-    pub fn as_typed_producer(&self) -> Box<dyn ValueProducer + Sync + Send> {
+    pub fn as_typed_producer(&self) -> AnyValueProducer {
         match self.output.clone() {
-            output @ UntypedOutput::Number(_) => Box::new({
-                ConditionProducer {
-                    comparison: self.comparison.clone(),
-                    output,
-                }
-            }),
-            output @ UntypedOutput::Text(_) => Box::new({
-                ConditionProducer {
-                    comparison: self.comparison.clone(),
-                    output,
-                }
-            }),
-            output @ UntypedOutput::Color(_) => Box::new({
-                ConditionProducer {
-                    comparison: self.comparison.clone(),
-                    output,
-                }
-            }),
-            output @ UntypedOutput::Boolean(_) => Box::new({
-                ConditionProducer {
-                    comparison: self.comparison.clone(),
-                    output,
-                }
-            }),
-            output @ UntypedOutput::Image(_) => Box::new({
-                ConditionProducer {
-                    comparison: self.comparison.clone(),
-                    output,
-                }
-            }),
+            UntypedOutput::Number(output) => ConditionProducer {
+                comparison: self.comparison.clone(),
+                output,
+            }
+            .into(),
+            UntypedOutput::Text(output) => ConditionProducer {
+                comparison: self.comparison.clone(),
+                output,
+            }
+            .into(),
+            UntypedOutput::Color(output) => ConditionProducer {
+                comparison: self.comparison.clone(),
+                output,
+            }
+            .into(),
+            UntypedOutput::Boolean(output) => ConditionProducer {
+                comparison: self.comparison.clone(),
+                output,
+            }
+            .into(),
+            UntypedOutput::Image(output) => ConditionProducer {
+                comparison: self.comparison.clone(),
+                output,
+            }
+            .into(),
         }
     }
 
@@ -173,12 +168,12 @@ pub struct Output<T> {
     pub falsee: Property<T>,
 }
 
-struct ConditionProducer {
+struct ConditionProducer<T> {
     comparison: Comparison,
-    output: UntypedOutput,
+    output: Output<T>,
 }
 
-impl ConditionProducer {
+impl<T> ConditionProducer<T> {
     fn evaluate_condition(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
         match &self.comparison {
             Comparison::Number {
@@ -207,12 +202,7 @@ impl ConditionProducer {
             )),
         }
     }
-    fn resolve<T>(
-        &self,
-        output: &Output<T>,
-        value_store: &ValueStore,
-        entry: Option<&Entry>,
-    ) -> Option<T>
+    fn resolve(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<T>
     where
         ValueStore: ValueResolver<T>,
         T: Clone,
@@ -220,32 +210,39 @@ impl ConditionProducer {
         let condition = self.evaluate_condition(value_store, entry)?;
 
         if condition {
-            value_store.get_property(&output.truee, entry)
+            value_store.get_property(&self.output.truee, entry)
         } else {
-            value_store.get_property(&output.falsee, entry)
+            value_store.get_property(&self.output.falsee, entry)
         }
     }
 }
-
-impl ValueProducer for ConditionProducer {
-    fn get_number(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
-        let output = self.output.as_variant_ref()?;
-        self.resolve(output, value_store, entry)
+impl ValueProducer for ConditionProducer<Number> {
+    type Output = Number;
+    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
+        self.resolve(value_store, entry)
     }
-    fn get_text(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
-        let output = self.output.as_variant_ref()?;
-        self.resolve(output, value_store, entry)
+}
+impl ValueProducer for ConditionProducer<Text> {
+    type Output = Text;
+    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
+        self.resolve(value_store, entry)
     }
-    fn get_boolean(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
-        let output = self.output.as_variant_ref()?;
-        self.resolve(output, value_store, entry)
+}
+impl ValueProducer for ConditionProducer<Boolean> {
+    type Output = Boolean;
+    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
+        self.resolve(value_store, entry)
     }
-    fn get_texture(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Texture> {
-        let output = self.output.as_variant_ref()?;
-        self.resolve(output, value_store, entry)
+}
+impl ValueProducer for ConditionProducer<Texture> {
+    type Output = Texture;
+    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Texture> {
+        self.resolve(value_store, entry)
     }
-    fn get_tint(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Tint> {
-        let output = self.output.as_variant_ref()?;
-        self.resolve(output, value_store, entry)
+}
+impl ValueProducer for ConditionProducer<Tint> {
+    type Output = Tint;
+    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Tint> {
+        self.resolve(value_store, entry)
     }
 }

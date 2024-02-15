@@ -1,9 +1,9 @@
-use std::collections::HashMap;
+use std::{any::Any, collections::HashMap};
 
 use crate::{
     game_sources,
     savefile::{Savefile, SavefileChanged},
-    value_types::{Boolean, Font, Number, Property, Text, Texture, Tint, ValueRef},
+    value_types::{Property, ValueRef},
 };
 use bevy::{
     app::{First, Plugin},
@@ -32,31 +32,45 @@ impl Plugin for ValueStorePlugin {
 #[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub struct ValueId(pub Uuid);
 
-/// Implementors of this trait can produce a value for a [`ValueStore`].
+/// This trait must be implemeneted for something to produce a value in the value store.
+/// A value producer may only produce one type of value. If necessary and if possible that
+/// value is then transformed into the needed value.
+/// To be able to produce more than one value a second instance of the producer and
+/// value producer must be created.
 pub trait ValueProducer {
-    #[allow(unused)]
-    fn get_number(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
-        None
+    type Output;
+
+    /// Get the produced value.
+    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Self::Output>;
+}
+
+/// Any kind of value producer.  
+///
+/// Erases the associated type of a value producer.
+pub struct AnyValueProducer {
+    inner: Box<dyn Any + Sync + Send>,
+}
+impl AnyValueProducer {
+    /// Get the produced value of this producer.
+    ///
+    /// Forwards the call directly to the actual producer. If the actual producer is of
+    /// a different type than the requested type, `None` is returned.
+    fn get<T: 'static>(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<T> {
+        self.inner
+            .downcast_ref::<Box<dyn ValueProducer<Output = T> + Sync + Send>>()
+            .and_then(|producer| producer.as_ref().get(value_store, entry))
     }
-    #[allow(unused)]
-    fn get_text(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
-        None
-    }
-    #[allow(unused)]
-    fn get_boolean(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
-        None
-    }
-    #[allow(unused)]
-    fn get_tint(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Tint> {
-        None
-    }
-    #[allow(unused)]
-    fn get_texture(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Texture> {
-        None
-    }
-    #[allow(unused)]
-    fn get_font(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Font> {
-        None
+}
+impl<U, T> From<T> for AnyValueProducer
+where
+    U: 'static,
+    T: ValueProducer<Output = U> + Sync + Send + 'static,
+{
+    fn from(value: T) -> Self {
+        let as_trait_obj: Box<dyn ValueProducer<Output = U> + Sync + Send> = Box::new(value);
+        Self {
+            inner: Box::new(as_trait_obj),
+        }
     }
 }
 
@@ -64,7 +78,7 @@ pub trait ValueProducer {
 /// value requests.
 #[derive(Resource, Default)]
 pub struct ValueStore {
-    values: HashMap<ValueId, Box<dyn ValueProducer + Sync + Send>>,
+    values: HashMap<ValueId, AnyValueProducer>,
 }
 impl ValueStore {
     pub fn get<T>(&self, value_ref: &ValueRef<T>, entry: Option<&Entry>) -> Option<T>
@@ -103,36 +117,24 @@ mod private {
 
     use crate::value_types::{Boolean, Font, Number, Text, Texture, Tint};
 
-    use super::{ValueProducer, ValueStore};
+    use super::{AnyValueProducer, ValueStore};
 
     pub trait PrivateValueResolver<T> {
-        fn get_typed(
-            &self,
-            producer: &Box<dyn ValueProducer + Sync + Send>,
-            entry: Option<&Entry>,
-        ) -> Option<T>;
+        fn get_typed(&self, producer: &AnyValueProducer, entry: Option<&Entry>) -> Option<T>;
     }
     impl PrivateValueResolver<Number> for ValueStore {
-        fn get_typed(
-            &self,
-            producer: &Box<dyn ValueProducer + Sync + Send>,
-            entry: Option<&Entry>,
-        ) -> Option<Number> {
-            producer.get_number(self, entry)
+        fn get_typed(&self, producer: &AnyValueProducer, entry: Option<&Entry>) -> Option<Number> {
+            producer.get(self, entry)
         }
     }
     impl PrivateValueResolver<Text> for ValueStore {
-        fn get_typed(
-            &self,
-            producer: &Box<dyn ValueProducer + Sync + Send>,
-            entry: Option<&Entry>,
-        ) -> Option<Text> {
+        fn get_typed(&self, producer: &AnyValueProducer, entry: Option<&Entry>) -> Option<Text> {
             producer
-                .get_text(self, entry)
+                .get(self, entry)
                 .or(producer
-                    .get_number(self, entry)
+                    .get::<Number>(self, entry)
                     .map(|number| Text(format!("{}", number.0))))
-                .or(producer.get_boolean(self, entry).map(|bool| {
+                .or(producer.get::<Boolean>(self, entry).map(|bool| {
                     if bool.0 {
                         Text(String::from("Yes"))
                     } else {
@@ -142,39 +144,23 @@ mod private {
         }
     }
     impl PrivateValueResolver<Tint> for ValueStore {
-        fn get_typed(
-            &self,
-            producer: &Box<dyn ValueProducer + Sync + Send>,
-            entry: Option<&Entry>,
-        ) -> Option<Tint> {
-            producer.get_tint(self, entry)
+        fn get_typed(&self, producer: &AnyValueProducer, entry: Option<&Entry>) -> Option<Tint> {
+            producer.get(self, entry)
         }
     }
     impl PrivateValueResolver<Boolean> for ValueStore {
-        fn get_typed(
-            &self,
-            producer: &Box<dyn ValueProducer + Sync + Send>,
-            entry: Option<&Entry>,
-        ) -> Option<Boolean> {
-            producer.get_boolean(self, entry)
+        fn get_typed(&self, producer: &AnyValueProducer, entry: Option<&Entry>) -> Option<Boolean> {
+            producer.get(self, entry)
         }
     }
     impl PrivateValueResolver<Texture> for ValueStore {
-        fn get_typed(
-            &self,
-            producer: &Box<dyn ValueProducer + Sync + Send>,
-            entry: Option<&Entry>,
-        ) -> Option<Texture> {
-            producer.get_texture(self, entry)
+        fn get_typed(&self, producer: &AnyValueProducer, entry: Option<&Entry>) -> Option<Texture> {
+            producer.get(self, entry)
         }
     }
     impl PrivateValueResolver<Font> for ValueStore {
-        fn get_typed(
-            &self,
-            producer: &Box<dyn ValueProducer + Sync + Send>,
-            entry: Option<&Entry>,
-        ) -> Option<Font> {
-            producer.get_font(self, entry)
+        fn get_typed(&self, producer: &AnyValueProducer, entry: Option<&Entry>) -> Option<Font> {
+            producer.get(self, entry)
         }
     }
 }

@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     exact_variant::ExactVariant,
-    value_store::{ValueId, ValueProducer},
+    value_store::{AnyValueProducer, ValueId},
     value_types::{Font, Texture, ValueType},
 };
 
@@ -26,10 +26,10 @@ impl AssetDefinition {
             path: String::new(),
         }
     }
-    pub fn value_producer(&self) -> Box<dyn ValueProducer + Sync + Send> {
+    pub fn value_producer(&self) -> AnyValueProducer {
         match self.value_type {
-            ValueType::Texture => Box::new(StaticValueProducer(Texture::Handle(self.value_id().0))),
-            ValueType::Font => Box::new(StaticValueProducer(Font::Handle(self.value_id().0))),
+            ValueType::Texture => StaticValueProducer(Texture::Handle(self.value_id().0)).into(),
+            ValueType::Font => StaticValueProducer(Font::Handle(self.value_id().0)).into(),
             value_type @ _ => {
                 unreachable!("An asset cannot have a value type of {}", value_type.name())
             }

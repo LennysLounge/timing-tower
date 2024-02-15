@@ -2,8 +2,7 @@ use std::ops::Deref;
 
 use crate::{
     exact_variant::ExactVariant,
-    value_store::{ValueId, ValueProducer, ValueStore},
-    value_types::{Boolean, Font, Number, Text, Texture, Tint},
+    value_store::{AnyValueProducer, ValueId, ValueProducer, ValueStore},
 };
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
@@ -40,7 +39,7 @@ impl VariableDefinition {
             behavior: VariableBehavior::FixedValue(FixedValue::default()),
         }
     }
-    pub fn value_producer(&self) -> Box<dyn ValueProducer + Sync + Send> {
+    pub fn value_producer(&self) -> AnyValueProducer {
         match &self.behavior {
             VariableBehavior::FixedValue(o) => o.as_typed_producer(),
             VariableBehavior::Condition(o) => o.as_typed_producer(),
@@ -53,33 +52,9 @@ impl VariableDefinition {
 }
 
 pub struct StaticValueProducer<T>(pub T);
-impl ValueProducer for StaticValueProducer<Number> {
-    fn get_number(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Number> {
-        Some(self.0.clone())
-    }
-}
-impl ValueProducer for StaticValueProducer<Text> {
-    fn get_text(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Text> {
-        Some(self.0.clone())
-    }
-}
-impl ValueProducer for StaticValueProducer<Boolean> {
-    fn get_boolean(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Boolean> {
-        Some(self.0.clone())
-    }
-}
-impl ValueProducer for StaticValueProducer<Tint> {
-    fn get_tint(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Tint> {
-        Some(self.0.clone())
-    }
-}
-impl ValueProducer for StaticValueProducer<Texture> {
-    fn get_texture(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Texture> {
-        Some(self.0.clone())
-    }
-}
-impl ValueProducer for StaticValueProducer<Font> {
-    fn get_font(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<Font> {
+impl<T: Clone> ValueProducer for StaticValueProducer<T> {
+    type Output = T;
+    fn get(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<T> {
         Some(self.0.clone())
     }
 }

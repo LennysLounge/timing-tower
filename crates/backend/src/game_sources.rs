@@ -4,7 +4,7 @@ use unified_sim_model::model::Entry;
 use uuid::{uuid, Uuid};
 
 use crate::{
-    value_store::{ValueId, ValueProducer, ValueStore},
+    value_store::{AnyValueProducer, ValueId, ValueProducer, ValueStore},
     value_types::{Boolean, Number, Text, ValueType},
 };
 
@@ -87,27 +87,22 @@ enum Extractor {
     Text(fn(&ValueStore, Option<&Entry>) -> Option<String>),
     Boolean(fn(&ValueStore, Option<&Entry>) -> Option<bool>),
 }
-impl ValueProducer for Extractor {
-    fn get_number(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
-        if let Extractor::Number(f) = self {
-            (f)(value_store, entry).map(|n| Number(n))
-        } else {
-            None
-        }
+impl ValueProducer for fn(&ValueStore, Option<&Entry>) -> Option<f32> {
+    type Output = Number;
+    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
+        (self)(value_store, entry).map(|f| Number(f))
     }
-    fn get_text(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
-        if let Extractor::Text(f) = self {
-            (f)(value_store, entry).map(|t| Text(t))
-        } else {
-            None
-        }
+}
+impl ValueProducer for fn(&ValueStore, Option<&Entry>) -> Option<String> {
+    type Output = Text;
+    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
+        (self)(value_store, entry).map(|f| Text(f))
     }
-    fn get_boolean(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
-        if let Extractor::Boolean(f) = self {
-            (f)(value_store, entry).map(|b| Boolean(b))
-        } else {
-            None
-        }
+}
+impl ValueProducer for fn(&ValueStore, Option<&Entry>) -> Option<bool> {
+    type Output = Boolean;
+    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
+        (self)(value_store, entry).map(|f| Boolean(f))
     }
 }
 
@@ -118,11 +113,11 @@ pub struct GameSource {
     extractor: Extractor,
 }
 impl GameSource {
-    pub fn value_producer(&self) -> Box<dyn ValueProducer + Sync + Send> {
-        match self.extractor {
-            Extractor::Number(_) => Box::new(self.extractor.clone()),
-            Extractor::Text(_) => Box::new(self.extractor.clone()),
-            Extractor::Boolean(_) => Box::new(self.extractor.clone()),
+    pub fn value_producer(&self) -> AnyValueProducer {
+        match self.extractor.clone() {
+            Extractor::Number(ex) => ex.into(),
+            Extractor::Text(ex) => ex.into(),
+            Extractor::Boolean(ex) => ex.into(),
         }
     }
     pub fn value_id(&self) -> ValueId {

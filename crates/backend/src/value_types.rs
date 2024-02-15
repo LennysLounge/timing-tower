@@ -6,32 +6,80 @@ use uuid::Uuid;
 
 use crate::value_store::ValueId;
 
+/// Base trait for style value type in the application.
+pub trait Value {
+    /// Return the type of this value.
+    fn ty() -> ValueType;
+}
+
+/// A number. Contains a f32.
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct Number(pub f32);
+impl Value for Number {
+    fn ty() -> ValueType {
+        ValueType::Number
+    }
+}
 
+/// A type that represents some text. Contains a owned String.
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct Text(pub String);
+impl Value for Text {
+    fn ty() -> ValueType {
+        ValueType::Text
+    }
+}
 
+/// A type that represents a color. Contains a [`bevy::render::color::Color`].
+/// The name "tint" was chosen to avoid ambiguity with the bevy color type.
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct Tint(pub Color);
+impl Value for Tint {
+    fn ty() -> ValueType {
+        ValueType::Tint
+    }
+}
 
+/// A boolean type.
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct Boolean(pub bool);
+impl Value for Boolean {
+    fn ty() -> ValueType {
+        ValueType::Boolean
+    }
+}
 
+/// A type that represents a texture. Stores a reference to an asset
+/// that contains the actual texture data. Textures are generally optional
+/// Which is why this type contains the "None" variant.
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub enum Texture {
     #[default]
     None,
     Handle(Uuid),
 }
+impl Value for Texture {
+    fn ty() -> ValueType {
+        ValueType::Texture
+    }
+}
 
+/// A type that represents a font. Stores a reference to an asset
+/// that contains the actual font data. Fonts can be unspecified
+/// in which case a default font is used.
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub enum Font {
     #[default]
     Default,
     Handle(Uuid),
 }
+impl Value for Font {
+    fn ty() -> ValueType {
+        ValueType::Font
+    }
+}
 
+/// Enumerates the different available value types.
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug, Default, Copy)]
 pub enum ValueType {
     #[default]
@@ -43,16 +91,16 @@ pub enum ValueType {
     Font,
 }
 impl ValueType {
+    /// Test if this type can be cast to the target type.
     pub fn can_cast_to(&self, target: &ValueType) -> bool {
-        use ValueType::*;
-
         match (self, target) {
             (ref a, ref b) if a == b => true,
-            (Number, Text) => true,
-            (Boolean, Text) => true,
+            (ValueType::Number, ValueType::Text) => true,
+            (ValueType::Boolean, ValueType::Text) => true,
             _ => false,
         }
     }
+    /// Get the name of this value type.
     pub fn name(&self) -> &str {
         match self {
             ValueType::Number => "Number",
@@ -100,6 +148,16 @@ impl ValueTypeOf<Font> for ValueType {
     }
 }
 
+/// References a [`ValueProducer`](crate::value_store::ValueProducer) in the
+/// [`ValueStore`](crate::value_store::ValueStore).  
+/// The type that is expected to be produced by this reference is carried in the generic type `T`.
+/// Should a value producer not be able to produce a value of type `T`, casting may be used to create
+/// a value of type `T`.
+///  
+/// `T` does **not** represent the expected value produced by the value producer that is references.
+/// A `ValueRef` can safely reference any `ValueProducer` of any type. It is perfectly safe to
+/// have a `ValueRef<Texture>` that references a `ValueProducer` that can only produce `Number`.
+/// Such a reference simply does nothing and will most likely result in a default value of `T`.
 #[derive(Serialize, Deserialize, Clone, Default)]
 #[serde(transparent)]
 pub struct ValueRef<T> {

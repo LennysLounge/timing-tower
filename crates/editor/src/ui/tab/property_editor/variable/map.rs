@@ -9,7 +9,7 @@ use backend::{
         map::{Input, Map, Output, UntypedOutput},
         NumberComparator, TextComparator,
     },
-    value_types::{ValueType, ValueTypeOf},
+    value_types::{Value, ValueType},
 };
 
 use super::EguiComboBoxExtension;
@@ -228,8 +228,7 @@ fn output_edit_case<T>(
     index: usize,
 ) -> Response
 where
-    ValueType: ValueTypeOf<T>,
-    T: Default + ValueTypeEditor,
+    T: Value + Default + ValueTypeEditor,
 {
     let property = me
         .cases

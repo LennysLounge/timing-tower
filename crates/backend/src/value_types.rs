@@ -113,41 +113,6 @@ impl ValueType {
     }
 }
 
-pub trait ValueTypeOf<T> {
-    fn get() -> Self;
-}
-
-impl ValueTypeOf<Number> for ValueType {
-    fn get() -> Self {
-        ValueType::Number
-    }
-}
-impl ValueTypeOf<Text> for ValueType {
-    fn get() -> Self {
-        ValueType::Text
-    }
-}
-impl ValueTypeOf<Tint> for ValueType {
-    fn get() -> Self {
-        ValueType::Tint
-    }
-}
-impl ValueTypeOf<Boolean> for ValueType {
-    fn get() -> Self {
-        ValueType::Boolean
-    }
-}
-impl ValueTypeOf<Texture> for ValueType {
-    fn get() -> Self {
-        ValueType::Texture
-    }
-}
-impl ValueTypeOf<Font> for ValueType {
-    fn get() -> Self {
-        ValueType::Font
-    }
-}
-
 /// References a [`ValueProducer`](crate::value_store::ValueProducer) in the
 /// [`ValueStore`](crate::value_store::ValueStore).  
 /// The type that is expected to be produced by this reference is carried in the generic type `T`.

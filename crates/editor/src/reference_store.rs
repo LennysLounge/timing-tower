@@ -14,7 +14,7 @@ use backend::{
     savefile::{Savefile, SavefileChanged},
     style::{assets::AssetFolder, variables::VariableFolder},
     value_store::ValueId,
-    value_types::{UntypedValueRef, ValueRef, ValueType, ValueTypeOf},
+    value_types::{UntypedValueRef, Value, ValueRef, ValueType},
 };
 
 pub struct ReferenceStorePlugin;
@@ -60,9 +60,9 @@ impl ReferenceStore {
 
     pub fn editor<T>(&self, ui: &mut Ui, value_ref: &mut ValueRef<T>) -> Response
     where
-        ValueType: ValueTypeOf<T>,
+        T: Value,
     {
-        let target_type: ValueType = ValueTypeOf::<T>::get();
+        let target_type = T::ty();
 
         let mut editor_res = self.untyped_editor(ui, &value_ref.id, |v| {
             v.value_type.can_cast_to(&target_type)
@@ -86,9 +86,9 @@ impl ReferenceStore {
 
     pub fn editor_small<T>(&self, ui: &mut Ui) -> InnerResponse<Option<ValueRef<T>>>
     where
-        ValueType: ValueTypeOf<T>,
+        T: Value,
     {
-        let target_type: ValueType = ValueTypeOf::<T>::get();
+        let target_type = T::ty();
 
         let mut editor_res =
             self.untyped_editor_small(ui, |v| v.value_type.can_cast_to(&target_type));

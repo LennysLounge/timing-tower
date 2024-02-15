@@ -1,6 +1,4 @@
-use backend::value_types::{
-    Boolean, Font, Number, Property, Text, Texture, Tint, ValueType, ValueTypeOf,
-};
+use backend::value_types::{Boolean, Font, Number, Property, Text, Texture, Tint, Value};
 use bevy_egui::egui::{self, vec2, DragValue, Rect, Response, Sense, TextEdit, Ui, Widget};
 
 use crate::reference_store::ReferenceStore;
@@ -15,8 +13,7 @@ impl<'a, T> PropertyEditor<'a, T> {
         reference_store: &'a ReferenceStore,
     ) -> PropertyEditor<'a, T>
     where
-        ValueType: ValueTypeOf<T>,
-        T: Default + ValueTypeEditor,
+        T: Value + Default + ValueTypeEditor,
     {
         PropertyEditor {
             property,
@@ -27,8 +24,7 @@ impl<'a, T> PropertyEditor<'a, T> {
 
 impl<T> Widget for PropertyEditor<'_, T>
 where
-    ValueType: ValueTypeOf<T>,
-    T: Default + ValueTypeEditor,
+    T: Value + Default + ValueTypeEditor,
 {
     fn ui(self, ui: &mut Ui) -> Response {
         ui.scope(|ui| match self.property {

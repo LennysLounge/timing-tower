@@ -13,7 +13,7 @@ use backend::{
     game_sources,
     savefile::{Savefile, SavefileChanged},
     style::{assets::AssetFolder, variables::VariableFolder},
-    value_store::ValueId,
+    value_store::ProducerId,
     value_types::{UntypedValueRef, Value, ValueRef, ValueType},
 };
 
@@ -31,7 +31,7 @@ pub trait IntoProducerData {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct ProducerData {
-    pub id: ValueId,
+    pub id: ProducerId,
     pub name: String,
     pub value_type: ValueType,
 }
@@ -113,7 +113,7 @@ impl ReferenceStore {
     pub fn untyped_editor(
         &self,
         ui: &mut Ui,
-        asset_ref_key: &ValueId,
+        asset_ref_key: &ProducerId,
         is_type_allowed: impl Fn(&ProducerData) -> bool,
     ) -> InnerResponse<Option<UntypedValueRef>> {
         let button_name = self
@@ -141,7 +141,7 @@ impl ReferenceStore {
         InnerResponse::new(selected_asset.map(|a| a.get_ref()), res.response)
     }
 
-    fn get(&self, id: &ValueId) -> Option<&ProducerData> {
+    fn get(&self, id: &ProducerId) -> Option<&ProducerData> {
         self.variables
             .get(id)
             .or_else(|| self.game_sources.get(id))
@@ -223,7 +223,7 @@ impl AssetOrFolder {
                 .collect(),
         }
     }
-    fn get(&self, id: &ValueId) -> Option<&ProducerData> {
+    fn get(&self, id: &ProducerId) -> Option<&ProducerData> {
         match self {
             AssetOrFolder::Asset(asset) => (&asset.id == id).then_some(asset),
             AssetOrFolder::Folder { name: _, assets } => assets.iter().find_map(|a| a.get(id)),

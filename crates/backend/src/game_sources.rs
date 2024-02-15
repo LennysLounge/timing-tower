@@ -4,7 +4,7 @@ use unified_sim_model::model::Entry;
 use uuid::{uuid, Uuid};
 
 use crate::{
-    value_store::{AnyValueProducer, ValueId, ValueProducer, ValueStore},
+    value_store::{AnyValueProducer, ProducerId, ValueProducer, ValueStore},
     value_types::{Boolean, Number, Text, ValueType},
 };
 
@@ -120,8 +120,8 @@ impl GameSource {
             Extractor::Boolean(ex) => ex.into(),
         }
     }
-    pub fn value_id(&self) -> ValueId {
-        ValueId(self.id)
+    pub fn value_id(&self) -> ProducerId {
+        ProducerId(self.id)
     }
 }
 

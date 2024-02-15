@@ -30,7 +30,7 @@ impl Plugin for ValueStorePlugin {
 
 /// Identifies a value producer.
 #[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Hash, Default)]
-pub struct ValueId(pub Uuid);
+pub struct ProducerId(pub Uuid);
 
 /// This trait must be implemeneted for something to produce a value in the value store.
 /// A value producer may only produce one type of value. If necessary and if possible that
@@ -78,7 +78,7 @@ where
 /// value requests.
 #[derive(Resource, Default)]
 pub struct ValueStore {
-    values: HashMap<ValueId, AnyValueProducer>,
+    values: HashMap<ProducerId, AnyValueProducer>,
 }
 impl ValueStore {
     pub fn get<T>(&self, value_ref: &ValueRef<T>, entry: Option<&Entry>) -> Option<T>

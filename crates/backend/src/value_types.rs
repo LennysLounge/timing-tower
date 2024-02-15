@@ -4,7 +4,7 @@ use bevy::render::color::Color;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::value_store::ValueId;
+use crate::value_store::ProducerId;
 
 /// Base trait for style value type in the application.
 pub trait Value {
@@ -126,14 +126,14 @@ impl ValueType {
 #[derive(Serialize, Deserialize, Clone, Default)]
 #[serde(transparent)]
 pub struct ValueRef<T> {
-    pub id: ValueId,
+    pub id: ProducerId,
     #[serde(skip)]
     pub phantom: PhantomData<T>,
 }
 
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct UntypedValueRef {
-    pub id: ValueId,
+    pub id: ProducerId,
     pub value_type: ValueType,
 }
 

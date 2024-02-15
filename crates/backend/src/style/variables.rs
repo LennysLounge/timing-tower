@@ -2,7 +2,7 @@ use std::ops::Deref;
 
 use crate::{
     exact_variant::ExactVariant,
-    value_store::{AnyValueProducer, ValueId, ValueProducer, ValueStore},
+    value_store::{AnyValueProducer, ProducerId, ValueProducer, ValueStore},
 };
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
@@ -46,8 +46,8 @@ impl VariableDefinition {
             VariableBehavior::Map(o) => o.as_typed_producer(),
         }
     }
-    pub fn value_id(&self) -> ValueId {
-        ValueId(self.id.0)
+    pub fn value_id(&self) -> ProducerId {
+        ProducerId(self.id.0)
     }
 }
 

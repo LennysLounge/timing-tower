@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 
 use crate::{
-    value_store::{AnyValueProducer, ValueId, ValueProducer, ValueResolver, ValueStore},
+    value_store::{AnyValueProducer, ProducerId, ValueProducer, ValueResolver, ValueStore},
     value_types::{Boolean, Number, Property, Text, Texture, Tint, ValueRef, ValueType},
 };
 
@@ -115,7 +115,7 @@ impl Input {
             Input::Text { .. } => ValueType::Text,
         }
     }
-    pub fn input_id(&self) -> ValueId {
+    pub fn input_id(&self) -> ProducerId {
         match self {
             Input::Number {
                 input_ref: input, ..

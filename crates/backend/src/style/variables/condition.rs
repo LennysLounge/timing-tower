@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
 
 use crate::{
-    value_store::{AnyValueProducer, ValueId, ValueProducer, ValueResolver, ValueStore},
+    value_store::{AnyValueProducer, ProducerId, ValueProducer, ValueResolver, ValueStore},
     value_types::{
         Boolean, Number, Property, Text, Texture, Tint, UntypedValueRef, ValueRef, ValueType,
     },
@@ -95,7 +95,7 @@ pub enum Comparison {
 }
 
 impl Comparison {
-    pub fn left_side_id(&self) -> &ValueId {
+    pub fn left_side_id(&self) -> &ProducerId {
         match self {
             Comparison::Number { left, .. } => &left.id,
             Comparison::Text { left, .. } => &left.id,

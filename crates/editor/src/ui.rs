@@ -1,6 +1,6 @@
 pub mod combo_box;
-mod tab;
 pub mod popup;
+mod tab;
 
 use std::{fs::File, io::Write};
 

@@ -1,6 +1,9 @@
-use bevy_egui::egui::{ComboBox, InnerResponse, Sense, Ui, Vec2};
+use bevy_egui::egui::{ComboBox, Sense, Ui, Vec2};
 
-use crate::{reference_store::ReferenceStore, ui::tab::property_editor::property::PropertyEditor};
+use crate::{
+    reference_store::{any_producer_ref_editor, ReferenceStore},
+    ui::tab::property_editor::property::PropertyEditor,
+};
 use backend::{
     style::variables::{
         condition::{Comparison, Condition, Output, UntypedOutput},
@@ -37,22 +40,18 @@ pub fn property_editor(ui: &mut Ui, value: &mut Condition, asset_repo: &Referenc
         ui.label("If");
         ui.allocate_at_least(Vec2::new(5.0, 0.0), Sense::hover());
 
-        let InnerResponse {
-            inner: new_untyped_ref,
-            response: _,
-        } = asset_repo.untyped_editor(ui, &value.comparison.left_side_id(), |v| {
-            return match v.value_type {
-                ValueType::Number => true,
-                ValueType::Text => true,
-                ValueType::Boolean => true,
-                _ => false,
-            };
+        let mut any_ref = value.comparison.left_side_ref();
+        let res = any_producer_ref_editor(ui, asset_repo, &mut any_ref, |v| match v.value_type {
+            ValueType::Number => true,
+            ValueType::Text => true,
+            ValueType::Boolean => true,
+            _ => false,
         });
-
-        if let Some(reference) = new_untyped_ref {
-            value.comparison.set_left_side(reference);
+        if res.changed() {
+            value.comparison.set_left_side(any_ref);
             changed |= true;
         }
+
         ui.label("is");
     });
 

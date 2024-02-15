@@ -4,7 +4,9 @@ use unified_sim_model::model::Entry;
 
 use crate::{
     value_store::{AnyValueProducer, ProducerId, ValueProducer, ValueResolver, ValueStore},
-    value_types::{Boolean, Number, ProducerRef, Property, Text, Texture, Tint, ValueType},
+    value_types::{
+        AnyProducerRef, Boolean, Number, ProducerRef, Property, Text, Texture, Tint, ValueType,
+    },
 };
 
 use super::{NumberComparator, TextComparator};
@@ -125,6 +127,37 @@ impl Input {
             } => input.id,
         }
     }
+    pub fn input_ref(&self) -> AnyProducerRef {
+        match self {
+            Input::Number { input_ref, .. } => input_ref.clone().to_any_producer_ref(),
+            Input::Text { input_ref, .. } => input_ref.clone().to_any_producer_ref(),
+        }
+    }
+    pub fn set_input_ref(&mut self, new_input_ref: AnyProducerRef) {
+        // Only update the actual input reference
+        if new_input_ref.value_type == self.value_type() {
+            match self {
+                Input::Number { input_ref, .. } => *input_ref = new_input_ref.typed(),
+                Input::Text { input_ref, .. } => *input_ref = new_input_ref.typed(),
+            }
+        } else {
+            // Change the entire type of the input to match the new reference.
+            *self = match new_input_ref.value_type {
+                ValueType::Number => Input::Number {
+                    input_ref: new_input_ref.typed(),
+                    input_cases: Vec::new(),
+                },
+                ValueType::Text => Input::Text {
+                    input_ref: new_input_ref.typed(),
+                    input_cases: Vec::new(),
+                },
+                value_type @ _ => {
+                    unreachable!("Type {} not allowed in comparison", value_type.name())
+                }
+            }
+        }
+    }
+
     pub fn case_count(&self) -> usize {
         match self {
             Input::Number {

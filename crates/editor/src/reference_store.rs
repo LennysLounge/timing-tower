@@ -58,30 +58,20 @@ impl ReferenceStore {
         self.assets = AssetOrFolder::from_asset_defs(assets);
     }
 
-    pub fn editor<T>(&self, ui: &mut Ui, value_ref: &mut ProducerRef<T>) -> Response
+    pub fn editor<T>(&self, ui: &mut Ui, producer_ref: &mut ProducerRef<T>) -> Response
     where
         T: Value,
     {
         let target_type = T::ty();
 
-        let mut editor_res = self.untyped_editor(ui, &value_ref.id, |v| {
+        let mut any_ref = producer_ref.clone().to_any_producer_ref();
+        let res = any_producer_ref_editor(ui, self, &mut any_ref, |v| {
             v.value_type.can_cast_to(&target_type)
         });
-        if let Some(AnyProducerRef { id, value_type }) = editor_res.inner {
-            if !value_type.can_cast_to(&target_type) {
-                unreachable!(
-                    "Could not cast untyped value ref to 
-                    type {} even though the ref is limited to only that type",
-                    std::any::type_name::<T>()
-                );
-            }
-            *value_ref = ProducerRef {
-                id: id,
-                phantom: std::marker::PhantomData,
-            };
-            editor_res.response.mark_changed();
+        if res.changed() {
+            *producer_ref = any_ref.typed();
         }
-        editor_res.response
+        res
     }
 
     pub fn editor_small<T>(&self, ui: &mut Ui) -> InnerResponse<Option<ProducerRef<T>>>
@@ -108,25 +98,6 @@ impl ReferenceStore {
             }
         });
         InnerResponse::new(inner, editor_res.response)
-    }
-
-    pub fn untyped_editor(
-        &self,
-        ui: &mut Ui,
-        asset_ref_key: &ProducerId,
-        is_type_allowed: impl Fn(&ProducerData) -> bool,
-    ) -> InnerResponse<Option<AnyProducerRef>> {
-        let button_name = self
-            .get(asset_ref_key)
-            .map(|id| id.name.as_str())
-            .unwrap_or("- Invalud Ref -");
-
-        let mut selected_asset = None;
-        let res = ui.menu_button(button_name, |ui| {
-            self.show_menu(ui, &mut selected_asset, &is_type_allowed);
-        });
-
-        InnerResponse::new(selected_asset.map(|a| a.get_ref()), res.response)
     }
 
     fn untyped_editor_small(
@@ -329,4 +300,42 @@ mod style {
             }
         }
     }
+}
+
+pub fn select_producer_reference(
+    ui: &mut Ui,
+    reference_store: &ReferenceStore,
+    text: &str,
+    is_type_allowed: impl Fn(&ProducerData) -> bool,
+) -> InnerResponse<Option<AnyProducerRef>> {
+    let mut selected_asset = None;
+    let res = ui.menu_button(text, |ui| {
+        reference_store.show_menu(ui, &mut selected_asset, &is_type_allowed);
+    });
+    InnerResponse::new(
+        selected_asset.map(|prod| AnyProducerRef {
+            id: prod.id,
+            value_type: prod.value_type,
+        }),
+        res.response,
+    )
+}
+
+pub fn any_producer_ref_editor(
+    ui: &mut Ui,
+    reference_store: &ReferenceStore,
+    producer_ref: &mut AnyProducerRef,
+    is_type_allowed: impl Fn(&ProducerData) -> bool,
+) -> Response {
+    let button_name = reference_store
+        .get(&producer_ref.id)
+        .map(|id| id.name.as_str())
+        .unwrap_or("- Invalud Ref -");
+
+    let res = select_producer_reference(ui, reference_store, button_name, is_type_allowed);
+    if let Some(selected_producer) = res.inner {
+        *producer_ref = selected_producer;
+    }
+
+    res.response
 }

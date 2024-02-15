@@ -1,7 +1,7 @@
-use bevy_egui::egui::{vec2, ComboBox, InnerResponse, Response, Ui};
+use bevy_egui::egui::{vec2, ComboBox, Response, Ui};
 
 use crate::{
-    reference_store::ReferenceStore,
+    reference_store::{any_producer_ref_editor, ReferenceStore},
     ui::tab::property_editor::property::{PropertyEditor, ValueTypeEditor},
 };
 use backend::{
@@ -20,45 +20,19 @@ pub fn property_editor(ui: &mut Ui, value: &mut Map, asset_repo: &ReferenceStore
     ui.horizontal(|ui| {
         ui.label("Map input: ");
 
-        let InnerResponse {
-            inner: new_untyped_ref,
-            response: _,
-        } = asset_repo.untyped_editor(ui, &value.input.input_id(), |v| match v.value_type {
+        let mut any_ref = value.input.input_ref();
+        let res = any_producer_ref_editor(ui, asset_repo, &mut any_ref, |v| match v.value_type {
             ValueType::Number => true,
             ValueType::Text => true,
             _ => false,
         });
-
-        if let Some(new_untyped_ref) = new_untyped_ref {
-            // Only update the actual input reference
-            if new_untyped_ref.value_type == value.input.value_type() {
-                match &mut value.input {
-                    Input::Number {
-                        input_ref: input, ..
-                    } => *input = new_untyped_ref.typed(),
-                    Input::Text {
-                        input_ref: input, ..
-                    } => *input = new_untyped_ref.typed(),
-                }
-            } else {
-                // Change the entire type of the input to match the new reference.
-                value.input = match new_untyped_ref.value_type {
-                    ValueType::Number => Input::Number {
-                        input_ref: new_untyped_ref.typed(),
-                        input_cases: Vec::new(),
-                    },
-                    ValueType::Text => Input::Text {
-                        input_ref: new_untyped_ref.typed(),
-                        input_cases: Vec::new(),
-                    },
-                    value_type @ _ => {
-                        unreachable!("Type {} not allowed in comparison", value_type.name())
-                    }
-                };
+        if res.changed() {
+            if any_ref.value_type != value.input.value_type() {
                 value.output.clear();
             }
+            value.input.set_input_ref(any_ref);
             changed |= true;
-        };
+        }
     });
     ui.horizontal(|ui| {
         ui.label("to type: ");

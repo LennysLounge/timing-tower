@@ -116,12 +116,28 @@ impl ValueType {
 /// References a [`ValueProducer`](crate::value_store::ValueProducer) in the
 /// [`ValueStore`](crate::value_store::ValueStore).  
 /// Carries the type of the `ValueProducer` in the generic type `T`.
-#[derive(Serialize, Deserialize, Clone, Default)]
+#[derive(Serialize, Deserialize, Default)]
 #[serde(transparent)]
 pub struct ProducerRef<T> {
     pub id: ProducerId,
     #[serde(skip)]
     pub phantom: PhantomData<T>,
+}
+impl<T: Value> ProducerRef<T> {
+    pub fn to_any_producer_ref(self) -> AnyProducerRef {
+        AnyProducerRef {
+            id: self.id,
+            value_type: T::ty(),
+        }
+    }
+}
+impl<T> Clone for ProducerRef<T> {
+    fn clone(&self) -> Self {
+        Self {
+            id: self.id.clone(),
+            phantom: self.phantom.clone(),
+        }
+    }
 }
 
 /// References a [`ValueProducer`](crate::value_store::ValueProducer) in the
@@ -139,6 +155,16 @@ impl AnyProducerRef {
         ProducerRef {
             id: self.id,
             phantom: PhantomData,
+        }
+    }
+    pub fn to_typed_2<T: Value>(&self) -> Option<ProducerRef<T>> {
+        if T::ty() == self.value_type {
+            Some(ProducerRef {
+                id: self.id,
+                phantom: PhantomData,
+            })
+        } else {
+            None
         }
     }
 }

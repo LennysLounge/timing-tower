@@ -5,7 +5,7 @@ use unified_sim_model::model::Entry;
 use crate::{
     value_store::{AnyValueProducer, ProducerId, ValueProducer, ValueResolver, ValueStore},
     value_types::{
-        Boolean, Number, Property, Text, Texture, Tint, AnyProducerRef, ProducerRef, ValueType,
+        AnyProducerRef, Boolean, Number, ProducerRef, Property, Text, Texture, Tint, ValueType,
     },
 };
 
@@ -107,6 +107,13 @@ impl Comparison {
             Comparison::Number { .. } => ValueType::Number,
             Comparison::Text { .. } => ValueType::Text,
             Comparison::Boolean { .. } => ValueType::Boolean,
+        }
+    }
+    pub fn left_side_ref(&self) -> AnyProducerRef {
+        match self {
+            Comparison::Number { left, .. } => left.clone().to_any_producer_ref(),
+            Comparison::Text { left, .. } => left.clone().to_any_producer_ref(),
+            Comparison::Boolean { left, .. } => left.clone().to_any_producer_ref(),
         }
     }
 

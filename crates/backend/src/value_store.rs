@@ -3,7 +3,7 @@ use std::{any::Any, collections::HashMap};
 use crate::{
     game_sources,
     savefile::{Savefile, SavefileChanged},
-    value_types::{Property, ValueRef},
+    value_types::{ProducerRef, Property},
 };
 use bevy::{
     app::{First, Plugin},
@@ -81,7 +81,7 @@ pub struct ValueStore {
     values: HashMap<ProducerId, AnyValueProducer>,
 }
 impl ValueStore {
-    pub fn get<T>(&self, value_ref: &ValueRef<T>, entry: Option<&Entry>) -> Option<T>
+    pub fn get<T>(&self, value_ref: &ProducerRef<T>, entry: Option<&Entry>) -> Option<T>
     where
         Self: ValueResolver<T>,
     {

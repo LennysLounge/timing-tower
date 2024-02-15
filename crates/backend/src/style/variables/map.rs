@@ -4,7 +4,7 @@ use unified_sim_model::model::Entry;
 
 use crate::{
     value_store::{AnyValueProducer, ProducerId, ValueProducer, ValueResolver, ValueStore},
-    value_types::{Boolean, Number, Property, Text, Texture, Tint, ValueRef, ValueType},
+    value_types::{Boolean, Number, ProducerRef, Property, Text, Texture, Tint, ValueType},
 };
 
 use super::{NumberComparator, TextComparator};
@@ -21,7 +21,7 @@ impl Default for Map {
     fn default() -> Self {
         Self {
             input: Input::Number {
-                input_ref: ValueRef::default(),
+                input_ref: ProducerRef::default(),
                 input_cases: Vec::new(),
             },
             output: UntypedOutput::Number(Output::default()),
@@ -99,11 +99,11 @@ impl Map {
 #[serde(tag = "input_type")]
 pub enum Input {
     Number {
-        input_ref: ValueRef<Number>,
+        input_ref: ProducerRef<Number>,
         input_cases: Vec<NumberCase>,
     },
     Text {
-        input_ref: ValueRef<Text>,
+        input_ref: ProducerRef<Text>,
         input_cases: Vec<TextCase>,
     },
 }
@@ -303,8 +303,8 @@ impl ValueProducer for MapProducer<Tint> {
 }
 
 enum CaseComparison {
-    Number((ValueRef<Number>, NumberComparator, Property<Number>)),
-    Text((ValueRef<Text>, TextComparator, Property<Text>)),
+    Number((ProducerRef<Number>, NumberComparator, Property<Number>)),
+    Text((ProducerRef<Text>, TextComparator, Property<Text>)),
 }
 impl CaseComparison {
     fn test(&self, asset_repo: &ValueStore, entry: Option<&Entry>) -> bool {

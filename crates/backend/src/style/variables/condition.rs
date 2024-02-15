@@ -5,7 +5,7 @@ use unified_sim_model::model::Entry;
 use crate::{
     value_store::{AnyValueProducer, ProducerId, ValueProducer, ValueResolver, ValueStore},
     value_types::{
-        Boolean, Number, Property, Text, Texture, Tint, UntypedValueRef, ValueRef, ValueType,
+        Boolean, Number, Property, Text, Texture, Tint, AnyProducerRef, ProducerRef, ValueType,
     },
 };
 
@@ -23,7 +23,7 @@ impl Default for Condition {
     fn default() -> Self {
         Self {
             comparison: Comparison::Number {
-                left: ValueRef::default(),
+                left: ProducerRef::default(),
                 comparator: NumberComparator::Equal,
                 right: Property::default(),
             },
@@ -78,17 +78,17 @@ impl Condition {
 #[serde(tag = "comparison_type")]
 pub enum Comparison {
     Number {
-        left: ValueRef<Number>,
+        left: ProducerRef<Number>,
         comparator: NumberComparator,
         right: Property<Number>,
     },
     Text {
-        left: ValueRef<Text>,
+        left: ProducerRef<Text>,
         comparator: TextComparator,
         right: Property<Text>,
     },
     Boolean {
-        left: ValueRef<Boolean>,
+        left: ProducerRef<Boolean>,
         comparator: BooleanComparator,
         right: Property<Boolean>,
     },
@@ -110,7 +110,7 @@ impl Comparison {
         }
     }
 
-    pub fn set_left_side(&mut self, new_untyped_ref: UntypedValueRef) {
+    pub fn set_left_side(&mut self, new_untyped_ref: AnyProducerRef) {
         match (self, new_untyped_ref.value_type) {
             // If the new value is of the same type as the comparison then we only
             // need to update the reference.

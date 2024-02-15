@@ -14,7 +14,7 @@ use backend::{
     savefile::{Savefile, SavefileChanged},
     style::{assets::AssetFolder, variables::VariableFolder},
     value_store::ProducerId,
-    value_types::{UntypedValueRef, Value, ValueRef, ValueType},
+    value_types::{AnyProducerRef, ProducerRef, Value, ValueType},
 };
 
 pub struct ReferenceStorePlugin;
@@ -36,8 +36,8 @@ pub struct ProducerData {
     pub value_type: ValueType,
 }
 impl ProducerData {
-    pub fn get_ref(&self) -> UntypedValueRef {
-        UntypedValueRef {
+    pub fn get_ref(&self) -> AnyProducerRef {
+        AnyProducerRef {
             value_type: self.value_type,
             id: self.id,
         }
@@ -58,7 +58,7 @@ impl ReferenceStore {
         self.assets = AssetOrFolder::from_asset_defs(assets);
     }
 
-    pub fn editor<T>(&self, ui: &mut Ui, value_ref: &mut ValueRef<T>) -> Response
+    pub fn editor<T>(&self, ui: &mut Ui, value_ref: &mut ProducerRef<T>) -> Response
     where
         T: Value,
     {
@@ -67,7 +67,7 @@ impl ReferenceStore {
         let mut editor_res = self.untyped_editor(ui, &value_ref.id, |v| {
             v.value_type.can_cast_to(&target_type)
         });
-        if let Some(UntypedValueRef { id, value_type }) = editor_res.inner {
+        if let Some(AnyProducerRef { id, value_type }) = editor_res.inner {
             if !value_type.can_cast_to(&target_type) {
                 unreachable!(
                     "Could not cast untyped value ref to 
@@ -75,7 +75,7 @@ impl ReferenceStore {
                     std::any::type_name::<T>()
                 );
             }
-            *value_ref = ValueRef {
+            *value_ref = ProducerRef {
                 id: id,
                 phantom: std::marker::PhantomData,
             };
@@ -84,7 +84,7 @@ impl ReferenceStore {
         editor_res.response
     }
 
-    pub fn editor_small<T>(&self, ui: &mut Ui) -> InnerResponse<Option<ValueRef<T>>>
+    pub fn editor_small<T>(&self, ui: &mut Ui) -> InnerResponse<Option<ProducerRef<T>>>
     where
         T: Value,
     {
@@ -102,7 +102,7 @@ impl ReferenceStore {
                 );
             }
             editor_res.response.mark_changed();
-            ValueRef {
+            ProducerRef {
                 id: new_untyped_value_ref.id,
                 phantom: std::marker::PhantomData,
             }
@@ -115,7 +115,7 @@ impl ReferenceStore {
         ui: &mut Ui,
         asset_ref_key: &ProducerId,
         is_type_allowed: impl Fn(&ProducerData) -> bool,
-    ) -> InnerResponse<Option<UntypedValueRef>> {
+    ) -> InnerResponse<Option<AnyProducerRef>> {
         let button_name = self
             .get(asset_ref_key)
             .map(|id| id.name.as_str())
@@ -133,7 +133,7 @@ impl ReferenceStore {
         &self,
         ui: &mut Ui,
         is_type_allowed: impl Fn(&ProducerData) -> bool,
-    ) -> InnerResponse<Option<UntypedValueRef>> {
+    ) -> InnerResponse<Option<AnyProducerRef>> {
         let mut selected_asset = None;
         let res = ui.menu_button("R", |ui| {
             self.show_menu(ui, &mut selected_asset, &is_type_allowed);

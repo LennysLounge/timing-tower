@@ -115,31 +115,28 @@ impl ValueType {
 
 /// References a [`ValueProducer`](crate::value_store::ValueProducer) in the
 /// [`ValueStore`](crate::value_store::ValueStore).  
-/// The type that is expected to be produced by this reference is carried in the generic type `T`.
-/// Should a value producer not be able to produce a value of type `T`, casting may be used to create
-/// a value of type `T`.
-///  
-/// `T` does **not** represent the expected value produced by the value producer that is references.
-/// A `ValueRef` can safely reference any `ValueProducer` of any type. It is perfectly safe to
-/// have a `ValueRef<Texture>` that references a `ValueProducer` that can only produce `Number`.
-/// Such a reference simply does nothing and will most likely result in a default value of `T`.
+/// Carries the type of the `ValueProducer` in the generic type `T`.
 #[derive(Serialize, Deserialize, Clone, Default)]
 #[serde(transparent)]
-pub struct ValueRef<T> {
+pub struct ProducerRef<T> {
     pub id: ProducerId,
     #[serde(skip)]
     pub phantom: PhantomData<T>,
 }
 
+/// References a [`ValueProducer`](crate::value_store::ValueProducer) in the
+/// [`ValueStore`](crate::value_store::ValueStore).  
+/// Carries the type of the `ValueProducer` as a field and can therefore represents
+/// any value producer of any type.
 #[derive(Serialize, Deserialize, Clone, Default)]
-pub struct UntypedValueRef {
+pub struct AnyProducerRef {
     pub id: ProducerId,
     pub value_type: ValueType,
 }
 
-impl UntypedValueRef {
-    pub fn typed<T>(self) -> ValueRef<T> {
-        ValueRef {
+impl AnyProducerRef {
+    pub fn typed<T>(self) -> ProducerRef<T> {
+        ProducerRef {
             id: self.id,
             phantom: PhantomData,
         }
@@ -148,7 +145,7 @@ impl UntypedValueRef {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub enum Property<T> {
-    ValueRef(ValueRef<T>),
+    ValueRef(ProducerRef<T>),
     #[serde(untagged)]
     Fixed(T),
 }

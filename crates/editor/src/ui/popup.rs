@@ -1,11 +1,13 @@
-use bevy_egui::egui::{self, Align, Area, Frame, Id, Key, Layout, Order, Pos2, Ui};
+use bevy_egui::egui::{vec2, Align, Align2, Area, Frame, Id, Key, Layout, Order, Pos2, Ui};
 
 #[allow(unused)]
 pub struct Popup {
     id: Id,
     pos: Pos2,
+    pivot: Align2,
     should_open: bool,
     should_close: bool,
+    should_toggle: bool,
 }
 impl Popup {
     #[allow(unused)]
@@ -13,8 +15,10 @@ impl Popup {
         Self {
             id,
             pos,
+            pivot: Align2::LEFT_TOP,
             should_open: false,
             should_close: false,
+            should_toggle: false,
         }
     }
 
@@ -31,11 +35,27 @@ impl Popup {
     }
 
     #[allow(unused)]
+    pub fn should_toggle(mut self, should_toggle: bool) -> Self {
+        self.should_toggle = should_toggle;
+        self
+    }
+
+    #[allow(unused)]
+    pub fn pivot(mut self, pivot: Align2) -> Self {
+        self.pivot = pivot;
+        self
+    }
+
+    #[allow(unused)]
     pub fn show<R>(
-        self,
+        mut self,
         ui: &mut Ui,
         mut add_content: impl FnMut(&mut Ui, &mut bool) -> R,
     ) -> Option<R> {
+        if self.should_toggle {
+            self.should_close = ui.memory(|mem| mem.is_popup_open(self.id));
+            self.should_open = !self.should_close;
+        }
         if self.should_open {
             ui.memory_mut(|mem| mem.open_popup(self.id));
         }
@@ -49,12 +69,13 @@ impl Popup {
                 .order(Order::Foreground)
                 .constrain(true)
                 .fixed_pos(self.pos)
-                .pivot(egui::Align2::LEFT_TOP)
+                .pivot(self.pivot)
                 .show(ui.ctx(), |ui| {
                     let frame = Frame::popup(ui.style());
                     frame
                         .show(ui, |ui| {
                             ui.with_layout(Layout::top_down(Align::LEFT), |ui| {
+                                ui.set_max_size(vec2(0.0, 0.0));
                                 add_content(ui, &mut close_requested)
                             })
                             .inner

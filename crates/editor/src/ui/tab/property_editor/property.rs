@@ -3,7 +3,7 @@ use bevy_egui::egui::{
     self, vec2, DragValue, InnerResponse, NumExt, Rect, Response, TextEdit, Ui, Widget,
 };
 
-use crate::reference_store::{producer_id_editor, select_producer_reference, ReferenceStore};
+use crate::reference_store::{producer_id_editor, ReferenceStore};
 
 pub struct PropertyEditor<'a, T> {
     property: &'a mut Property<T>,
@@ -48,9 +48,9 @@ where
                 let InnerResponse {
                     inner: selected_producer,
                     mut response,
-                } = select_producer_reference(ui, self.reference_store, "R", |v| {
-                    v.producer_ref.ty().can_cast_to(&T::ty())
-                });
+                } = self
+                    .reference_store
+                    .show_popup(ui, "R", |v| v.producer_ref.ty().can_cast_to(&T::ty()));
                 if let Some(selected_producer) = selected_producer {
                     *self.property = Property::Producer(selected_producer.id());
                     response.mark_changed();

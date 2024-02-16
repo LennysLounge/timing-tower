@@ -9,7 +9,7 @@ use backend::{
     tree_iterator::TreeIteratorMut,
     value_types::ValueType,
 };
-use bevy_egui::egui::{ComboBox, DragValue, ScrollArea, Ui};
+use bevy_egui::egui::{DragValue, ScrollArea, Ui};
 use rand::{seq::IteratorRandom, thread_rng};
 use unified_sim_model::{games::dummy::DummyCommands, Adapter, GameAdapterCommand};
 
@@ -24,6 +24,8 @@ use crate::{
 };
 
 use self::graphic::graphic_property_editor;
+
+use super::element_editor::ui_split;
 
 mod graphic;
 pub mod property;
@@ -108,64 +110,37 @@ pub fn edit_node(
         StyleItem::Variable(variable) => {
             let mut edit_result = EditResult::None;
 
-            ui.label("Name:");
-            edit_result |= ui.text_edit_singleline(&mut variable.name).into();
-
-            ui.horizontal(|ui| {
-                ui.label("Behavior:");
-                ComboBox::new(ui.next_auto_id(), "")
-                    .selected_text(match variable.behavior {
-                        VariableBehavior::FixedValue(_) => "Fixed value",
-                        VariableBehavior::Condition(_) => "Condition",
-                        VariableBehavior::Map(_) => "Map",
-                    })
-                    .show_ui(ui, |ui| {
-                        let is_fixed_value =
-                            matches!(variable.behavior, VariableBehavior::FixedValue(_));
-                        let res = ui.selectable_label(is_fixed_value, "Fixed value");
-                        if res.clicked() && !is_fixed_value {
-                            variable.behavior = VariableBehavior::FixedValue(FixedValue::default());
-                            edit_result |= EditResult::FromId(res.id);
-                        }
-
-                        let is_condition =
-                            matches!(variable.behavior, VariableBehavior::Condition(_));
-                        let res = ui.selectable_label(is_condition, "Condition");
-                        if res.clicked() && !is_condition {
-                            variable.behavior = VariableBehavior::Condition(Condition::default());
-                            edit_result |= EditResult::FromId(res.id);
-                        }
-
-                        let is_map = matches!(variable.behavior, VariableBehavior::Map(_));
-                        let res = ui.selectable_label(is_map, "Map");
-                        if res.clicked() && !is_map {
-                            variable.behavior = VariableBehavior::Map(Map::default());
-                            edit_result |= EditResult::FromId(res.id);
-                        }
-                    });
+            ui_split(ui, "Name", |ui| {
+                edit_result |= ui.text_edit_singleline(&mut variable.name).into();
             });
-            ui.separator();
+            ui_split(ui, "Behavior", |ui| {
+                edit_result |= ui
+                    .add(
+                        LComboBox::new_comparable(&mut variable.behavior, |a, b| {
+                            std::mem::discriminant(a) == std::mem::discriminant(b)
+                        })
+                        .add_option(
+                            VariableBehavior::FixedValue(FixedValue::default()),
+                            "Fixed value",
+                        )
+                        .add_option(
+                            VariableBehavior::Condition(Condition::default()),
+                            "Condition",
+                        )
+                        .add_option(VariableBehavior::Map(Map::default()), "Map"),
+                    )
+                    .into();
+            });
+
             edit_result |= match &mut variable.behavior {
                 VariableBehavior::FixedValue(value) => {
-                    if variable::fixed_value::property_editor(ui, value, reference_store) {
-                        EditResult::FromId(ui.make_persistent_id("Fixed_value_edit"))
-                    } else {
-                        EditResult::None
-                    }
+                    variable::fixed_value::property_editor(ui, value, reference_store)
                 }
                 VariableBehavior::Condition(value) => {
-                    if variable::condition::property_editor(ui, value, reference_store) {
-                        EditResult::FromId(ui.make_persistent_id("condition_value_edit"))
-                    } else {
-                        EditResult::None
-                    }
+                    variable::condition::property_editor(ui, value, reference_store)
                 }
                 VariableBehavior::Map(value) => {
-                    if variable::map::property_editor(ui, value, reference_store) {
-                        EditResult::FromId(ui.make_persistent_id("map_value_edit"))
-                    } else {
-                        EditResult::None
-                    }
+                    variable::map::property_editor(ui, value, reference_store)
                 }
             };
 

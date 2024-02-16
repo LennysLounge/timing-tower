@@ -1,8 +1,12 @@
 use bevy_egui::egui::{ComboBox, Sense, Ui, Vec2};
 
 use crate::{
+    command::edit_property::EditResult,
     reference_store::{any_producer_ref_editor, ReferenceStore},
-    ui::tab::property_editor::property::PropertyEditor,
+    ui::{
+        combo_box::LComboBox,
+        tab::{element_editor::ui_split, property_editor::property::PropertyEditor},
+    },
 };
 use backend::{
     style::variables::{
@@ -14,25 +18,28 @@ use backend::{
 
 use super::EguiComboBoxExtension;
 
-pub fn property_editor(ui: &mut Ui, value: &mut Condition, asset_repo: &ReferenceStore) -> bool {
-    let mut changed = false;
+pub fn property_editor(
+    ui: &mut Ui,
+    value: &mut Condition,
+    asset_repo: &ReferenceStore,
+) -> EditResult {
+    let mut edit_result = EditResult::None;
 
-    ui.horizontal(|ui| {
-        ui.label("Output type:");
-        changed |= ComboBox::from_id_source(ui.next_auto_id())
-            .choose(
-                ui,
-                &mut value.output,
-                vec![
-                    (UntypedOutput::Number(Output::default()), "Number"),
-                    (UntypedOutput::Text(Output::default()), "Text"),
-                    (UntypedOutput::Color(Output::default()), "Tint"),
-                    (UntypedOutput::Boolean(Output::default()), "Boolean"),
-                    (UntypedOutput::Image(Output::default()), "Texture"),
-                ],
+    ui_split(ui, "Output type", |ui| {
+        edit_result |= ui
+            .add(
+                LComboBox::new_comparable(&mut value.output, |a, b| {
+                    std::mem::discriminant(a) == std::mem::discriminant(b)
+                })
+                .add_option(UntypedOutput::Number(Output::default()), "Number")
+                .add_option(UntypedOutput::Text(Output::default()), "Text")
+                .add_option(UntypedOutput::Color(Output::default()), "Tint")
+                .add_option(UntypedOutput::Boolean(Output::default()), "Boolean")
+                .add_option(UntypedOutput::Image(Output::default()), "Texture"),
             )
-            .changed();
+            .into();
     });
+    ui.separator();
 
     ui.allocate_at_least(Vec2::new(0.0, 5.0), Sense::hover());
 
@@ -51,7 +58,7 @@ pub fn property_editor(ui: &mut Ui, value: &mut Condition, asset_repo: &Referenc
         });
         if res.changed() {
             value.comparison.set_left_side(any_ref);
-            changed |= true;
+            edit_result |= res.into();
         }
 
         ui.label("is");
@@ -61,7 +68,7 @@ pub fn property_editor(ui: &mut Ui, value: &mut Condition, asset_repo: &Referenc
         ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
         match &mut value.comparison {
             Comparison::Number { comparator, .. } => {
-                changed |= ComboBox::from_id_source(ui.next_auto_id())
+                edit_result |= ComboBox::from_id_source(ui.next_auto_id())
                     .width(50.0)
                     .choose(
                         ui,
@@ -74,7 +81,7 @@ pub fn property_editor(ui: &mut Ui, value: &mut Condition, asset_repo: &Referenc
                             (NumberComparator::LessEqual, "less or equal"),
                         ],
                     )
-                    .changed();
+                    .into();
                 match comparator {
                     NumberComparator::Equal => ui.label("to"),
                     NumberComparator::Greater => ui.label("than"),
@@ -84,13 +91,13 @@ pub fn property_editor(ui: &mut Ui, value: &mut Condition, asset_repo: &Referenc
                 };
             }
             Comparison::Text { comparator: c, .. } => {
-                changed |= ComboBox::from_id_source(ui.next_auto_id())
+                edit_result |= ComboBox::from_id_source(ui.next_auto_id())
                     .width(50.0)
                     .choose(ui, c, vec![(TextComparator::Like, "like")])
-                    .changed();
+                    .into();
             }
             Comparison::Boolean { comparator: c, .. } => {
-                changed |= ComboBox::from_id_source(ui.next_auto_id())
+                edit_result |= ComboBox::from_id_source(ui.next_auto_id())
                     .width(50.0)
                     .choose(
                         ui,
@@ -100,7 +107,7 @@ pub fn property_editor(ui: &mut Ui, value: &mut Condition, asset_repo: &Referenc
                             (BooleanComparator::IsNot, "is not"),
                         ],
                     )
-                    .changed();
+                    .into();
             }
         }
     });
@@ -108,24 +115,19 @@ pub fn property_editor(ui: &mut Ui, value: &mut Condition, asset_repo: &Referenc
     ui.horizontal(|ui| {
         ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
         // show select for right side
-        changed |= ui
+        edit_result |= ui
             .horizontal(|ui| match &mut value.comparison {
-                Comparison::Number { right, .. } => {
-                    ui.add(PropertyEditor::new(right, asset_repo)).changed()
-                }
-                Comparison::Text { right, .. } => {
-                    ui.add(PropertyEditor::new(right, asset_repo)).changed()
-                }
-                Comparison::Boolean { right, .. } => {
-                    ui.add(PropertyEditor::new(right, asset_repo)).changed()
-                }
+                Comparison::Number { right, .. } => ui.add(PropertyEditor::new(right, asset_repo)),
+                Comparison::Text { right, .. } => ui.add(PropertyEditor::new(right, asset_repo)),
+                Comparison::Boolean { right, .. } => ui.add(PropertyEditor::new(right, asset_repo)),
             })
-            .inner;
+            .inner
+            .into();
     });
     ui.label("then:");
     ui.horizontal(|ui| {
         ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
-        changed |= match &mut value.output {
+        edit_result |= match &mut value.output {
             UntypedOutput::Number(Output { truee, .. }) => {
                 ui.add(PropertyEditor::new(truee, asset_repo))
             }
@@ -142,12 +144,12 @@ pub fn property_editor(ui: &mut Ui, value: &mut Condition, asset_repo: &Referenc
                 ui.add(PropertyEditor::new(truee, asset_repo))
             }
         }
-        .changed();
+        .into();
     });
     ui.label("else:");
     ui.horizontal(|ui| {
         ui.allocate_at_least(Vec2::new(16.0, 0.0), Sense::hover());
-        changed |= match &mut value.output {
+        edit_result |= match &mut value.output {
             UntypedOutput::Number(output) => {
                 ui.add(PropertyEditor::new(&mut output.falsee, asset_repo))
             }
@@ -164,7 +166,7 @@ pub fn property_editor(ui: &mut Ui, value: &mut Condition, asset_repo: &Referenc
                 ui.add(PropertyEditor::new(falsee, asset_repo))
             }
         }
-        .changed();
+        .into();
     });
-    changed
+    edit_result
 }

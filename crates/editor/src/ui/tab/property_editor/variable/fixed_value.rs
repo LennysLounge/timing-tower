@@ -4,19 +4,21 @@ use backend::{
 };
 use bevy_egui::egui::{ComboBox, DragValue, Ui};
 
-use crate::{reference_store::ReferenceStore, ui::combo_box::LComboBox};
+use crate::{
+    command::edit_property::EditResult,
+    reference_store::ReferenceStore,
+    ui::{combo_box::LComboBox, tab::element_editor::ui_split},
+};
 
 pub fn property_editor(
     ui: &mut Ui,
     value: &mut FixedValue,
     _reference_store: &ReferenceStore,
-) -> bool {
-    let mut changed = false;
+) -> EditResult {
+    let mut edit_result = EditResult::None;
 
-    ui.horizontal(|ui| {
-        ui.label("Type:");
-
-        changed |= ui
+    ui_split(ui, "Output type", |ui| {
+        edit_result |= ui
             .add(
                 LComboBox::new_comparable(value, |a, b| {
                     std::mem::discriminant(a) == std::mem::discriminant(b)
@@ -26,39 +28,43 @@ pub fn property_editor(
                 .add_option(FixedValue::Tint(Tint::default()), "Color")
                 .add_option(FixedValue::Boolean(Boolean::default()), "Yes/No"),
             )
-            .changed();
+            .into();
     });
 
-    ui.horizontal(|ui| match value {
-        FixedValue::Number(Number(number)) => {
-            ui.label("Value");
-            changed |= ui.add(DragValue::new(number)).changed();
-        }
+    ui.separator();
+
+    match value {
+        FixedValue::Number(Number(number)) => ui_split(ui, "Value", |ui| {
+            edit_result |= ui.add(DragValue::new(number)).into();
+        }),
         FixedValue::Text(Text(text)) => {
-            ui.label("Text");
-            changed |= ui.text_edit_singleline(text).changed();
+            ui_split(ui, "Text", |ui| {
+                edit_result |= ui.text_edit_singleline(text).into();
+            });
         }
         FixedValue::Tint(Tint(tint)) => {
-            ui.label("Color:");
-            let mut color_local = tint.as_rgba_f32();
-            changed |= ui
-                .color_edit_button_rgba_unmultiplied(&mut color_local)
-                .changed();
-            *tint = color_local.into();
+            ui_split(ui, "Color", |ui| {
+                let mut color_local = tint.as_rgba_f32();
+                edit_result |= ui
+                    .color_edit_button_rgba_unmultiplied(&mut color_local)
+                    .into();
+                *tint = color_local.into();
+            });
         }
         FixedValue::Boolean(Boolean(boolean)) => {
-            ui.label("Value:");
-            ComboBox::from_id_source(ui.next_auto_id())
-                .width(50.0)
-                .selected_text(match boolean {
-                    true => "Yes",
-                    false => "No",
-                })
-                .show_ui(ui, |ui| {
-                    changed |= ui.selectable_value(boolean, true, "Yes").changed();
-                    changed |= ui.selectable_value(boolean, false, "No").changed();
-                });
+            ui_split(ui, "Value", |ui| {
+                ComboBox::from_id_source(ui.next_auto_id())
+                    .width(ui.available_width())
+                    .selected_text(match boolean {
+                        true => "Yes",
+                        false => "No",
+                    })
+                    .show_ui(ui, |ui| {
+                        edit_result |= ui.selectable_value(boolean, true, "Yes").into();
+                        edit_result |= ui.selectable_value(boolean, false, "No").into();
+                    });
+            });
         }
-    });
-    changed
+    }
+    edit_result
 }

@@ -1,8 +1,12 @@
 use bevy_egui::egui::{vec2, ComboBox, Response, Ui};
 
 use crate::{
+    command::edit_property::EditResult,
     reference_store::{any_producer_ref_editor, ReferenceStore},
-    ui::tab::property_editor::property::{PropertyEditor, ValueTypeEditor},
+    ui::tab::{
+        element_editor::ui_split,
+        property_editor::property::{PropertyEditor, ValueTypeEditor},
+    },
 };
 use backend::{
     style::variables::{
@@ -14,12 +18,10 @@ use backend::{
 
 use super::EguiComboBoxExtension;
 
-pub fn property_editor(ui: &mut Ui, value: &mut Map, asset_repo: &ReferenceStore) -> bool {
-    let mut changed = false;
+pub fn property_editor(ui: &mut Ui, value: &mut Map, asset_repo: &ReferenceStore) -> EditResult {
+    let mut edit_result = EditResult::None;
 
-    ui.horizontal(|ui| {
-        ui.label("Map input: ");
-
+    ui_split(ui, "Input", |ui| {
         let mut any_ref = value.input.input_ref();
         let res = any_producer_ref_editor(ui, asset_repo, &mut any_ref, |v| {
             match v.producer_ref.ty() {
@@ -33,14 +35,13 @@ pub fn property_editor(ui: &mut Ui, value: &mut Map, asset_repo: &ReferenceStore
                 value.output.clear();
             }
             value.input.set_input_ref(any_ref);
-            changed |= true;
+            edit_result |= res.into();
         }
     });
-    ui.horizontal(|ui| {
-        ui.label("to type: ");
-
+    ui_split(ui, "Output type", |ui| {
         let count = value.input.case_count();
-        changed |= ComboBox::from_id_source(ui.next_auto_id())
+        edit_result |= ComboBox::from_id_source(ui.next_auto_id())
+            .width(ui.available_width())
             .choose(
                 ui,
                 &mut value.output,
@@ -52,20 +53,20 @@ pub fn property_editor(ui: &mut Ui, value: &mut Map, asset_repo: &ReferenceStore
                     (UntypedOutput::Texture(Output::with_count(count)), "Image"),
                 ],
             )
-            .changed();
+            .into();
     });
     ui.separator();
 
     let mut remove_case = None;
     for index in 0..value.input.case_count() {
         ui.horizontal(|ui| {
-            changed |= input_edit_case(&mut value.input, ui, asset_repo, index);
+            edit_result |= input_edit_case(&mut value.input, ui, asset_repo, index);
             ui.allocate_space(vec2(10.0, 0.0));
             ui.label("then");
             ui.allocate_space(vec2(10.0, 0.0));
             ui.horizontal(|ui| {
-                changed |=
-                    untyped_output_edit_case(&mut value.output, ui, asset_repo, index).changed();
+                edit_result |=
+                    untyped_output_edit_case(&mut value.output, ui, asset_repo, index).into();
             });
         });
         if ui.small_button("remove").clicked() {
@@ -81,7 +82,7 @@ pub fn property_editor(ui: &mut Ui, value: &mut Map, asset_repo: &ReferenceStore
 
     ui.horizontal(|ui| {
         ui.label("Default:");
-        changed |= untyped_output_edit_default(&mut value.output, ui, asset_repo).changed();
+        edit_result |= untyped_output_edit_default(&mut value.output, ui, asset_repo).into();
     });
     ui.separator();
 
@@ -98,7 +99,7 @@ pub fn property_editor(ui: &mut Ui, value: &mut Map, asset_repo: &ReferenceStore
         );
     }
 
-    changed
+    edit_result
 }
 
 fn input_edit_case(
@@ -106,15 +107,15 @@ fn input_edit_case(
     ui: &mut Ui,
     reference_store: &ReferenceStore,
     index: usize,
-) -> bool {
-    let mut changed = false;
+) -> EditResult {
+    let mut edit_result = EditResult::None;
     match me {
         Input::Number {
             input_cases: cases, ..
         } => {
             let case = cases.get_mut(index).expect("the case index must be valid");
             ui.label("If input is");
-            changed |= ComboBox::from_id_source(ui.next_auto_id())
+            edit_result |= ComboBox::from_id_source(ui.next_auto_id())
                 .width(50.0)
                 .choose(
                     ui,
@@ -127,11 +128,11 @@ fn input_edit_case(
                         (NumberComparator::LessEqual, "less or equal"),
                     ],
                 )
-                .changed();
+                .into();
             ui.horizontal(|ui| {
-                changed |= ui
+                edit_result |= ui
                     .add(PropertyEditor::new(&mut case.right, reference_store))
-                    .changed()
+                    .into()
             });
         }
         Input::Text {
@@ -139,23 +140,23 @@ fn input_edit_case(
         } => {
             let case = cases.get_mut(index).expect("the case index must be valid");
             ui.label("If input is");
-            changed |= ComboBox::from_id_source(ui.next_auto_id())
+            edit_result |= ComboBox::from_id_source(ui.next_auto_id())
                 .width(50.0)
                 .choose(
                     ui,
                     &mut case.comparator,
                     vec![(TextComparator::Like, "like")],
                 )
-                .changed();
+                .into();
             ui.horizontal(|ui| {
-                changed |= ui
+                edit_result |= ui
                     .add(PropertyEditor::new(&mut case.right, reference_store))
-                    .changed();
+                    .into();
             });
         }
     }
 
-    changed
+    edit_result
 }
 
 fn untyped_output_edit_case(

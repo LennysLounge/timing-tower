@@ -1,93 +1,107 @@
 use backend::value_types::{Boolean, Font, Number, Property, Text, Texture, Tint, Value};
-use bevy_egui::egui::{self, vec2, DragValue, Rect, Response, Sense, TextEdit, Ui, Widget};
+use bevy_egui::egui::{
+    self, vec2, DragValue, InnerResponse, NumExt, Rect, Response, TextEdit, Ui, Widget,
+};
 
-use crate::reference_store::ReferenceStore;
+use crate::reference_store::{producer_ref_editor, ReferenceStore};
 
 pub struct PropertyEditor<'a, T> {
     property: &'a mut Property<T>,
     reference_store: &'a ReferenceStore,
 }
-impl<'a, T> PropertyEditor<'a, T> {
+impl<'a, T> PropertyEditor<'a, T>
+where
+    T: Value + Default + ValueTypeEditor,
+{
     pub fn new(
         property: &'a mut Property<T>,
         reference_store: &'a ReferenceStore,
-    ) -> PropertyEditor<'a, T>
-    where
-        T: Value + Default + ValueTypeEditor,
-    {
+    ) -> PropertyEditor<'a, T> {
         PropertyEditor {
             property,
             reference_store,
         }
     }
-}
 
-impl<T> Widget for PropertyEditor<'_, T>
-where
-    T: Value + Default + ValueTypeEditor,
-{
-    fn ui(self, ui: &mut Ui) -> Response {
-        ui.scope(|ui| match self.property {
-            Property::Fixed(c) => {
-                let mut child_ui = ui.child_ui(
-                    Rect::from_min_size(
-                        ui.cursor().min,
-                        vec2(
-                            if ui.layout().horizontal_justify() {
-                                ui.available_width() - 20.0
-                            } else {
-                                0.0
-                            },
-                            if ui.layout().vertical_justify() {
-                                ui.available_height()
-                            } else {
-                                0.0
-                            },
-                        ),
-                    ),
-                    *ui.layout(),
-                );
-                let value_res = c.editor(&mut child_ui);
-                ui.allocate_rect(child_ui.min_rect(), Sense::hover());
-
-                let editor_res = self.reference_store.editor_small::<T>(ui);
-                if let Some(new_value_ref) = editor_res.inner {
-                    *self.property = Property::ValueRef(new_value_ref);
-                }
-
-                Response::union(&value_res, editor_res.response)
-            }
+    fn left_ui(&mut self, ui: &mut Ui) -> Response {
+        match self.property {
             Property::ValueRef(value_ref) => {
-                let editor_res = ui
-                    .allocate_ui_at_rect(
-                        Rect::from_min_size(
-                            ui.cursor().min,
-                            vec2(
-                                if ui.layout().horizontal_justify() {
-                                    ui.available_width() - 20.0
-                                } else {
-                                    0.0
-                                },
-                                if ui.layout().vertical_justify() {
-                                    ui.available_height()
-                                } else {
-                                    0.0
-                                },
-                            ),
-                        ),
-                        |ui| self.reference_store.editor(ui, value_ref),
-                    )
-                    .inner;
+                producer_ref_editor(ui, self.reference_store, value_ref)
+            }
+            Property::Fixed(value) => value.editor(ui),
+        }
+    }
 
+    fn right_ui(&mut self, ui: &mut Ui) -> Response {
+        match self.property {
+            Property::ValueRef(_) => {
                 let mut button_res = ui.button("x");
                 if button_res.clicked() {
                     *self.property = Property::Fixed(T::default());
                     button_res.mark_changed();
                 }
-                Response::union(&editor_res, button_res)
+                button_res
             }
-        })
-        .inner
+            Property::Fixed(_) => {
+                let editor_res = self.reference_store.editor_small::<T>(ui);
+                if let Some(new_value_ref) = editor_res.inner {
+                    *self.property = Property::ValueRef(new_value_ref);
+                }
+                editor_res.response
+            }
+        }
+    }
+}
+impl<T> Widget for PropertyEditor<'_, T>
+where
+    T: Value + Default + ValueTypeEditor,
+{
+    fn ui(mut self, ui: &mut Ui) -> Response {
+        let res = ui.scope(|ui| {
+            // This gets us the justified size for this widget. `Ui::allocate_space`
+            // will increase the requested size if the ui layout is justified. This
+            // way we get the justified size without calculating it manually.
+            let (_id, base_rect) = ui.allocate_space(vec2(0.0, 0.0));
+
+            // Leave some space on the right for the Ref button.
+            let left = base_rect.with_max_x(
+                (base_rect.max.x - 20.0 - ui.spacing().item_spacing.x).at_least(base_rect.min.x),
+            );
+            let InnerResponse {
+                inner: left_has_changed,
+                response: left_res,
+            } = ui.allocate_ui_at_rect(left, |ui| {
+                ui.centered_and_justified(|ui| self.left_ui(ui))
+                    .inner
+                    .changed()
+            });
+
+            // The right side is just to the left of the left size plus the item spaceing.
+            // Right side has a fixed size.
+            let right = Rect::from_min_size(
+                left_res.rect.right_top() + vec2(ui.spacing().item_spacing.x, 0.0),
+                vec2(20.0, left_res.rect.height()),
+            );
+            let InnerResponse {
+                inner: right_has_changed,
+                response: _,
+            } = ui.allocate_ui_at_rect(right, |ui| {
+                ui.centered_and_justified(|ui| self.right_ui(ui))
+                    .inner
+                    .changed()
+            });
+
+            left_has_changed || right_has_changed
+        });
+
+        let InnerResponse {
+            inner: has_changed,
+            mut response,
+        } = res;
+        if has_changed {
+            response.mark_changed();
+        }
+        response
     }
 }
 

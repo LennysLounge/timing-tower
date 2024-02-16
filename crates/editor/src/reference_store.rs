@@ -58,22 +58,6 @@ impl ReferenceStore {
         self.assets = AssetOrFolder::from_asset_defs(assets);
     }
 
-    pub fn editor<T>(&self, ui: &mut Ui, producer_ref: &mut ProducerRef<T>) -> Response
-    where
-        T: Value,
-    {
-        let target_type = T::ty();
-
-        let mut any_ref = producer_ref.clone().to_any_producer_ref();
-        let res = any_producer_ref_editor(ui, self, &mut any_ref, |v| {
-            v.value_type.can_cast_to(&target_type)
-        });
-        if res.changed() {
-            *producer_ref = any_ref.typed();
-        }
-        res
-    }
-
     pub fn editor_small<T>(&self, ui: &mut Ui) -> InnerResponse<Option<ProducerRef<T>>>
     where
         T: Value,
@@ -338,4 +322,24 @@ pub fn any_producer_ref_editor(
     }
 
     res.response
+}
+
+pub fn producer_ref_editor<T>(
+    ui: &mut Ui,
+    reference_store: &ReferenceStore,
+    producer_ref: &mut ProducerRef<T>,
+) -> Response
+where
+    T: Value,
+{
+    let target_type = T::ty();
+
+    let mut any_ref = producer_ref.clone().to_any_producer_ref();
+    let res = any_producer_ref_editor(ui, reference_store, &mut any_ref, |v| {
+        v.value_type.can_cast_to(&target_type)
+    });
+    if res.changed() {
+        *producer_ref = any_ref.typed();
+    }
+    res
 }

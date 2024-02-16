@@ -157,7 +157,7 @@ fn editor(
 pub fn ui_split(ui: &mut Ui, label: impl Into<WidgetText>, right: impl FnMut(&mut Ui)) {
     ui.horizontal(|ui| {
         ui.allocate_ui_with_layout(
-            vec2((ui.available_width()) * 0.35, 18.0),
+            vec2((ui.available_width()) * 0.35, ui.spacing().interact_size.y),
             Layout::right_to_left(egui::Align::Center),
             |ui| {
                 ui.add(egui::Label::new(label).truncate(true));
@@ -165,8 +165,8 @@ pub fn ui_split(ui: &mut Ui, label: impl Into<WidgetText>, right: impl FnMut(&mu
         );
         ui.add_space(ui.spacing().item_spacing.x);
         ui.allocate_ui_with_layout(
-            vec2(ui.available_width(), 18.0),
-            Layout::left_to_right(egui::Align::Min).with_main_justify(true),
+            vec2(ui.available_width(), ui.spacing().interact_size.y),
+            Layout::centered_and_justified(egui::Direction::LeftToRight),
             right,
         );
     });

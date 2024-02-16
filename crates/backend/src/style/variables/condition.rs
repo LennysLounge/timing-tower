@@ -95,11 +95,11 @@ pub enum Comparison {
 }
 
 impl Comparison {
-    pub fn left_side_id(&self) -> &ProducerId {
+    pub fn left_side_id(&self) -> ProducerId {
         match self {
-            Comparison::Number { left, .. } => &left.id,
-            Comparison::Text { left, .. } => &left.id,
-            Comparison::Boolean { left, .. } => &left.id,
+            Comparison::Number { left, .. } => left.id(),
+            Comparison::Text { left, .. } => left.id(),
+            Comparison::Boolean { left, .. } => left.id(),
         }
     }
     pub fn value_type(&self) -> ValueType {
@@ -118,7 +118,7 @@ impl Comparison {
     }
 
     pub fn set_left_side(&mut self, new_untyped_ref: AnyProducerRef) {
-        match (self, new_untyped_ref.value_type) {
+        match (self, new_untyped_ref.ty()) {
             // If the new value is of the same type as the comparison then we only
             // need to update the reference.
             (Comparison::Number { left, .. }, ValueType::Number) => *left = new_untyped_ref.typed(),

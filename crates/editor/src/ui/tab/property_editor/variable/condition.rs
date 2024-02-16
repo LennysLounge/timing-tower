@@ -41,11 +41,13 @@ pub fn property_editor(ui: &mut Ui, value: &mut Condition, asset_repo: &Referenc
         ui.allocate_at_least(Vec2::new(5.0, 0.0), Sense::hover());
 
         let mut any_ref = value.comparison.left_side_ref();
-        let res = any_producer_ref_editor(ui, asset_repo, &mut any_ref, |v| match v.value_type {
-            ValueType::Number => true,
-            ValueType::Text => true,
-            ValueType::Boolean => true,
-            _ => false,
+        let res = any_producer_ref_editor(ui, asset_repo, &mut any_ref, |v| {
+            match v.producer_ref.ty() {
+                ValueType::Number => true,
+                ValueType::Text => true,
+                ValueType::Boolean => true,
+                _ => false,
+            }
         });
         if res.changed() {
             value.comparison.set_left_side(any_ref);

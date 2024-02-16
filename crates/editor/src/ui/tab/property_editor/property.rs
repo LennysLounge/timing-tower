@@ -27,7 +27,7 @@ where
         match self.property {
             Property::Producer(producer_id) => {
                 producer_id_editor(ui, self.reference_store, producer_id, |v| {
-                    v.value_type.can_cast_to(&T::ty())
+                    v.producer_ref.ty().can_cast_to(&T::ty())
                 })
             }
             Property::Fixed(value) => value.editor(ui),
@@ -49,10 +49,10 @@ where
                     inner: selected_producer,
                     mut response,
                 } = select_producer_reference(ui, self.reference_store, "R", |v| {
-                    v.value_type.can_cast_to(&T::ty())
+                    v.producer_ref.ty().can_cast_to(&T::ty())
                 });
                 if let Some(selected_producer) = selected_producer {
-                    *self.property = Property::Producer(selected_producer.id);
+                    *self.property = Property::Producer(selected_producer.id());
                     response.mark_changed();
                 }
                 response

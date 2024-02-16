@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     exact_variant::ExactVariant,
     value_store::{AnyValueProducer, ProducerId},
-    value_types::{Font, Texture, ValueType},
+    value_types::{AnyProducerRef, Font, Texture, ValueType},
 };
 
 use super::{variables::StaticValueProducer, StyleId, StyleItem};
@@ -37,6 +37,9 @@ impl AssetDefinition {
     }
     pub fn value_id(&self) -> ProducerId {
         ProducerId(self.id.0)
+    }
+    pub fn producer_ref(&self) -> AnyProducerRef {
+        AnyProducerRef::new(self.value_id(), self.value_type)
     }
 }
 

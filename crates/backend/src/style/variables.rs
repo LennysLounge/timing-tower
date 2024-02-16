@@ -3,6 +3,7 @@ use std::ops::Deref;
 use crate::{
     exact_variant::ExactVariant,
     value_store::{AnyValueProducer, ProducerId, ValueProducer, ValueStore},
+    value_types::AnyProducerRef,
 };
 use serde::{Deserialize, Serialize};
 use unified_sim_model::model::Entry;
@@ -48,6 +49,16 @@ impl VariableDefinition {
     }
     pub fn value_id(&self) -> ProducerId {
         ProducerId(self.id.0)
+    }
+    pub fn producer_ref(&self) -> AnyProducerRef {
+        AnyProducerRef::new(
+            self.value_id(),
+            match &self.behavior {
+                VariableBehavior::FixedValue(o) => o.output_type(),
+                VariableBehavior::Condition(o) => o.output_type(),
+                VariableBehavior::Map(o) => o.output_type(),
+            },
+        )
     }
 }
 

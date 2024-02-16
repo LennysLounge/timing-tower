@@ -5,7 +5,7 @@ use uuid::{uuid, Uuid};
 
 use crate::{
     value_store::{AnyValueProducer, ProducerId, ValueProducer, ValueStore},
-    value_types::{Boolean, Number, Text, ValueType},
+    value_types::{AnyProducerRef, Boolean, Number, Text, ValueType},
 };
 
 static GAME_SOURCES: OnceLock<Vec<GameSource>> = OnceLock::new();
@@ -122,6 +122,9 @@ impl GameSource {
     }
     pub fn value_id(&self) -> ProducerId {
         ProducerId(self.id)
+    }
+    pub fn producer_ref(&self) -> AnyProducerRef {
+        AnyProducerRef::new(ProducerId(self.id), self.value_type)
     }
 }
 

@@ -86,7 +86,7 @@ impl ValueStore {
         Self: ValueResolver<T>,
     {
         self.values
-            .get(&value_ref.id)
+            .get(&value_ref.id())
             .and_then(|p| self.get_typed(p, entry))
     }
 

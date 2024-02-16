@@ -119,9 +119,15 @@ impl ValueType {
 #[derive(Serialize, Deserialize, Default)]
 #[serde(transparent)]
 pub struct ProducerRef<T> {
-    pub id: ProducerId,
+    id: ProducerId,
     #[serde(skip)]
-    pub phantom: PhantomData<T>,
+    phantom: PhantomData<T>,
+}
+impl<T> ProducerRef<T> {
+    /// Return the producer id.
+    pub fn id(&self) -> ProducerId {
+        self.id
+    }
 }
 impl<T: Value> ProducerRef<T> {
     pub fn to_any_producer_ref(self) -> AnyProducerRef {
@@ -146,11 +152,22 @@ impl<T> Clone for ProducerRef<T> {
 /// any value producer of any type.
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct AnyProducerRef {
-    pub id: ProducerId,
-    pub value_type: ValueType,
+    id: ProducerId,
+    value_type: ValueType,
 }
 
 impl AnyProducerRef {
+    pub(crate) fn new(id: ProducerId, value_type: ValueType) -> Self {
+        Self { id, value_type }
+    }
+    /// Return the producer id of this reference.
+    pub fn id(&self) -> ProducerId {
+        self.id
+    }
+    /// Return the value type of this reference.
+    pub fn ty(&self) -> ValueType {
+        self.value_type
+    }
     pub fn typed<T>(self) -> ProducerRef<T> {
         ProducerRef {
             id: self.id,

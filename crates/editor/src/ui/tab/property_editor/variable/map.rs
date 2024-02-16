@@ -21,13 +21,15 @@ pub fn property_editor(ui: &mut Ui, value: &mut Map, asset_repo: &ReferenceStore
         ui.label("Map input: ");
 
         let mut any_ref = value.input.input_ref();
-        let res = any_producer_ref_editor(ui, asset_repo, &mut any_ref, |v| match v.value_type {
-            ValueType::Number => true,
-            ValueType::Text => true,
-            _ => false,
+        let res = any_producer_ref_editor(ui, asset_repo, &mut any_ref, |v| {
+            match v.producer_ref.ty() {
+                ValueType::Number => true,
+                ValueType::Text => true,
+                _ => false,
+            }
         });
         if res.changed() {
-            if any_ref.value_type != value.input.value_type() {
+            if any_ref.ty() != value.input.value_type() {
                 value.output.clear();
             }
             value.input.set_input_ref(any_ref);

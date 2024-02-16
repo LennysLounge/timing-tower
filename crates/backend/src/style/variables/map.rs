@@ -121,10 +121,10 @@ impl Input {
         match self {
             Input::Number {
                 input_ref: input, ..
-            } => input.id,
+            } => input.id(),
             Input::Text {
                 input_ref: input, ..
-            } => input.id,
+            } => input.id(),
         }
     }
     pub fn input_ref(&self) -> AnyProducerRef {
@@ -135,14 +135,14 @@ impl Input {
     }
     pub fn set_input_ref(&mut self, new_input_ref: AnyProducerRef) {
         // Only update the actual input reference
-        if new_input_ref.value_type == self.value_type() {
+        if new_input_ref.ty() == self.value_type() {
             match self {
                 Input::Number { input_ref, .. } => *input_ref = new_input_ref.typed(),
                 Input::Text { input_ref, .. } => *input_ref = new_input_ref.typed(),
             }
         } else {
             // Change the entire type of the input to match the new reference.
-            *self = match new_input_ref.value_type {
+            *self = match new_input_ref.ty() {
                 ValueType::Number => Input::Number {
                     input_ref: new_input_ref.typed(),
                     input_cases: Vec::new(),

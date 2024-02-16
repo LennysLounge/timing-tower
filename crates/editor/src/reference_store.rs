@@ -14,7 +14,7 @@ use backend::{
     savefile::{Savefile, SavefileChanged},
     style::{assets::AssetFolder, variables::VariableFolder},
     value_store::ProducerId,
-    value_types::{AnyProducerRef, ValueType},
+    value_types::AnyProducerRef,
 };
 
 pub struct ReferenceStorePlugin;
@@ -31,9 +31,8 @@ pub trait IntoProducerData {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct ProducerData {
-    pub id: ProducerId,
     pub name: String,
-    pub value_type: ValueType,
+    pub producer_ref: AnyProducerRef,
 }
 
 #[derive(Resource, Default)]
@@ -109,9 +108,8 @@ impl AssetOrFolder {
                 .into_iter()
                 .map(|s| {
                     Self::Asset(ProducerData {
-                        id: s.value_id(),
                         name: s.name.clone(),
-                        value_type: s.value_type,
+                        producer_ref: s.producer_ref(),
                     })
                 })
                 .collect(),
@@ -134,7 +132,7 @@ impl AssetOrFolder {
     }
     fn get(&self, id: &ProducerId) -> Option<&ProducerData> {
         match self {
-            AssetOrFolder::Asset(asset) => (&asset.id == id).then_some(asset),
+            AssetOrFolder::Asset(asset) => (&asset.producer_ref.id() == id).then_some(asset),
             AssetOrFolder::Folder { name: _, assets } => assets.iter().find_map(|a| a.get(id)),
         }
     }
@@ -167,7 +165,7 @@ impl AssetOrFolder {
                 if !is_asset_allowed {
                     res.response.on_hover_text(format!(
                         "{} type not allowed for this reference.",
-                        asset_id.value_type.name()
+                        asset_id.producer_ref.ty().name()
                     ));
                 }
             }
@@ -208,23 +206,15 @@ fn savefile_changed(
 }
 
 mod style {
-    use backend::style::{
-        assets::AssetDefinition,
-        variables::{VariableBehavior, VariableDefinition},
-    };
+    use backend::style::{assets::AssetDefinition, variables::VariableDefinition};
 
     use super::{IntoProducerData, ProducerData};
 
     impl IntoProducerData for VariableDefinition {
         fn producer_data(&self) -> ProducerData {
             ProducerData {
-                id: self.value_id(),
                 name: self.name.clone(),
-                value_type: match &self.behavior {
-                    VariableBehavior::FixedValue(o) => o.output_type(),
-                    VariableBehavior::Condition(o) => o.output_type(),
-                    VariableBehavior::Map(o) => o.output_type(),
-                },
+                producer_ref: self.producer_ref(),
             }
         }
     }
@@ -232,9 +222,8 @@ mod style {
     impl IntoProducerData for AssetDefinition {
         fn producer_data(&self) -> ProducerData {
             ProducerData {
-                id: self.value_id(),
                 name: self.name.clone(),
-                value_type: self.value_type.clone(),
+                producer_ref: self.producer_ref(),
             }
         }
     }
@@ -250,13 +239,7 @@ pub fn select_producer_reference(
     let res = ui.menu_button(text, |ui| {
         reference_store.show_menu(ui, &mut selected_asset, &is_type_allowed);
     });
-    InnerResponse::new(
-        selected_asset.map(|prod| AnyProducerRef {
-            id: prod.id,
-            value_type: prod.value_type,
-        }),
-        res.response,
-    )
+    InnerResponse::new(selected_asset.map(|prod| prod.producer_ref), res.response)
 }
 
 pub fn producer_id_editor(
@@ -272,7 +255,7 @@ pub fn producer_id_editor(
 
     let mut res = select_producer_reference(ui, reference_store, button_name, is_type_allowed);
     if let Some(selected_producer) = res.inner {
-        *producer_id = selected_producer.id;
+        *producer_id = selected_producer.id();
         res.response.mark_changed();
     }
 
@@ -286,7 +269,7 @@ pub fn any_producer_ref_editor(
     is_type_allowed: impl Fn(&ProducerData) -> bool,
 ) -> Response {
     let button_name = reference_store
-        .get(&producer_ref.id)
+        .get(&producer_ref.id())
         .map(|id| id.name.as_str())
         .unwrap_or("- Invalud Ref -");
 

@@ -1,7 +1,5 @@
 use backend::value_types::{Boolean, Font, Number, Property, Text, Texture, Tint, Value};
-use bevy_egui::egui::{
-    self, vec2, DragValue, InnerResponse, NumExt, Rect, Response, TextEdit, Ui, Widget,
-};
+use bevy_egui::egui::{self, vec2, DragValue, InnerResponse, Rect, Response, TextEdit, Ui, Widget};
 
 use crate::reference_store::{producer_id_editor, ReferenceStore};
 
@@ -66,23 +64,17 @@ where
 {
     fn ui(mut self, ui: &mut Ui) -> Response {
         let res = ui.scope(|ui| {
-            // This gets us the justified size for this widget. `Ui::allocate_space`
-            // will increase the requested size if the ui layout is justified. This
-            // way we get the justified size without calculating it manually.
-            let (_id, base_rect) = ui.allocate_space(vec2(0.0, 0.0));
-
-            // Leave some space on the right for the Ref button.
-            let left = base_rect.with_max_x(
-                (base_rect.max.x - 18.0 - ui.spacing().item_spacing.x).at_least(base_rect.min.x),
+            let left = Rect::from_min_size(
+                ui.cursor().min,
+                vec2(
+                    ui.available_width() - 18.0 - ui.spacing().item_spacing.x,
+                    ui.available_height(),
+                ),
             );
             let InnerResponse {
                 inner: left_has_changed,
                 response: left_res,
-            } = ui.allocate_ui_at_rect(left, |ui| {
-                ui.centered_and_justified(|ui| self.left_ui(ui))
-                    .inner
-                    .changed()
-            });
+            } = ui.allocate_ui_at_rect(left, |ui| self.left_ui(ui).changed());
 
             // The right side is just to the left of the left size plus the item spaceing.
             // Right side has a fixed size.

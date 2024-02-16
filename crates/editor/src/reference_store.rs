@@ -35,14 +35,6 @@ pub struct ProducerData {
     pub name: String,
     pub value_type: ValueType,
 }
-impl ProducerData {
-    pub fn get_ref(&self) -> AnyProducerRef {
-        AnyProducerRef {
-            value_type: self.value_type,
-            id: self.id,
-        }
-    }
-}
 
 #[derive(Resource, Default)]
 pub struct ReferenceStore {
@@ -56,44 +48,6 @@ impl ReferenceStore {
         self.variables = AssetOrFolder::from_vars(vars);
         self.game_sources = AssetOrFolder::from_game();
         self.assets = AssetOrFolder::from_asset_defs(assets);
-    }
-
-    pub fn editor_small<T>(&self, ui: &mut Ui) -> InnerResponse<Option<ProducerRef<T>>>
-    where
-        T: Value,
-    {
-        let target_type = T::ty();
-
-        let mut editor_res =
-            self.untyped_editor_small(ui, |v| v.value_type.can_cast_to(&target_type));
-
-        let inner = editor_res.inner.map(|new_untyped_value_ref| {
-            if !new_untyped_value_ref.value_type.can_cast_to(&target_type) {
-                unreachable!(
-                    "Could not cast untyped value ref to 
-                    type {} even though the ref is limited to only that type",
-                    std::any::type_name::<T>()
-                );
-            }
-            editor_res.response.mark_changed();
-            ProducerRef {
-                id: new_untyped_value_ref.id,
-                phantom: std::marker::PhantomData,
-            }
-        });
-        InnerResponse::new(inner, editor_res.response)
-    }
-
-    fn untyped_editor_small(
-        &self,
-        ui: &mut Ui,
-        is_type_allowed: impl Fn(&ProducerData) -> bool,
-    ) -> InnerResponse<Option<AnyProducerRef>> {
-        let mut selected_asset = None;
-        let res = ui.menu_button("R", |ui| {
-            self.show_menu(ui, &mut selected_asset, &is_type_allowed);
-        });
-        InnerResponse::new(selected_asset.map(|a| a.get_ref()), res.response)
     }
 
     fn get(&self, id: &ProducerId) -> Option<&ProducerData> {

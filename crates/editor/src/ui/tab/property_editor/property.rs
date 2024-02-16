@@ -3,7 +3,7 @@ use bevy_egui::egui::{
     self, vec2, DragValue, InnerResponse, NumExt, Rect, Response, TextEdit, Ui, Widget,
 };
 
-use crate::reference_store::{producer_ref_editor, ReferenceStore};
+use crate::reference_store::{producer_ref_editor, select_producer_reference, ReferenceStore};
 
 pub struct PropertyEditor<'a, T> {
     property: &'a mut Property<T>,
@@ -43,11 +43,17 @@ where
                 button_res
             }
             Property::Fixed(_) => {
-                let editor_res = self.reference_store.editor_small::<T>(ui);
-                if let Some(new_value_ref) = editor_res.inner {
-                    *self.property = Property::ValueRef(new_value_ref);
+                let InnerResponse {
+                    inner: selected_producer,
+                    mut response,
+                } = select_producer_reference(ui, self.reference_store, "R", |v| {
+                    v.value_type.can_cast_to(&T::ty())
+                });
+                if let Some(selected_producer) = selected_producer {
+                    *self.property = Property::ValueRef(selected_producer.typed());
+                    response.mark_changed();
                 }
-                editor_res.response
+                response
             }
         }
     }
@@ -65,7 +71,7 @@ where
 
             // Leave some space on the right for the Ref button.
             let left = base_rect.with_max_x(
-                (base_rect.max.x - 20.0 - ui.spacing().item_spacing.x).at_least(base_rect.min.x),
+                (base_rect.max.x - 18.0 - ui.spacing().item_spacing.x).at_least(base_rect.min.x),
             );
             let InnerResponse {
                 inner: left_has_changed,
@@ -80,7 +86,7 @@ where
             // Right side has a fixed size.
             let right = Rect::from_min_size(
                 left_res.rect.right_top() + vec2(ui.spacing().item_spacing.x, 0.0),
-                vec2(20.0, left_res.rect.height()),
+                vec2(18.0, left_res.rect.height()),
             );
             let InnerResponse {
                 inner: right_has_changed,

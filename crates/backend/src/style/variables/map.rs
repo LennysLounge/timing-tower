@@ -137,18 +137,30 @@ impl Input {
         // Only update the actual input reference
         if new_input_ref.ty() == self.value_type() {
             match self {
-                Input::Number { input_ref, .. } => *input_ref = new_input_ref.typed(),
-                Input::Text { input_ref, .. } => *input_ref = new_input_ref.typed(),
+                Input::Number { input_ref, .. } => {
+                    *input_ref = new_input_ref
+                        .to_typed()
+                        .expect("Value types should match")
+                }
+                Input::Text { input_ref, .. } => {
+                    *input_ref = new_input_ref
+                        .to_typed()
+                        .expect("Value types should match")
+                }
             }
         } else {
             // Change the entire type of the input to match the new reference.
             *self = match new_input_ref.ty() {
                 ValueType::Number => Input::Number {
-                    input_ref: new_input_ref.typed(),
+                    input_ref: new_input_ref
+                        .to_typed()
+                        .expect("Value types should match"),
                     input_cases: Vec::new(),
                 },
                 ValueType::Text => Input::Text {
-                    input_ref: new_input_ref.typed(),
+                    input_ref: new_input_ref
+                        .to_typed()
+                        .expect("Value types should match"),
                     input_cases: Vec::new(),
                 },
                 value_type @ _ => {

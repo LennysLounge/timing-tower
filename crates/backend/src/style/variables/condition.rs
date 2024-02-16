@@ -121,29 +121,45 @@ impl Comparison {
         match (self, new_untyped_ref.ty()) {
             // If the new value is of the same type as the comparison then we only
             // need to update the reference.
-            (Comparison::Number { left, .. }, ValueType::Number) => *left = new_untyped_ref.typed(),
-            (Comparison::Text { left, .. }, ValueType::Text) => *left = new_untyped_ref.typed(),
+            (Comparison::Number { left, .. }, ValueType::Number) => {
+                *left = new_untyped_ref
+                    .to_typed()
+                    .expect("Value types should match")
+            }
+            (Comparison::Text { left, .. }, ValueType::Text) => {
+                *left = new_untyped_ref
+                    .to_typed()
+                    .expect("Value types should match")
+            }
             (Comparison::Boolean { left, .. }, ValueType::Boolean) => {
-                *left = new_untyped_ref.typed()
+                *left = new_untyped_ref
+                    .to_typed()
+                    .expect("Value types should match")
             }
             // Otherwise we have to change the type of the comparision
             (me @ _, ValueType::Number) => {
                 *me = Comparison::Number {
-                    left: new_untyped_ref.typed(),
+                    left: new_untyped_ref
+                        .to_typed()
+                        .expect("Value types should match"),
                     comparator: NumberComparator::Equal,
                     right: Property::default(),
                 }
             }
             (me @ _, ValueType::Text) => {
                 *me = Comparison::Text {
-                    left: new_untyped_ref.typed(),
+                    left: new_untyped_ref
+                        .to_typed()
+                        .expect("Value types should match"),
                     comparator: TextComparator::Like,
                     right: Property::default(),
                 }
             }
             (me @ _, ValueType::Boolean) => {
                 *me = Comparison::Boolean {
-                    left: new_untyped_ref.typed(),
+                    left: new_untyped_ref
+                        .to_typed()
+                        .expect("Value types should match"),
                     comparator: BooleanComparator::Is,
                     right: Property::default(),
                 }

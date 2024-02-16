@@ -168,13 +168,7 @@ impl AnyProducerRef {
     pub fn ty(&self) -> ValueType {
         self.value_type
     }
-    pub fn typed<T>(self) -> ProducerRef<T> {
-        ProducerRef {
-            id: self.id,
-            phantom: PhantomData,
-        }
-    }
-    pub fn to_typed_2<T: Value>(&self) -> Option<ProducerRef<T>> {
+    pub fn to_typed<T: Value>(&self) -> Option<ProducerRef<T>> {
         if T::ty() == self.value_type {
             Some(ProducerRef {
                 id: self.id,

@@ -171,7 +171,7 @@ impl AnyProducerRef {
 
 #[derive(Serialize, Deserialize, Clone)]
 pub enum Property<T> {
-    ValueRef(ProducerRef<T>),
+    Producer(ProducerId),
     #[serde(untagged)]
     Fixed(T),
 }

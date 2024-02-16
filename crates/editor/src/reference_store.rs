@@ -14,7 +14,7 @@ use backend::{
     savefile::{Savefile, SavefileChanged},
     style::{assets::AssetFolder, variables::VariableFolder},
     value_store::ProducerId,
-    value_types::{AnyProducerRef, ProducerRef, Value, ValueType},
+    value_types::{AnyProducerRef, ValueType},
 };
 
 pub struct ReferenceStorePlugin;
@@ -259,6 +259,26 @@ pub fn select_producer_reference(
     )
 }
 
+pub fn producer_id_editor(
+    ui: &mut Ui,
+    reference_store: &ReferenceStore,
+    producer_id: &mut ProducerId,
+    is_type_allowed: impl Fn(&ProducerData) -> bool,
+) -> Response {
+    let button_name = reference_store
+        .get(producer_id)
+        .map(|id| id.name.as_str())
+        .unwrap_or("- Invalud Ref -");
+
+    let mut res = select_producer_reference(ui, reference_store, button_name, is_type_allowed);
+    if let Some(selected_producer) = res.inner {
+        *producer_id = selected_producer.id;
+        res.response.mark_changed();
+    }
+
+    res.response
+}
+
 pub fn any_producer_ref_editor(
     ui: &mut Ui,
     reference_store: &ReferenceStore,
@@ -270,30 +290,11 @@ pub fn any_producer_ref_editor(
         .map(|id| id.name.as_str())
         .unwrap_or("- Invalud Ref -");
 
-    let res = select_producer_reference(ui, reference_store, button_name, is_type_allowed);
+    let mut res = select_producer_reference(ui, reference_store, button_name, is_type_allowed);
     if let Some(selected_producer) = res.inner {
         *producer_ref = selected_producer;
+        res.response.mark_changed();
     }
 
     res.response
-}
-
-pub fn producer_ref_editor<T>(
-    ui: &mut Ui,
-    reference_store: &ReferenceStore,
-    producer_ref: &mut ProducerRef<T>,
-) -> Response
-where
-    T: Value,
-{
-    let target_type = T::ty();
-
-    let mut any_ref = producer_ref.clone().to_any_producer_ref();
-    let res = any_producer_ref_editor(ui, reference_store, &mut any_ref, |v| {
-        v.value_type.can_cast_to(&target_type)
-    });
-    if res.changed() {
-        *producer_ref = any_ref.typed();
-    }
-    res
 }

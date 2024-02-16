@@ -97,7 +97,10 @@ impl ValueStore {
     {
         match property {
             Property::Fixed(v) => Some(v.clone()),
-            Property::ValueRef(value_ref) => self.get(value_ref, entry),
+            Property::Producer(producer_id) => self
+                .values
+                .get(&producer_id)
+                .and_then(|p| self.get_typed(p, entry)),
         }
     }
 }

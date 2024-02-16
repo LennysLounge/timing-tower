@@ -3,7 +3,7 @@ use bevy_egui::egui::{
     self, vec2, DragValue, InnerResponse, NumExt, Rect, Response, TextEdit, Ui, Widget,
 };
 
-use crate::reference_store::{producer_ref_editor, select_producer_reference, ReferenceStore};
+use crate::reference_store::{producer_id_editor, select_producer_reference, ReferenceStore};
 
 pub struct PropertyEditor<'a, T> {
     property: &'a mut Property<T>,
@@ -25,8 +25,10 @@ where
 
     fn left_ui(&mut self, ui: &mut Ui) -> Response {
         match self.property {
-            Property::ValueRef(value_ref) => {
-                producer_ref_editor(ui, self.reference_store, value_ref)
+            Property::Producer(producer_id) => {
+                producer_id_editor(ui, self.reference_store, producer_id, |v| {
+                    v.value_type.can_cast_to(&T::ty())
+                })
             }
             Property::Fixed(value) => value.editor(ui),
         }
@@ -34,7 +36,7 @@ where
 
     fn right_ui(&mut self, ui: &mut Ui) -> Response {
         match self.property {
-            Property::ValueRef(_) => {
+            Property::Producer(_) => {
                 let mut button_res = ui.button("x");
                 if button_res.clicked() {
                     *self.property = Property::Fixed(T::default());
@@ -50,7 +52,7 @@ where
                     v.value_type.can_cast_to(&T::ty())
                 });
                 if let Some(selected_producer) = selected_producer {
-                    *self.property = Property::ValueRef(selected_producer.typed());
+                    *self.property = Property::Producer(selected_producer.id);
                     response.mark_changed();
                 }
                 response

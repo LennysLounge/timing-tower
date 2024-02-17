@@ -12,7 +12,7 @@ use backend::{
 };
 use bevy_egui::egui::{self, ScrollArea, Ui};
 use egui_ltreeview::{
-    builder::{CloserState, NodeBuilder},
+    node::{CloserState, NodeBuilder},
     Action, DropPosition, TreeViewBuilder, TreeViewResponse,
 };
 

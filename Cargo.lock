@@ -1964,8 +1964,8 @@ dependencies = [
 
 [[package]]
 name = "egui_ltreeview"
-version = "0.1.0"
-source = "git+https://github.com/LennysLounge/egui_ltreeview.git#095a3d7b5fa77dd2874a2036e9d2335872347017"
+version = "0.1.1"
+source = "git+https://github.com/LennysLounge/egui_ltreeview.git#ed459a2e8f4eedfbd59b93232955afd9ca9347a5"
 dependencies = [
  "egui",
  "uuid",
@@ -5228,7 +5228,7 @@ version = "1.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if 0.1.10",
  "static_assertions",
 ]
 

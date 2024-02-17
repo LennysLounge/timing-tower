@@ -13,7 +13,7 @@ use backend::{
 };
 use bevy_egui::egui::{self, vec2, Color32, Id, RichText, Ui};
 use egui_ltreeview::{
-    builder::NodeBuilder, Action, DropPosition, RowLayout, TreeView, TreeViewBuilder,
+    node::NodeBuilder, Action, DropPosition, RowLayout, TreeView, TreeViewBuilder,
 };
 use uuid::Uuid;
 

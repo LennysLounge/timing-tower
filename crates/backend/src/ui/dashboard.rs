@@ -11,16 +11,10 @@ pub fn show_graphic(ui: &mut Ui, graphic: &GraphicDefinition, graphic_states: &m
     ui.group(|ui| {
         ui.heading(&graphic.name);
 
-        let min_width = ui.min_size().x;
         ui.group(|ui| {
             let tree_response =
                 TreeView::new(ui.make_persistent_id("__graphic").with(graphic.id.0))
-                    .max_width(if min_width > 150.0 {
-                        Some(min_width)
-                    } else {
-                        Some(150.0)
-                    })
-                    .fill_space_horizontal(true)
+                    .min_width(150.0)
                     .show(ui, |mut builder| {
                         if let Some(state) = graphic_states.states.get(&graphic.id) {
                             builder.set_selected(*state);

@@ -185,9 +185,17 @@
         "element_type": "Asset",
         "style_item_type": "Asset",
         "id": "28fc93a6-a776-4b91-b0f1-89e09f4a771f",
-        "name": "ACC-Font",
+        "name": "ACC-Font-Bold",
         "value_type": "Font",
         "path": "cufonfonts D-DIN-Bold.otf"
+      },
+      {
+        "element_type": "Asset",
+        "style_item_type": "Asset",
+        "id": "abed3391-82fd-47e5-8157-605d1d56c153",
+        "name": "ACC-Font",
+        "value_type": "Font",
+        "path": "cufonfonts D-DIN.otf"
       }
     ]
   },
@@ -944,11 +952,13 @@
                 "states": {}
               },
               "text_size": {
-                "template": 20.0,
+                "template": 18.0,
                 "states": {}
               },
               "font": {
-                "template": "Default",
+                "template": {
+                  "Producer": "abed3391-82fd-47e5-8157-605d1d56c153"
+                },
                 "states": {}
               },
               "color": {
@@ -1269,11 +1279,13 @@
                 "states": {}
               },
               "text_size": {
-                "template": 20.0,
+                "template": 18.0,
                 "states": {}
               },
               "font": {
-                "template": "Default",
+                "template": {
+                  "Producer": "abed3391-82fd-47e5-8157-605d1d56c153"
+                },
                 "states": {}
               },
               "color": {
@@ -2183,28 +2195,30 @@
                       "text": {
                         "template": "Info text",
                         "states": {
-                          "0c6aff6c-2995-4b6e-be5b-b88a76af76a8": "+0.567",
                           "30e712de-46ce-4fea-9b78-37455cb5c835": "12",
+                          "0c6aff6c-2995-4b6e-be5b-b88a76af76a8": "+6.955",
                           "a267bd0f-e38f-4c4d-b54a-bcce3c678aa3": "+5.123"
                         }
                       },
                       "text_color": {
                         "template": {
                           "Rgba": {
-                            "red": 0.71990514,
-                            "green": 0.95108277,
-                            "blue": 0.25246924,
+                            "red": 1.0,
+                            "green": 0.6947439,
+                            "blue": 0.116363645,
                             "alpha": 1.0
                           }
                         },
                         "states": {}
                       },
                       "text_size": {
-                        "template": 18.0,
+                        "template": 19.5,
                         "states": {}
                       },
                       "font": {
-                        "template": "Default",
+                        "template": {
+                          "Producer": "abed3391-82fd-47e5-8157-605d1d56c153"
+                        },
                         "states": {}
                       },
                       "color": {
@@ -2224,17 +2238,11 @@
                       },
                       "pos": {
                         "template": {
-                          "x": 283.0,
+                          "x": 363.0,
                           "y": 18.0,
                           "z": 0.0
                         },
-                        "states": {
-                          "0c6aff6c-2995-4b6e-be5b-b88a76af76a8": {
-                            "x": 283.0,
-                            "y": 18.0,
-                            "z": 0.0
-                          }
-                        }
+                        "states": {}
                       },
                       "size": {
                         "template": {
@@ -2285,7 +2293,7 @@
                         "states": {}
                       },
                       "text_alginment": {
-                        "template": "Left",
+                        "template": "Right",
                         "states": {}
                       },
                       "text_position": {
@@ -2303,7 +2311,7 @@
           ],
           "position": {
             "template": {
-              "x": 346.0,
+              "x": 420.0,
               "y": 35.0
             },
             "states": {}

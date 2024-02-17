@@ -1,10 +1,9 @@
 use std::sync::OnceLock;
 
-use unified_sim_model::model::Entry;
 use uuid::{uuid, Uuid};
 
 use crate::{
-    value_store::{AnyValueProducer, ProducerId, ValueProducer, ValueStore},
+    value_store::{AnyValueProducer, ModelContext, ProducerId, ValueProducer, ValueStore},
     value_types::{AnyProducerRef, Boolean, Number, Text, ValueType},
 };
 
@@ -17,18 +16,22 @@ pub fn get_game_sources() -> Vec<&'static GameSource> {
                 GameSource::new_number(
                     uuid!("6330a6bb-51d1-4af7-9bd0-efeb00b1ff52"),
                     "Position",
-                    |_: &ValueStore, entry: Option<&Entry>| entry.map(|e| *e.position as f32),
+                    |_: &ValueStore, context: ModelContext<'_>| {
+                        context.entry.map(|e| *e.position as f32)
+                    },
                 ),
                 GameSource::new_number(
                     uuid!("171d7438-3179-4c70-b818-811cf86d514e"),
                     "Car number",
-                    |_: &ValueStore, entry: Option<&Entry>| entry.map(|e| *e.car_number as f32),
+                    |_: &ValueStore, context: ModelContext<'_>| {
+                        context.entry.map(|e| *e.car_number as f32)
+                    },
                 ),
                 GameSource::new_text(
                     uuid!("8abcf9d5-60f7-4886-a716-139d62ad83ac"),
                     "Driver name",
-                    |_: &ValueStore, entry: Option<&Entry>| {
-                        entry.and_then(|e| {
+                    |_: &ValueStore, context: ModelContext<'_>| {
+                        context.entry.and_then(|e| {
                             e.drivers.get(&e.current_driver).map(|driver| {
                                 driver
                                     .first_name
@@ -44,30 +47,32 @@ pub fn get_game_sources() -> Vec<&'static GameSource> {
                 GameSource::new_bool(
                     uuid!("de909160-f54b-40cf-a987-6a8453df0914"),
                     "Is focused",
-                    |_: &ValueStore, entry: Option<&Entry>| entry.map(|e| e.focused),
+                    |_: &ValueStore, context: ModelContext<'_>| context.entry.map(|e| e.focused),
                 ),
                 GameSource::new_bool(
                     uuid!("c16f71b9-dcc9-4f04-9579-ea5211fa99be"),
                     "Is in pits",
-                    |_: &ValueStore, entry: Option<&Entry>| entry.map(|e| *e.in_pits),
+                    |_: &ValueStore, context: ModelContext<'_>| context.entry.map(|e| *e.in_pits),
                 ),
                 GameSource::new_text(
                     uuid!("4507167c-4c78-4686-b7a2-44809d969cee"),
                     "Car name",
-                    |_: &ValueStore, entry: Option<&Entry>| entry.map(|e| e.car.name().to_owned()),
+                    |_: &ValueStore, context: ModelContext<'_>| {
+                        context.entry.map(|e| e.car.name().to_owned())
+                    },
                 ),
                 GameSource::new_text(
                     uuid!("d1a60628-1ac7-4ad4-a502-95bc649edf07"),
                     "Car manufacturer",
-                    |_: &ValueStore, entry: Option<&Entry>| {
-                        entry.map(|e| e.car.manufacturer().to_owned())
+                    |_: &ValueStore, context: ModelContext<'_>| {
+                        context.entry.map(|e| e.car.manufacturer().to_owned())
                     },
                 ),
                 GameSource::new_number(
                     uuid!("4d519d42-52e9-435c-b614-8d70b42ed3b0"),
                     "ACC: Cup category",
-                    |_: &ValueStore, entry: Option<&Entry>| {
-                        entry.map(|e| match &e.game_data {
+                    |_: &ValueStore, context: ModelContext<'_>| {
+                        context.entry.map(|e| match &e.game_data {
                             unified_sim_model::model::EntryGameData::None => 0 as f32,
                             unified_sim_model::model::EntryGameData::Acc(data) => {
                                 data.cup_category as f32
@@ -83,26 +88,26 @@ pub fn get_game_sources() -> Vec<&'static GameSource> {
 
 #[derive(Clone)]
 enum Extractor {
-    Number(fn(&ValueStore, Option<&Entry>) -> Option<f32>),
-    Text(fn(&ValueStore, Option<&Entry>) -> Option<String>),
-    Boolean(fn(&ValueStore, Option<&Entry>) -> Option<bool>),
+    Number(fn(&ValueStore, ModelContext<'_>) -> Option<f32>),
+    Text(fn(&ValueStore, ModelContext<'_>) -> Option<String>),
+    Boolean(fn(&ValueStore, ModelContext<'_>) -> Option<bool>),
 }
-impl ValueProducer for fn(&ValueStore, Option<&Entry>) -> Option<f32> {
+impl ValueProducer for fn(&ValueStore, ModelContext<'_>) -> Option<f32> {
     type Output = Number;
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
-        (self)(value_store, entry).map(|f| Number(f))
+    fn get(&self, value_store: &ValueStore, context: ModelContext<'_>) -> Option<Number> {
+        (self)(value_store, context).map(|f| Number(f))
     }
 }
-impl ValueProducer for fn(&ValueStore, Option<&Entry>) -> Option<String> {
+impl ValueProducer for fn(&ValueStore, ModelContext<'_>) -> Option<String> {
     type Output = Text;
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
-        (self)(value_store, entry).map(|f| Text(f))
+    fn get(&self, value_store: &ValueStore, context: ModelContext<'_>) -> Option<Text> {
+        (self)(value_store, context).map(|f| Text(f))
     }
 }
-impl ValueProducer for fn(&ValueStore, Option<&Entry>) -> Option<bool> {
+impl ValueProducer for fn(&ValueStore, context: ModelContext<'_>) -> Option<bool> {
     type Output = Boolean;
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
-        (self)(value_store, entry).map(|f| Boolean(f))
+    fn get(&self, value_store: &ValueStore, context: ModelContext<'_>) -> Option<Boolean> {
+        (self)(value_store, context).map(|f| Boolean(f))
     }
 }
 
@@ -132,7 +137,7 @@ impl GameSource {
     fn new_number(
         id: Uuid,
         name: &str,
-        extractor: fn(&ValueStore, Option<&Entry>) -> Option<f32>,
+        extractor: fn(&ValueStore, ModelContext<'_>) -> Option<f32>,
     ) -> Self {
         Self {
             id,
@@ -144,7 +149,7 @@ impl GameSource {
     fn new_text(
         id: Uuid,
         name: &str,
-        extractor: fn(&ValueStore, Option<&Entry>) -> Option<String>,
+        extractor: fn(&ValueStore, ModelContext<'_>) -> Option<String>,
     ) -> Self {
         Self {
             id,
@@ -156,7 +161,7 @@ impl GameSource {
     fn new_bool(
         id: Uuid,
         name: &str,
-        extractor: fn(&ValueStore, Option<&Entry>) -> Option<bool>,
+        extractor: fn(&ValueStore, ModelContext<'_>) -> Option<bool>,
     ) -> Self {
         Self {
             id,

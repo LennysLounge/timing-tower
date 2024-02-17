@@ -1,9 +1,10 @@
 use enumcapsulate::macros::AsVariantRef;
 use serde::{Deserialize, Serialize};
-use unified_sim_model::model::Entry;
 
 use crate::{
-    value_store::{AnyValueProducer, ProducerId, ValueProducer, ValueResolver, ValueStore},
+    value_store::{
+        AnyValueProducer, ModelContext, ProducerId, ValueProducer, ValueResolver, ValueStore,
+    },
     value_types::{
         AnyProducerRef, Boolean, Number, ProducerRef, Property, Text, Texture, Tint, ValueType,
     },
@@ -197,75 +198,75 @@ struct ConditionProducer<T> {
 }
 
 impl<T> ConditionProducer<T> {
-    fn evaluate_condition(&self, vars: &ValueStore, entry: Option<&Entry>) -> Option<bool> {
+    fn evaluate_condition(&self, vars: &ValueStore, context: ModelContext<'_>) -> Option<bool> {
         match &self.comparison {
             Comparison::Number {
                 left,
                 comparator,
                 right,
             } => Some(comparator.compare(
-                vars.get(&left, entry)?.0,
-                vars.get_property(&right, entry)?.0,
+                vars.get(&left, context)?.0,
+                vars.get_property(&right, context)?.0,
             )),
             Comparison::Text {
                 left,
                 comparator,
                 right,
             } => Some(comparator.compare(
-                &vars.get(&left, entry)?.0,
-                &vars.get_property(&right, entry)?.0,
+                &vars.get(&left, context)?.0,
+                &vars.get_property(&right, context)?.0,
             )),
             Comparison::Boolean {
                 left,
                 comparator,
                 right,
             } => Some(comparator.compare(
-                vars.get(&left, entry)?.0,
-                vars.get_property(&right, entry)?.0,
+                vars.get(&left, context)?.0,
+                vars.get_property(&right, context)?.0,
             )),
         }
     }
-    fn resolve(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<T>
+    fn resolve(&self, value_store: &ValueStore, context: ModelContext<'_>) -> Option<T>
     where
         ValueStore: ValueResolver<T>,
         T: Clone,
     {
-        let condition = self.evaluate_condition(value_store, entry)?;
+        let condition = self.evaluate_condition(value_store, context)?;
 
         if condition {
-            value_store.get_property(&self.output.truee, entry)
+            value_store.get_property(&self.output.truee, context)
         } else {
-            value_store.get_property(&self.output.falsee, entry)
+            value_store.get_property(&self.output.falsee, context)
         }
     }
 }
 impl ValueProducer for ConditionProducer<Number> {
     type Output = Number;
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
-        self.resolve(value_store, entry)
+    fn get(&self, value_store: &ValueStore, context: ModelContext<'_>) -> Option<Number> {
+        self.resolve(value_store, context)
     }
 }
 impl ValueProducer for ConditionProducer<Text> {
     type Output = Text;
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
-        self.resolve(value_store, entry)
+    fn get(&self, value_store: &ValueStore, context: ModelContext<'_>) -> Option<Text> {
+        self.resolve(value_store, context)
     }
 }
 impl ValueProducer for ConditionProducer<Boolean> {
     type Output = Boolean;
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
-        self.resolve(value_store, entry)
+    fn get(&self, value_store: &ValueStore, context: ModelContext<'_>) -> Option<Boolean> {
+        self.resolve(value_store, context)
     }
 }
 impl ValueProducer for ConditionProducer<Texture> {
     type Output = Texture;
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Texture> {
-        self.resolve(value_store, entry)
+    fn get(&self, value_store: &ValueStore, context: ModelContext<'_>) -> Option<Texture> {
+        self.resolve(value_store, context)
     }
 }
 impl ValueProducer for ConditionProducer<Tint> {
     type Output = Tint;
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Tint> {
-        self.resolve(value_store, entry)
+    fn get(&self, value_store: &ValueStore, context: ModelContext<'_>) -> Option<Tint> {
+        self.resolve(value_store, context)
     }
 }

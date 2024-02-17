@@ -15,7 +15,7 @@ use bevy::{
 };
 use serde::{Deserialize, Serialize};
 use tracing::info;
-use unified_sim_model::model::Entry;
+use unified_sim_model::model::{Entry, Session};
 use uuid::Uuid;
 
 use self::private::PrivateValueResolver;
@@ -41,7 +41,7 @@ pub trait ValueProducer {
     type Output;
 
     /// Get the produced value.
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Self::Output>;
+    fn get(&self, value_store: &ValueStore, context: ModelContext<'_>) -> Option<Self::Output>;
 }
 
 /// Any kind of value producer.  
@@ -55,10 +55,10 @@ impl AnyValueProducer {
     ///
     /// Forwards the call directly to the actual producer. If the actual producer is of
     /// a different type than the requested type, `None` is returned.
-    fn get<T: 'static>(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<T> {
+    fn get<T: 'static>(&self, value_store: &ValueStore, context: ModelContext<'_>) -> Option<T> {
         self.inner
             .downcast_ref::<Box<dyn ValueProducer<Output = T> + Sync + Send>>()
-            .and_then(|producer| producer.as_ref().get(value_store, entry))
+            .and_then(|producer| producer.as_ref().get(value_store, context))
     }
 }
 impl<U, T> From<T> for AnyValueProducer
@@ -74,6 +74,14 @@ where
     }
 }
 
+/// The current context of the model.  
+/// Holds the current session and entry if any exists.
+#[derive(Copy, Clone)]
+pub struct ModelContext<'a> {
+    pub session: Option<&'a Session>,
+    pub entry: Option<&'a Entry>,
+}
+
 /// The value store that holds all [`ValueProducer`]s and can resolve
 /// value requests.
 #[derive(Resource, Default)]
@@ -81,16 +89,16 @@ pub struct ValueStore {
     values: HashMap<ProducerId, AnyValueProducer>,
 }
 impl ValueStore {
-    pub fn get<T>(&self, value_ref: &ProducerRef<T>, entry: Option<&Entry>) -> Option<T>
+    pub fn get<T>(&self, value_ref: &ProducerRef<T>, context: ModelContext<'_>) -> Option<T>
     where
         Self: ValueResolver<T>,
     {
         self.values
             .get(&value_ref.id())
-            .and_then(|p| self.get_typed(p, entry))
+            .and_then(|p| self.get_typed(p, context))
     }
 
-    pub fn get_property<T>(&self, property: &Property<T>, entry: Option<&Entry>) -> Option<T>
+    pub fn get_property<T>(&self, property: &Property<T>, context: ModelContext<'_>) -> Option<T>
     where
         Self: ValueResolver<T>,
         T: Clone,
@@ -100,7 +108,7 @@ impl ValueStore {
             Property::Producer(producer_id) => self
                 .values
                 .get(&producer_id)
-                .and_then(|p| self.get_typed(p, entry)),
+                .and_then(|p| self.get_typed(p, context)),
         }
     }
 }
@@ -116,28 +124,35 @@ impl ValueStore {
 pub trait ValueResolver<T>: PrivateValueResolver<T> {}
 impl<T> ValueResolver<T> for ValueStore where ValueStore: PrivateValueResolver<T> {}
 mod private {
-    use unified_sim_model::model::Entry;
 
     use crate::value_types::{Boolean, Font, Number, Text, Texture, Tint};
 
-    use super::{AnyValueProducer, ValueStore};
+    use super::{AnyValueProducer, ModelContext, ValueStore};
 
     pub trait PrivateValueResolver<T> {
-        fn get_typed(&self, producer: &AnyValueProducer, entry: Option<&Entry>) -> Option<T>;
+        fn get_typed(&self, producer: &AnyValueProducer, context: ModelContext<'_>) -> Option<T>;
     }
     impl PrivateValueResolver<Number> for ValueStore {
-        fn get_typed(&self, producer: &AnyValueProducer, entry: Option<&Entry>) -> Option<Number> {
-            producer.get(self, entry)
+        fn get_typed(
+            &self,
+            producer: &AnyValueProducer,
+            context: ModelContext<'_>,
+        ) -> Option<Number> {
+            producer.get(self, context)
         }
     }
     impl PrivateValueResolver<Text> for ValueStore {
-        fn get_typed(&self, producer: &AnyValueProducer, entry: Option<&Entry>) -> Option<Text> {
+        fn get_typed(
+            &self,
+            producer: &AnyValueProducer,
+            context: ModelContext<'_>,
+        ) -> Option<Text> {
             producer
-                .get(self, entry)
+                .get(self, context)
                 .or(producer
-                    .get::<Number>(self, entry)
+                    .get::<Number>(self, context)
                     .map(|number| Text(format!("{}", number.0))))
-                .or(producer.get::<Boolean>(self, entry).map(|bool| {
+                .or(producer.get::<Boolean>(self, context).map(|bool| {
                     if bool.0 {
                         Text(String::from("Yes"))
                     } else {
@@ -147,23 +162,39 @@ mod private {
         }
     }
     impl PrivateValueResolver<Tint> for ValueStore {
-        fn get_typed(&self, producer: &AnyValueProducer, entry: Option<&Entry>) -> Option<Tint> {
-            producer.get(self, entry)
+        fn get_typed(
+            &self,
+            producer: &AnyValueProducer,
+            context: ModelContext<'_>,
+        ) -> Option<Tint> {
+            producer.get(self, context)
         }
     }
     impl PrivateValueResolver<Boolean> for ValueStore {
-        fn get_typed(&self, producer: &AnyValueProducer, entry: Option<&Entry>) -> Option<Boolean> {
-            producer.get(self, entry)
+        fn get_typed(
+            &self,
+            producer: &AnyValueProducer,
+            context: ModelContext<'_>,
+        ) -> Option<Boolean> {
+            producer.get(self, context)
         }
     }
     impl PrivateValueResolver<Texture> for ValueStore {
-        fn get_typed(&self, producer: &AnyValueProducer, entry: Option<&Entry>) -> Option<Texture> {
-            producer.get(self, entry)
+        fn get_typed(
+            &self,
+            producer: &AnyValueProducer,
+            context: ModelContext<'_>,
+        ) -> Option<Texture> {
+            producer.get(self, context)
         }
     }
     impl PrivateValueResolver<Font> for ValueStore {
-        fn get_typed(&self, producer: &AnyValueProducer, entry: Option<&Entry>) -> Option<Font> {
-            producer.get(self, entry)
+        fn get_typed(
+            &self,
+            producer: &AnyValueProducer,
+            context: ModelContext<'_>,
+        ) -> Option<Font> {
+            producer.get(self, context)
         }
     }
 }

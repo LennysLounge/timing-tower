@@ -2,11 +2,10 @@ use std::ops::Deref;
 
 use crate::{
     exact_variant::ExactVariant,
-    value_store::{AnyValueProducer, ProducerId, ValueProducer, ValueStore},
+    value_store::{AnyValueProducer, ModelContext, ProducerId, ValueProducer, ValueStore},
     value_types::AnyProducerRef,
 };
 use serde::{Deserialize, Serialize};
-use unified_sim_model::model::Entry;
 
 use self::{condition::Condition, fixed_value::FixedValue, map::Map};
 
@@ -65,7 +64,7 @@ impl VariableDefinition {
 pub struct StaticValueProducer<T>(pub T);
 impl<T: Clone> ValueProducer for StaticValueProducer<T> {
     type Output = T;
-    fn get(&self, _value_store: &ValueStore, _entry: Option<&Entry>) -> Option<T> {
+    fn get(&self, _value_store: &ValueStore, _context: ModelContext<'_>) -> Option<T> {
         Some(self.0.clone())
     }
 }

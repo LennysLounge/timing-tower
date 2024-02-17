@@ -7,15 +7,14 @@ use unified_sim_model::model::{Entry, Session};
 
 use crate::{
     style::graphic::graphic_items::{cell::ComputedCell, clip_area::ComputedClipArea},
-    value_store::{ValueResolver, ValueStore},
+    value_store::{ModelContext, ValueResolver, ValueStore},
     value_types::{Boolean, Font, Number, Property, Text, Texture, Tint, Vec2Property},
 };
 
 #[derive(Clone)]
 pub struct StyleResolver<'a> {
     value_store: &'a ValueStore,
-    session: &'a Session,
-    entry: Option<&'a Entry>,
+    context: ModelContext<'a>,
     position: Vec3,
     render_layer: u8,
 }
@@ -23,10 +22,12 @@ impl<'a> StyleResolver<'a> {
     pub fn new(value_store: &'a ValueStore, session: &'a Session) -> Self {
         Self {
             value_store,
-            session,
-            entry: None,
             position: Vec3::ZERO,
             render_layer: 0,
+            context: ModelContext {
+                session: Some(session),
+                entry: None,
+            },
         }
     }
 
@@ -41,7 +42,7 @@ impl<'a> StyleResolver<'a> {
     }
 
     pub fn with_entry(mut self, entry: &'a Entry) -> Self {
-        self.entry = Some(entry);
+        self.context.entry = Some(entry);
         self
     }
 
@@ -50,11 +51,13 @@ impl<'a> StyleResolver<'a> {
         ValueStore: ValueResolver<T>,
         T: Clone,
     {
-        self.value_store.get_property(property, self.entry)
+        self.value_store.get_property(property, self.context)
     }
 
     pub fn session(&self) -> &Session {
-        self.session
+        self.context
+            .session
+            .expect("Context should always have a session")
     }
 
     pub fn position(&self) -> &Vec3 {
@@ -65,33 +68,33 @@ impl<'a> StyleResolver<'a> {
         ClipAreaStyle {
             pos: Vec3::new(
                 self.value_store
-                    .get_property(&clip_area.pos.x, self.entry)
+                    .get_property(&clip_area.pos.x, self.context)
                     .unwrap_or_default()
                     .0,
                 self.value_store
-                    .get_property(&clip_area.pos.y, self.entry)
+                    .get_property(&clip_area.pos.y, self.context)
                     .unwrap_or_default()
                     .0
                     * -1.0,
                 self.value_store
-                    .get_property(&clip_area.pos.z, self.entry)
+                    .get_property(&clip_area.pos.z, self.context)
                     .unwrap_or_default()
                     .0,
             ) + self.position,
             size: Vec2::new(
                 self.value_store
-                    .get_property(&clip_area.size.x, self.entry)
+                    .get_property(&clip_area.size.x, self.context)
                     .unwrap_or_default()
                     .0,
                 self.value_store
-                    .get_property(&clip_area.size.y, self.entry)
+                    .get_property(&clip_area.size.y, self.context)
                     .unwrap_or_default()
                     .0,
             ),
             corner_offsets: {
                 let skew = self
                     .value_store
-                    .get_property(&clip_area.skew, self.entry)
+                    .get_property(&clip_area.skew, self.context)
                     .unwrap_or_default()
                     .0;
                 [
@@ -103,19 +106,19 @@ impl<'a> StyleResolver<'a> {
             },
             rounding: [
                 self.value_store
-                    .get_property(&clip_area.rounding.top_left, self.entry)
+                    .get_property(&clip_area.rounding.top_left, self.context)
                     .unwrap_or(Number(0.0))
                     .0,
                 self.value_store
-                    .get_property(&clip_area.rounding.top_right, self.entry)
+                    .get_property(&clip_area.rounding.top_right, self.context)
                     .unwrap_or(Number(0.0))
                     .0,
                 self.value_store
-                    .get_property(&clip_area.rounding.bot_left, self.entry)
+                    .get_property(&clip_area.rounding.bot_left, self.context)
                     .unwrap_or(Number(0.0))
                     .0,
                 self.value_store
-                    .get_property(&clip_area.rounding.bot_right, self.entry)
+                    .get_property(&clip_area.rounding.bot_right, self.context)
                     .unwrap_or(Number(0.0))
                     .0,
             ],
@@ -127,89 +130,89 @@ impl<'a> StyleResolver<'a> {
         CellStyle {
             text: self
                 .value_store
-                .get_property(&cell.text, self.entry)
+                .get_property(&cell.text, self.context)
                 .unwrap_or_else(|| Text("unavailable".to_string()))
                 .0,
             text_color: self
                 .value_store
-                .get_property(&cell.text_color, self.entry)
+                .get_property(&cell.text_color, self.context)
                 .unwrap_or(Tint(Color::BLACK))
                 .0,
             text_size: self
                 .value_store
-                .get_property(&cell.text_size, self.entry)
+                .get_property(&cell.text_size, self.context)
                 .unwrap_or(Number(20.0))
                 .0,
             text_alignment: cell.text_alginment.clone(),
             text_position: Vec2::new(
                 self.value_store
-                    .get_property(&cell.text_position.x, self.entry)
+                    .get_property(&cell.text_position.x, self.context)
                     .unwrap_or(Number(0.0))
                     .0,
                 self.value_store
-                    .get_property(&cell.text_position.y, self.entry)
+                    .get_property(&cell.text_position.y, self.context)
                     .unwrap_or(Number(0.0))
                     .0,
             ),
             font: self
                 .value_store
-                .get_property(&cell.font, self.entry)
+                .get_property(&cell.font, self.context)
                 .and_then(|f| match f {
                     Font::Default => None,
                     Font::Handle(handle) => Some(handle),
                 }),
             color: self
                 .value_store
-                .get_property(&cell.color, self.entry)
+                .get_property(&cell.color, self.context)
                 .unwrap_or(Tint(Color::RED))
                 .0,
             texture: self
                 .value_store
-                .get_property(&cell.image, self.entry)
+                .get_property(&cell.image, self.context)
                 .and_then(|t| match t {
                     Texture::None => None,
                     Texture::Handle(handle) => Some(handle),
                 }),
             pos: Vec3::new(
                 self.value_store
-                    .get_property(&cell.pos.x, self.entry)
+                    .get_property(&cell.pos.x, self.context)
                     .unwrap_or(Number(0.0))
                     .0,
                 self.value_store
-                    .get_property(&cell.pos.y, self.entry)
+                    .get_property(&cell.pos.y, self.context)
                     .unwrap_or(Number(0.0))
                     .0
                     * -1.0,
                 self.value_store
-                    .get_property(&cell.pos.z, self.entry)
+                    .get_property(&cell.pos.z, self.context)
                     .unwrap_or(Number(0.0))
                     .0,
             ) + self.position,
             size: Vec2::new(
                 self.value_store
-                    .get_property(&cell.size.x, self.entry)
+                    .get_property(&cell.size.x, self.context)
                     .unwrap_or(Number(0.0))
                     .0,
                 self.value_store
-                    .get_property(&cell.size.y, self.entry)
+                    .get_property(&cell.size.y, self.context)
                     .unwrap_or(Number(0.0))
                     .0,
             ),
             corner_offsets: {
                 let skew = self
                     .value_store
-                    .get_property(&cell.skew, self.entry)
+                    .get_property(&cell.skew, self.context)
                     .unwrap_or_default()
                     .0;
                 let get_vec = |prop: &Vec2Property| {
                     vec2(
                         self.value_store
-                            .get_property(&prop.x, self.entry)
+                            .get_property(&prop.x, self.context)
                             .unwrap_or_default()
                             .0,
                         -self
                             .value_store
-                            .get_property(&prop.y, self.entry)
+                            .get_property(&prop.y, self.context)
                             .unwrap_or_default()
                             .0,
                     )
@@ -223,24 +226,24 @@ impl<'a> StyleResolver<'a> {
             },
             visible: self
                 .value_store
-                .get_property(&cell.visible, self.entry)
+                .get_property(&cell.visible, self.context)
                 .unwrap_or(Boolean(true))
                 .0,
             rounding: [
                 self.value_store
-                    .get_property(&cell.rounding.top_left, self.entry)
+                    .get_property(&cell.rounding.top_left, self.context)
                     .unwrap_or(Number(0.0))
                     .0,
                 self.value_store
-                    .get_property(&cell.rounding.top_right, self.entry)
+                    .get_property(&cell.rounding.top_right, self.context)
                     .unwrap_or(Number(0.0))
                     .0,
                 self.value_store
-                    .get_property(&cell.rounding.bot_left, self.entry)
+                    .get_property(&cell.rounding.bot_left, self.context)
                     .unwrap_or(Number(0.0))
                     .0,
                 self.value_store
-                    .get_property(&cell.rounding.bot_right, self.entry)
+                    .get_property(&cell.rounding.bot_right, self.context)
                     .unwrap_or(Number(0.0))
                     .0,
             ],

@@ -1,9 +1,8 @@
 use enumcapsulate::macros::AsVariantRef;
 use serde::{Deserialize, Serialize};
-use unified_sim_model::model::Entry;
 
 use crate::{
-    value_store::{AnyValueProducer, ProducerId, ValueProducer, ValueResolver, ValueStore},
+    value_store::{AnyValueProducer, ModelContext, ProducerId, ValueProducer, ValueResolver, ValueStore},
     value_types::{
         AnyProducerRef, Boolean, Number, ProducerRef, Property, Text, Texture, Tint, ValueType,
     },
@@ -295,7 +294,7 @@ struct MapProducer<T> {
 }
 
 impl<T: Clone> MapProducer<T> {
-    fn resolve(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<T>
+    fn resolve(&self, value_store: &ValueStore, context: ModelContext<'_>) -> Option<T>
     where
         ValueStore: ValueResolver<T>,
     {
@@ -303,47 +302,47 @@ impl<T: Clone> MapProducer<T> {
             .cases
             .iter()
             .enumerate()
-            .find_map(|(index, case)| case.test(value_store, entry).then_some(index));
+            .find_map(|(index, case)| case.test(value_store, context).then_some(index));
         if case_index.is_none() {
-            return value_store.get_property(&self.output.default, entry);
+            return value_store.get_property(&self.output.default, context);
         }
 
         let output_property = case_index
             .and_then(|index| self.output.cases.get(index))
             .expect("Index should be valid since cases and ouputs have the same length");
 
-        value_store.get_property(output_property, entry)
+        value_store.get_property(output_property, context)
     }
 }
 
 impl ValueProducer for MapProducer<Number> {
     type Output = Number;
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Number> {
-        self.resolve(value_store, entry)
+    fn get(&self, value_store: &ValueStore, context: ModelContext<'_>) -> Option<Number> {
+        self.resolve(value_store, context)
     }
 }
 impl ValueProducer for MapProducer<Text> {
     type Output = Text;
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Text> {
-        self.resolve(value_store, entry)
+    fn get(&self, value_store: &ValueStore, context: ModelContext<'_>) -> Option<Text> {
+        self.resolve(value_store, context)
     }
 }
 impl ValueProducer for MapProducer<Boolean> {
     type Output = Boolean;
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Boolean> {
-        self.resolve(value_store, entry)
+    fn get(&self, value_store: &ValueStore, context: ModelContext<'_>) -> Option<Boolean> {
+        self.resolve(value_store, context)
     }
 }
 impl ValueProducer for MapProducer<Texture> {
     type Output = Texture;
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Texture> {
-        self.resolve(value_store, entry)
+    fn get(&self, value_store: &ValueStore, context: ModelContext<'_>) -> Option<Texture> {
+        self.resolve(value_store, context)
     }
 }
 impl ValueProducer for MapProducer<Tint> {
     type Output = Tint;
-    fn get(&self, value_store: &ValueStore, entry: Option<&Entry>) -> Option<Tint> {
-        self.resolve(value_store, entry)
+    fn get(&self, value_store: &ValueStore, context: ModelContext<'_>) -> Option<Tint> {
+        self.resolve(value_store, context)
     }
 }
 
@@ -352,11 +351,11 @@ enum CaseComparison {
     Text((ProducerRef<Text>, TextComparator, Property<Text>)),
 }
 impl CaseComparison {
-    fn test(&self, asset_repo: &ValueStore, entry: Option<&Entry>) -> bool {
+    fn test(&self, asset_repo: &ValueStore, context: ModelContext<'_>) -> bool {
         match self {
             CaseComparison::Number((reference, comp, prop)) => {
-                let value = asset_repo.get(reference, entry);
-                let pivot = asset_repo.get_property(prop, entry);
+                let value = asset_repo.get(reference, context);
+                let pivot = asset_repo.get_property(prop, context);
                 if let (Some(value), Some(pivot)) = (value, pivot) {
                     comp.compare(value.0, pivot.0)
                 } else {
@@ -364,8 +363,8 @@ impl CaseComparison {
                 }
             }
             CaseComparison::Text((reference, comp, prop)) => {
-                let value = asset_repo.get(reference, entry);
-                let pivot = asset_repo.get_property(prop, entry);
+                let value = asset_repo.get(reference, context);
+                let pivot = asset_repo.get_property(prop, context);
                 if let (Some(value), Some(pivot)) = (value, pivot) {
                     comp.compare(&value.0, &pivot.0)
                 } else {

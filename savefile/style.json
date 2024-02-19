@@ -324,9 +324,9 @@
             "behavior": "FixedValue",
             "output_type": "Tint",
             "Rgba": {
-              "red": 0.10651037,
-              "green": 0.48264638,
-              "blue": 0.07124781,
+              "red": 0.0,
+              "green": 0.6514056,
+              "blue": 0.34670404,
               "alpha": 1.0
             }
           }
@@ -670,6 +670,74 @@
               "blue": 0.11697066,
               "alpha": 1.0
             }
+          },
+          {
+            "element_type": "Variable",
+            "style_item_type": "Variable",
+            "id": "1e41168f-c2f5-436f-a30c-b6d4d7f7585b",
+            "name": "Info visible 1",
+            "behavior": "Condition",
+            "comparison_type": "Number",
+            "left": "6330a6bb-51d1-4af7-9bd0-efeb00b1ff52",
+            "comparator": "Equal",
+            "right": 1.0,
+            "output_type": "Boolean",
+            "truee": true,
+            "falsee": {
+              "Producer": "e949a3fc-952c-4d4e-a9f9-df15227ac020"
+            }
+          },
+          {
+            "element_type": "Variable",
+            "style_item_type": "Variable",
+            "id": "e949a3fc-952c-4d4e-a9f9-df15227ac020",
+            "name": "Info visible 2",
+            "behavior": "Condition",
+            "comparison_type": "Boolean",
+            "left": "c16f71b9-dcc9-4f04-9579-ea5211fa99be",
+            "comparator": "Is",
+            "right": false,
+            "output_type": "Boolean",
+            "truee": true,
+            "falsee": false
+          }
+        ]
+      },
+      {
+        "element_type": "Folder",
+        "style_item_type": "VariableFolder",
+        "id": "530035dd-ad1d-4ed3-8059-6540987c55a6",
+        "name": "Clock",
+        "content": [
+          {
+            "element_type": "Variable",
+            "style_item_type": "Variable",
+            "id": "4c744aca-dd19-4a3e-b482-1e48ebf1dcbd",
+            "name": "Session type",
+            "behavior": "Map",
+            "input_type": "Number",
+            "input_ref": "e3b19274-200e-4ebb-bbdd-a75e2390094c",
+            "input_cases": [
+              {
+                "right": 1.0,
+                "comparator": "Equal"
+              },
+              {
+                "right": 2.0,
+                "comparator": "Equal"
+              },
+              {
+                "right": 3.0,
+                "comparator": "Equal"
+              }
+            ],
+            "output_type": "Text",
+            "output_cases": [
+              "PRACTICE",
+              "QUALIFYING",
+              "RACE"
+            ],
+            "default": "NONE"
           }
         ]
       }
@@ -750,8 +818,8 @@
               },
               "size": {
                 "template": {
-                  "x": 310.0,
-                  "y": 36.0
+                  "x": 346.0,
+                  "y": 42.0
                 },
                 "states": {}
               },
@@ -774,7 +842,7 @@
                     "y": 0.0
                   },
                   "bot_right": {
-                    "x": -18.0,
+                    "x": -21.0,
                     "y": 0.0
                   }
                 },
@@ -883,7 +951,7 @@
                 "states": {}
               },
               "visible": {
-                "template": true,
+                "template": false,
                 "states": {}
               },
               "rounding": {
@@ -985,7 +1053,7 @@
                 "states": {}
               },
               "visible": {
-                "template": true,
+                "template": false,
                 "states": {}
               },
               "rounding": {
@@ -1014,7 +1082,7 @@
               "id": "96d59867-87cd-47ca-a675-733f3bb71326",
               "name": "Race",
               "text": {
-                "template": "RACE",
+                "template": "QUALIFYING",
                 "states": {}
               },
               "text_color": {
@@ -1055,8 +1123,8 @@
               },
               "pos": {
                 "template": {
-                  "x": 145.0,
-                  "y": 18.0,
+                  "x": 173.0,
+                  "y": 21.0,
                   "z": 0.0
                 },
                 "states": {}
@@ -1203,7 +1271,7 @@
                 "states": {}
               },
               "visible": {
-                "template": true,
+                "template": false,
                 "states": {}
               },
               "rounding": {
@@ -1312,7 +1380,7 @@
                 "states": {}
               },
               "visible": {
-                "template": true,
+                "template": false,
                 "states": {}
               },
               "rounding": {
@@ -1421,7 +1489,7 @@
                 "states": {}
               },
               "visible": {
-                "template": true,
+                "template": false,
                 "states": {}
               },
               "rounding": {
@@ -1448,8 +1516,8 @@
           ],
           "position": {
             "template": {
-              "x": 805.0,
-              "y": 37.0
+              "x": 787.0,
+              "y": 0.0
             },
             "states": {}
           }
@@ -1465,11 +1533,11 @@
         "element_type": "Graphic",
         "style_item_type": "Graphic",
         "id": "60f9b7e8-32ed-4e19-9ac7-78096708f5da",
-        "name": "Timing Tower",
+        "name": "Timing tower",
         "items": {
           "graphic_item_type": "Root",
           "id": "66e3940c-4d79-4b13-a0bd-1393795c4818",
-          "name": "Timing Tower",
+          "name": "Timing tower",
           "items": [
             {
               "graphic_item_type": "Cell",
@@ -2359,10 +2427,12 @@
                         "states": {}
                       },
                       "visible": {
-                        "template": true,
+                        "template": {
+                          "Producer": "1e41168f-c2f5-436f-a30c-b6d4d7f7585b"
+                        },
                         "states": {
-                          "372c88c9-9700-45ae-8328-41fe3005a456": false,
-                          "0c6aff6c-2995-4b6e-be5b-b88a76af76a8": true
+                          "30e712de-46ce-4fea-9b78-37455cb5c835": true,
+                          "372c88c9-9700-45ae-8328-41fe3005a456": false
                         }
                       },
                       "rounding": {
@@ -2385,6 +2455,113 @@
                         },
                         "states": {}
                       }
+                    },
+                    {
+                      "graphic_item_type": "Cell",
+                      "id": "e2f37d7b-37b8-451a-bb58-6afda1ed8890",
+                      "name": "Green flag",
+                      "text": {
+                        "template": "",
+                        "states": {}
+                      },
+                      "text_color": {
+                        "template": {
+                          "Rgba": {
+                            "red": 0.0,
+                            "green": 0.45078576,
+                            "blue": 0.099898666,
+                            "alpha": 1.0
+                          }
+                        },
+                        "states": {}
+                      },
+                      "text_size": {
+                        "template": 20.0,
+                        "states": {}
+                      },
+                      "font": {
+                        "template": "Default",
+                        "states": {}
+                      },
+                      "color": {
+                        "template": {
+                          "Rgba": {
+                            "red": 0.0,
+                            "green": 0.6543148,
+                            "blue": 0.3473815,
+                            "alpha": 1.0
+                          }
+                        },
+                        "states": {}
+                      },
+                      "image": {
+                        "template": "None",
+                        "states": {}
+                      },
+                      "pos": {
+                        "template": {
+                          "x": 272.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "states": {}
+                      },
+                      "size": {
+                        "template": {
+                          "x": 13.0,
+                          "y": 36.0
+                        },
+                        "states": {}
+                      },
+                      "skew": {
+                        "template": 0.0,
+                        "states": {}
+                      },
+                      "corner_offsets": {
+                        "template": {
+                          "top_left": {
+                            "x": 0.0,
+                            "y": 0.0
+                          },
+                          "top_right": {
+                            "x": 0.0,
+                            "y": 0.0
+                          },
+                          "bot_left": {
+                            "x": 0.0,
+                            "y": 0.0
+                          },
+                          "bot_right": {
+                            "x": 0.0,
+                            "y": 0.0
+                          }
+                        },
+                        "states": {}
+                      },
+                      "visible": {
+                        "template": true,
+                        "states": {}
+                      },
+                      "rounding": {
+                        "template": {
+                          "top_left": 0.0,
+                          "top_right": 0.0,
+                          "bot_left": 0.0,
+                          "bot_right": 0.0
+                        },
+                        "states": {}
+                      },
+                      "text_alginment": {
+                        "template": "Left",
+                        "states": {}
+                      },
+                      "text_position": {
+                        "template": {
+                          "x": 5.0,
+                          "y": 15.0
+                        },
+                        "states": {}
+                      }
                     }
                   ]
                 }
@@ -2393,7 +2570,7 @@
           ],
           "position": {
             "template": {
-              "x": 420.0,
+              "x": 38.0,
               "y": 35.0
             },
             "states": {}

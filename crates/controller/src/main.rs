@@ -3,7 +3,6 @@ use backend::{
     style_batcher::{PrepareBatcher, StyleBatcher},
     BackendPlugin, GameAdapterResource,
 };
-use ball::Ball;
 use bevy::{
     app::{PostUpdate, Startup},
     ecs::{
@@ -13,7 +12,6 @@ use bevy::{
     },
     prelude::{App, ResMut, Resource},
     time::{Timer, TimerMode},
-    transform::components::Transform,
     DefaultPlugins,
 };
 
@@ -22,8 +20,6 @@ use ui::UiPlugin;
 use unified_sim_model::Adapter;
 use webserver::WebserverPlugin;
 use websocket::{ClientState, WebsocketClient, WebsocketPlugin};
-
-use crate::ball::BallPlugin;
 
 mod ball;
 mod ui;
@@ -37,13 +33,13 @@ fn main() {
         .add_plugins(bevy_egui::EguiPlugin)
         .add_plugins(WebsocketPlugin)
         .add_plugins(WebserverPlugin)
-        .add_plugins(BallPlugin)
+        //.add_plugins(crate::ball::BallPlugin)
         .add_plugins(UiPlugin)
         .insert_resource(RenderTimer(Timer::from_seconds(
             0.001,
             TimerMode::Repeating,
         )))
-        .add_systems(Startup, (setup, spawn_balls))
+        .add_systems(Startup, setup)
         .add_systems(PostUpdate, send_style_commands.after(PrepareBatcher))
         .run();
 }
@@ -59,14 +55,8 @@ fn setup(
     savefile.load("../../savefile/style.json", savefile_changed_event);
 
     commands.insert_resource(GameAdapterResource {
-        adapter: Adapter::new_dummy(),
+        adapter: Adapter::new_acc(),
     });
-}
-
-fn spawn_balls(mut commands: Commands) {
-    for _ in 0..200 {
-        commands.spawn((Transform::default(), Ball::new()));
-    }
 }
 
 fn send_style_commands(

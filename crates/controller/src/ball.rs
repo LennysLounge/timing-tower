@@ -3,10 +3,10 @@ use backend::{
     style_batcher::{CellId, StyleBatcher},
 };
 use bevy::{
-    app::{Plugin, Update},
+    app::{Plugin, Startup, Update},
     ecs::{
         component::Component,
-        system::{Query, Res, ResMut},
+        system::{Commands, Query, Res, ResMut},
     },
     math::{vec2, Vec2, Vec3},
     render::color::Color,
@@ -17,7 +17,14 @@ use common::communication::{CellStyle, TextAlignment};
 pub struct BallPlugin;
 impl Plugin for BallPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_systems(Update, update);
+        app.add_systems(Startup, spawn_balls)
+            .add_systems(Update, update);
+    }
+}
+
+fn spawn_balls(mut commands: Commands) {
+    for _ in 0..200 {
+        commands.spawn((Transform::default(), Ball::new()));
     }
 }
 

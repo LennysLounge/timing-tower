@@ -25,7 +25,6 @@ use bevy::{
 };
 use cell_manager::CellManagerPlugin;
 use common::communication::{ToControllerMessage, ToRendererMessage};
-use framerate::FrameratePlugin;
 use frontend::{
     cell::{CreateCell, SetStyle},
     FrontendPlugin,
@@ -36,7 +35,8 @@ use websocket::{ReceivedMessage, SendMessage, WebsocketPlugin};
 fn main() {
     App::new()
         .insert_resource(AssetMetaCheck::Never)
-        .insert_resource(ClearColor(Color::rgb(0.5, 0.5, 0.9)))
+        //.insert_resource(ClearColor(Color::rgb(0.5, 0.5, 0.9)))
+        .insert_resource(ClearColor(Color::rgba(0.0, 0.0, 0.0, 0.0)))
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 fit_canvas_to_parent: true,
@@ -47,21 +47,21 @@ fn main() {
         .add_plugins(FrontendPlugin)
         .add_plugins((
             WebsocketPlugin,
-            FrameratePlugin,
+            //crate::framerate::FrameratePlugin,
             WebAssetPathStorePlugin,
             CellManagerPlugin,
         ))
         .add_systems(Startup, setup_camera)
-        .add_systems(
-            Startup,
-            bevy::ecs::schedule::IntoSystemConfigs::after(
-                bevy::ecs::schedule::IntoSystemConfigs::chain((
-                    bevy::ecs::schedule::apply_deferred,
-                    setup_cell,
-                )),
-                setup_camera,
-            ),
-        )
+        // .add_systems(
+        //     Startup,
+        //     bevy::ecs::schedule::IntoSystemConfigs::after(
+        //         bevy::ecs::schedule::IntoSystemConfigs::chain((
+        //             bevy::ecs::schedule::apply_deferred,
+        //             setup_cell,
+        //         )),
+        //         setup_camera,
+        //     ),
+        // )
         .init_resource::<SceneDefinition>()
         .add_systems(
             Update,

@@ -35,10 +35,12 @@ pub fn show_graphic(ui: &mut Ui, graphic: &GraphicDefinition, graphic_states: &m
 
 pub fn show_entry_table(ui: &mut Ui, adapter: &Adapter) {
     let model = adapter.model.read().expect("Cannot lock model for reading");
-    let current_session = model.current_session().unwrap();
 
     // Get entries sorted by position
-    let mut entries: Vec<&Entry> = current_session.entries.values().collect();
+    let mut entries: Vec<&Entry> = model
+        .current_session()
+        .map(|session| session.entries.values().collect::<Vec<_>>())
+        .unwrap_or(Vec::new());
     entries.sort_by(|e1, e2| {
         let is_connected = e2.connected.cmp(&e1.connected);
         let position = e1

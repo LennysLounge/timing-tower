@@ -738,6 +738,170 @@
               "RACE"
             ],
             "default": "NONE"
+          },
+          {
+            "element_type": "Variable",
+            "style_item_type": "Variable",
+            "id": "0a841be3-a213-499a-8c0c-226e99a30a83",
+            "name": "AM PM",
+            "behavior": "Condition",
+            "comparison_type": "Number",
+            "left": "f61c88d7-5eb7-4a07-a2a5-80cfdcad78e7",
+            "comparator": "LessEqual",
+            "right": 43200.0,
+            "output_type": "Text",
+            "truee": "AM",
+            "falsee": "PM"
+          },
+          {
+            "element_type": "Variable",
+            "style_item_type": "Variable",
+            "id": "11c7ba53-7067-433b-be18-d4d2cab31f42",
+            "name": "Pos time remaining",
+            "behavior": "Map",
+            "input_type": "Number",
+            "input_ref": "e3b19274-200e-4ebb-bbdd-a75e2390094c",
+            "input_cases": [
+              {
+                "right": 1.0,
+                "comparator": "Equal"
+              },
+              {
+                "right": 2.0,
+                "comparator": "Equal"
+              },
+              {
+                "right": 3.0,
+                "comparator": "Equal"
+              }
+            ],
+            "output_type": "Number",
+            "output_cases": [
+              118.0,
+              110.0,
+              135.0
+            ],
+            "default": 0.0
+          },
+          {
+            "element_type": "Variable",
+            "style_item_type": "Variable",
+            "id": "68498e0e-1c89-4745-a3b7-56ad31f22277",
+            "name": "Pos flag left",
+            "behavior": "Map",
+            "input_type": "Number",
+            "input_ref": "e3b19274-200e-4ebb-bbdd-a75e2390094c",
+            "input_cases": [
+              {
+                "right": 1.0,
+                "comparator": "Equal"
+              },
+              {
+                "right": 2.0,
+                "comparator": "Equal"
+              },
+              {
+                "right": 3.0,
+                "comparator": "Equal"
+              }
+            ],
+            "output_type": "Number",
+            "output_cases": [
+              123.0,
+              115.0,
+              140.0
+            ],
+            "default": 0.0
+          },
+          {
+            "element_type": "Variable",
+            "style_item_type": "Variable",
+            "id": "f212ec09-e165-48e8-a058-e5b9f8d66275",
+            "name": "Pos flag right",
+            "behavior": "Map",
+            "input_type": "Number",
+            "input_ref": "e3b19274-200e-4ebb-bbdd-a75e2390094c",
+            "input_cases": [
+              {
+                "right": 1.0,
+                "comparator": "Equal"
+              },
+              {
+                "right": 2.0,
+                "comparator": "Equal"
+              },
+              {
+                "right": 3.0,
+                "comparator": "Equal"
+              }
+            ],
+            "output_type": "Number",
+            "output_cases": [
+              227.0,
+              235.0,
+              210.0
+            ],
+            "default": 0.0
+          },
+          {
+            "element_type": "Variable",
+            "style_item_type": "Variable",
+            "id": "ea0b72a6-07b5-49f1-9962-0af901dc8ba7",
+            "name": "Pos time of day",
+            "behavior": "Map",
+            "input_type": "Number",
+            "input_ref": "e3b19274-200e-4ebb-bbdd-a75e2390094c",
+            "input_cases": [
+              {
+                "right": 1.0,
+                "comparator": "Equal"
+              },
+              {
+                "right": 2.0,
+                "comparator": "Equal"
+              },
+              {
+                "right": 3.0,
+                "comparator": "Equal"
+              }
+            ],
+            "output_type": "Number",
+            "output_cases": [
+              232.0,
+              240.0,
+              215.0
+            ],
+            "default": 0.0
+          },
+          {
+            "element_type": "Variable",
+            "style_item_type": "Variable",
+            "id": "e792eb54-6d51-495e-8208-19dc09895c0d",
+            "name": "Pos am pm",
+            "behavior": "Map",
+            "input_type": "Number",
+            "input_ref": "e3b19274-200e-4ebb-bbdd-a75e2390094c",
+            "input_cases": [
+              {
+                "right": 1.0,
+                "comparator": "Equal"
+              },
+              {
+                "right": 2.0,
+                "comparator": "Equal"
+              },
+              {
+                "right": 3.0,
+                "comparator": "Equal"
+              }
+            ],
+            "output_type": "Number",
+            "output_cases": [
+              297.0,
+              305.0,
+              280.0
+            ],
+            "default": 0.0
           }
         ]
       }
@@ -818,7 +982,7 @@
               },
               "size": {
                 "template": {
-                  "x": 346.0,
+                  "x": 350.0,
                   "y": 42.0
                 },
                 "states": {}
@@ -875,8 +1039,121 @@
             },
             {
               "graphic_item_type": "Cell",
+              "id": "02df8524-4f32-436d-a88c-fe8ff2a56df2",
+              "name": "Time remaining",
+              "text": {
+                "template": {
+                  "Producer": "c396553c-3281-4735-9805-dfd2de6ae3eb"
+                },
+                "states": {}
+              },
+              "text_color": {
+                "template": {
+                  "Rgba": {
+                    "red": 1.0,
+                    "green": 1.0,
+                    "blue": 1.0,
+                    "alpha": 1.0
+                  }
+                },
+                "states": {}
+              },
+              "text_size": {
+                "template": 28.0,
+                "states": {}
+              },
+              "font": {
+                "template": {
+                  "Producer": "28fc93a6-a776-4b91-b0f1-89e09f4a771f"
+                },
+                "states": {}
+              },
+              "color": {
+                "template": {
+                  "Rgba": {
+                    "red": 0.0,
+                    "green": 0.0,
+                    "blue": 0.0,
+                    "alpha": 0.0
+                  }
+                },
+                "states": {}
+              },
+              "image": {
+                "template": "None",
+                "states": {}
+              },
+              "pos": {
+                "template": {
+                  "x": {
+                    "Producer": "11c7ba53-7067-433b-be18-d4d2cab31f42"
+                  },
+                  "y": 23.0,
+                  "z": 0.0
+                },
+                "states": {}
+              },
+              "size": {
+                "template": {
+                  "x": 100.0,
+                  "y": 100.0
+                },
+                "states": {}
+              },
+              "skew": {
+                "template": 0.0,
+                "states": {}
+              },
+              "corner_offsets": {
+                "template": {
+                  "top_left": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "top_right": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "bot_left": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "bot_right": {
+                    "x": 0.0,
+                    "y": 0.0
+                  }
+                },
+                "states": {}
+              },
+              "visible": {
+                "template": true,
+                "states": {}
+              },
+              "rounding": {
+                "template": {
+                  "top_left": 0.0,
+                  "top_right": 0.0,
+                  "bot_left": 0.0,
+                  "bot_right": 0.0
+                },
+                "states": {}
+              },
+              "text_alginment": {
+                "template": "Right",
+                "states": {}
+              },
+              "text_position": {
+                "template": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "states": {}
+              }
+            },
+            {
+              "graphic_item_type": "Cell",
               "id": "53b8ee9f-f768-4314-ba72-b5c05d2b47ed",
-              "name": "Flag 1",
+              "name": "Flag left",
               "text": {
                 "template": "",
                 "states": {}
@@ -912,15 +1189,17 @@
               },
               "pos": {
                 "template": {
-                  "x": 112.0,
-                  "y": 2.0,
+                  "x": {
+                    "Producer": "68498e0e-1c89-4745-a3b7-56ad31f22277"
+                  },
+                  "y": 6.0,
                   "z": 0.0
                 },
                 "states": {}
               },
               "size": {
                 "template": {
-                  "x": 9.0,
+                  "x": 8.0,
                   "y": 32.0
                 },
                 "states": {}
@@ -951,7 +1230,7 @@
                 "states": {}
               },
               "visible": {
-                "template": false,
+                "template": true,
                 "states": {}
               },
               "rounding": {
@@ -978,7 +1257,7 @@
             {
               "graphic_item_type": "Cell",
               "id": "113db4ad-0d84-41f0-898b-634a90af4c3c",
-              "name": "Flag 2",
+              "name": "Flag right",
               "text": {
                 "template": "",
                 "states": {}
@@ -1014,15 +1293,17 @@
               },
               "pos": {
                 "template": {
-                  "x": 171.0,
-                  "y": 2.0,
+                  "x": {
+                    "Producer": "f212ec09-e165-48e8-a058-e5b9f8d66275"
+                  },
+                  "y": 6.0,
                   "z": 0.0
                 },
                 "states": {}
               },
               "size": {
                 "template": {
-                  "x": 9.0,
+                  "x": -8.0,
                   "y": 32.0
                 },
                 "states": {}
@@ -1053,7 +1334,7 @@
                 "states": {}
               },
               "visible": {
-                "template": false,
+                "template": true,
                 "states": {}
               },
               "rounding": {
@@ -1080,9 +1361,11 @@
             {
               "graphic_item_type": "Cell",
               "id": "96d59867-87cd-47ca-a675-733f3bb71326",
-              "name": "Race",
+              "name": "Session Type",
               "text": {
-                "template": "QUALIFYING",
+                "template": {
+                  "Producer": "4c744aca-dd19-4a3e-b482-1e48ebf1dcbd"
+                },
                 "states": {}
               },
               "text_color": {
@@ -1123,8 +1406,8 @@
               },
               "pos": {
                 "template": {
-                  "x": 173.0,
-                  "y": 21.0,
+                  "x": 175.0,
+                  "y": 24.0,
                   "z": 0.0
                 },
                 "states": {}
@@ -1188,119 +1471,12 @@
             },
             {
               "graphic_item_type": "Cell",
-              "id": "02df8524-4f32-436d-a88c-fe8ff2a56df2",
-              "name": "Time remaining",
-              "text": {
-                "template": "14:36",
-                "states": {}
-              },
-              "text_color": {
-                "template": {
-                  "Rgba": {
-                    "red": 1.0,
-                    "green": 1.0,
-                    "blue": 1.0,
-                    "alpha": 1.0
-                  }
-                },
-                "states": {}
-              },
-              "text_size": {
-                "template": 28.0,
-                "states": {}
-              },
-              "font": {
-                "template": {
-                  "Producer": "28fc93a6-a776-4b91-b0f1-89e09f4a771f"
-                },
-                "states": {}
-              },
-              "color": {
-                "template": {
-                  "Rgba": {
-                    "red": 0.0,
-                    "green": 0.0,
-                    "blue": 0.0,
-                    "alpha": 0.0
-                  }
-                },
-                "states": {}
-              },
-              "image": {
-                "template": "None",
-                "states": {}
-              },
-              "pos": {
-                "template": {
-                  "x": 106.0,
-                  "y": 18.0,
-                  "z": 0.0
-                },
-                "states": {}
-              },
-              "size": {
-                "template": {
-                  "x": 100.0,
-                  "y": 100.0
-                },
-                "states": {}
-              },
-              "skew": {
-                "template": 0.0,
-                "states": {}
-              },
-              "corner_offsets": {
-                "template": {
-                  "top_left": {
-                    "x": 0.0,
-                    "y": 0.0
-                  },
-                  "top_right": {
-                    "x": 0.0,
-                    "y": 0.0
-                  },
-                  "bot_left": {
-                    "x": 0.0,
-                    "y": 0.0
-                  },
-                  "bot_right": {
-                    "x": 0.0,
-                    "y": 0.0
-                  }
-                },
-                "states": {}
-              },
-              "visible": {
-                "template": false,
-                "states": {}
-              },
-              "rounding": {
-                "template": {
-                  "top_left": 0.0,
-                  "top_right": 0.0,
-                  "bot_left": 0.0,
-                  "bot_right": 0.0
-                },
-                "states": {}
-              },
-              "text_alginment": {
-                "template": "Right",
-                "states": {}
-              },
-              "text_position": {
-                "template": {
-                  "x": 0.0,
-                  "y": 0.0
-                },
-                "states": {}
-              }
-            },
-            {
-              "graphic_item_type": "Cell",
               "id": "28502815-8931-4deb-8789-246b78776ae6",
               "name": "Local time",
               "text": {
-                "template": "2:07",
+                "template": {
+                  "Producer": "c13448a6-2a06-4531-8707-ddd5c5ab1b30"
+                },
                 "states": {}
               },
               "text_color": {
@@ -1341,8 +1517,10 @@
               },
               "pos": {
                 "template": {
-                  "x": 183.0,
-                  "y": 18.0,
+                  "x": {
+                    "Producer": "ea0b72a6-07b5-49f1-9962-0af901dc8ba7"
+                  },
+                  "y": 23.0,
                   "z": 0.0
                 },
                 "states": {}
@@ -1380,7 +1558,7 @@
                 "states": {}
               },
               "visible": {
-                "template": false,
+                "template": true,
                 "states": {}
               },
               "rounding": {
@@ -1424,7 +1602,7 @@
                 "states": {}
               },
               "text_size": {
-                "template": 18.0,
+                "template": 19.0,
                 "states": {}
               },
               "font": {
@@ -1450,8 +1628,10 @@
               },
               "pos": {
                 "template": {
-                  "x": 240.0,
-                  "y": 17.0,
+                  "x": {
+                    "Producer": "e792eb54-6d51-495e-8208-19dc09895c0d"
+                  },
+                  "y": 24.0,
                   "z": 0.0
                 },
                 "states": {}
@@ -1489,7 +1669,7 @@
                 "states": {}
               },
               "visible": {
-                "template": false,
+                "template": true,
                 "states": {}
               },
               "rounding": {
@@ -1516,7 +1696,7 @@
           ],
           "position": {
             "template": {
-              "x": 787.0,
+              "x": 785.0,
               "y": 0.0
             },
             "states": {}
@@ -2340,14 +2520,14 @@
                       "text": {
                         "template": "Info text",
                         "states": {
-                          "30e712de-46ce-4fea-9b78-37455cb5c835": {
-                            "Producer": "30cd7503-df5f-4fcf-9175-e7b6b469b189"
-                          },
                           "0c6aff6c-2995-4b6e-be5b-b88a76af76a8": {
                             "Producer": "92b0d86b-42dc-4bec-9cf7-c212981f6b50"
                           },
                           "a267bd0f-e38f-4c4d-b54a-bcce3c678aa3": {
                             "Producer": "fb270927-75c7-469b-88d3-250758aa1f3b"
+                          },
+                          "30e712de-46ce-4fea-9b78-37455cb5c835": {
+                            "Producer": "30cd7503-df5f-4fcf-9175-e7b6b469b189"
                           }
                         }
                       },

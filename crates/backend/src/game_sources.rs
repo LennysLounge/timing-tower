@@ -72,7 +72,7 @@ pub fn get_game_sources() -> Vec<&'static GameSource> {
                     uuid!("6acb7506-7752-4f9a-9af0-8a72061eee4f"),
                     "Session time",
                     |_: &ValueStore, context: ModelContext<'_>| {
-                        context.session.map(|session| session.session_time.format())
+                        context.session.map(|session| session.session_time.fmt_no_ms())
                     },
                 ),
                 GameSource::new_number(
@@ -90,7 +90,7 @@ pub fn get_game_sources() -> Vec<&'static GameSource> {
                     |_: &ValueStore, context: ModelContext<'_>| {
                         context
                             .session
-                            .map(|session| session.time_remaining.format())
+                            .map(|session| session.time_remaining.fmt_no_ms())
                     },
                 ),
                 GameSource::new_number(
@@ -122,7 +122,7 @@ pub fn get_game_sources() -> Vec<&'static GameSource> {
                     uuid!("c13448a6-2a06-4531-8707-ddd5c5ab1b30"),
                     "Session time of day",
                     |_: &ValueStore, context: ModelContext<'_>| {
-                        context.session.map(|session| session.time_of_day.format())
+                        context.session.map(|session| session.time_of_day.fmt_no_s_ms())
                     },
                 ),
                 GameSource::new_number(

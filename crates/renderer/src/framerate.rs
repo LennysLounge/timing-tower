@@ -1,5 +1,5 @@
 use bevy::{
-    app::{Plugin, Startup, Update},
+    app::Plugin,
     diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
     ecs::{
         component::Component,
@@ -16,11 +16,12 @@ use bevy::{
 pub struct FrameratePlugin;
 impl Plugin for FrameratePlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_plugins(FrameTimeDiagnosticsPlugin)
+        _ = app
+            .add_plugins(FrameTimeDiagnosticsPlugin)
             .init_resource::<FrameCounter>()
             .insert_resource(SecondTimer(Timer::from_seconds(1.0, TimerMode::Repeating)))
-            .add_systems(Startup, setup)
-            .add_systems(Update, text_update_system);
+            // .add_systems(bevy::app::Startup, setup)
+            // .add_systems(bevy::app::Update, text_update_system);
     }
 }
 
@@ -30,6 +31,7 @@ struct SecondTimer(Timer);
 #[derive(Resource, Default)]
 pub struct FrameCounter {
     count: i32,
+    #[allow(unused)]
     last_count: i32,
 }
 impl FrameCounter {
@@ -38,6 +40,7 @@ impl FrameCounter {
     }
 }
 
+#[allow(unused)]
 fn setup(world: &mut World) {
     // Text with multiple sections
     world.spawn((
@@ -84,6 +87,7 @@ fn setup(world: &mut World) {
 #[derive(Component)]
 struct FpsText;
 
+#[allow(unused)]
 fn text_update_system(
     diagnostics: Res<DiagnosticsStore>,
     time: Res<Time>,

@@ -195,6 +195,31 @@ pub fn edit_node(
                     });
                 }
             }
+            if ui.button("Set Race").clicked() {
+                undo_redo_manager.queue(AdapterCommand {
+                    command: unified_sim_model::AdapterCommand::Game(GameAdapterCommand::Dummy(
+                        DummyCommands::SetSessionType(unified_sim_model::model::SessionType::Race),
+                    )),
+                });
+            }
+            if ui.button("Set Quali").clicked() {
+                undo_redo_manager.queue(AdapterCommand {
+                    command: unified_sim_model::AdapterCommand::Game(GameAdapterCommand::Dummy(
+                        DummyCommands::SetSessionType(
+                            unified_sim_model::model::SessionType::Qualifying,
+                        ),
+                    )),
+                });
+            }
+            if ui.button("Set Practice").clicked() {
+                undo_redo_manager.queue(AdapterCommand {
+                    command: unified_sim_model::AdapterCommand::Game(GameAdapterCommand::Dummy(
+                        DummyCommands::SetSessionType(
+                            unified_sim_model::model::SessionType::Practice,
+                        ),
+                    )),
+                });
+            }
             ui.horizontal(|ui| {
                 ui.label("Set entry amount:");
                 let amount_id = ui.make_persistent_id("entry_amount");

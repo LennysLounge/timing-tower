@@ -25,6 +25,7 @@ use bevy::{
 };
 use cell_manager::CellManagerPlugin;
 use common::communication::{ToControllerMessage, ToRendererMessage};
+use framerate::FrameratePlugin;
 use frontend::{
     cell::{CreateCell, SetStyle},
     FrontendPlugin,
@@ -47,7 +48,7 @@ fn main() {
         .add_plugins(FrontendPlugin)
         .add_plugins((
             WebsocketPlugin,
-            //crate::framerate::FrameratePlugin,
+            FrameratePlugin,
             WebAssetPathStorePlugin,
             CellManagerPlugin,
         ))

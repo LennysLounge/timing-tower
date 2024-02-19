@@ -5297,7 +5297,7 @@ checksum = "f962df74c8c05a667b5ee8bcf162993134c104e96440b663c8daa176dc772d8c"
 
 [[package]]
 name = "unified_sim_model"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "bitflags 2.4.2",
  "indexmap 1.9.3",

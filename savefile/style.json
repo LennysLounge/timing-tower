@@ -595,6 +595,83 @@
         "default": {
           "Producer": "62823f7e-db28-4087-a148-79d943b6ecfc"
         }
+      },
+      {
+        "element_type": "Folder",
+        "style_item_type": "VariableFolder",
+        "id": "2ab78f50-269f-4ab1-8b37-8f4070e63820",
+        "name": "Timing tower",
+        "content": [
+          {
+            "element_type": "Variable",
+            "style_item_type": "Variable",
+            "id": "fb270927-75c7-469b-88d3-250758aa1f3b",
+            "name": "to leader",
+            "behavior": "Condition",
+            "comparison_type": "Number",
+            "left": "6330a6bb-51d1-4af7-9bd0-efeb00b1ff52",
+            "comparator": "Equal",
+            "right": 1.0,
+            "output_type": "Text",
+            "truee": "Leader",
+            "falsee": {
+              "Producer": "bf09365b-0f51-4482-b3c3-1c2c6e273bfc"
+            }
+          },
+          {
+            "element_type": "Variable",
+            "style_item_type": "Variable",
+            "id": "17495c1d-8ced-4a8f-81c8-94ca056edcaf",
+            "name": "info text color",
+            "behavior": "Condition",
+            "comparison_type": "Number",
+            "left": "6330a6bb-51d1-4af7-9bd0-efeb00b1ff52",
+            "comparator": "Equal",
+            "right": 1.0,
+            "output_type": "Color",
+            "truee": {
+              "Rgba": {
+                "red": 1.0,
+                "green": 1.0,
+                "blue": 1.0,
+                "alpha": 1.0
+              }
+            },
+            "falsee": {
+              "Producer": "6e051867-385c-4f4a-aed1-8c7639fd3c85"
+            }
+          },
+          {
+            "element_type": "Variable",
+            "style_item_type": "Variable",
+            "id": "92b0d86b-42dc-4bec-9cf7-c212981f6b50",
+            "name": "interval",
+            "behavior": "Condition",
+            "comparison_type": "Number",
+            "left": "6330a6bb-51d1-4af7-9bd0-efeb00b1ff52",
+            "comparator": "Equal",
+            "right": 1.0,
+            "output_type": "Text",
+            "truee": "Interval",
+            "falsee": {
+              "Producer": "dba48b29-6fb7-4a24-98e1-9066c7cde3b6"
+            }
+          },
+          {
+            "element_type": "Variable",
+            "style_item_type": "Variable",
+            "id": "6e051867-385c-4f4a-aed1-8c7639fd3c85",
+            "name": "Info text",
+            "behavior": "FixedValue",
+            "output_type": "Tint",
+            "Rgba": {
+              "red": 1.0,
+              "green": 0.6938717,
+              "blue": 0.11697066,
+              "alpha": 1.0
+            }
+          }
+        ]
       }
     ]
   },
@@ -2195,21 +2272,26 @@
                       "text": {
                         "template": "Info text",
                         "states": {
-                          "30e712de-46ce-4fea-9b78-37455cb5c835": "12",
-                          "0c6aff6c-2995-4b6e-be5b-b88a76af76a8": "+6.955",
-                          "a267bd0f-e38f-4c4d-b54a-bcce3c678aa3": "+5.123"
+                          "30e712de-46ce-4fea-9b78-37455cb5c835": {
+                            "Producer": "30cd7503-df5f-4fcf-9175-e7b6b469b189"
+                          },
+                          "0c6aff6c-2995-4b6e-be5b-b88a76af76a8": {
+                            "Producer": "92b0d86b-42dc-4bec-9cf7-c212981f6b50"
+                          },
+                          "a267bd0f-e38f-4c4d-b54a-bcce3c678aa3": {
+                            "Producer": "fb270927-75c7-469b-88d3-250758aa1f3b"
+                          }
                         }
                       },
                       "text_color": {
                         "template": {
-                          "Rgba": {
-                            "red": 1.0,
-                            "green": 0.6947439,
-                            "blue": 0.116363645,
-                            "alpha": 1.0
-                          }
+                          "Producer": "17495c1d-8ced-4a8f-81c8-94ca056edcaf"
                         },
-                        "states": {}
+                        "states": {
+                          "30e712de-46ce-4fea-9b78-37455cb5c835": {
+                            "Producer": "6e051867-385c-4f4a-aed1-8c7639fd3c85"
+                          }
+                        }
                       },
                       "text_size": {
                         "template": 19.5,
@@ -2279,8 +2361,8 @@
                       "visible": {
                         "template": true,
                         "states": {
-                          "0c6aff6c-2995-4b6e-be5b-b88a76af76a8": true,
-                          "372c88c9-9700-45ae-8328-41fe3005a456": false
+                          "372c88c9-9700-45ae-8328-41fe3005a456": false,
+                          "0c6aff6c-2995-4b6e-be5b-b88a76af76a8": true
                         }
                       },
                       "rounding": {

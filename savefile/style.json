@@ -2400,6 +2400,113 @@
                     },
                     {
                       "graphic_item_type": "Cell",
+                      "id": "e2f37d7b-37b8-451a-bb58-6afda1ed8890",
+                      "name": "Green flag",
+                      "text": {
+                        "template": "",
+                        "states": {}
+                      },
+                      "text_color": {
+                        "template": {
+                          "Rgba": {
+                            "red": 0.0,
+                            "green": 0.45078576,
+                            "blue": 0.099898666,
+                            "alpha": 1.0
+                          }
+                        },
+                        "states": {}
+                      },
+                      "text_size": {
+                        "template": 20.0,
+                        "states": {}
+                      },
+                      "font": {
+                        "template": "Default",
+                        "states": {}
+                      },
+                      "color": {
+                        "template": {
+                          "Rgba": {
+                            "red": 0.0,
+                            "green": 0.6543148,
+                            "blue": 0.3473815,
+                            "alpha": 1.0
+                          }
+                        },
+                        "states": {}
+                      },
+                      "image": {
+                        "template": "None",
+                        "states": {}
+                      },
+                      "pos": {
+                        "template": {
+                          "x": 272.0,
+                          "y": 0.0,
+                          "z": 0.0
+                        },
+                        "states": {}
+                      },
+                      "size": {
+                        "template": {
+                          "x": 13.0,
+                          "y": 36.0
+                        },
+                        "states": {}
+                      },
+                      "skew": {
+                        "template": 0.0,
+                        "states": {}
+                      },
+                      "corner_offsets": {
+                        "template": {
+                          "top_left": {
+                            "x": 0.0,
+                            "y": 0.0
+                          },
+                          "top_right": {
+                            "x": 0.0,
+                            "y": 0.0
+                          },
+                          "bot_left": {
+                            "x": 0.0,
+                            "y": 0.0
+                          },
+                          "bot_right": {
+                            "x": 0.0,
+                            "y": 0.0
+                          }
+                        },
+                        "states": {}
+                      },
+                      "visible": {
+                        "template": true,
+                        "states": {}
+                      },
+                      "rounding": {
+                        "template": {
+                          "top_left": 0.0,
+                          "top_right": 0.0,
+                          "bot_left": 0.0,
+                          "bot_right": 0.0
+                        },
+                        "states": {}
+                      },
+                      "text_alginment": {
+                        "template": "Left",
+                        "states": {}
+                      },
+                      "text_position": {
+                        "template": {
+                          "x": 5.0,
+                          "y": 15.0
+                        },
+                        "states": {}
+                      }
+                    },
+                    {
+                      "graphic_item_type": "Cell",
                       "id": "889107ba-1545-4a53-87ae-7975a955deb6",
                       "name": "Pit indicator",
                       "text": {
@@ -2520,14 +2627,14 @@
                       "text": {
                         "template": "Info text",
                         "states": {
-                          "0c6aff6c-2995-4b6e-be5b-b88a76af76a8": {
-                            "Producer": "92b0d86b-42dc-4bec-9cf7-c212981f6b50"
+                          "30e712de-46ce-4fea-9b78-37455cb5c835": {
+                            "Producer": "30cd7503-df5f-4fcf-9175-e7b6b469b189"
                           },
                           "a267bd0f-e38f-4c4d-b54a-bcce3c678aa3": {
                             "Producer": "fb270927-75c7-469b-88d3-250758aa1f3b"
                           },
-                          "30e712de-46ce-4fea-9b78-37455cb5c835": {
-                            "Producer": "30cd7503-df5f-4fcf-9175-e7b6b469b189"
+                          "0c6aff6c-2995-4b6e-be5b-b88a76af76a8": {
+                            "Producer": "92b0d86b-42dc-4bec-9cf7-c212981f6b50"
                           }
                         }
                       },
@@ -2632,113 +2739,6 @@
                         "template": {
                           "x": 0.0,
                           "y": 0.0
-                        },
-                        "states": {}
-                      }
-                    },
-                    {
-                      "graphic_item_type": "Cell",
-                      "id": "e2f37d7b-37b8-451a-bb58-6afda1ed8890",
-                      "name": "Green flag",
-                      "text": {
-                        "template": "",
-                        "states": {}
-                      },
-                      "text_color": {
-                        "template": {
-                          "Rgba": {
-                            "red": 0.0,
-                            "green": 0.45078576,
-                            "blue": 0.099898666,
-                            "alpha": 1.0
-                          }
-                        },
-                        "states": {}
-                      },
-                      "text_size": {
-                        "template": 20.0,
-                        "states": {}
-                      },
-                      "font": {
-                        "template": "Default",
-                        "states": {}
-                      },
-                      "color": {
-                        "template": {
-                          "Rgba": {
-                            "red": 0.0,
-                            "green": 0.6543148,
-                            "blue": 0.3473815,
-                            "alpha": 1.0
-                          }
-                        },
-                        "states": {}
-                      },
-                      "image": {
-                        "template": "None",
-                        "states": {}
-                      },
-                      "pos": {
-                        "template": {
-                          "x": 272.0,
-                          "y": 0.0,
-                          "z": 0.0
-                        },
-                        "states": {}
-                      },
-                      "size": {
-                        "template": {
-                          "x": 13.0,
-                          "y": 36.0
-                        },
-                        "states": {}
-                      },
-                      "skew": {
-                        "template": 0.0,
-                        "states": {}
-                      },
-                      "corner_offsets": {
-                        "template": {
-                          "top_left": {
-                            "x": 0.0,
-                            "y": 0.0
-                          },
-                          "top_right": {
-                            "x": 0.0,
-                            "y": 0.0
-                          },
-                          "bot_left": {
-                            "x": 0.0,
-                            "y": 0.0
-                          },
-                          "bot_right": {
-                            "x": 0.0,
-                            "y": 0.0
-                          }
-                        },
-                        "states": {}
-                      },
-                      "visible": {
-                        "template": true,
-                        "states": {}
-                      },
-                      "rounding": {
-                        "template": {
-                          "top_left": 0.0,
-                          "top_right": 0.0,
-                          "bot_left": 0.0,
-                          "bot_right": 0.0
-                        },
-                        "states": {}
-                      },
-                      "text_alginment": {
-                        "template": "Left",
-                        "states": {}
-                      },
-                      "text_position": {
-                        "template": {
-                          "x": 5.0,
-                          "y": 15.0
                         },
                         "states": {}
                       }

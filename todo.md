@@ -1,5 +1,4 @@
 # Timing tower
-* Session best anzeigen
 * Interval und to leader zeit ausblenden wenn sie null ist.
 * Pit indicator overlaps green flat in default state.
 * Show checkered flag when entry has finished.
@@ -17,6 +16,9 @@
 * Add a validation pass to validate the style definition
     * Circular dependencies
     * Valid references
+* Select tree view items when creating a new one.
+    * Style items
+    * Graphic items
 
 # Dashboard
 * Show pit status.
@@ -25,8 +27,9 @@
 # Graphic 
 * States cannot be reordered.
 
-# Renderer
+# Controller
 * Graphics should start in their first state.
+* Add option which adapter to connect to.
 
 # Unified sim model
 * Restore entries best lap after joining a session in progress.

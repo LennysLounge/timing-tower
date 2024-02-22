@@ -72,7 +72,9 @@ pub fn get_game_sources() -> Vec<&'static GameSource> {
                     uuid!("6acb7506-7752-4f9a-9af0-8a72061eee4f"),
                     "Session time",
                     |_: &ValueStore, context: ModelContext<'_>| {
-                        context.session.map(|session| session.session_time.fmt_no_ms())
+                        context
+                            .session
+                            .map(|session| session.session_time.fmt_no_ms())
                     },
                 ),
                 GameSource::new_number(
@@ -122,7 +124,9 @@ pub fn get_game_sources() -> Vec<&'static GameSource> {
                     uuid!("c13448a6-2a06-4531-8707-ddd5c5ab1b30"),
                     "Session time of day",
                     |_: &ValueStore, context: ModelContext<'_>| {
-                        context.session.map(|session| session.time_of_day.fmt_no_s_ms())
+                        context
+                            .session
+                            .map(|session| session.time_of_day.fmt_no_s_ms())
                     },
                 ),
                 GameSource::new_number(
@@ -406,6 +410,21 @@ pub fn get_game_sources() -> Vec<&'static GameSource> {
                     uuid!("de909160-f54b-40cf-a987-6a8453df0914"),
                     "Is focused",
                     |_: &ValueStore, context: ModelContext<'_>| context.entry.map(|e| e.focused),
+                ),
+                GameSource::new_bool(
+                    uuid!("ea52ea28-01c3-4a1b-9a9e-40919ea48f2d"),
+                    "has session best lap",
+                    |_: &ValueStore, context: ModelContext<'_>| {
+                        context
+                            .session
+                            .and_then(|session| session.best_lap.as_ref().as_ref())
+                            .and_then(|best_lap| best_lap.entry_id)
+                            .map(|best_lap_entry_id| {
+                                context
+                                    .entry
+                                    .is_some_and(|entry| entry.id == best_lap_entry_id)
+                            })
+                    },
                 ),
                 GameSource::new_number(
                     uuid!("4d519d42-52e9-435c-b614-8d70b42ed3b0"),

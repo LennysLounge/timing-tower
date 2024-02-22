@@ -4,8 +4,6 @@
 * Show checkered flag when entry has finished.
 
 # Clock
-* AM Pm funktioniert nicht richtig.
-* Formatieren der uhrzeit mit Nullen.
 * Weiße flaggen wenn das rennen zuende geht.
 * Rote uhrzeit wenn die zeit vorbei ist.
 

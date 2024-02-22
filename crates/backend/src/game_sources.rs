@@ -104,6 +104,17 @@ pub fn get_game_sources() -> Vec<&'static GameSource> {
                             .map(|session| session.time_remaining.ms as f32 / 1000.0)
                     },
                 ),
+                GameSource::new_text(
+                    uuid!("09278efd-0fd1-467e-9d41-d1cecec12eb3"),
+                    "Session time remaining two columns",
+                    |_: &ValueStore, context: ModelContext<'_>| {
+                        context.session.map(|session| {
+                            session
+                                .time_remaining
+                                .fmt_h_m_s_at_most_two_fill_with_zero()
+                        })
+                    },
+                ),
                 GameSource::new_number(
                     uuid!("d633e60b-ff0b-4eaf-8931-21da1bc0969d"),
                     "Session laps",

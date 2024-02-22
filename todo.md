@@ -9,16 +9,19 @@
 * Weiße flaggen wenn das rennen zuende geht.
 * Rote uhrzeit wenn die zeit vorbei ist.
 
-# General
-* Monospaced font for number in ACC.
-* Create a GTWC layout
-* Create a formula 1 layout
+# Editor
+* Add option to choose the game adapter.
 * Add a validation pass to validate the style definition
     * Circular dependencies
     * Valid references
 * Select tree view items when creating a new one.
     * Style items
     * Graphic items
+
+# General
+* Monospaced font for number in ACC.
+* Create a GTWC layout
+* Create a formula 1 layout
 
 # Dashboard
 * Show pit status.

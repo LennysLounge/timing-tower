@@ -2,7 +2,8 @@ use bevy::{app::Plugin, ecs::system::Resource};
 use graphic::GraphicPlugin;
 use savefile::SavefilePlugin;
 use style_batcher::StyleBatcherPlugin;
-use unified_sim_model::Adapter;
+use tracing::{error, info};
+use unified_sim_model::{Adapter, AdapterCommand};
 use value_store::ValueStorePlugin;
 
 pub mod exact_variant;
@@ -40,5 +41,20 @@ impl GameAdapterResource {
     }
     pub fn set(&mut self, adapter: Adapter) {
         self.adapter = Some(adapter);
+    }
+}
+impl Drop for GameAdapterResource {
+    fn drop(&mut self) {
+        info!("Dropping game adapter resource, making sure the adapter quits properly");
+        if let Some(adapter) = &mut self.adapter {
+            adapter.send(AdapterCommand::Close);
+            if let Some(result) = adapter.join() {
+                match result {
+                    Ok(()) => (),
+                    Err(e) => error!("{e}"),
+                }
+            }
+        }
+        info!("Game adapter successfully shut down");
     }
 }

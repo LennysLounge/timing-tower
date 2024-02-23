@@ -84,16 +84,15 @@ fn setup(
     mut set_style_event: EventWriter<SetStyle>,
     mut savefile: ResMut<Savefile>,
     asset_server: Res<AssetServer>,
+    mut game_adapter: ResMut<GameAdapterResource>,
 ) {
-    // let adapter = Adapter::new_dummy();
-    // commands.insert_resource(GameAdapterResource {
-    //     adapter: adapter.clone(),
-    // });
-    // adapter.send(unified_sim_model::AdapterCommand::Game(
-    //     unified_sim_model::GameAdapterCommand::Dummy(
-    //         unified_sim_model::games::dummy::DummyCommands::SetEntryAmount(60),
-    //     ),
-    // ));
+    let adapter = unified_sim_model::Adapter::new_dummy();
+    adapter.send(unified_sim_model::AdapterCommand::Game(
+        unified_sim_model::GameAdapterCommand::Dummy(
+            unified_sim_model::games::dummy::DummyCommands::SetEntryAmount(60),
+        ),
+    ));
+    game_adapter.set(adapter);
 
     savefile.load("../../savefile/style.json", savefile_changed_event);
 

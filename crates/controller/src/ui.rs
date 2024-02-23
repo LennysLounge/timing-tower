@@ -33,12 +33,34 @@ fn setup_egui_context(mut ctx: EguiContexts) {
 
 fn ui(
     mut ctx: EguiContexts,
-    adapter: Res<GameAdapterResource>,
+    mut game_adapter: ResMut<GameAdapterResource>,
     savefile: Res<Savefile>,
     mut graphic_states: ResMut<GraphicStates>,
 ) {
+    egui::TopBottomPanel::top("Top panel").show(ctx.ctx_mut(), |ui| {
+        let is_connected = game_adapter.adapter().is_some_and(|a| !a.is_finished());
+        if is_connected {
+            if ui.button("Disconnect").clicked() {
+                if let Some(adapter) = game_adapter.adapter_mut() {
+                    adapter.send(unified_sim_model::AdapterCommand::Close);
+                }
+                ui.close_menu();
+            }
+        } else {
+            ui.menu_button("Connection", |ui| {
+                if ui.button("Connect Dummy").clicked() {
+                    game_adapter.set(unified_sim_model::Adapter::new_dummy());
+                    ui.close_menu();
+                }
+                if ui.button("Connect ACC").clicked() {
+                    game_adapter.set(unified_sim_model::Adapter::new_acc());
+                    ui.close_menu();
+                }
+            });
+        }
+    });
     egui::SidePanel::left("Side panel").show(ctx.ctx_mut(), |ui| {
-        backend::ui::dashboard::show_entry_table(ui, adapter.adapter());
+        backend::ui::dashboard::show_entry_table(ui, game_adapter.adapter());
         ui.allocate_space(ui.available_size_before_wrap());
     });
     egui::CentralPanel::default().show(ctx.ctx_mut(), |ui| {

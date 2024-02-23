@@ -119,23 +119,26 @@ fn ui(
                     ui.close_menu();
                 }
             });
-            // ui.menu_button("Connection", |ui| match adapter.as_deref_mut() {
-            //     Some(adapter) => {
-            //         if ui.button("Disconnect").clicked() {
-            //             todo!("disconnect");
-            //         }
-            //     }
-            //     None => {
-            //         ui.menu_button("Connect", |ui| {
-            //             if ui.button("Dummy adapter").clicked() {
-            //                 todo!("Connect to dummy adapter");
-            //             }
-            //             if ui.button("ACC").clicked() {
-            //                 todo!("Connect to ACC");
-            //             }
-            //         });
-            //     }
-            // });
+            let is_connected = game_adapter.adapter().is_some_and(|a| !a.is_finished());
+            if is_connected {
+                if ui.button("Disconnect").clicked() {
+                    if let Some(adapter) = game_adapter.adapter_mut() {
+                        adapter.send(unified_sim_model::AdapterCommand::Close);
+                    }
+                    ui.close_menu();
+                }
+            } else {
+                ui.menu_button("Connection", |ui| {
+                    if ui.button("Connect Dummy").clicked() {
+                        game_adapter.set(unified_sim_model::Adapter::new_dummy());
+                        ui.close_menu();
+                    }
+                    if ui.button("Connect ACC").clicked() {
+                        game_adapter.set(unified_sim_model::Adapter::new_acc());
+                        ui.close_menu();
+                    }
+                });
+            }
             ui.menu_button("View", |ui| {
                 if ui.button("Reset camera").clicked() {
                     reset_camera_event.send(ResetCamera);

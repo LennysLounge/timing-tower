@@ -171,7 +171,6 @@ fn ui(
             style.tab_bar.rounding = egui::Rounding::ZERO;
             style.tab_bar.bg_fill = ctx.ctx_mut().style().visuals.panel_fill;
 
-            style.tab.minimum_width = Some(100.0);
             style.tab.hline_below_active_tab_name = false;
 
             style.tab.inactive.text_color = style.tab.inactive.text_color.linear_multiply(0.3);

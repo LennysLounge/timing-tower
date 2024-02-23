@@ -33,3 +33,6 @@
 # Unified sim model
 * Restore entries best lap after joining a session in progress.
 
+# ACC adapter
+* Entries with no position (pos == 0) should not show up at all in the model.
+

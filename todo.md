@@ -5,10 +5,8 @@
 
 # Clock
 * Weiße flaggen wenn das rennen zuende geht.
-* Rote uhrzeit wenn die zeit vorbei ist.
 
 # Editor
-* Add option to choose the game adapter.
 * Add a validation pass to validate the style definition
     * Circular dependencies
     * Valid references

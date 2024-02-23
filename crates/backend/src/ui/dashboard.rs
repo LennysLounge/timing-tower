@@ -45,14 +45,8 @@ pub fn show_entry_table(ui: &mut Ui, adapter: Option<&Adapter>) {
         .current_session()
         .map(|session| session.entries.values().collect::<Vec<_>>())
         .unwrap_or(Vec::new());
-    entries.sort_by(|e1, e2| {
-        let is_connected = e2.connected.cmp(&e1.connected);
-        let position = e1
-            .position
-            .partial_cmp(&e2.position)
-            .unwrap_or(std::cmp::Ordering::Equal);
-        is_connected.then(position)
-    });
+    entries.sort_by_key(|e| *e.position);
+    
     egui_ltable::Table::new()
         .scroll(false, true)
         .resize_full_height(false)

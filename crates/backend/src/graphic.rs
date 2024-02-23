@@ -190,14 +190,7 @@ fn update_graphic_item(
 
             // Get entries sorted by position
             let mut entries: Vec<&Entry> = resolver.session().entries.values().collect();
-            entries.sort_by(|e1, e2| {
-                let is_connected = e2.connected.cmp(&e1.connected);
-                let position = e1
-                    .position
-                    .partial_cmp(&e2.position)
-                    .unwrap_or(std::cmp::Ordering::Equal);
-                is_connected.then(position)
-            });
+            entries.sort_by_key(|e| *e.position);
 
             // Update scroll position to make sure the focused entry is visible
             if let Some(focused_entry_index) = entries.iter().position(|entry| entry.focused) {

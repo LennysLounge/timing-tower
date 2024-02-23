@@ -4,7 +4,7 @@ use unified_sim_model::Adapter;
 
 pub fn dashboard(
     ui: &mut Ui,
-    adapter: &Adapter,
+    adapter: Option<&Adapter>,
     style: &StyleDefinition,
     graphic_states: &mut GraphicStates,
 ) {

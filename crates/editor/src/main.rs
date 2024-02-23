@@ -27,8 +27,6 @@ use reference_store::ReferenceStorePlugin;
 use std::env;
 use ui::EditorUiPlugin;
 
-use unified_sim_model::Adapter;
-
 mod asset_path_store;
 mod camera;
 mod cell_manager;
@@ -87,15 +85,15 @@ fn setup(
     mut savefile: ResMut<Savefile>,
     asset_server: Res<AssetServer>,
 ) {
-    let adapter = Adapter::new_dummy();
-    commands.insert_resource(GameAdapterResource {
-        adapter: adapter.clone(),
-    });
-    adapter.send(unified_sim_model::AdapterCommand::Game(
-        unified_sim_model::GameAdapterCommand::Dummy(
-            unified_sim_model::games::dummy::DummyCommands::SetEntryAmount(60),
-        ),
-    ));
+    // let adapter = Adapter::new_dummy();
+    // commands.insert_resource(GameAdapterResource {
+    //     adapter: adapter.clone(),
+    // });
+    // adapter.send(unified_sim_model::AdapterCommand::Game(
+    //     unified_sim_model::GameAdapterCommand::Dummy(
+    //         unified_sim_model::games::dummy::DummyCommands::SetEntryAmount(60),
+    //     ),
+    // ));
 
     savefile.load("../../savefile/style.json", savefile_changed_event);
 

@@ -95,12 +95,12 @@ fn update_graphics(
     value_store: Res<ValueStore>,
     game_adapter: Res<GameAdapterResource>,
 ) {
-    let model = game_adapter
-        .adapter
-        .model
-        .read()
-        .expect("Unified model cannot be locked for read");
+    let Some(game_adapter) = &game_adapter.adapter else {
+        graphic_item_data_storage.clear();
+        return;
+    };
 
+    let model = game_adapter.model.read_raw();
     let Some(session) = model.current_session() else {
         return;
     };

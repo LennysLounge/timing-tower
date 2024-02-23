@@ -74,7 +74,7 @@ impl EditorCommand {
     fn execute(
         self,
         style: &mut ExactVariant<StyleItem, StyleDefinition>,
-        adapter: &mut Adapter,
+        adapter: &mut Option<&mut Adapter>,
     ) -> Option<EditorCommand> {
         match self {
             EditorCommand::Undo => unreachable!("Undo command should never be executed"),
@@ -104,7 +104,7 @@ impl UndoRedoManager {
         &mut self,
         savefile: &mut Savefile,
         mut savefile_changed_event: EventWriter<SavefileChanged>,
-        adapter: &mut Adapter,
+        mut adapter: Option<&mut Adapter>,
     ) {
         if self.queue.is_empty() {
             return;
@@ -117,17 +117,17 @@ impl UndoRedoManager {
                 EditorCommand::Undo => {
                     self.undo
                         .pop()
-                        .and_then(|undo| undo.execute(&mut style, adapter))
+                        .and_then(|undo| undo.execute(&mut style, &mut adapter))
                         .map(|redo| self.redo.push(redo));
                 }
                 EditorCommand::Redo => {
                     self.redo
                         .pop()
-                        .and_then(|redo| redo.execute(&mut style, adapter))
+                        .and_then(|redo| redo.execute(&mut style, &mut adapter))
                         .map(|undo| self.undo.push(undo));
                 }
                 command => {
-                    command.execute(&mut style, adapter).map(|undo| {
+                    command.execute(&mut style, &mut adapter).map(|undo| {
                         self.add_to_undo_list(undo);
                         self.redo.clear();
                     });

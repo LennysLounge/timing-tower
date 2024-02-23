@@ -1,15 +1,11 @@
 use backend::{
     savefile::{Savefile, SavefileChanged},
     style_batcher::{PrepareBatcher, StyleBatcher},
-    BackendPlugin, GameAdapterResource,
+    BackendPlugin,
 };
 use bevy::{
     app::{PostUpdate, Startup},
-    ecs::{
-        event::EventWriter,
-        schedule::IntoSystemConfigs,
-        system::{Commands, Query},
-    },
+    ecs::{event::EventWriter, schedule::IntoSystemConfigs, system::Query},
     prelude::{App, ResMut, Resource},
     time::{Timer, TimerMode},
     DefaultPlugins,
@@ -17,7 +13,6 @@ use bevy::{
 
 use common::communication::ToRendererMessage;
 use ui::UiPlugin;
-use unified_sim_model::Adapter;
 use webserver::WebserverPlugin;
 use websocket::{ClientState, WebsocketClient, WebsocketPlugin};
 
@@ -47,16 +42,8 @@ fn main() {
 #[derive(Resource)]
 struct RenderTimer(Timer);
 
-fn setup(
-    mut commands: Commands,
-    mut savefile: ResMut<Savefile>,
-    savefile_changed_event: EventWriter<SavefileChanged>,
-) {
+fn setup(mut savefile: ResMut<Savefile>, savefile_changed_event: EventWriter<SavefileChanged>) {
     savefile.load("../../savefile/style.json", savefile_changed_event);
-
-    commands.insert_resource(GameAdapterResource {
-        adapter: Adapter::new_acc(),
-    });
 }
 
 fn send_style_commands(

@@ -35,7 +35,7 @@ pub struct EditorTabViewer<'a> {
     pub style: &'a mut ExactVariant<StyleItem, StyleDefinition>,
     pub reference_store: &'a ReferenceStore,
     pub undo_redo_manager: &'a mut UndoRedoManager,
-    pub game_adapter: &'a Adapter,
+    pub game_adapter: Option<&'a Adapter>,
     pub graphic_states: &'a mut GraphicStates,
 }
 impl<'a> TabViewer for EditorTabViewer<'a> {

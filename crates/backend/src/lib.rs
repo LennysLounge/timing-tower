@@ -5,21 +5,22 @@ use style_batcher::StyleBatcherPlugin;
 use unified_sim_model::Adapter;
 use value_store::ValueStorePlugin;
 
+pub mod exact_variant;
 pub mod game_sources;
 pub mod graphic;
 pub mod savefile;
 pub mod style;
 pub mod style_batcher;
 pub mod tree_iterator;
+pub mod ui;
 pub mod value_store;
 pub mod value_types;
-pub mod exact_variant;
-pub mod ui;
 
 pub struct BackendPlugin;
 impl Plugin for BackendPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_plugins(StyleBatcherPlugin)
+        app.insert_resource(GameAdapterResource { adapter: None })
+            .add_plugins(StyleBatcherPlugin)
             .add_plugins(ValueStorePlugin)
             .add_plugins(SavefilePlugin)
             .add_plugins(GraphicPlugin);
@@ -27,7 +28,17 @@ impl Plugin for BackendPlugin {
 }
 
 #[derive(Resource)]
-#[allow(unused)]
 pub struct GameAdapterResource {
-    pub adapter: Adapter,
+    adapter: Option<Adapter>,
+}
+impl GameAdapterResource {
+    pub fn adapter(&self) -> Option<&Adapter> {
+        self.adapter.as_ref()
+    }
+    pub fn adapter_mut(&mut self) -> Option<&mut Adapter> {
+        self.adapter.as_mut()
+    }
+    pub fn set(&mut self, adapter: Adapter) {
+        self.adapter = Some(adapter);
+    }
 }

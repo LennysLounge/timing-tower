@@ -78,6 +78,11 @@ impl GraphicItemDataStorage {
         self.data.values_mut().for_each(|entry| entry.used = false);
     }
 
+    /// Clear the storage of all data.
+    pub fn clear(&mut self) {
+        self.data.clear();
+    }
+
     /// Make a new storage context.
     pub fn make_context<'a>(&'a mut self, context: impl Hash) -> GraphicItemDataStorageContext<'a> {
         let mut hasher = DefaultHasher::new();

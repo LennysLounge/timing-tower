@@ -6,8 +6,10 @@ pub struct AdapterCommand {
     pub command: unified_sim_model::AdapterCommand,
 }
 impl AdapterCommand {
-    pub fn execute(self, adapter: &mut Adapter) {
-        adapter.send(self.command);
+    pub fn execute(self, adapter: &mut Option<&mut Adapter>) {
+        if let Some(adapter) = adapter {
+            adapter.send(self.command);
+        }
     }
 }
 

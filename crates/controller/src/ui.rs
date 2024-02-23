@@ -6,7 +6,10 @@ use bevy::{
         system::{Res, ResMut},
     },
 };
-use bevy_egui::{egui, EguiContexts};
+use bevy_egui::{
+    egui::{self},
+    EguiContexts,
+};
 
 pub struct UiPlugin;
 impl Plugin for UiPlugin {
@@ -35,7 +38,7 @@ fn ui(
     mut graphic_states: ResMut<GraphicStates>,
 ) {
     egui::SidePanel::left("Side panel").show(ctx.ctx_mut(), |ui| {
-        backend::ui::dashboard::show_entry_table(ui, &adapter.adapter);
+        backend::ui::dashboard::show_entry_table(ui, adapter.adapter());
         ui.allocate_space(ui.available_size_before_wrap());
     });
     egui::CentralPanel::default().show(ctx.ctx_mut(), |ui| {

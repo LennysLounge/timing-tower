@@ -9,7 +9,7 @@ use backend::{
     tree_iterator::TreeIteratorMut,
     value_types::ValueType,
 };
-use bevy_egui::egui::{DragValue, ScrollArea, Ui};
+use bevy_egui::egui::{self, DragValue, ScrollArea, Ui};
 use rand::{seq::IteratorRandom, thread_rng};
 use unified_sim_model::{games::dummy::DummyCommands, Adapter, GameAdapterCommand};
 
@@ -38,7 +38,7 @@ pub fn property_editor(
     style: &mut ExactVariant<StyleItem, StyleDefinition>,
     reference_store: &ReferenceStore,
     undo_redo_manager: &mut UndoRedoManager,
-    game_adapter: &Adapter,
+    game_adapter: Option<&Adapter>,
     graphic_states: &mut GraphicStates,
 ) {
     let Some(selected_id) = selected_id else {
@@ -66,7 +66,7 @@ pub fn edit_node(
     ui: &mut Ui,
     node: &mut StyleItem,
     reference_store: &ReferenceStore,
-    game_adapter: &Adapter,
+    game_adapter: Option<&Adapter>,
     undo_redo_manager: &mut UndoRedoManager,
     graphic_item_selection: &mut Option<GraphicItemId>,
     graphic_states: &mut GraphicStates,
@@ -181,18 +181,24 @@ pub fn edit_node(
             }
 
             ui.separator();
-            if ui.button("Change focus to random entry").clicked() {
-                let model = game_adapter
-                    .model
-                    .read()
-                    .expect("Cannot lock model for reading");
-                if let Some(random_entry) = model
-                    .current_session()
-                    .and_then(|session| session.entries.values().choose(&mut thread_rng()))
-                {
-                    undo_redo_manager.queue(AdapterCommand {
-                        command: unified_sim_model::AdapterCommand::FocusOnCar(random_entry.id),
-                    });
+            match game_adapter {
+                Some(game_adapter) => {
+                    if ui.button("Change focus to random entry").clicked() {
+                        let model = game_adapter.model.read_raw();
+                        if let Some(random_entry) = model
+                            .current_session()
+                            .and_then(|session| session.entries.values().choose(&mut thread_rng()))
+                        {
+                            undo_redo_manager.queue(AdapterCommand {
+                                command: unified_sim_model::AdapterCommand::FocusOnCar(
+                                    random_entry.id,
+                                ),
+                            });
+                        }
+                    }
+                }
+                None => {
+                    ui.add_enabled(false, egui::Button::new("Change focus to random entry"));
                 }
             }
             if ui.button("Set Race").clicked() {

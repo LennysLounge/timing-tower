@@ -33,8 +33,12 @@ pub fn show_graphic(ui: &mut Ui, graphic: &GraphicDefinition, graphic_states: &m
     });
 }
 
-pub fn show_entry_table(ui: &mut Ui, adapter: &Adapter) {
-    let model = adapter.model.read().expect("Cannot lock model for reading");
+pub fn show_entry_table(ui: &mut Ui, adapter: Option<&Adapter>) {
+    let Some(adapter) = adapter else {
+        return;
+    };
+
+    let model = adapter.model.read_raw();
 
     // Get entries sorted by position
     let mut entries: Vec<&Entry> = model

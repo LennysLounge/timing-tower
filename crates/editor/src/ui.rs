@@ -75,7 +75,7 @@ impl EditorState {
         let tree = state.main_surface_mut();
         let [scene, _tree_view] = tree.split_left(NodeIndex::root(), 0.15, vec![Tab::StyleItems]);
         let [scene, _component_editor] =
-            tree.split_right(scene, 0.8, vec![Tab::ComponentEditor, Tab::UndoRedo]);
+            tree.split_right(scene, 0.75, vec![Tab::ComponentEditor, Tab::UndoRedo]);
 
         let [_scene, _element_editor] = tree.split_right(scene, 0.7, vec![Tab::ElementEditor]);
 
@@ -102,6 +102,15 @@ fn ui(
     mut game_adapter: ResMut<GameAdapterResource>,
     mut graphic_states: ResMut<GraphicStates>,
 ) {
+    let old_stroke = ctx
+        .ctx_mut()
+        .style()
+        .visuals
+        .widgets
+        .noninteractive
+        .bg_stroke;
+    ctx.ctx_mut()
+        .style_mut(|style| style.visuals.widgets.noninteractive.bg_stroke = egui::Stroke::NONE);
     egui::TopBottomPanel::top("Top panel").show(ctx.ctx_mut(), |ui| {
         egui::menu::bar(ui, |ui| {
             ui.menu_button("File", |ui| {
@@ -140,6 +149,8 @@ fn ui(
             ui.label(format!("pos: {:?}", trans.translation));
         });
     });
+    ctx.ctx_mut()
+        .style_mut(|style| style.visuals.widgets.noninteractive.bg_stroke = old_stroke);
 
     let EditorState {
         dock_state,
@@ -150,7 +161,22 @@ fn ui(
     } = &mut *state;
     let viewport = &mut editor_camera.single_mut().0.raw_viewport;
     DockArea::new(dock_state)
-        .style(egui_dock::Style::from_egui(ctx.ctx_mut().style().as_ref()))
+        .style({
+            let mut style = egui_dock::Style::from_egui(ctx.ctx_mut().style().as_ref());
+            style.separator.width = 3.0;
+            style.separator.color_idle = ctx.ctx_mut().style().visuals.panel_fill;
+            style.separator.color_dragged = ctx.ctx_mut().style().visuals.panel_fill;
+            style.separator.color_hovered = ctx.ctx_mut().style().visuals.panel_fill;
+
+            style.tab_bar.rounding = egui::Rounding::ZERO;
+            style.tab_bar.bg_fill = ctx.ctx_mut().style().visuals.panel_fill;
+
+            style.tab.minimum_width = Some(100.0);
+            style.tab.hline_below_active_tab_name = false;
+
+            style.tab.inactive.text_color = style.tab.inactive.text_color.linear_multiply(0.3);
+            style
+        })
         .show(
             ctx.ctx_mut(),
             &mut tab::EditorTabViewer {

@@ -23,9 +23,6 @@
 * Show pit status.
 * show gap ahead
 
-# Graphic 
-* States cannot be reordered.
-
 # Controller
 * Graphics should start in their first state.
 * Add option which adapter to connect to.

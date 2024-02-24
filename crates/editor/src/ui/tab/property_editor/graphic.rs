@@ -78,26 +78,7 @@ pub fn graphic_property_editor(
     ui.add_space(10.0);
     ui.label("States:");
     ui.group(|ui| {
-        let tree_res = TreeView::new(ui.make_persistent_id("State tree"))
-            .row_layout(RowLayout::Compact)
-            .show(ui, |mut builder| {
-                if let Some(state) = graphic_states.states.get(&component.id) {
-                    builder.set_selected(*state);
-                }
-                builder.leaf(GraphicStateId(Uuid::default()), "Template");
-                for state in component.states.iter_mut() {
-                    builder.leaf(state.id, &state.name);
-                }
-            });
-        for action in tree_res.actions {
-            if let Action::SetSelected(Some(id)) = action {
-                if id.0 == Uuid::default() {
-                    graphic_states.states.remove(&component.id);
-                } else {
-                    graphic_states.states.insert(component.id, id);
-                }
-            }
-        }
+        edit_result |= show_states_tree(ui, component, graphic_states);
 
         ui.allocate_space(vec2(
             ui.available_width(),
@@ -399,4 +380,94 @@ fn insert_into_vec(
             }
         }
     }
+}
+
+fn show_states_tree(
+    ui: &mut Ui,
+    graphic: &mut GraphicDefinition,
+    graphic_states: &mut GraphicStates,
+) -> EditResult {
+    let mut edit_result = EditResult::None;
+
+    // Graphic states are really only a list but for the tree view it still needs a root
+    // element. This is the fixed id of that element.
+    const TREE_ROOT_ID: GraphicStateId =
+        GraphicStateId(uuid::uuid!("65f0d4ef-4057-415d-99b3-eadb158d0d27"));
+    const TEMPLATE_ID: GraphicStateId =
+        GraphicStateId(uuid::uuid!("3bd691e6-4a87-4082-89da-31a7cfb3967c"));
+
+    let tree_res = TreeView::new(ui.make_persistent_id("State tree"))
+        .row_layout(RowLayout::Compact)
+        .show(ui, |mut builder| {
+            if let Some(state) = graphic_states.states.get(&graphic.id) {
+                builder.set_selected(*state);
+            }
+            builder.node(NodeBuilder::dir(TREE_ROOT_ID).flatten(true), |_| {});
+            builder.leaf(TEMPLATE_ID, "Template");
+            for state in graphic.states.iter_mut() {
+                builder.leaf(state.id, &state.name);
+            }
+        });
+    for action in &tree_res.actions {
+        match action {
+            Action::SetSelected(id) => {
+                if let Some(id) = id {
+                    if id.0 == Uuid::default() {
+                        graphic_states.states.remove(&graphic.id);
+                    } else {
+                        graphic_states.states.insert(graphic.id, *id);
+                    }
+                } else {
+                    graphic_states.states.remove(&graphic.id);
+                }
+            }
+            Action::Move {
+                source,
+                target: _,
+                position,
+            } => {
+                if source == &TEMPLATE_ID {
+                    tree_res.remove_drop_marker(ui);
+                } else {
+                    let source_idx = graphic.states.iter().position(|s| &s.id == source);
+                    if let Some(source_idx) = source_idx {
+                        let state = graphic.states.remove(source_idx);
+                        match position {
+                            DropPosition::First => graphic.states.insert(0, state),
+                            DropPosition::Last => graphic.states.push(state),
+                            DropPosition::After(id) | DropPosition::Before(id)
+                                if id == &TEMPLATE_ID =>
+                            {
+                                graphic.states.insert(0, state);
+                            }
+                            DropPosition::After(id) => {
+                                if let Some(index) = graphic.states.iter().position(|e| &e.id == id)
+                                {
+                                    graphic.states.insert(index + 1, state);
+                                } else {
+                                    graphic.states.push(state);
+                                }
+                            }
+                            DropPosition::Before(id) => {
+                                if let Some(index) = graphic.states.iter().position(|e| &e.id == id)
+                                {
+                                    graphic.states.insert(index, state);
+                                } else {
+                                    graphic.states.push(state);
+                                }
+                            }
+                        }
+                        edit_result = EditResult::FromId(tree_res.response.id)
+                    }
+                }
+            }
+            Action::Drag { source, .. } => {
+                if source == &TEMPLATE_ID {
+                    tree_res.remove_drop_marker(ui);
+                }
+            }
+        }
+    }
+
+    edit_result
 }

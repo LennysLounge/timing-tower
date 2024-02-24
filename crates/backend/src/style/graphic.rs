@@ -21,7 +21,7 @@ pub const GRAPHIC_STATE_HIDDEN: GraphicStateId =
     GraphicStateId(uuid::uuid!("5d493243-8787-4b4c-a06f-ceb17a35f10a"));
 
 /// Id that identifies a graphic state item.
-#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Hash, Default)]
+#[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Hash, Default, Debug)]
 pub struct GraphicStateId(pub Uuid);
 impl GraphicStateId {
     pub fn new() -> Self {

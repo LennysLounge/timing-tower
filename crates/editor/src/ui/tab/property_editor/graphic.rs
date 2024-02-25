@@ -16,7 +16,6 @@ use bevy_egui::egui::{self, vec2, Color32, Id, RichText, Ui};
 use egui_ltreeview::{
     node::NodeBuilder, Action, DropPosition, RowLayout, TreeView, TreeViewBuilder,
 };
-use uuid::Uuid;
 
 use crate::command::{
     edit_property::{EditProperty, EditResult},
@@ -437,7 +436,7 @@ fn show_states_tree(
         match action {
             Action::SetSelected(id) => {
                 if let Some(id) = id {
-                    if id.0 == Uuid::default() {
+                    if id == &TEMPLATE_ID {
                         graphic_states.states.remove(&graphic.id);
                     } else {
                         graphic_states.states.insert(graphic.id, *id);

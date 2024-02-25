@@ -286,6 +286,13 @@ fn element_tree_node(
             let parent_id = builder.parent_id();
             builder.node(
                 NodeBuilder::dir(entry_context.id)
+                    .icon(|ui| {
+                        egui::Image::new(egui::include_image!(
+                            "../../../../images/entry_circle.png"
+                        ))
+                        .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
+                        .paint_at(ui, ui.max_rect());
+                    })
                     .label(|ui| {
                         ui.horizontal(|ui| {
                             ui.add(

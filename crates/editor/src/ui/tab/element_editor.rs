@@ -563,9 +563,9 @@ pub fn entry_context_editor(
                     .add_option(EntrySelection::First, "First")
                     .add_option(EntrySelection::Second, "Second")
                     .add_option(EntrySelection::Third, "Third")
-                    .add_option(EntrySelection::AheadOfFocus, "AheadOfFocus")
+                    .add_option(EntrySelection::AheadOfFocus, "Ahead of focus")
                     .add_option(EntrySelection::Focus, "Focus")
-                    .add_option(EntrySelection::BehindFocus, "BehindFocus")
+                    .add_option(EntrySelection::BehindFocus, "Behind focus")
                     .ui(ui)
                     .into();
             });

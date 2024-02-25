@@ -7,10 +7,7 @@ mod undo_redo;
 use backend::{
     exact_variant::ExactVariant,
     graphic::GraphicStates,
-    style::{
-        graphic::{graphic_items::GraphicItemId, GraphicStateId},
-        StyleDefinition, StyleId, StyleItem,
-    },
+    style::{StyleDefinition, StyleItem},
 };
 use bevy_egui::egui::{self, Rect};
 use egui_dock::TabViewer;
@@ -18,20 +15,20 @@ use unified_sim_model::Adapter;
 
 use crate::{command::UndoRedoManager, reference_store::ReferenceStore};
 
+use super::selection_manager::SelectionManager;
+
 pub enum Tab {
     SceneView,
     Dashboard,
     StyleItems,
-    ComponentEditor,
-    ElementEditor,
+    GraphicEditor,
+    GraphicItemEditor,
     UndoRedo,
 }
 
 pub struct EditorTabViewer<'a> {
     pub viewport: &'a mut Rect,
-    pub style_item_selection: &'a mut Option<StyleId>,
-    pub graphic_item_selection: &'a mut Option<GraphicItemId>,
-    pub graphic_state_selection: &'a mut Option<GraphicStateId>,
+    pub selection_manager: &'a mut SelectionManager,
     pub style: &'a mut ExactVariant<StyleItem, StyleDefinition>,
     pub reference_store: &'a ReferenceStore,
     pub undo_redo_manager: &'a mut UndoRedoManager,
@@ -46,8 +43,8 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
             Tab::SceneView => "Scene view".into(),
             Tab::Dashboard => "Dashboard".into(),
             Tab::StyleItems => "Style".into(),
-            Tab::ComponentEditor => "Component".into(),
-            Tab::ElementEditor => "Element".into(),
+            Tab::GraphicEditor => "Component".into(),
+            Tab::GraphicItemEditor => "Element".into(),
             Tab::UndoRedo => "Undo/Redo".into(),
         }
     }
@@ -63,17 +60,15 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
             Tab::StyleItems => {
                 tree_view::tree_view(
                     ui,
-                    self.style_item_selection,
-                    self.graphic_item_selection,
+                    self.selection_manager,
                     self.style,
                     self.undo_redo_manager,
                 );
             }
-            Tab::ComponentEditor => {
+            Tab::GraphicEditor => {
                 property_editor::property_editor(
                     ui,
-                    self.style_item_selection,
-                    self.graphic_item_selection,
+                    self.selection_manager,
                     self.style,
                     self.reference_store,
                     self.undo_redo_manager,
@@ -81,11 +76,10 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     self.graphic_states,
                 );
             }
-            Tab::ElementEditor => {
+            Tab::GraphicItemEditor => {
                 element_editor::element_editor(
                     ui,
-                    self.style_item_selection,
-                    self.graphic_item_selection,
+                    self.selection_manager,
                     self.style,
                     self.reference_store,
                     self.undo_redo_manager,

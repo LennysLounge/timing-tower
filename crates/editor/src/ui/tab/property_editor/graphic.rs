@@ -17,15 +17,18 @@ use egui_ltreeview::{
     node::NodeBuilder, Action, DropPosition, RowLayout, TreeView, TreeViewBuilder,
 };
 
-use crate::command::{
-    edit_property::{EditProperty, EditResult},
-    UndoRedoManager,
+use crate::{
+    command::{
+        edit_property::{EditProperty, EditResult},
+        UndoRedoManager,
+    },
+    ui::selection_manager::SelectionState,
 };
 
 pub fn graphic_property_editor(
     ui: &mut Ui,
     component: &mut GraphicDefinition,
-    graphic_item_selection: &mut Option<GraphicItemId>,
+    selection_state: &mut SelectionState,
     undo_redo_manager: &mut UndoRedoManager,
     graphic_states: &mut GraphicStates,
 ) {
@@ -46,7 +49,7 @@ pub fn graphic_property_editor(
         egui::ScrollArea::horizontal()
             .auto_shrink([false, true])
             .show(ui, |ui| {
-                edit_result |= show_element_tree(ui, graphic_item_selection, component);
+                edit_result |= show_element_tree(ui, &mut selection_state.graphic_item, component);
             });
 
         ui.allocate_space(vec2(
@@ -115,7 +118,7 @@ enum GraphicItemCommand {
 
 fn show_element_tree(
     ui: &mut Ui,
-    secondary_selection: &mut Option<GraphicItemId>,
+    graphic_item_selection: &mut Option<GraphicItemId>,
     graphic: &mut GraphicDefinition,
 ) -> EditResult {
     let mut edit_result = EditResult::None;
@@ -132,7 +135,7 @@ fn show_element_tree(
     for action in res.actions.iter() {
         match action {
             Action::SetSelected(id) => {
-                *secondary_selection = *id;
+                *graphic_item_selection = *id;
             }
             Action::Move {
                 source,

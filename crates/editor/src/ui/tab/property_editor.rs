@@ -2,9 +2,8 @@ use backend::{
     exact_variant::ExactVariant,
     graphic::GraphicStates,
     style::{
-        graphic::graphic_items::GraphicItemId,
         variables::{condition::Condition, fixed_value::FixedValue, map::Map, VariableBehavior},
-        StyleDefinition, StyleId, StyleItem,
+        StyleDefinition, StyleItem,
     },
     tree_iterator::TreeIteratorMut,
     value_types::ValueType,
@@ -20,7 +19,10 @@ use crate::{
         UndoRedoManager,
     },
     reference_store::ReferenceStore,
-    ui::combo_box::LComboBox,
+    ui::{
+        combo_box::LComboBox,
+        selection_manager::{SelectionManager, SelectionState},
+    },
 };
 
 use self::graphic::graphic_property_editor;
@@ -33,29 +35,29 @@ mod variable;
 
 pub fn property_editor(
     ui: &mut Ui,
-    selected_id: &mut Option<StyleId>,
-    secondary_selection: &mut Option<GraphicItemId>,
+    selection_manager: &mut SelectionManager,
     style: &mut ExactVariant<StyleItem, StyleDefinition>,
     reference_store: &ReferenceStore,
     undo_redo_manager: &mut UndoRedoManager,
     game_adapter: Option<&Adapter>,
     graphic_states: &mut GraphicStates,
 ) {
-    let Some(selected_id) = selected_id else {
+    let Some(selected_id) = selection_manager.selected() else {
         return;
     };
+    let selected_state = selection_manager.selected_state_mut().unwrap();
 
     ScrollArea::vertical()
         .auto_shrink([false, false])
         .show(ui, |ui| {
-            style.search_mut(*selected_id, |node| {
+            style.search_mut(selected_id, |node| {
                 edit_node(
                     ui,
                     node,
                     reference_store,
                     game_adapter,
                     undo_redo_manager,
-                    secondary_selection,
+                    selected_state,
                     graphic_states,
                 );
             });
@@ -68,7 +70,7 @@ pub fn edit_node(
     reference_store: &ReferenceStore,
     game_adapter: Option<&Adapter>,
     undo_redo_manager: &mut UndoRedoManager,
-    graphic_item_selection: &mut Option<GraphicItemId>,
+    selection_state: &mut SelectionState,
     graphic_states: &mut GraphicStates,
 ) {
     match node {
@@ -249,7 +251,7 @@ pub fn edit_node(
                 graphic_property_editor(
                     ui,
                     component,
-                    graphic_item_selection,
+                    selection_state,
                     undo_redo_manager,
                     graphic_states,
                 );

@@ -1,5 +1,6 @@
 pub mod combo_box;
 pub mod popup;
+mod selection_manager;
 mod tab;
 
 use std::{fs::File, io::Write};
@@ -8,10 +9,7 @@ use backend::{
     exact_variant::ExactVariant,
     graphic::GraphicStates,
     savefile::{Savefile, SavefileChanged},
-    style::{
-        graphic::{graphic_items::GraphicItemId, GraphicStateId},
-        StyleDefinition, StyleId, StyleItem,
-    },
+    style::{StyleDefinition, StyleItem},
 };
 use bevy::{
     app::{First, Update},
@@ -37,7 +35,7 @@ use crate::{
     GameAdapterResource, MainCamera,
 };
 
-use self::tab::Tab;
+use self::{selection_manager::SelectionManager, tab::Tab};
 
 pub struct EditorUiPlugin;
 impl Plugin for EditorUiPlugin {
@@ -64,9 +62,7 @@ fn setup_egui_context(mut ctx: EguiContexts) {
 #[derive(Resource)]
 struct EditorState {
     dock_state: DockState<Tab>,
-    style_item_selection: Option<StyleId>,
-    graphic_item_selection: Option<GraphicItemId>,
-    graphic_state_selection: Option<GraphicStateId>,
+    selection_manager: SelectionManager,
     style: ExactVariant<StyleItem, StyleDefinition>,
 }
 impl EditorState {
@@ -75,16 +71,14 @@ impl EditorState {
         let tree = state.main_surface_mut();
         let [scene, _tree_view] = tree.split_left(NodeIndex::root(), 0.15, vec![Tab::StyleItems]);
         let [scene, _component_editor] =
-            tree.split_right(scene, 0.75, vec![Tab::ComponentEditor, Tab::UndoRedo]);
+            tree.split_right(scene, 0.75, vec![Tab::GraphicEditor, Tab::UndoRedo]);
 
-        let [_scene, _element_editor] = tree.split_right(scene, 0.7, vec![Tab::ElementEditor]);
+        let [_scene, _element_editor] = tree.split_right(scene, 0.7, vec![Tab::GraphicItemEditor]);
 
         Self {
-            style_item_selection: None,
-            graphic_item_selection: None,
-            graphic_state_selection: None,
             dock_state: state,
             style: StyleDefinition::default().into(),
+            selection_manager: Default::default(),
         }
     }
 }
@@ -174,9 +168,7 @@ fn ui(
 
     let EditorState {
         dock_state,
-        style_item_selection,
-        graphic_item_selection,
-        graphic_state_selection,
+        selection_manager,
         style,
     } = &mut *state;
     let viewport = &mut editor_camera.single_mut().0.raw_viewport;
@@ -200,10 +192,8 @@ fn ui(
             ctx.ctx_mut(),
             &mut tab::EditorTabViewer {
                 viewport,
-                style_item_selection,
-                graphic_item_selection,
-                graphic_state_selection,
-                style: style,
+                selection_manager,
+                style,
                 reference_store: &reference_store,
                 undo_redo_manager: undo_redo_manager.as_mut(),
                 game_adapter: game_adapter.adapter(),

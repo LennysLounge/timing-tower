@@ -4,7 +4,7 @@ use backend::{
     exact_variant::ExactVariant,
     style::{
         assets::{AssetDefinition, AssetFolder},
-        graphic::{graphic_items::GraphicItemId, GraphicDefinition},
+        graphic::GraphicDefinition,
         variables::{VariableDefinition, VariableFolder},
         StyleDefinition, StyleId, StyleItem,
     },
@@ -16,14 +16,16 @@ use egui_ltreeview::{
     Action, DropPosition, TreeViewBuilder, TreeViewResponse,
 };
 
-use crate::command::{
-    insert_node::InsertNode, move_node::MoveNode, remove_node::RemoveNode, UndoRedoManager,
+use crate::{
+    command::{
+        insert_node::InsertNode, move_node::MoveNode, remove_node::RemoveNode, UndoRedoManager,
+    },
+    ui::selection_manager::SelectionManager,
 };
 
 pub fn tree_view(
     ui: &mut Ui,
-    selected_node: &mut Option<StyleId>,
-    _secondary_selection: &mut Option<GraphicItemId>,
+    selection_manager: &mut SelectionManager,
     base_node: &mut ExactVariant<StyleItem, StyleDefinition>,
     undo_redo_manager: &mut UndoRedoManager,
 ) -> bool {
@@ -36,9 +38,10 @@ pub fn tree_view(
 
     for action in response.actions.iter() {
         match action {
-            Action::SetSelected(id) => {
-                *selected_node = *id;
+            Action::SetSelected(Some(id)) => {
+                selection_manager.set_selected(*id);
             }
+            Action::SetSelected(_) => (),
             a @ Action::Move {
                 source,
                 target,

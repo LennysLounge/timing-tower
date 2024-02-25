@@ -9,7 +9,7 @@ use backend::{
             },
             GraphicDefinition, GraphicStateId,
         },
-        StyleDefinition, StyleId, StyleItem,
+        StyleDefinition, StyleItem,
     },
     tree_iterator::TreeIteratorMut,
 };
@@ -24,35 +24,33 @@ use crate::{
         UndoRedoManager,
     },
     reference_store::ReferenceStore,
-    ui::combo_box::LComboBox,
+    ui::{combo_box::LComboBox, selection_manager::SelectionManager},
 };
 
 use super::property_editor::property::PropertyEditor;
 
 pub fn element_editor(
     ui: &mut Ui,
-    style_item_selection: &mut Option<StyleId>,
-    graphic_item_selection: &mut Option<GraphicItemId>,
+    selection_manager: &mut SelectionManager,
     style: &mut ExactVariant<StyleItem, StyleDefinition>,
     reference_store: &ReferenceStore,
     undo_redo_manager: &mut UndoRedoManager,
     graphic_states: &mut GraphicStates,
 ) {
-    let Some(style_item_selection) = style_item_selection else {
+    let Some(style_item_selection) = selection_manager.selected() else {
         return;
     };
-    // let Some(graphic_item_selection) = graphic_item_selection else {
-    //     return;
-    // };
+    let selection_state = selection_manager.selected_state().unwrap();
+
     ScrollArea::vertical()
         .auto_shrink([false, false])
         .show(ui, |ui| {
-            style.search_mut(*style_item_selection, |style_item| {
+            style.search_mut(style_item_selection, |style_item| {
                 if let StyleItem::Graphic(graphic) = style_item {
                     let edit_result = graphic_item(
                         ui,
                         graphic,
-                        graphic_item_selection.as_ref(),
+                        selection_state.graphic_item.as_ref(),
                         reference_store,
                         graphic_states,
                     );

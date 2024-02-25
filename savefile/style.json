@@ -184,18 +184,50 @@
       {
         "element_type": "Asset",
         "style_item_type": "Asset",
-        "id": "28fc93a6-a776-4b91-b0f1-89e09f4a771f",
-        "name": "ACC-Font-Bold",
+        "id": "e5f43566-c3f5-4aff-b875-17347317b7a2",
+        "name": "Roboto-C-Light",
         "value_type": "Font",
-        "path": "cufonfonts D-DIN-Bold.otf"
+        "path": "RobotoCondensed-Light.ttf"
+      },
+      {
+        "element_type": "Asset",
+        "style_item_type": "Asset",
+        "id": "c6b7d3a6-78ce-47b9-83d6-6262f07ac76d",
+        "name": "Roboto-C-Regular",
+        "value_type": "Font",
+        "path": "RobotoCondensed-Regular.ttf"
+      },
+      {
+        "element_type": "Asset",
+        "style_item_type": "Asset",
+        "id": "28fc93a6-a776-4b91-b0f1-89e09f4a771f",
+        "name": "Roboto-C-Bold",
+        "value_type": "Font",
+        "path": "RobotoCondensed-Bold.ttf"
       },
       {
         "element_type": "Asset",
         "style_item_type": "Asset",
         "id": "abed3391-82fd-47e5-8157-605d1d56c153",
-        "name": "ACC-Font",
+        "name": "Roboto-C-Medium",
         "value_type": "Font",
-        "path": "cufonfonts D-DIN.otf"
+        "path": "RobotoCondensed-Medium.ttf"
+      },
+      {
+        "element_type": "Asset",
+        "style_item_type": "Asset",
+        "id": "8c8c9115-1968-4a43-ba44-8ae590c8c7f2",
+        "name": "Roboto-C-Black",
+        "value_type": "Font",
+        "path": "RobotoCondensed-Black.ttf"
+      },
+      {
+        "element_type": "Asset",
+        "style_item_type": "Asset",
+        "id": "42c815e4-eff0-4b6e-b616-ebe403a484f4",
+        "name": "Roboto-Bold",
+        "value_type": "Font",
+        "path": "Roboto-Bold.ttf"
       }
     ]
   },
@@ -800,9 +832,9 @@
             ],
             "output_type": "Number",
             "output_cases": [
-              118.0,
-              110.0,
-              135.0
+              114.0,
+              107.0,
+              132.0
             ],
             "default": 0.0
           },
@@ -920,9 +952,39 @@
             ],
             "output_type": "Number",
             "output_cases": [
-              297.0,
-              305.0,
-              280.0
+              307.0,
+              315.0,
+              290.0
+            ],
+            "default": 0.0
+          },
+          {
+            "element_type": "Variable",
+            "style_item_type": "Variable",
+            "id": "c2fd693b-c4b1-4a63-b246-4c0bc71cd42c",
+            "name": "width",
+            "behavior": "Map",
+            "input_type": "Number",
+            "input_ref": "e3b19274-200e-4ebb-bbdd-a75e2390094c",
+            "input_cases": [
+              {
+                "right": 1.0,
+                "comparator": "Equal"
+              },
+              {
+                "right": 2.0,
+                "comparator": "Equal"
+              },
+              {
+                "right": 3.0,
+                "comparator": "Equal"
+              }
+            ],
+            "output_type": "Number",
+            "output_cases": [
+              367.0,
+              375.0,
+              350.0
             ],
             "default": 0.0
           }
@@ -1005,7 +1067,9 @@
               },
               "size": {
                 "template": {
-                  "x": 350.0,
+                  "x": {
+                    "Producer": "c2fd693b-c4b1-4a63-b246-4c0bc71cd42c"
+                  },
                   "y": 42.0
                 },
                 "states": {}
@@ -1025,7 +1089,7 @@
                     "y": 0.0
                   },
                   "bot_left": {
-                    "x": 18.0,
+                    "x": 21.0,
                     "y": 0.0
                   },
                   "bot_right": {
@@ -1077,7 +1141,7 @@
                 "states": {}
               },
               "text_size": {
-                "template": 28.0,
+                "template": 33.0,
                 "states": {}
               },
               "font": {
@@ -1398,12 +1462,12 @@
                 "states": {}
               },
               "text_size": {
-                "template": 18.0,
+                "template": 22.0,
                 "states": {}
               },
               "font": {
                 "template": {
-                  "Producer": "abed3391-82fd-47e5-8157-605d1d56c153"
+                  "Producer": "e5f43566-c3f5-4aff-b875-17347317b7a2"
                 },
                 "states": {}
               },
@@ -1509,7 +1573,7 @@
                 "states": {}
               },
               "text_size": {
-                "template": 28.0,
+                "template": 33.0,
                 "states": {}
               },
               "font": {
@@ -1622,12 +1686,12 @@
                 "states": {}
               },
               "text_size": {
-                "template": 19.0,
+                "template": 22.0,
                 "states": {}
               },
               "font": {
                 "template": {
-                  "Producer": "abed3391-82fd-47e5-8157-605d1d56c153"
+                  "Producer": "e5f43566-c3f5-4aff-b875-17347317b7a2"
                 },
                 "states": {}
               },
@@ -1759,12 +1823,12 @@
                 "states": {}
               },
               "text_size": {
-                "template": 13.0,
+                "template": 14.0,
                 "states": {}
               },
               "font": {
                 "template": {
-                  "Producer": "28fc93a6-a776-4b91-b0f1-89e09f4a771f"
+                  "Producer": "42c815e4-eff0-4b6e-b616-ebe403a484f4"
                 },
                 "states": {}
               },
@@ -1837,8 +1901,8 @@
               },
               "text_position": {
                 "template": {
-                  "x": 10.0,
-                  "y": 11.0
+                  "x": 9.0,
+                  "y": 10.0
                 },
                 "states": {}
               }
@@ -1911,12 +1975,12 @@
                         "states": {}
                       },
                       "text_size": {
-                        "template": 19.5,
+                        "template": 22.0,
                         "states": {}
                       },
                       "font": {
                         "template": {
-                          "Producer": "28fc93a6-a776-4b91-b0f1-89e09f4a771f"
+                          "Producer": "abed3391-82fd-47e5-8157-605d1d56c153"
                         },
                         "states": {}
                       },
@@ -1932,7 +1996,7 @@
                       },
                       "pos": {
                         "template": {
-                          "x": 1.0,
+                          "x": 0.0,
                           "y": 0.0,
                           "z": 0.0
                         },
@@ -1946,7 +2010,7 @@
                         "states": {}
                       },
                       "skew": {
-                        "template": 12.0,
+                        "template": 13.0,
                         "states": {}
                       },
                       "corner_offsets": {
@@ -1989,8 +2053,8 @@
                       },
                       "text_position": {
                         "template": {
-                          "x": 24.5,
-                          "y": 18.0
+                          "x": 24.0,
+                          "y": 19.0
                         },
                         "states": {}
                       }
@@ -2017,7 +2081,7 @@
                         "states": {}
                       },
                       "text_size": {
-                        "template": 19.5,
+                        "template": 22.0,
                         "states": {}
                       },
                       "font": {
@@ -2046,7 +2110,7 @@
                       },
                       "size": {
                         "template": {
-                          "x": 350.0,
+                          "x": 340.0,
                           "y": 36.0
                         },
                         "states": {
@@ -2101,7 +2165,7 @@
                       "text_position": {
                         "template": {
                           "x": 21.0,
-                          "y": 18.0
+                          "y": 19.0
                         },
                         "states": {}
                       }
@@ -2145,7 +2209,7 @@
                       },
                       "pos": {
                         "template": {
-                          "x": 189.0,
+                          "x": 176.0,
                           "y": 0.0,
                           "z": 0.0
                         },
@@ -2254,7 +2318,7 @@
                       },
                       "pos": {
                         "template": {
-                          "x": 191.0,
+                          "x": 178.0,
                           "y": 2.0,
                           "z": 1.0
                         },
@@ -2334,18 +2398,23 @@
                         "states": {}
                       },
                       "text_size": {
-                        "template": 20.0,
+                        "template": 23.0,
                         "states": {}
                       },
                       "font": {
                         "template": {
-                          "Producer": "28fc93a6-a776-4b91-b0f1-89e09f4a771f"
+                          "Producer": "8c8c9115-1968-4a43-ba44-8ae590c8c7f2"
                         },
                         "states": {}
                       },
                       "color": {
                         "template": {
-                          "Producer": "8536ebf5-82e1-41e3-bc37-b713534a7780"
+                          "Rgba": {
+                            "red": 1.0,
+                            "green": 1.0,
+                            "blue": 1.0,
+                            "alpha": 1.0
+                          }
                         },
                         "states": {}
                       },
@@ -2355,7 +2424,7 @@
                       },
                       "pos": {
                         "template": {
-                          "x": 225.0,
+                          "x": 212.0,
                           "y": 0.0,
                           "z": 0.0
                         },
@@ -2412,8 +2481,8 @@
                       },
                       "text_position": {
                         "template": {
-                          "x": 23.0,
-                          "y": 18.0
+                          "x": 22.0,
+                          "y": 17.5
                         },
                         "states": {}
                       }
@@ -2462,7 +2531,7 @@
                       },
                       "pos": {
                         "template": {
-                          "x": 272.0,
+                          "x": 259.0,
                           "y": 0.0,
                           "z": 0.0
                         },
@@ -2470,7 +2539,7 @@
                       },
                       "size": {
                         "template": {
-                          "x": 13.0,
+                          "x": 12.0,
                           "y": 36.0
                         },
                         "states": {}
@@ -2545,11 +2614,13 @@
                         "states": {}
                       },
                       "text_size": {
-                        "template": 12.0,
+                        "template": 14.0,
                         "states": {}
                       },
                       "font": {
-                        "template": "Default",
+                        "template": {
+                          "Producer": "8c8c9115-1968-4a43-ba44-8ae590c8c7f2"
+                        },
                         "states": {}
                       },
                       "color": {
@@ -2569,7 +2640,7 @@
                       },
                       "pos": {
                         "template": {
-                          "x": 371.0,
+                          "x": 362.0,
                           "y": 0.0,
                           "z": 0.0
                         },
@@ -2634,7 +2705,7 @@
                       },
                       "text_position": {
                         "template": {
-                          "x": 5.5,
+                          "x": 5.0,
                           "y": 18.0
                         },
                         "states": {}
@@ -2647,14 +2718,14 @@
                       "text": {
                         "template": "Info text",
                         "states": {
-                          "a267bd0f-e38f-4c4d-b54a-bcce3c678aa3": {
-                            "Producer": "fb270927-75c7-469b-88d3-250758aa1f3b"
-                          },
                           "30e712de-46ce-4fea-9b78-37455cb5c835": {
                             "Producer": "30cd7503-df5f-4fcf-9175-e7b6b469b189"
                           },
                           "0c6aff6c-2995-4b6e-be5b-b88a76af76a8": {
                             "Producer": "92b0d86b-42dc-4bec-9cf7-c212981f6b50"
+                          },
+                          "a267bd0f-e38f-4c4d-b54a-bcce3c678aa3": {
+                            "Producer": "fb270927-75c7-469b-88d3-250758aa1f3b"
                           }
                         }
                       },
@@ -2669,19 +2740,19 @@
                         }
                       },
                       "text_size": {
-                        "template": 19.5,
+                        "template": 22.0,
                         "states": {}
                       },
                       "font": {
                         "template": {
-                          "Producer": "abed3391-82fd-47e5-8157-605d1d56c153"
+                          "Producer": "c6b7d3a6-78ce-47b9-83d6-6262f07ac76d"
                         },
                         "states": {}
                       },
                       "color": {
                         "template": {
                           "Rgba": {
-                            "red": 0.5,
+                            "red": 0.49999976,
                             "green": 0.0,
                             "blue": 0.5,
                             "alpha": 1.0
@@ -2695,7 +2766,7 @@
                       },
                       "pos": {
                         "template": {
-                          "x": 363.0,
+                          "x": 355.0,
                           "y": 18.0,
                           "z": 0.0
                         },
@@ -2738,8 +2809,8 @@
                           "Producer": "1e41168f-c2f5-436f-a30c-b6d4d7f7585b"
                         },
                         "states": {
-                          "372c88c9-9700-45ae-8328-41fe3005a456": false,
-                          "30e712de-46ce-4fea-9b78-37455cb5c835": true
+                          "30e712de-46ce-4fea-9b78-37455cb5c835": true,
+                          "372c88c9-9700-45ae-8328-41fe3005a456": false
                         }
                       },
                       "rounding": {
@@ -2770,7 +2841,7 @@
           ],
           "position": {
             "template": {
-              "x": 38.0,
+              "x": 39.0,
               "y": 35.0
             },
             "states": {}
@@ -2810,7 +2881,7 @@
               "id": "7d604bbd-981a-49d7-9735-ad6242a2c90d",
               "name": "Cell",
               "text": {
-                "template": "Cell",
+                "template": "",
                 "states": {}
               },
               "text_color": {
@@ -2835,9 +2906,9 @@
               "color": {
                 "template": {
                   "Rgba": {
-                    "red": 0.49999976,
-                    "green": 0.0,
-                    "blue": 0.5,
+                    "red": 0.31854683,
+                    "green": 0.31854683,
+                    "blue": 0.31854683,
                     "alpha": 1.0
                   }
                 },
@@ -2849,15 +2920,15 @@
               },
               "pos": {
                 "template": {
-                  "x": 0.0,
-                  "y": 0.0,
-                  "z": 0.0
+                  "x": -15.0,
+                  "y": -306.0,
+                  "z": -2.0
                 },
                 "states": {}
               },
               "size": {
                 "template": {
-                  "x": 200.0,
+                  "x": 409.0,
                   "y": 200.0
                 },
                 "states": {}
@@ -2915,8 +2986,8 @@
           ],
           "position": {
             "template": {
-              "x": 918.0,
-              "y": 400.0
+              "x": 710.0,
+              "y": 926.0
             },
             "states": {}
           }

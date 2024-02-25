@@ -94,14 +94,10 @@ fn show(
         .row_layout(egui_ltreeview::RowLayout::CompactAlignedLables)
         .fill_space_vertical(true)
         .show(ui, |mut builder| {
-            root.walk_mut(&mut |node, method| show_node(node, method, &mut builder));
+            root.walk_mut(&mut |node, method| {
+                show_node(node, method, &mut builder, undo_redo_manager)
+            });
         });
-
-    response.context_menu(ui, |ui, node_id| {
-        root.search_mut(node_id, |node| {
-            context_menu(ui, node, undo_redo_manager, &response);
-        });
-    });
 
     response
 }
@@ -109,12 +105,13 @@ fn show_node(
     node: &mut StyleItem,
     method: Method,
     builder: &mut TreeViewBuilder<StyleId>,
+    undo_redo_manager: &mut UndoRedoManager,
 ) -> ControlFlow<()> {
     match (method, node) {
         (Method::Visit, StyleItem::Style(style)) => {
-            builder.node(NodeBuilder::dir(style.id).flatten(true), |ui| {
+            builder.node(NodeBuilder::dir(style.id).flatten(true).label(|ui| {
                 ui.add(egui::Label::new("Style").selectable(false));
-            });
+            }));
             ControlFlow::Continue(())
         }
         (Method::Leave, StyleItem::Style(_)) => {
@@ -123,24 +120,52 @@ fn show_node(
         }
 
         (Method::Visit, StyleItem::Asset(asset)) => {
-            let node_config = NodeBuilder::leaf(asset.id).icon(|ui| {
-                match asset.value_type {
-                    backend::value_types::ValueType::Texture => {
-                        egui::Image::new(egui::include_image!("../../../images/image.png"))
-                            .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
-                            .paint_at(ui, ui.max_rect());
-                    }
-                    backend::value_types::ValueType::Font => {
-                        egui::Image::new(egui::include_image!("../../../images/match_case.png"))
-                            .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
-                            .paint_at(ui, ui.max_rect());
-                    }
-                    _ => (),
-                };
-            });
-            builder.node(node_config, |ui| {
-                ui.add(egui::Label::new(&asset.name).selectable(false));
-            });
+            let parent_id = builder.parent_id();
+            builder.node(
+                NodeBuilder::leaf(asset.id)
+                    .icon(|ui| {
+                        match asset.value_type {
+                            backend::value_types::ValueType::Texture => {
+                                egui::Image::new(egui::include_image!("../../../images/image.png"))
+                                    .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
+                                    .paint_at(ui, ui.max_rect());
+                            }
+                            backend::value_types::ValueType::Font => {
+                                egui::Image::new(egui::include_image!(
+                                    "../../../images/match_case.png"
+                                ))
+                                .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
+                                .paint_at(ui, ui.max_rect());
+                            }
+                            _ => (),
+                        };
+                    })
+                    .label(|ui| {
+                        ui.add(egui::Label::new(&asset.name).selectable(false));
+                    })
+                    .context_menu(|ui| {
+                        if ui.button("add image").clicked() {
+                            undo_redo_manager.queue(InsertNode {
+                                target_node: parent_id.expect("Should have a parent"),
+                                position: DropPosition::After(asset.id),
+                                node: AssetDefinition::new().into(),
+                            });
+                            ui.close_menu();
+                        }
+                        if ui.button("add group").clicked() {
+                            undo_redo_manager.queue(InsertNode {
+                                target_node: parent_id.expect("Should have a parent"),
+                                position: DropPosition::After(asset.id),
+                                node: AssetFolder::new().into(),
+                            });
+                            ui.close_menu();
+                        }
+                        if ui.button("delete").clicked() {
+                            undo_redo_manager.queue(RemoveNode { id: asset.id });
+                            ui.close_menu();
+                        }
+                    }),
+            );
             ControlFlow::Continue(())
         }
 
@@ -148,10 +173,28 @@ fn show_node(
             builder.node(
                 NodeBuilder::dir(folder.id)
                     .closer(folder_closer)
-                    .default_open(false),
-                |ui| {
-                    ui.add(egui::Label::new(&folder.name).selectable(false));
-                },
+                    .default_open(false)
+                    .label(|ui| {
+                        ui.add(egui::Label::new(&folder.name).selectable(false));
+                    })
+                    .context_menu(|ui| {
+                        if ui.button("add image").clicked() {
+                            undo_redo_manager.queue(InsertNode {
+                                target_node: folder.id,
+                                position: DropPosition::Last,
+                                node: AssetDefinition::new().into(),
+                            });
+                            ui.close_menu();
+                        }
+                        if ui.button("add group").clicked() {
+                            undo_redo_manager.queue(InsertNode {
+                                target_node: folder.id,
+                                position: DropPosition::Last,
+                                node: AssetFolder::new().into(),
+                            });
+                            ui.close_menu();
+                        }
+                    }),
             );
             ControlFlow::Continue(())
         }
@@ -162,15 +205,39 @@ fn show_node(
         }
 
         (Method::Visit, StyleItem::Variable(variable)) => {
+            let parent_id = builder.parent_id();
             builder.node(
-                NodeBuilder::leaf(variable.id).icon(|ui| {
-                    egui::Image::new(egui::include_image!("../../../images/object.png"))
-                        .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
-                        .paint_at(ui, ui.max_rect());
-                }),
-                |ui| {
-                    ui.add(egui::Label::new(&variable.name).selectable(false));
-                },
+                NodeBuilder::leaf(variable.id)
+                    .icon(|ui| {
+                        egui::Image::new(egui::include_image!("../../../images/object.png"))
+                            .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
+                            .paint_at(ui, ui.max_rect());
+                    })
+                    .label(|ui| {
+                        ui.add(egui::Label::new(&variable.name).selectable(false));
+                    })
+                    .context_menu(|ui| {
+                        if ui.button("add variable").clicked() {
+                            undo_redo_manager.queue(InsertNode {
+                                target_node: parent_id.expect("Should have a parent"),
+                                position: DropPosition::After(variable.id),
+                                node: VariableDefinition::new().into(),
+                            });
+                            ui.close_menu();
+                        }
+                        if ui.button("add group").clicked() {
+                            undo_redo_manager.queue(InsertNode {
+                                target_node: parent_id.expect("Should have a parent"),
+                                position: DropPosition::After(variable.id),
+                                node: VariableFolder::new().into(),
+                            });
+                            ui.close_menu();
+                        }
+                        if ui.button("delete").clicked() {
+                            undo_redo_manager.queue(RemoveNode { id: variable.id });
+                            ui.close_menu();
+                        }
+                    }),
             );
             ControlFlow::Continue(())
         }
@@ -179,10 +246,28 @@ fn show_node(
             builder.node(
                 NodeBuilder::dir(folder.id)
                     .closer(folder_closer)
-                    .default_open(false),
-                |ui| {
-                    ui.add(egui::Label::new(&folder.name).selectable(false));
-                },
+                    .default_open(false)
+                    .label(|ui| {
+                        ui.add(egui::Label::new(&folder.name).selectable(false));
+                    })
+                    .context_menu(|ui| {
+                        if ui.button("add variable").clicked() {
+                            undo_redo_manager.queue(InsertNode {
+                                target_node: folder.id,
+                                position: DropPosition::Last,
+                                node: VariableDefinition::new().into(),
+                            });
+                            ui.close_menu();
+                        }
+                        if ui.button("add group").clicked() {
+                            undo_redo_manager.queue(InsertNode {
+                                target_node: folder.id,
+                                position: DropPosition::Last,
+                                node: VariableFolder::new().into(),
+                            });
+                            ui.close_menu();
+                        }
+                    }),
             );
             ControlFlow::Continue(())
         }
@@ -193,9 +278,13 @@ fn show_node(
         }
 
         (Method::Visit, StyleItem::Scene(scene)) => {
-            builder.node(NodeBuilder::dir(scene.id).closer(folder_closer), |ui| {
-                ui.add(egui::Label::new("Scene").selectable(false));
-            });
+            builder.node(
+                NodeBuilder::dir(scene.id)
+                    .closer(folder_closer)
+                    .label(|ui| {
+                        ui.add(egui::Label::new("Scene").selectable(false));
+                    }),
+            );
             ControlFlow::Continue(())
         }
         (Method::Leave, StyleItem::Scene(_)) => {
@@ -203,22 +292,52 @@ fn show_node(
             ControlFlow::Continue(())
         }
         (Method::Visit, StyleItem::Graphic(graphic)) => {
+            let parent_id = builder.parent_id();
             builder.node(
-                NodeBuilder::leaf(graphic.id).icon(|ui| {
-                    egui::Image::new(egui::include_image!("../../../images/graphic.png"))
-                        .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
-                        .paint_at(ui, ui.max_rect());
-                }),
-                |ui| {
-                    ui.add(egui::Label::new(&graphic.name).selectable(false));
-                },
+                NodeBuilder::leaf(graphic.id)
+                    .icon(|ui| {
+                        egui::Image::new(egui::include_image!("../../../images/graphic.png"))
+                            .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
+                            .paint_at(ui, ui.max_rect());
+                    })
+                    .label(|ui| {
+                        ui.add(egui::Label::new(&graphic.name).selectable(false));
+                    })
+                    .context_menu(|ui| {
+                        if ui.button("add graphic").clicked() {
+                            undo_redo_manager.queue(InsertNode {
+                                target_node: parent_id.expect("Should have parent"),
+                                position: DropPosition::After(graphic.id),
+                                node: GraphicDefinition::new().into(),
+                            });
+                            ui.close_menu();
+                        }
+                        if ui.button("delete").clicked() {
+                            undo_redo_manager.queue(RemoveNode { id: graphic.id });
+                            ui.close_menu();
+                        }
+                    }),
             );
             ControlFlow::Continue(())
         }
         (Method::Visit, StyleItem::GraphicFolder(folder)) => {
-            builder.node(NodeBuilder::dir(folder.id).closer(folder_closer), |ui| {
-                ui.add(egui::Label::new(&folder.name).selectable(false));
-            });
+            builder.node(
+                NodeBuilder::dir(folder.id)
+                    .closer(folder_closer)
+                    .label(|ui| {
+                        ui.add(egui::Label::new(&folder.name).selectable(false));
+                    })
+                    .context_menu(|ui| {
+                        if ui.button("add graphic").clicked() {
+                            undo_redo_manager.queue(InsertNode {
+                                target_node: folder.id,
+                                position: DropPosition::Last,
+                                node: GraphicDefinition::new().into(),
+                            });
+                            ui.close_menu();
+                        }
+                    }),
+            );
             ControlFlow::Continue(())
         }
         (Method::Leave, StyleItem::GraphicFolder(_)) => {
@@ -246,140 +365,5 @@ fn folder_closer(ui: &mut Ui, state: CloserState) {
         egui::Image::new(egui::include_image!("../../../images/folder.png"))
             .tint(color)
             .paint_at(ui, ui.max_rect());
-    }
-}
-
-fn context_menu(
-    ui: &mut Ui,
-    node: &mut StyleItem,
-    undo_redo_manager: &mut UndoRedoManager,
-    tree_response: &TreeViewResponse<StyleId>,
-) {
-    match node {
-        StyleItem::Style(_) => _ = ui.label("Style"),
-        StyleItem::Variable(variable) => {
-            if ui.button("add variable").clicked() {
-                undo_redo_manager.queue(InsertNode {
-                    target_node: tree_response
-                        .parent_of(variable.id)
-                        .expect("Should have a parent"),
-                    position: DropPosition::After(variable.id),
-                    node: VariableDefinition::new().into(),
-                });
-                ui.close_menu();
-            }
-            if ui.button("add group").clicked() {
-                undo_redo_manager.queue(InsertNode {
-                    target_node: tree_response
-                        .parent_of(variable.id)
-                        .expect("Should have a parent"),
-                    position: DropPosition::After(variable.id),
-                    node: VariableFolder::new().into(),
-                });
-                ui.close_menu();
-            }
-            if ui.button("delete").clicked() {
-                undo_redo_manager.queue(RemoveNode { id: variable.id });
-                ui.close_menu();
-            }
-        }
-        StyleItem::VariableFolder(folder) => {
-            if ui.button("add variable").clicked() {
-                undo_redo_manager.queue(InsertNode {
-                    target_node: folder.id,
-                    position: DropPosition::Last,
-                    node: VariableDefinition::new().into(),
-                });
-                ui.close_menu();
-            }
-            if ui.button("add group").clicked() {
-                undo_redo_manager.queue(InsertNode {
-                    target_node: folder.id,
-                    position: DropPosition::Last,
-                    node: VariableFolder::new().into(),
-                });
-                ui.close_menu();
-            }
-        }
-        StyleItem::Asset(asset) => {
-            if ui.button("add image").clicked() {
-                undo_redo_manager.queue(InsertNode {
-                    target_node: tree_response
-                        .parent_of(asset.id)
-                        .expect("Should have a parent"),
-                    position: DropPosition::After(asset.id),
-                    node: AssetDefinition::new().into(),
-                });
-                ui.close_menu();
-            }
-            if ui.button("add group").clicked() {
-                undo_redo_manager.queue(InsertNode {
-                    target_node: tree_response
-                        .parent_of(asset.id)
-                        .expect("Should have a parent"),
-                    position: DropPosition::After(asset.id),
-                    node: AssetFolder::new().into(),
-                });
-                ui.close_menu();
-            }
-            if ui.button("delete").clicked() {
-                undo_redo_manager.queue(RemoveNode { id: asset.id });
-                ui.close_menu();
-            }
-        }
-        StyleItem::AssetFolder(folder) => {
-            if ui.button("add image").clicked() {
-                undo_redo_manager.queue(InsertNode {
-                    target_node: folder.id,
-                    position: DropPosition::Last,
-                    node: AssetDefinition::new().into(),
-                });
-                ui.close_menu();
-            }
-            if ui.button("add group").clicked() {
-                undo_redo_manager.queue(InsertNode {
-                    target_node: folder.id,
-                    position: DropPosition::Last,
-                    node: AssetFolder::new().into(),
-                });
-                ui.close_menu();
-            }
-        }
-        StyleItem::Scene(scene) => {
-            if ui.button("add component").clicked() {
-                undo_redo_manager.queue(InsertNode {
-                    target_node: scene.id,
-                    position: DropPosition::Last,
-                    node: GraphicDefinition::new().into(),
-                });
-                ui.close_menu();
-            }
-        }
-        StyleItem::Graphic(graphic) => {
-            if ui.button("add graphic").clicked() {
-                undo_redo_manager.queue(InsertNode {
-                    target_node: tree_response
-                        .parent_of(graphic.id)
-                        .expect("Should have parent"),
-                    position: DropPosition::After(graphic.id),
-                    node: GraphicDefinition::new().into(),
-                });
-                ui.close_menu();
-            }
-            if ui.button("delete").clicked() {
-                undo_redo_manager.queue(RemoveNode { id: graphic.id });
-                ui.close_menu();
-            }
-        }
-        StyleItem::GraphicFolder(folder) => {
-            if ui.button("add graphic").clicked() {
-                undo_redo_manager.queue(InsertNode {
-                    target_node: folder.id,
-                    position: DropPosition::Last,
-                    node: GraphicDefinition::new().into(),
-                });
-                ui.close_menu();
-            }
-        }
     }
 }

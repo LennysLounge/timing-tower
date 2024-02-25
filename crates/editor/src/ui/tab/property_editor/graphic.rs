@@ -5,7 +5,8 @@ use backend::{
     style::graphic::{
         self,
         graphic_items::{
-            cell::Cell, clip_area::ClipArea, driver_table::DriverTable, GraphicItem, GraphicItemId,
+            cell::Cell, clip_area::ClipArea, driver_table::DriverTable, root::Root, GraphicItem,
+            GraphicItemId,
         },
         GraphicDefinition, GraphicStateId,
     },
@@ -102,17 +103,29 @@ pub fn graphic_property_editor(
     }
 }
 
+enum GraphicItemCommand {
+    Add {
+        element: GraphicItem,
+        target: GraphicItemId,
+        position: DropPosition<GraphicItemId>,
+    },
+    Remove {
+        id: GraphicItemId,
+    },
+}
+
 fn show_element_tree(
     ui: &mut Ui,
     secondary_selection: &mut Option<GraphicItemId>,
     graphic: &mut GraphicDefinition,
 ) -> EditResult {
     let mut edit_result = EditResult::None;
+    let mut commands = Vec::new();
     let res = TreeView::new(ui.make_persistent_id("Component element tree"))
         .row_layout(RowLayout::AlignedIcons)
         .show(ui, |mut builder| {
             graphic.items.walk(&mut |item, method| {
-                element_tree_node(&mut builder, item, method);
+                element_tree_node(&mut builder, item, method, &mut commands);
                 ControlFlow::Continue::<()>(())
             });
         });
@@ -135,63 +148,9 @@ fn show_element_tree(
             Action::Drag { .. } => (),
         }
     }
-
-    enum Command {
-        Add {
-            element: GraphicItem,
-            target: GraphicItemId,
-            position: DropPosition<GraphicItemId>,
-        },
-        Remove {
-            id: GraphicItemId,
-        },
-    }
-    let mut commands = Vec::new();
-    res.context_menu(ui, |ui, node_id| {
-        graphic.items.search_mut(node_id, |element| {
-            let (target, position) = match element {
-                GraphicItem::Cell(_) => (
-                    res.parent_of(node_id).unwrap_or_default(),
-                    DropPosition::After(node_id),
-                ),
-                GraphicItem::Root(_) | GraphicItem::ClipArea(_) | GraphicItem::DriverTable(_) => {
-                    (node_id, DropPosition::Last)
-                }
-            };
-            if ui.button("add cell").clicked() {
-                commands.push(Command::Add {
-                    element: Cell::new().into(),
-                    target,
-                    position,
-                });
-                ui.close_menu();
-            }
-            if ui.button("add clip area").clicked() {
-                commands.push(Command::Add {
-                    element: ClipArea::new().into(),
-                    target,
-                    position,
-                });
-                ui.close_menu();
-            }
-            if ui.button("add driver table").clicked() {
-                commands.push(Command::Add {
-                    element: DriverTable::new().into(),
-                    target,
-                    position,
-                });
-                ui.close_menu();
-            }
-            ui.separator();
-            if ui.button("delete").clicked() {
-                commands.push(Command::Remove { id: node_id });
-                ui.close_menu();
-            }
-        });
-    });
     for command in commands {
         match command {
-            Command::Add {
+            GraphicItemCommand::Add {
                 element,
                 target,
                 position,
@@ -199,7 +158,7 @@ fn show_element_tree(
                 insert_element(graphic, target, position, element);
                 edit_result = EditResult::FromId(Id::new("Component element Tree view edit"));
             }
-            Command::Remove { id } => {
+            GraphicItemCommand::Remove { id } => {
                 remove_element(graphic, id);
                 edit_result = EditResult::FromId(Id::new("Component element Tree view edit"));
             }
@@ -213,88 +172,154 @@ fn element_tree_node(
     builder: &mut TreeViewBuilder<GraphicItemId>,
     element: &GraphicItem,
     method: Method,
+    commands: &mut Vec<GraphicItemCommand>,
 ) {
     match (method, element) {
         (Method::Visit, GraphicItem::Root(root)) => {
-            builder.node(NodeBuilder::dir(root.id), |ui| {
-                ui.horizontal(|ui| {
-                    ui.add(
-                        egui::Label::new(RichText::new("Graphic").color(Color32::from_gray(120)))
-                            .selectable(false),
-                    );
-                    ui.add(egui::Label::new(&root.name).selectable(false));
-                });
-            });
+            let parent_id = builder.parent_id();
+            builder.node(
+                NodeBuilder::dir(root.id)
+                    .label(|ui| {
+                        ui.horizontal(|ui| {
+                            ui.add(
+                                egui::Label::new(
+                                    RichText::new("Graphic").color(Color32::from_gray(120)),
+                                )
+                                .selectable(false),
+                            );
+                            ui.add(egui::Label::new(&root.name).selectable(false));
+                        });
+                    })
+                    .context_menu(|ui| graphic_item_context_menu(ui, element, commands, parent_id)),
+            );
         }
         (Method::Leave, GraphicItem::Root(_)) => {
             builder.close_dir();
         }
 
         (Method::Visit, GraphicItem::Cell(cell)) => {
+            let parent_id = builder.parent_id();
             builder.node(
-                NodeBuilder::leaf(cell.id).icon(|ui| {
-                    egui::Image::new(egui::include_image!("../../../../images/cell.png"))
-                        .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
-                        .paint_at(ui, ui.max_rect());
-                }),
-                |ui| {
-                    ui.horizontal(|ui| {
-                        ui.add(
-                            egui::Label::new(RichText::new("Cell").color(Color32::from_gray(120)))
+                NodeBuilder::leaf(cell.id)
+                    .icon(|ui| {
+                        egui::Image::new(egui::include_image!("../../../../images/cell.png"))
+                            .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
+                            .paint_at(ui, ui.max_rect());
+                    })
+                    .label(|ui| {
+                        ui.horizontal(|ui| {
+                            ui.add(
+                                egui::Label::new(
+                                    RichText::new("Cell").color(Color32::from_gray(120)),
+                                )
                                 .selectable(false),
-                        );
-                        ui.add(egui::Label::new(&cell.name).selectable(false));
-                    });
-                },
+                            );
+                            ui.add(egui::Label::new(&cell.name).selectable(false));
+                        });
+                    })
+                    .context_menu(|ui| graphic_item_context_menu(ui, element, commands, parent_id)),
             );
         }
         (Method::Leave, GraphicItem::Cell(_)) => (),
         (Method::Visit, GraphicItem::ClipArea(clip_area)) => {
+            let parent_id = builder.parent_id();
             builder.node(
-                NodeBuilder::dir(clip_area.id).icon(|ui| {
-                    egui::Image::new(egui::include_image!("../../../../images/clip_area.png"))
-                        .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
-                        .paint_at(ui, ui.max_rect());
-                }),
-                |ui| {
-                    ui.horizontal(|ui| {
-                        ui.add(
-                            egui::Label::new(
-                                RichText::new("Clip area").color(Color32::from_gray(120)),
-                            )
-                            .selectable(false),
-                        );
-                        ui.add(egui::Label::new(&clip_area.name).selectable(false));
-                    });
-                },
+                NodeBuilder::dir(clip_area.id)
+                    .icon(|ui| {
+                        egui::Image::new(egui::include_image!("../../../../images/clip_area.png"))
+                            .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
+                            .paint_at(ui, ui.max_rect());
+                    })
+                    .label(|ui| {
+                        ui.horizontal(|ui| {
+                            ui.add(
+                                egui::Label::new(
+                                    RichText::new("Clip area").color(Color32::from_gray(120)),
+                                )
+                                .selectable(false),
+                            );
+                            ui.add(egui::Label::new(&clip_area.name).selectable(false));
+                        });
+                    })
+                    .context_menu(|ui| graphic_item_context_menu(ui, element, commands, parent_id)),
             );
         }
         (Method::Leave, GraphicItem::ClipArea(_)) => {
             builder.close_dir();
         }
         (Method::Visit, GraphicItem::DriverTable(driver_table)) => {
+            let parent_id = builder.parent_id();
             builder.node(
-                NodeBuilder::dir(driver_table.id).icon(|ui| {
-                    egui::Image::new(egui::include_image!("../../../../images/driver_table.png"))
+                NodeBuilder::dir(driver_table.id)
+                    .icon(|ui| {
+                        egui::Image::new(egui::include_image!(
+                            "../../../../images/driver_table.png"
+                        ))
                         .tint(ui.visuals().widgets.noninteractive.fg_stroke.color)
                         .paint_at(ui, ui.max_rect());
-                }),
-                |ui| {
-                    ui.horizontal(|ui| {
-                        ui.add(
-                            egui::Label::new(
-                                RichText::new("Driver table").color(Color32::from_gray(120)),
-                            )
-                            .selectable(false),
-                        );
-                        ui.add(egui::Label::new(&driver_table.name).selectable(false));
-                    });
-                },
+                    })
+                    .label(|ui| {
+                        ui.horizontal(|ui| {
+                            ui.add(
+                                egui::Label::new(
+                                    RichText::new("Driver table").color(Color32::from_gray(120)),
+                                )
+                                .selectable(false),
+                            );
+                            ui.add(egui::Label::new(&driver_table.name).selectable(false));
+                        });
+                    })
+                    .context_menu(|ui| graphic_item_context_menu(ui, element, commands, parent_id)),
             );
         }
         (Method::Leave, GraphicItem::DriverTable(_)) => {
             builder.close_dir();
         }
+    }
+}
+
+fn graphic_item_context_menu(
+    ui: &mut Ui,
+    graphic_item: &GraphicItem,
+    commands: &mut Vec<GraphicItemCommand>,
+    parent_id: Option<GraphicItemId>,
+) {
+    let (target, position) = match graphic_item {
+        GraphicItem::Cell(cell) => (parent_id.unwrap_or_default(), DropPosition::After(cell.id)),
+        GraphicItem::Root(Root { id, .. })
+        | GraphicItem::ClipArea(ClipArea { id, .. })
+        | GraphicItem::DriverTable(DriverTable { id, .. }) => (*id, DropPosition::Last),
+    };
+    if ui.button("add cell").clicked() {
+        commands.push(GraphicItemCommand::Add {
+            element: Cell::new().into(),
+            target,
+            position,
+        });
+        ui.close_menu();
+    }
+    if ui.button("add clip area").clicked() {
+        commands.push(GraphicItemCommand::Add {
+            element: ClipArea::new().into(),
+            target,
+            position,
+        });
+        ui.close_menu();
+    }
+    if ui.button("add driver table").clicked() {
+        commands.push(GraphicItemCommand::Add {
+            element: DriverTable::new().into(),
+            target,
+            position,
+        });
+        ui.close_menu();
+    }
+    ui.separator();
+    if ui.button("delete").clicked() {
+        commands.push(GraphicItemCommand::Remove {
+            id: graphic_item.id(),
+        });
+        ui.close_menu();
     }
 }
 
@@ -402,7 +427,7 @@ fn show_states_tree(
             if let Some(state) = graphic_states.states.get(&graphic.id) {
                 builder.set_selected(*state);
             }
-            builder.node(NodeBuilder::dir(TREE_ROOT_ID).flatten(true), |_| {});
+            builder.node(NodeBuilder::dir(TREE_ROOT_ID).flatten(true));
             builder.leaf(TEMPLATE_ID, "Template");
             for state in graphic.states.iter_mut() {
                 builder.leaf(state.id, &state.name);

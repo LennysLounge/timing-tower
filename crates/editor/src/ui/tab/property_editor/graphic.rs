@@ -428,6 +428,8 @@ fn show_states_tree(
         .show(ui, |mut builder| {
             if let Some(state) = graphic_states.states.get(&graphic.id) {
                 builder.set_selected(*state);
+            } else {
+                builder.set_selected(TEMPLATE_ID);
             }
             builder.node(NodeBuilder::dir(TREE_ROOT_ID).flatten(true));
             builder.leaf(TEMPLATE_ID, "Template");

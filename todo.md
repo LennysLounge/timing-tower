@@ -15,9 +15,9 @@
     * Graphic items
 
 # General
-* Monospaced font for number in ACC.
 * Create a GTWC layout
 * Create a formula 1 layout
+* Add a driver graphic item
 
 # Dashboard
 * Show pit status.

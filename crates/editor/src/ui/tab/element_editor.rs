@@ -4,8 +4,12 @@ use backend::{
     style::{
         graphic::{
             graphic_items::{
-                cell::Cell, clip_area::ClipArea, driver_table::DriverTable, root::Root, Attribute,
-                GraphicItem, GraphicItemId,
+                cell::Cell,
+                clip_area::ClipArea,
+                driver_table::DriverTable,
+                entry_context::{EntryContext, EntrySelection},
+                root::Root,
+                Attribute, GraphicItem, GraphicItemId,
             },
             GraphicDefinition, GraphicStateId,
         },
@@ -14,7 +18,7 @@ use backend::{
     tree_iterator::TreeIteratorMut,
 };
 use bevy_egui::egui::{
-    self, vec2, CollapsingHeader, DragValue, Layout, ScrollArea, Ui, WidgetText,
+    self, vec2, CollapsingHeader, DragValue, Layout, ScrollArea, Ui, Widget, WidgetText,
 };
 use common::communication::TextAlignment;
 
@@ -147,6 +151,15 @@ fn editor(
             edit_result |= ui.text_edit_singleline(&mut driver_table.name).into();
             ui.separator();
             edit_result |= driver_table_editor(ui, driver_table, state_id, reference_store);
+            edit_result
+        }
+        GraphicItem::EntryContext(entry_context) => {
+            let mut edit_result = EditResult::None;
+
+            ui.label("Name:");
+            edit_result |= ui.text_edit_singleline(&mut entry_context.name).into();
+            ui.separator();
+            edit_result |= entry_context_editor(ui, entry_context, state_id, reference_store);
             edit_result
         }
     }
@@ -527,6 +540,33 @@ pub fn driver_table_editor(
             ui_split(ui, "Y", |ui| {
                 edit_result |= ui
                     .add(PropertyEditor::new(&mut attr.y, reference_store))
+                    .into();
+            });
+        });
+    });
+
+    edit_result
+}
+
+pub fn entry_context_editor(
+    ui: &mut Ui,
+    entry_context: &mut EntryContext,
+    state_id: Option<&GraphicStateId>,
+    _reference_store: &ReferenceStore,
+) -> EditResult {
+    let mut edit_result = EditResult::None;
+
+    ui.scope(|ui| {
+        ui_attribute(ui, &mut entry_context.selection, state_id, |ui, attr| {
+            ui_split(ui, "Selected entry", |ui| {
+                edit_result |= LComboBox::new(attr)
+                    .add_option(EntrySelection::First, "First")
+                    .add_option(EntrySelection::Second, "Second")
+                    .add_option(EntrySelection::Third, "Third")
+                    .add_option(EntrySelection::AheadOfFocus, "AheadOfFocus")
+                    .add_option(EntrySelection::Focus, "Focus")
+                    .add_option(EntrySelection::BehindFocus, "BehindFocus")
+                    .ui(ui)
                     .into();
             });
         });

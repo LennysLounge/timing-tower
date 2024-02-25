@@ -18,7 +18,10 @@ use unified_sim_model::model::{Entry, Model};
 use crate::{
     savefile::Savefile,
     style::{
-        graphic::{graphic_items::ComputedGraphicItem, GraphicStateId},
+        graphic::{
+            graphic_items::{entry_context::EntrySelection, ComputedGraphicItem},
+            GraphicStateId,
+        },
         StyleId, StyleItem,
     },
     style_batcher::{CellId, StyleBatcher},
@@ -216,6 +219,35 @@ fn update_graphic_item(
                         _model,
                     );
                 }
+            }
+        }
+        ComputedGraphicItem::EntryContext(entry_context) => {
+            let mut entries: Vec<&Entry> = resolver.session().entries.values().collect();
+            entries.sort_by_key(|e| *e.position);
+            let focused_index = entries.iter().position(|e| e.focused);
+
+            let entry = match entry_context.selection {
+                EntrySelection::First => entries.get(0),
+                EntrySelection::Second => entries.get(1),
+                EntrySelection::Third => entries.get(2),
+                EntrySelection::AheadOfFocus => focused_index.and_then(|idx| entries.get(idx - 1)),
+                EntrySelection::Focus => focused_index.and_then(|idx| entries.get(idx)),
+                EntrySelection::BehindFocus => focused_index.and_then(|idx| entries.get(idx + 1)),
+            };
+
+            let mut new_resolver = resolver.clone();
+            if let Some(entry) = entry {
+                new_resolver = new_resolver.with_entry(entry);
+            }
+
+            for item in entry_context.items.iter() {
+                update_graphic_item(
+                    item,
+                    batcher,
+                    graphic_item_data_storage,
+                    &new_resolver,
+                    _model,
+                );
             }
         }
     }

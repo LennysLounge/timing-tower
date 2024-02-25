@@ -41,18 +41,6 @@ impl DriverTable {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone)]
-pub enum DriverTableAttributes {
-    RowOffset(Vec2Property),
-}
-impl ToString for DriverTableAttributes {
-    fn to_string(&self) -> String {
-        String::from(match self {
-            DriverTableAttributes::RowOffset(_) => "RowOffset",
-        })
-    }
-}
-
 pub struct ComputedDriverTable {
     pub id: GraphicItemId,
     pub row_offset: Vec2Property,

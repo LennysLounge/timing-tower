@@ -1,6 +1,7 @@
 pub mod cell;
 pub mod clip_area;
 pub mod driver_table;
+pub mod entry_context;
 pub mod root;
 
 use std::{
@@ -18,6 +19,7 @@ use self::{
     cell::{Cell, ComputedCell},
     clip_area::{ClipArea, ComputedClipArea},
     driver_table::{ComputedDriverTable, DriverTable},
+    entry_context::{ComputedEntryContext, EntryContext},
     root::{ComputedRoot, Root},
 };
 
@@ -41,6 +43,7 @@ pub enum GraphicItem {
     Cell(Cell),
     ClipArea(ClipArea),
     DriverTable(DriverTable),
+    EntryContext(EntryContext),
 }
 impl GraphicItem {
     pub fn compute_for_state(&self, state: Option<&GraphicStateId>) -> ComputedGraphicItem {
@@ -50,6 +53,9 @@ impl GraphicItem {
             GraphicItem::ClipArea(o) => ComputedGraphicItem::ClipArea(o.compute_for_state(state)),
             GraphicItem::DriverTable(o) => {
                 ComputedGraphicItem::DriverTable(o.compute_for_state(state))
+            }
+            GraphicItem::EntryContext(o) => {
+                ComputedGraphicItem::EntryContext(o.compute_for_state(state))
             }
         }
     }
@@ -64,6 +70,7 @@ impl TreeItem for GraphicItem {
             GraphicItem::Cell(cell) => cell.id,
             GraphicItem::ClipArea(clip_area) => clip_area.id,
             GraphicItem::DriverTable(driver_table) => driver_table.id,
+            GraphicItem::EntryContext(entry_context) => entry_context.id,
         }
     }
 }
@@ -86,6 +93,9 @@ impl TreeIterator for GraphicItem {
             }
             GraphicItem::DriverTable(driver_table) => {
                 driver_table.columns.iter().try_for_each(|c| c.walk(f))?;
+            }
+            GraphicItem::EntryContext(entry_context) => {
+                entry_context.items.iter().try_for_each(|e| e.walk(f))?;
             }
         }
         f(self, Method::Leave)
@@ -113,6 +123,12 @@ impl TreeIteratorMut for GraphicItem {
                     .columns
                     .iter_mut()
                     .try_for_each(|c| c.walk_mut(f))?;
+            }
+            GraphicItem::EntryContext(entry_context) => {
+                entry_context
+                    .items
+                    .iter_mut()
+                    .try_for_each(|e| e.walk_mut(f))?;
             }
         }
         f(self, Method::Leave)
@@ -183,4 +199,5 @@ pub enum ComputedGraphicItem {
     Cell(ComputedCell),
     ClipArea(ComputedClipArea),
     DriverTable(ComputedDriverTable),
+    EntryContext(ComputedEntryContext),
 }

@@ -5,8 +5,8 @@ use backend::{
     style::graphic::{
         self,
         graphic_items::{
-            cell::Cell, clip_area::ClipArea, driver_table::DriverTable, root::Root, GraphicItem,
-            GraphicItemId,
+            cell::Cell, clip_area::ClipArea, driver_table::DriverTable,
+            entry_context::EntryContext, root::Root, GraphicItem, GraphicItemId,
         },
         GraphicDefinition, GraphicStateId,
     },
@@ -73,6 +73,11 @@ pub fn graphic_property_editor(
             }
             if ui.selectable_label(false, "Driver Table").clicked() {
                 component.items.items.push(DriverTable::new().into());
+                edit_result = EditResult::FromId(ui.id());
+                ui.close_menu();
+            }
+            if ui.selectable_label(false, "Entry Context").clicked() {
+                component.items.items.push(EntryContext::new().into());
                 edit_result = EditResult::FromId(ui.id());
                 ui.close_menu();
             }
@@ -277,6 +282,27 @@ fn element_tree_node(
         (Method::Leave, GraphicItem::DriverTable(_)) => {
             builder.close_dir();
         }
+        (Method::Visit, GraphicItem::EntryContext(entry_context)) => {
+            let parent_id = builder.parent_id();
+            builder.node(
+                NodeBuilder::dir(entry_context.id)
+                    .label(|ui| {
+                        ui.horizontal(|ui| {
+                            ui.add(
+                                egui::Label::new(
+                                    RichText::new("Entry context").color(Color32::from_gray(120)),
+                                )
+                                .selectable(false),
+                            );
+                            ui.add(egui::Label::new(&entry_context.name).selectable(false));
+                        });
+                    })
+                    .context_menu(|ui| graphic_item_context_menu(ui, element, commands, parent_id)),
+            )
+        }
+        (Method::Leave, GraphicItem::EntryContext(_)) => {
+            builder.close_dir();
+        }
     }
 }
 
@@ -290,7 +316,8 @@ fn graphic_item_context_menu(
         GraphicItem::Cell(cell) => (parent_id.unwrap_or_default(), DropPosition::After(cell.id)),
         GraphicItem::Root(Root { id, .. })
         | GraphicItem::ClipArea(ClipArea { id, .. })
-        | GraphicItem::DriverTable(DriverTable { id, .. }) => (*id, DropPosition::Last),
+        | GraphicItem::DriverTable(DriverTable { id, .. })
+        | GraphicItem::EntryContext(EntryContext { id, .. }) => (*id, DropPosition::Last),
     };
     if ui.button("add cell").clicked() {
         commands.push(GraphicItemCommand::Add {
@@ -311,6 +338,14 @@ fn graphic_item_context_menu(
     if ui.button("add driver table").clicked() {
         commands.push(GraphicItemCommand::Add {
             element: DriverTable::new().into(),
+            target,
+            position,
+        });
+        ui.close_menu();
+    }
+    if ui.button("add entry context").clicked() {
+        commands.push(GraphicItemCommand::Add {
+            element: EntryContext::new().into(),
             target,
             position,
         });
@@ -356,6 +391,13 @@ fn remove_element(component: &mut GraphicDefinition, id: GraphicItemId) -> Optio
                     ControlFlow::Continue(())
                 }
             }
+            GraphicItem::EntryContext(entry_context) => {
+                if let Some(index) = entry_context.items.iter().position(|e| e.id() == id) {
+                    ControlFlow::Break(Some(entry_context.items.remove(index)))
+                } else {
+                    ControlFlow::Continue(())
+                }
+            }
         }
     });
     match r {
@@ -380,6 +422,9 @@ fn insert_element(
         }
         GraphicItem::DriverTable(driver_table) => {
             insert_into_vec(&mut driver_table.columns, position, element);
+        }
+        GraphicItem::EntryContext(entry_context) => {
+            insert_into_vec(&mut entry_context.items, position, element);
         }
     });
 }

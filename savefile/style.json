@@ -989,6 +989,44 @@
             "default": 0.0
           }
         ]
+      },
+      {
+        "element_type": "Folder",
+        "style_item_type": "VariableFolder",
+        "id": "fad9836d-e861-483b-bb7c-76c50daf522b",
+        "name": "Driver info",
+        "content": [
+          {
+            "element_type": "Variable",
+            "style_item_type": "Variable",
+            "id": "1e0cabd2-4127-4ee1-91eb-75212a8c362f",
+            "name": "Category name",
+            "behavior": "Map",
+            "input_type": "Number",
+            "input_ref": "4d519d42-52e9-435c-b614-8d70b42ed3b0",
+            "input_cases": [
+              {
+                "right": 0.0,
+                "comparator": "Equal"
+              },
+              {
+                "right": 3.0,
+                "comparator": "Equal"
+              },
+              {
+                "right": 2.0,
+                "comparator": "Equal"
+              }
+            ],
+            "output_type": "Text",
+            "output_cases": [
+              "PRO",
+              "Silver",
+              "Am"
+            ],
+            "default": ""
+          }
+        ]
       }
     ]
   },
@@ -2409,12 +2447,7 @@
                       },
                       "color": {
                         "template": {
-                          "Rgba": {
-                            "red": 1.0,
-                            "green": 1.0,
-                            "blue": 1.0,
-                            "alpha": 1.0
-                          }
+                          "Producer": "8536ebf5-82e1-41e3-bc37-b713534a7780"
                         },
                         "states": {}
                       },
@@ -2718,14 +2751,14 @@
                       "text": {
                         "template": "Info text",
                         "states": {
-                          "30e712de-46ce-4fea-9b78-37455cb5c835": {
-                            "Producer": "30cd7503-df5f-4fcf-9175-e7b6b469b189"
+                          "a267bd0f-e38f-4c4d-b54a-bcce3c678aa3": {
+                            "Producer": "fb270927-75c7-469b-88d3-250758aa1f3b"
                           },
                           "0c6aff6c-2995-4b6e-be5b-b88a76af76a8": {
                             "Producer": "92b0d86b-42dc-4bec-9cf7-c212981f6b50"
                           },
-                          "a267bd0f-e38f-4c4d-b54a-bcce3c678aa3": {
-                            "Producer": "fb270927-75c7-469b-88d3-250758aa1f3b"
+                          "30e712de-46ce-4fea-9b78-37455cb5c835": {
+                            "Producer": "30cd7503-df5f-4fcf-9175-e7b6b469b189"
                           }
                         }
                       },
@@ -2870,124 +2903,1096 @@
         "element_type": "Graphic",
         "style_item_type": "Graphic",
         "id": "39ef43bb-27c8-4597-93d9-d12c41c34a35",
-        "name": "Graphic",
+        "name": "Driver Info",
         "items": {
           "graphic_item_type": "Root",
           "id": "ce7f45d7-1a3a-428e-958e-ab3a7e40c2e5",
-          "name": "Graphic",
+          "name": "Driver Info",
           "items": [
             {
-              "graphic_item_type": "Cell",
-              "id": "7d604bbd-981a-49d7-9735-ad6242a2c90d",
-              "name": "Cell",
-              "text": {
-                "template": "",
+              "graphic_item_type": "EntryContext",
+              "id": "deb71bd0-edb1-47f9-bbdd-59f8cb831b2a",
+              "name": "Entry context",
+              "selection": {
+                "template": "Focus",
                 "states": {}
               },
-              "text_color": {
-                "template": {
-                  "Rgba": {
-                    "red": 1.0,
-                    "green": 1.0,
-                    "blue": 1.0,
-                    "alpha": 1.0
+              "items": [
+                {
+                  "graphic_item_type": "Cell",
+                  "id": "7d604bbd-981a-49d7-9735-ad6242a2c90d",
+                  "name": "Position",
+                  "text": {
+                    "template": {
+                      "Producer": "6330a6bb-51d1-4af7-9bd0-efeb00b1ff52"
+                    },
+                    "states": {}
+                  },
+                  "text_color": {
+                    "template": {
+                      "Rgba": {
+                        "red": 1.0,
+                        "green": 1.0,
+                        "blue": 1.0,
+                        "alpha": 1.0
+                      }
+                    },
+                    "states": {}
+                  },
+                  "text_size": {
+                    "template": 43.0,
+                    "states": {}
+                  },
+                  "font": {
+                    "template": {
+                      "Producer": "abed3391-82fd-47e5-8157-605d1d56c153"
+                    },
+                    "states": {}
+                  },
+                  "color": {
+                    "template": {
+                      "Producer": "3b9c1864-f07f-46ca-aa86-01cba7629860"
+                    },
+                    "states": {}
+                  },
+                  "image": {
+                    "template": "None",
+                    "states": {}
+                  },
+                  "pos": {
+                    "template": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0
+                    },
+                    "states": {}
+                  },
+                  "size": {
+                    "template": {
+                      "x": 69.0,
+                      "y": 60.0
+                    },
+                    "states": {}
+                  },
+                  "skew": {
+                    "template": 25.0,
+                    "states": {}
+                  },
+                  "corner_offsets": {
+                    "template": {
+                      "top_left": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "top_right": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "bot_left": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "bot_right": {
+                        "x": 0.0,
+                        "y": 0.0
+                      }
+                    },
+                    "states": {}
+                  },
+                  "visible": {
+                    "template": true,
+                    "states": {}
+                  },
+                  "rounding": {
+                    "template": {
+                      "top_left": 20.0,
+                      "top_right": 0.0,
+                      "bot_left": 5.0,
+                      "bot_right": 0.0
+                    },
+                    "states": {}
+                  },
+                  "text_alginment": {
+                    "template": "Center",
+                    "states": {}
+                  },
+                  "text_position": {
+                    "template": {
+                      "x": 46.0,
+                      "y": 29.0
+                    },
+                    "states": {}
                   }
                 },
-                "states": {}
-              },
-              "text_size": {
-                "template": 20.0,
-                "states": {}
-              },
-              "font": {
-                "template": "Default",
-                "states": {}
-              },
-              "color": {
-                "template": {
-                  "Rgba": {
-                    "red": 0.31854683,
-                    "green": 0.31854683,
-                    "blue": 0.31854683,
-                    "alpha": 1.0
+                {
+                  "graphic_item_type": "Cell",
+                  "id": "db854095-b8ac-4783-b65c-7e67e5edd764",
+                  "name": "Manufacturer bg",
+                  "text": {
+                    "template": "",
+                    "states": {}
+                  },
+                  "text_color": {
+                    "template": {
+                      "Rgba": {
+                        "red": 1.0,
+                        "green": 1.0,
+                        "blue": 1.0,
+                        "alpha": 1.0
+                      }
+                    },
+                    "states": {}
+                  },
+                  "text_size": {
+                    "template": 20.0,
+                    "states": {}
+                  },
+                  "font": {
+                    "template": "Default",
+                    "states": {}
+                  },
+                  "color": {
+                    "template": {
+                      "Producer": "e41f142f-2026-4126-9dc4-bed03fecd31e"
+                    },
+                    "states": {}
+                  },
+                  "image": {
+                    "template": "None",
+                    "states": {}
+                  },
+                  "pos": {
+                    "template": {
+                      "x": 69.0,
+                      "y": 0.0,
+                      "z": 0.0
+                    },
+                    "states": {}
+                  },
+                  "size": {
+                    "template": {
+                      "x": 87.0,
+                      "y": 60.0
+                    },
+                    "states": {}
+                  },
+                  "skew": {
+                    "template": 25.0,
+                    "states": {}
+                  },
+                  "corner_offsets": {
+                    "template": {
+                      "top_left": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "top_right": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "bot_left": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "bot_right": {
+                        "x": 0.0,
+                        "y": 0.0
+                      }
+                    },
+                    "states": {}
+                  },
+                  "visible": {
+                    "template": true,
+                    "states": {}
+                  },
+                  "rounding": {
+                    "template": {
+                      "top_left": 0.0,
+                      "top_right": 0.0,
+                      "bot_left": 0.0,
+                      "bot_right": 0.0
+                    },
+                    "states": {}
+                  },
+                  "text_alginment": {
+                    "template": "Left",
+                    "states": {}
+                  },
+                  "text_position": {
+                    "template": {
+                      "x": 5.0,
+                      "y": 15.0
+                    },
+                    "states": {}
                   }
                 },
-                "states": {}
-              },
-              "image": {
-                "template": "None",
-                "states": {}
-              },
-              "pos": {
-                "template": {
-                  "x": -15.0,
-                  "y": -306.0,
-                  "z": -2.0
-                },
-                "states": {}
-              },
-              "size": {
-                "template": {
-                  "x": 409.0,
-                  "y": 200.0
-                },
-                "states": {}
-              },
-              "skew": {
-                "template": 0.0,
-                "states": {}
-              },
-              "corner_offsets": {
-                "template": {
-                  "top_left": {
-                    "x": 0.0,
-                    "y": 0.0
+                {
+                  "graphic_item_type": "Cell",
+                  "id": "f4c0c89f-5833-4d9c-9987-6f9f26f4d6f9",
+                  "name": "Manufacturer",
+                  "text": {
+                    "template": "",
+                    "states": {}
                   },
-                  "top_right": {
-                    "x": 0.0,
-                    "y": 0.0
+                  "text_color": {
+                    "template": {
+                      "Rgba": {
+                        "red": 1.0,
+                        "green": 1.0,
+                        "blue": 1.0,
+                        "alpha": 1.0
+                      }
+                    },
+                    "states": {}
                   },
-                  "bot_left": {
-                    "x": 0.0,
-                    "y": 0.0
+                  "text_size": {
+                    "template": 20.0,
+                    "states": {}
                   },
-                  "bot_right": {
-                    "x": 0.0,
-                    "y": 0.0
+                  "font": {
+                    "template": "Default",
+                    "states": {}
+                  },
+                  "color": {
+                    "template": {
+                      "Rgba": {
+                        "red": 1.0,
+                        "green": 1.0,
+                        "blue": 1.0,
+                        "alpha": 1.0
+                      }
+                    },
+                    "states": {}
+                  },
+                  "image": {
+                    "template": {
+                      "Producer": "94d9d538-676d-4ea9-a72c-923b054a2b6d"
+                    },
+                    "states": {}
+                  },
+                  "pos": {
+                    "template": {
+                      "x": 98.0,
+                      "y": 4.0,
+                      "z": 1.0
+                    },
+                    "states": {}
+                  },
+                  "size": {
+                    "template": {
+                      "x": 52.0,
+                      "y": 52.0
+                    },
+                    "states": {}
+                  },
+                  "skew": {
+                    "template": 0.0,
+                    "states": {}
+                  },
+                  "corner_offsets": {
+                    "template": {
+                      "top_left": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "top_right": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "bot_left": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "bot_right": {
+                        "x": 0.0,
+                        "y": 0.0
+                      }
+                    },
+                    "states": {}
+                  },
+                  "visible": {
+                    "template": true,
+                    "states": {}
+                  },
+                  "rounding": {
+                    "template": {
+                      "top_left": 0.0,
+                      "top_right": 0.0,
+                      "bot_left": 0.0,
+                      "bot_right": 0.0
+                    },
+                    "states": {}
+                  },
+                  "text_alginment": {
+                    "template": "Left",
+                    "states": {}
+                  },
+                  "text_position": {
+                    "template": {
+                      "x": 5.0,
+                      "y": 15.0
+                    },
+                    "states": {}
                   }
                 },
-                "states": {}
-              },
-              "visible": {
-                "template": true,
-                "states": {}
-              },
-              "rounding": {
-                "template": {
-                  "top_left": 0.0,
-                  "top_right": 0.0,
-                  "bot_left": 0.0,
-                  "bot_right": 0.0
+                {
+                  "graphic_item_type": "Cell",
+                  "id": "0e0ce481-c78e-4242-ac47-f804fe118f3b",
+                  "name": "Driver name",
+                  "text": {
+                    "template": {
+                      "Producer": "8abcf9d5-60f7-4886-a716-139d62ad83ac"
+                    },
+                    "states": {}
+                  },
+                  "text_color": {
+                    "template": {
+                      "Rgba": {
+                        "red": 1.0,
+                        "green": 1.0,
+                        "blue": 1.0,
+                        "alpha": 1.0
+                      }
+                    },
+                    "states": {}
+                  },
+                  "text_size": {
+                    "template": 22.0,
+                    "states": {}
+                  },
+                  "font": {
+                    "template": {
+                      "Producer": "c6b7d3a6-78ce-47b9-83d6-6262f07ac76d"
+                    },
+                    "states": {}
+                  },
+                  "color": {
+                    "template": {
+                      "Producer": "dc0105f9-83eb-4746-b2a5-dd19d9048301"
+                    },
+                    "states": {}
+                  },
+                  "image": {
+                    "template": "None",
+                    "states": {}
+                  },
+                  "pos": {
+                    "template": {
+                      "x": 155.0,
+                      "y": 0.0,
+                      "z": -1.0
+                    },
+                    "states": {}
+                  },
+                  "size": {
+                    "template": {
+                      "x": 386.0,
+                      "y": 60.0
+                    },
+                    "states": {}
+                  },
+                  "skew": {
+                    "template": 0.0,
+                    "states": {}
+                  },
+                  "corner_offsets": {
+                    "template": {
+                      "top_left": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "top_right": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "bot_left": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "bot_right": {
+                        "x": 0.0,
+                        "y": 0.0
+                      }
+                    },
+                    "states": {}
+                  },
+                  "visible": {
+                    "template": true,
+                    "states": {}
+                  },
+                  "rounding": {
+                    "template": {
+                      "top_left": 0.0,
+                      "top_right": 0.0,
+                      "bot_left": 0.0,
+                      "bot_right": 0.0
+                    },
+                    "states": {}
+                  },
+                  "text_alginment": {
+                    "template": "Left",
+                    "states": {}
+                  },
+                  "text_position": {
+                    "template": {
+                      "x": 34.0,
+                      "y": 21.0
+                    },
+                    "states": {}
+                  }
                 },
-                "states": {}
-              },
-              "text_alginment": {
-                "template": "Left",
-                "states": {}
-              },
-              "text_position": {
-                "template": {
-                  "x": 5.0,
-                  "y": 15.0
+                {
+                  "graphic_item_type": "Cell",
+                  "id": "d1efb45d-1663-41ab-9659-1242d3996d20",
+                  "name": "Team name",
+                  "text": {
+                    "template": {
+                      "Producer": "4507167c-4c78-4686-b7a2-44809d969cee"
+                    },
+                    "states": {}
+                  },
+                  "text_color": {
+                    "template": {
+                      "Rgba": {
+                        "red": 1.0,
+                        "green": 1.0,
+                        "blue": 1.0,
+                        "alpha": 1.0
+                      }
+                    },
+                    "states": {}
+                  },
+                  "text_size": {
+                    "template": 17.0,
+                    "states": {}
+                  },
+                  "font": {
+                    "template": {
+                      "Producer": "c6b7d3a6-78ce-47b9-83d6-6262f07ac76d"
+                    },
+                    "states": {}
+                  },
+                  "color": {
+                    "template": {
+                      "Rgba": {
+                        "red": 0.0,
+                        "green": 0.0,
+                        "blue": 0.0,
+                        "alpha": 0.0
+                      }
+                    },
+                    "states": {}
+                  },
+                  "image": {
+                    "template": "None",
+                    "states": {}
+                  },
+                  "pos": {
+                    "template": {
+                      "x": 184.0,
+                      "y": 25.0,
+                      "z": 0.0
+                    },
+                    "states": {}
+                  },
+                  "size": {
+                    "template": {
+                      "x": 100.0,
+                      "y": 100.0
+                    },
+                    "states": {}
+                  },
+                  "skew": {
+                    "template": 0.0,
+                    "states": {}
+                  },
+                  "corner_offsets": {
+                    "template": {
+                      "top_left": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "top_right": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "bot_left": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "bot_right": {
+                        "x": 0.0,
+                        "y": 0.0
+                      }
+                    },
+                    "states": {}
+                  },
+                  "visible": {
+                    "template": true,
+                    "states": {}
+                  },
+                  "rounding": {
+                    "template": {
+                      "top_left": 0.0,
+                      "top_right": 0.0,
+                      "bot_left": 0.0,
+                      "bot_right": 0.0
+                    },
+                    "states": {}
+                  },
+                  "text_alginment": {
+                    "template": "Left",
+                    "states": {}
+                  },
+                  "text_position": {
+                    "template": {
+                      "x": 5.0,
+                      "y": 15.0
+                    },
+                    "states": {}
+                  }
                 },
-                "states": {}
-              }
+                {
+                  "graphic_item_type": "Cell",
+                  "id": "47ff5e16-a8d1-4586-aef6-cdfd3b54b674",
+                  "name": "Last lap",
+                  "text": {
+                    "template": "Last",
+                    "states": {}
+                  },
+                  "text_color": {
+                    "template": {
+                      "Rgba": {
+                        "red": 1.0,
+                        "green": 1.0,
+                        "blue": 1.0,
+                        "alpha": 1.0
+                      }
+                    },
+                    "states": {}
+                  },
+                  "text_size": {
+                    "template": 17.0,
+                    "states": {}
+                  },
+                  "font": {
+                    "template": {
+                      "Producer": "e5f43566-c3f5-4aff-b875-17347317b7a2"
+                    },
+                    "states": {}
+                  },
+                  "color": {
+                    "template": {
+                      "Rgba": {
+                        "red": 0.24742047,
+                        "green": 0.24742047,
+                        "blue": 0.24742047,
+                        "alpha": 1.0
+                      }
+                    },
+                    "states": {}
+                  },
+                  "image": {
+                    "template": "None",
+                    "states": {}
+                  },
+                  "pos": {
+                    "template": {
+                      "x": 153.0,
+                      "y": 62.0,
+                      "z": 0.0
+                    },
+                    "states": {}
+                  },
+                  "size": {
+                    "template": {
+                      "x": 129.0,
+                      "y": 19.0
+                    },
+                    "states": {}
+                  },
+                  "skew": {
+                    "template": 8.0,
+                    "states": {}
+                  },
+                  "corner_offsets": {
+                    "template": {
+                      "top_left": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "top_right": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "bot_left": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "bot_right": {
+                        "x": 0.0,
+                        "y": 0.0
+                      }
+                    },
+                    "states": {}
+                  },
+                  "visible": {
+                    "template": true,
+                    "states": {}
+                  },
+                  "rounding": {
+                    "template": {
+                      "top_left": 8.0,
+                      "top_right": 0.0,
+                      "bot_left": 0.0,
+                      "bot_right": 8.0
+                    },
+                    "states": {}
+                  },
+                  "text_alginment": {
+                    "template": "Left",
+                    "states": {}
+                  },
+                  "text_position": {
+                    "template": {
+                      "x": 19.0,
+                      "y": 9.5
+                    },
+                    "states": {}
+                  }
+                },
+                {
+                  "graphic_item_type": "Cell",
+                  "id": "a83a9480-0046-4e1b-b019-b6d442499d0b",
+                  "name": "Last lap time",
+                  "text": {
+                    "template": {
+                      "Producer": "b835a422-d98e-4e84-9942-8abf478f0c49"
+                    },
+                    "states": {}
+                  },
+                  "text_color": {
+                    "template": {
+                      "Rgba": {
+                        "red": 1.0,
+                        "green": 1.0,
+                        "blue": 1.0,
+                        "alpha": 1.0
+                      }
+                    },
+                    "states": {}
+                  },
+                  "text_size": {
+                    "template": 18.0,
+                    "states": {}
+                  },
+                  "font": {
+                    "template": {
+                      "Producer": "abed3391-82fd-47e5-8157-605d1d56c153"
+                    },
+                    "states": {}
+                  },
+                  "color": {
+                    "template": {
+                      "Rgba": {
+                        "red": 0.0,
+                        "green": 0.0,
+                        "blue": 0.0,
+                        "alpha": 0.0
+                      }
+                    },
+                    "states": {}
+                  },
+                  "image": {
+                    "template": "None",
+                    "states": {}
+                  },
+                  "pos": {
+                    "template": {
+                      "x": 268.0,
+                      "y": 71.0,
+                      "z": 0.0
+                    },
+                    "states": {}
+                  },
+                  "size": {
+                    "template": {
+                      "x": 100.0,
+                      "y": 100.0
+                    },
+                    "states": {}
+                  },
+                  "skew": {
+                    "template": 0.0,
+                    "states": {}
+                  },
+                  "corner_offsets": {
+                    "template": {
+                      "top_left": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "top_right": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "bot_left": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "bot_right": {
+                        "x": 0.0,
+                        "y": 0.0
+                      }
+                    },
+                    "states": {}
+                  },
+                  "visible": {
+                    "template": true,
+                    "states": {}
+                  },
+                  "rounding": {
+                    "template": {
+                      "top_left": 0.0,
+                      "top_right": 0.0,
+                      "bot_left": 0.0,
+                      "bot_right": 0.0
+                    },
+                    "states": {}
+                  },
+                  "text_alginment": {
+                    "template": "Right",
+                    "states": {}
+                  },
+                  "text_position": {
+                    "template": {
+                      "x": 0.0,
+                      "y": 0.0
+                    },
+                    "states": {}
+                  }
+                },
+                {
+                  "graphic_item_type": "Cell",
+                  "id": "49414700-7df3-43f1-a64a-66a33476d664",
+                  "name": "Car number",
+                  "text": {
+                    "template": {
+                      "Producer": "171d7438-3179-4c70-b818-811cf86d514e"
+                    },
+                    "states": {}
+                  },
+                  "text_color": {
+                    "template": {
+                      "Rgba": {
+                        "red": 1.0,
+                        "green": 1.0,
+                        "blue": 1.0,
+                        "alpha": 1.0
+                      }
+                    },
+                    "states": {}
+                  },
+                  "text_size": {
+                    "template": 29.0,
+                    "states": {}
+                  },
+                  "font": {
+                    "template": {
+                      "Producer": "42c815e4-eff0-4b6e-b616-ebe403a484f4"
+                    },
+                    "states": {}
+                  },
+                  "color": {
+                    "template": {
+                      "Producer": "dc0105f9-83eb-4746-b2a5-dd19d9048301"
+                    },
+                    "states": {}
+                  },
+                  "image": {
+                    "template": "None",
+                    "states": {}
+                  },
+                  "pos": {
+                    "template": {
+                      "x": 432.0,
+                      "y": 0.0,
+                      "z": 0.0
+                    },
+                    "states": {}
+                  },
+                  "size": {
+                    "template": {
+                      "x": 100.0,
+                      "y": 43.0
+                    },
+                    "states": {}
+                  },
+                  "skew": {
+                    "template": 17.0,
+                    "states": {}
+                  },
+                  "corner_offsets": {
+                    "template": {
+                      "top_left": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "top_right": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "bot_left": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "bot_right": {
+                        "x": 0.0,
+                        "y": 0.0
+                      }
+                    },
+                    "states": {}
+                  },
+                  "visible": {
+                    "template": true,
+                    "states": {}
+                  },
+                  "rounding": {
+                    "template": {
+                      "top_left": 0.0,
+                      "top_right": 0.0,
+                      "bot_left": 0.0,
+                      "bot_right": 0.0
+                    },
+                    "states": {}
+                  },
+                  "text_alginment": {
+                    "template": "Center",
+                    "states": {}
+                  },
+                  "text_position": {
+                    "template": {
+                      "x": 41.0,
+                      "y": 26.0
+                    },
+                    "states": {}
+                  }
+                },
+                {
+                  "graphic_item_type": "Cell",
+                  "id": "31a2a267-6072-4138-9a93-a3319fa1e828",
+                  "name": "Category",
+                  "text": {
+                    "template": {
+                      "Producer": "1e0cabd2-4127-4ee1-91eb-75212a8c362f"
+                    },
+                    "states": {}
+                  },
+                  "text_color": {
+                    "template": {
+                      "Producer": "925dacee-265f-45ee-baf8-668e3005a03d"
+                    },
+                    "states": {}
+                  },
+                  "text_size": {
+                    "template": 14.0,
+                    "states": {}
+                  },
+                  "font": {
+                    "template": {
+                      "Producer": "c6b7d3a6-78ce-47b9-83d6-6262f07ac76d"
+                    },
+                    "states": {}
+                  },
+                  "color": {
+                    "template": {
+                      "Producer": "8536ebf5-82e1-41e3-bc37-b713534a7780"
+                    },
+                    "states": {}
+                  },
+                  "image": {
+                    "template": "None",
+                    "states": {}
+                  },
+                  "pos": {
+                    "template": {
+                      "x": 432.0,
+                      "y": 43.0,
+                      "z": 1.0
+                    },
+                    "states": {}
+                  },
+                  "size": {
+                    "template": {
+                      "x": 100.0,
+                      "y": 17.0
+                    },
+                    "states": {}
+                  },
+                  "skew": {
+                    "template": 0.0,
+                    "states": {}
+                  },
+                  "corner_offsets": {
+                    "template": {
+                      "top_left": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "top_right": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "bot_left": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "bot_right": {
+                        "x": 0.0,
+                        "y": 0.0
+                      }
+                    },
+                    "states": {}
+                  },
+                  "visible": {
+                    "template": true,
+                    "states": {}
+                  },
+                  "rounding": {
+                    "template": {
+                      "top_left": 0.0,
+                      "top_right": 0.0,
+                      "bot_left": 0.0,
+                      "bot_right": 0.0
+                    },
+                    "states": {}
+                  },
+                  "text_alginment": {
+                    "template": "Center",
+                    "states": {}
+                  },
+                  "text_position": {
+                    "template": {
+                      "x": 41.0,
+                      "y": 8.5
+                    },
+                    "states": {}
+                  }
+                },
+                {
+                  "graphic_item_type": "Cell",
+                  "id": "9fceac1e-135b-4d8a-95ca-9867d71ad561",
+                  "name": "Nationality",
+                  "text": {
+                    "template": "Flag",
+                    "states": {}
+                  },
+                  "text_color": {
+                    "template": {
+                      "Rgba": {
+                        "red": 1.0,
+                        "green": 1.0,
+                        "blue": 1.0,
+                        "alpha": 1.0
+                      }
+                    },
+                    "states": {}
+                  },
+                  "text_size": {
+                    "template": 20.0,
+                    "states": {}
+                  },
+                  "font": {
+                    "template": "Default",
+                    "states": {}
+                  },
+                  "color": {
+                    "template": {
+                      "Rgba": {
+                        "red": 0.5556886,
+                        "green": 0.5556886,
+                        "blue": 0.5556886,
+                        "alpha": 1.0
+                      }
+                    },
+                    "states": {}
+                  },
+                  "image": {
+                    "template": "None",
+                    "states": {}
+                  },
+                  "pos": {
+                    "template": {
+                      "x": 494.0,
+                      "y": 0.0,
+                      "z": 2.0
+                    },
+                    "states": {}
+                  },
+                  "size": {
+                    "template": {
+                      "x": 75.0,
+                      "y": 60.0
+                    },
+                    "states": {}
+                  },
+                  "skew": {
+                    "template": 25.0,
+                    "states": {}
+                  },
+                  "corner_offsets": {
+                    "template": {
+                      "top_left": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "top_right": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "bot_left": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "bot_right": {
+                        "x": 0.0,
+                        "y": 0.0
+                      }
+                    },
+                    "states": {}
+                  },
+                  "visible": {
+                    "template": true,
+                    "states": {}
+                  },
+                  "rounding": {
+                    "template": {
+                      "top_left": 14.0,
+                      "top_right": 0.0,
+                      "bot_left": 14.0,
+                      "bot_right": 14.0
+                    },
+                    "states": {}
+                  },
+                  "text_alginment": {
+                    "template": "Left",
+                    "states": {}
+                  },
+                  "text_position": {
+                    "template": {
+                      "x": 25.0,
+                      "y": 30.0
+                    },
+                    "states": {}
+                  }
+                }
+              ]
             }
           ],
           "position": {
             "template": {
-              "x": 710.0,
-              "y": 926.0
+              "x": 1307.0,
+              "y": 980.0
             },
             "states": {}
           }

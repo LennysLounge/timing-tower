@@ -46,22 +46,31 @@ pub fn show_entry_table(ui: &mut Ui, adapter: Option<&Adapter>) {
         .map(|session| session.entries.values().collect::<Vec<_>>())
         .unwrap_or(Vec::new());
     entries.sort_by_key(|e| *e.position);
-    
+
     egui_ltable::Table::new()
         .scroll(false, true)
         .resize_full_height(false)
         .striped(true)
         .column(
-            egui_ltable::Column::exact(30.0)
+            egui_ltable::Column::exact(10.0)
                 .layout(Layout::centered_and_justified(Direction::LeftToRight)),
         )
-        .column(egui_ltable::Column::exact(ui.available_width() - 80.0))
         .column(
             egui_ltable::Column::exact(30.0)
                 .layout(Layout::centered_and_justified(Direction::LeftToRight)),
         )
+        .column(egui_ltable::Column::exact(ui.available_width() - 210.0))
+        .column(
+            egui_ltable::Column::exact(30.0)
+                .layout(Layout::centered_and_justified(Direction::LeftToRight)),
+        )
+        .column(
+            egui_ltable::Column::exact(100.0)
+                .layout(Layout::centered_and_justified(Direction::LeftToRight)),
+        )
         .show(ui, |table| {
             table.row(egui_ltable::Row::new().height(30.0).fixed(true), |row| {
+                row.cell(|_| {});
                 row.cell(|ui| {
                     ui.heading("#");
                 });
@@ -70,6 +79,9 @@ pub fn show_entry_table(ui: &mut Ui, adapter: Option<&Adapter>) {
                 });
                 row.cell(|ui| {
                     ui.heading("Nr");
+                });
+                row.cell(|ui| {
+                    ui.heading("Interval");
                 });
             });
             for (index, entry) in entries.iter().enumerate() {
@@ -80,6 +92,11 @@ pub fn show_entry_table(ui: &mut Ui, adapter: Option<&Adapter>) {
                         .hover_highlight(true)
                         .highlight(entry.focused),
                     |row| {
+                        row.cell(|ui| {
+                            if *entry.in_pits {
+                                ui.label("P");
+                            }
+                        });
                         row.cell(|ui| {
                             ui.add(
                                 Label::new(format!("{}", index + 1))
@@ -105,6 +122,13 @@ pub fn show_entry_table(ui: &mut Ui, adapter: Option<&Adapter>) {
                                     .selectable(false)
                                     .wrap(false),
                             );
+                        });
+                        row.cell(|ui| {
+                            if let Some(time) = entry.time_behind_position_ahead.get_available() {
+                                ui.add(Label::new(time.format()).selectable(false).wrap(false));
+                            } else {
+                                ui.add(Label::new("-").selectable(false).wrap(false));
+                            }
                         });
                     },
                 );

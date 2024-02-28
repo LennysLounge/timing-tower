@@ -17,16 +17,7 @@
 # General
 * Create a GTWC layout
 * Create a formula 1 layout
-* Add a driver graphic item
-
-# Dashboard
-* Show pit status.
-* show gap ahead
 
 # Controller
 * Graphics should start in their first state.
-* Add option which adapter to connect to.
-
-# ACC adapter
-* Entries with no position (pos == 0) should not show up at all in the model.
 

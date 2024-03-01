@@ -531,6 +531,18 @@ pub fn driver_table_editor(
     let mut edit_result = EditResult::None;
 
     ui.scope(|ui| {
+        ui_attribute(ui, &mut driver_table.position, state_id, |ui, attr| {
+            ui_split(ui, "Position X", |ui| {
+                edit_result |= ui
+                    .add(PropertyEditor::new(&mut attr.x, reference_store))
+                    .into();
+            });
+            ui_split(ui, "Y", |ui| {
+                edit_result |= ui
+                    .add(PropertyEditor::new(&mut attr.y, reference_store))
+                    .into();
+            });
+        });
         ui_attribute(ui, &mut driver_table.row_offset, state_id, |ui, attr| {
             ui_split(ui, "Row offset X", |ui| {
                 edit_result |= ui

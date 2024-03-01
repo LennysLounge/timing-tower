@@ -12,6 +12,8 @@ use super::{Attribute, ComputedGraphicItem, GraphicItem, GraphicItemId};
 pub struct DriverTable {
     pub id: GraphicItemId,
     pub name: String,
+    #[serde(default)]
+    pub position: Attribute<Vec2Property>,
     pub row_offset: Attribute<Vec2Property>,
     pub columns: Vec<GraphicItem>,
 }
@@ -26,11 +28,17 @@ impl DriverTable {
             }
             .into(),
             columns: Vec::new(),
+            position: Vec2Property {
+                x: Property::Fixed(Number(0.0)),
+                y: Property::Fixed(Number(0.0)),
+            }
+            .into(),
         }
     }
     pub fn compute_for_state(&self, state: Option<&GraphicStateId>) -> ComputedDriverTable {
         ComputedDriverTable {
             id: self.id,
+            position: self.position.get_state_or_template(state),
             row_offset: self.row_offset.get_state_or_template(state),
             columns: self
                 .columns
@@ -43,6 +51,7 @@ impl DriverTable {
 
 pub struct ComputedDriverTable {
     pub id: GraphicItemId,
+    pub position: Vec2Property,
     pub row_offset: Vec2Property,
     pub columns: Vec<ComputedGraphicItem>,
 }

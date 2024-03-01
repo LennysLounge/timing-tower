@@ -178,6 +178,18 @@ fn update_graphic_item(
             let DriverTableData { scroll_position } =
                 graphic_item_data_storage.get_or_default(driver_table.id);
 
+            let position = vec3(
+                resolver
+                    .property(&driver_table.position.x)
+                    .unwrap_or_default()
+                    .0,
+                -resolver
+                    .property(&driver_table.position.y)
+                    .unwrap_or_default()
+                    .0,
+                0.0,
+            );
+
             // Read the row offset.
             let row_offset = vec3(
                 resolver
@@ -202,7 +214,7 @@ fn update_graphic_item(
                     .max(0.0);
                 *scroll_position = *scroll_position - (*scroll_position - rows_to_skip) * 0.2;
             }
-            let scroll_offset = row_offset * *scroll_position;
+            let scroll_offset = row_offset * *scroll_position - position;
 
             // Each column for all entries.
             for (index, entry) in entries.iter().enumerate() {

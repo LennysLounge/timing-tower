@@ -43,7 +43,7 @@ fn main() {
 struct RenderTimer(Timer);
 
 fn setup(mut savefile: ResMut<Savefile>, savefile_changed_event: EventWriter<SavefileChanged>) {
-    savefile.load("../../savefile/style.json", savefile_changed_event);
+    savefile.load("../../savefiles/gtwc/style.json", savefile_changed_event);
 }
 
 fn send_style_commands(

@@ -1,0 +1,1152 @@
+{
+  "id": "00000000-0000-0000-0000-000000000000",
+  "assets": {
+    "style_item_type": "AssetFolder",
+    "id": "690028e5-dce0-4af6-8fe6-14d68dd0c83d",
+    "name": "Assets",
+    "content": [
+      {
+        "element_type": "Asset",
+        "style_item_type": "Asset",
+        "id": "53c06080-cb8e-443b-8deb-c5dc30d07e52",
+        "name": "Fira Sans condensed Reg",
+        "value_type": "Font",
+        "path": "FiraSansCondensed-Regular.ttf"
+      },
+      {
+        "element_type": "Asset",
+        "style_item_type": "Asset",
+        "id": "606987d1-63bc-491f-917d-9353d6b0ccb5",
+        "name": "Fira Sans condensed Bold",
+        "value_type": "Font",
+        "path": "FiraSansCondensed-Bold.ttf"
+      },
+      {
+        "element_type": "Asset",
+        "style_item_type": "Asset",
+        "id": "ef11c790-88f2-4e3e-8530-e2bba43c011a",
+        "name": "Fira Sans Bold tab",
+        "value_type": "Font",
+        "path": "FiraSans-Bold-tabular.ttf"
+      }
+    ]
+  },
+  "vars": {
+    "style_item_type": "VariableFolder",
+    "id": "03a42ffe-eae0-4f33-a974-218bc8e50d74",
+    "name": "Variables",
+    "content": [
+      {
+        "element_type": "Folder",
+        "style_item_type": "VariableFolder",
+        "id": "d76bcf86-2f4b-4ac9-8af5-861015fe6a89",
+        "name": "Colors",
+        "content": [
+          {
+            "element_type": "Variable",
+            "style_item_type": "Variable",
+            "id": "88bd01d2-550d-4c4e-8110-16563097e4b5",
+            "name": "Red",
+            "behavior": "FixedValue",
+            "output_type": "Tint",
+            "Rgba": {
+              "red": 0.76954263,
+              "green": 0.13667075,
+              "blue": 0.09234512,
+              "alpha": 1.0
+            }
+          },
+          {
+            "element_type": "Variable",
+            "style_item_type": "Variable",
+            "id": "51d8a607-50a6-4a1c-8392-cbdb653b2702",
+            "name": "Dark solid",
+            "behavior": "FixedValue",
+            "output_type": "Tint",
+            "Rgba": {
+              "red": 0.14329153,
+              "green": 0.14329153,
+              "blue": 0.14329153,
+              "alpha": 1.0
+            }
+          }
+        ]
+      },
+      {
+        "element_type": "Folder",
+        "style_item_type": "VariableFolder",
+        "id": "98445af1-45e4-4c16-8ed9-72e235136d2c",
+        "name": "Race clock",
+        "content": [
+          {
+            "element_type": "Variable",
+            "style_item_type": "Variable",
+            "id": "af2a162b-1aa0-4d92-8629-3863075b0bf0",
+            "name": "Session name",
+            "behavior": "Map",
+            "input_type": "Number",
+            "input_ref": "e3b19274-200e-4ebb-bbdd-a75e2390094c",
+            "input_cases": [
+              {
+                "right": 1.0,
+                "comparator": "Equal"
+              },
+              {
+                "right": 2.0,
+                "comparator": "Equal"
+              },
+              {
+                "right": 3.0,
+                "comparator": "Equal"
+              }
+            ],
+            "output_type": "Text",
+            "output_cases": [
+              "FP",
+              "Q",
+              "RACE"
+            ],
+            "default": "-"
+          }
+        ]
+      }
+    ]
+  },
+  "scene": {
+    "style_item_type": "Scene",
+    "id": "532ae4d8-bda8-48fe-a8a0-9d14ad8b790f",
+    "prefered_size": [
+      1920.0,
+      1080.0
+    ]
+  },
+  "graphics": {
+    "style_item_type": "GraphicFolder",
+    "id": "80df161f-e8ed-40e0-b3dc-f13d8692676c",
+    "name": "Graphics",
+    "content": [
+      {
+        "element_type": "Graphic",
+        "style_item_type": "Graphic",
+        "id": "d637d1c2-0c99-40ca-bc72-f59663dc9e07",
+        "name": "Race clock",
+        "items": {
+          "graphic_item_type": "Root",
+          "id": "d851665b-aaa1-41bb-a8a6-5cfbab8076e4",
+          "name": "Race clock",
+          "items": [
+            {
+              "graphic_item_type": "Cell",
+              "id": "731512de-2d4a-4a23-9de5-53e0c58d43bf",
+              "name": "Heading",
+              "text": {
+                "template": "Fanatec GT World Challenge",
+                "states": {}
+              },
+              "text_color": {
+                "template": {
+                  "Rgba": {
+                    "red": 1.0,
+                    "green": 1.0,
+                    "blue": 1.0,
+                    "alpha": 1.0
+                  }
+                },
+                "states": {}
+              },
+              "text_size": {
+                "template": 22.0,
+                "states": {}
+              },
+              "font": {
+                "template": {
+                  "Producer": "53c06080-cb8e-443b-8deb-c5dc30d07e52"
+                },
+                "states": {}
+              },
+              "color": {
+                "template": {
+                  "Producer": "88bd01d2-550d-4c4e-8110-16563097e4b5"
+                },
+                "states": {}
+              },
+              "image": {
+                "template": "None",
+                "states": {}
+              },
+              "pos": {
+                "template": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "states": {}
+              },
+              "size": {
+                "template": {
+                  "x": 280.0,
+                  "y": 60.0
+                },
+                "states": {}
+              },
+              "skew": {
+                "template": 0.0,
+                "states": {}
+              },
+              "corner_offsets": {
+                "template": {
+                  "top_left": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "top_right": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "bot_left": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "bot_right": {
+                    "x": 0.0,
+                    "y": 0.0
+                  }
+                },
+                "states": {}
+              },
+              "visible": {
+                "template": true,
+                "states": {}
+              },
+              "rounding": {
+                "template": {
+                  "top_left": 15.0,
+                  "top_right": 0.0,
+                  "bot_left": 0.0,
+                  "bot_right": 0.0
+                },
+                "states": {}
+              },
+              "text_alginment": {
+                "template": "Left",
+                "states": {}
+              },
+              "text_position": {
+                "template": {
+                  "x": 11.0,
+                  "y": 19.0
+                },
+                "states": {}
+              }
+            },
+            {
+              "graphic_item_type": "Cell",
+              "id": "6ed21cb2-e19d-41e7-b85b-ea6e8e6c2d7f",
+              "name": "Heading row 2",
+              "text": {
+                "template": "powered by AWS - Sprint",
+                "states": {}
+              },
+              "text_color": {
+                "template": {
+                  "Rgba": {
+                    "red": 1.0,
+                    "green": 1.0,
+                    "blue": 1.0,
+                    "alpha": 1.0
+                  }
+                },
+                "states": {}
+              },
+              "text_size": {
+                "template": 22.0,
+                "states": {}
+              },
+              "font": {
+                "template": {
+                  "Producer": "53c06080-cb8e-443b-8deb-c5dc30d07e52"
+                },
+                "states": {}
+              },
+              "color": {
+                "template": {
+                  "Rgba": {
+                    "red": 0.0,
+                    "green": 0.0,
+                    "blue": 0.0,
+                    "alpha": 0.0
+                  }
+                },
+                "states": {}
+              },
+              "image": {
+                "template": "None",
+                "states": {}
+              },
+              "pos": {
+                "template": {
+                  "x": 0.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "states": {}
+              },
+              "size": {
+                "template": {
+                  "x": 100.0,
+                  "y": 100.0
+                },
+                "states": {}
+              },
+              "skew": {
+                "template": 0.0,
+                "states": {}
+              },
+              "corner_offsets": {
+                "template": {
+                  "top_left": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "top_right": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "bot_left": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "bot_right": {
+                    "x": 0.0,
+                    "y": 0.0
+                  }
+                },
+                "states": {}
+              },
+              "visible": {
+                "template": true,
+                "states": {}
+              },
+              "rounding": {
+                "template": {
+                  "top_left": 0.0,
+                  "top_right": 0.0,
+                  "bot_left": 0.0,
+                  "bot_right": 0.0
+                },
+                "states": {}
+              },
+              "text_alginment": {
+                "template": "Left",
+                "states": {}
+              },
+              "text_position": {
+                "template": {
+                  "x": 11.0,
+                  "y": 41.0
+                },
+                "states": {}
+              }
+            },
+            {
+              "graphic_item_type": "Cell",
+              "id": "49a556b9-2d8e-46dd-842d-f927dd185011",
+              "name": "Racetrack",
+              "text": {
+                "template": "ZANDVOORT",
+                "states": {}
+              },
+              "text_color": {
+                "template": {
+                  "Rgba": {
+                    "red": 0.0,
+                    "green": 0.0,
+                    "blue": 0.0,
+                    "alpha": 1.0
+                  }
+                },
+                "states": {}
+              },
+              "text_size": {
+                "template": 22.0,
+                "states": {}
+              },
+              "font": {
+                "template": {
+                  "Producer": "606987d1-63bc-491f-917d-9353d6b0ccb5"
+                },
+                "states": {}
+              },
+              "color": {
+                "template": {
+                  "Rgba": {
+                    "red": 1.0,
+                    "green": 1.0,
+                    "blue": 1.0,
+                    "alpha": 1.0
+                  }
+                },
+                "states": {}
+              },
+              "image": {
+                "template": "None",
+                "states": {}
+              },
+              "pos": {
+                "template": {
+                  "x": 280.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "states": {}
+              },
+              "size": {
+                "template": {
+                  "x": 140.0,
+                  "y": 60.0
+                },
+                "states": {}
+              },
+              "skew": {
+                "template": 0.0,
+                "states": {}
+              },
+              "corner_offsets": {
+                "template": {
+                  "top_left": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "top_right": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "bot_left": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "bot_right": {
+                    "x": 0.0,
+                    "y": 0.0
+                  }
+                },
+                "states": {}
+              },
+              "visible": {
+                "template": true,
+                "states": {}
+              },
+              "rounding": {
+                "template": {
+                  "top_left": 0.0,
+                  "top_right": 0.0,
+                  "bot_left": 0.0,
+                  "bot_right": 15.0
+                },
+                "states": {}
+              },
+              "text_alginment": {
+                "template": "Left",
+                "states": {}
+              },
+              "text_position": {
+                "template": {
+                  "x": 10.0,
+                  "y": 19.0
+                },
+                "states": {}
+              }
+            },
+            {
+              "graphic_item_type": "Cell",
+              "id": "7103e0b6-b36a-4138-b603-f5bb90423d94",
+              "name": "Country",
+              "text": {
+                "template": "NETHERLANDS",
+                "states": {}
+              },
+              "text_color": {
+                "template": {
+                  "Rgba": {
+                    "red": 0.0,
+                    "green": 0.0,
+                    "blue": 0.0,
+                    "alpha": 1.0
+                  }
+                },
+                "states": {}
+              },
+              "text_size": {
+                "template": 22.0,
+                "states": {}
+              },
+              "font": {
+                "template": {
+                  "Producer": "53c06080-cb8e-443b-8deb-c5dc30d07e52"
+                },
+                "states": {}
+              },
+              "color": {
+                "template": {
+                  "Rgba": {
+                    "red": 0.0,
+                    "green": 0.0,
+                    "blue": 0.0,
+                    "alpha": 0.0
+                  }
+                },
+                "states": {}
+              },
+              "image": {
+                "template": "None",
+                "states": {}
+              },
+              "pos": {
+                "template": {
+                  "x": 289.0,
+                  "y": 40.0,
+                  "z": 0.0
+                },
+                "states": {}
+              },
+              "size": {
+                "template": {
+                  "x": 100.0,
+                  "y": 100.0
+                },
+                "states": {}
+              },
+              "skew": {
+                "template": 0.0,
+                "states": {}
+              },
+              "corner_offsets": {
+                "template": {
+                  "top_left": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "top_right": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "bot_left": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "bot_right": {
+                    "x": 0.0,
+                    "y": 0.0
+                  }
+                },
+                "states": {}
+              },
+              "visible": {
+                "template": true,
+                "states": {}
+              },
+              "rounding": {
+                "template": {
+                  "top_left": 0.0,
+                  "top_right": 0.0,
+                  "bot_left": 0.0,
+                  "bot_right": 0.0
+                },
+                "states": {}
+              },
+              "text_alginment": {
+                "template": "Left",
+                "states": {}
+              },
+              "text_position": {
+                "template": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "states": {}
+              }
+            },
+            {
+              "graphic_item_type": "Cell",
+              "id": "cc199a17-2a5e-4044-a1ae-0c448aca6b14",
+              "name": "Session type",
+              "text": {
+                "template": {
+                  "Producer": "af2a162b-1aa0-4d92-8629-3863075b0bf0"
+                },
+                "states": {}
+              },
+              "text_color": {
+                "template": {
+                  "Rgba": {
+                    "red": 0.0,
+                    "green": 0.0,
+                    "blue": 0.0,
+                    "alpha": 1.0
+                  }
+                },
+                "states": {}
+              },
+              "text_size": {
+                "template": 28.0,
+                "states": {}
+              },
+              "font": {
+                "template": {
+                  "Producer": "ef11c790-88f2-4e3e-8530-e2bba43c011a"
+                },
+                "states": {}
+              },
+              "color": {
+                "template": {
+                  "Rgba": {
+                    "red": 1.0,
+                    "green": 1.0,
+                    "blue": 1.0,
+                    "alpha": 1.0
+                  }
+                },
+                "states": {}
+              },
+              "image": {
+                "template": "None",
+                "states": {}
+              },
+              "pos": {
+                "template": {
+                  "x": 0.0,
+                  "y": 60.0,
+                  "z": 0.0
+                },
+                "states": {}
+              },
+              "size": {
+                "template": {
+                  "x": 280.0,
+                  "y": 40.0
+                },
+                "states": {}
+              },
+              "skew": {
+                "template": 0.0,
+                "states": {}
+              },
+              "corner_offsets": {
+                "template": {
+                  "top_left": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "top_right": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "bot_left": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "bot_right": {
+                    "x": 0.0,
+                    "y": 0.0
+                  }
+                },
+                "states": {}
+              },
+              "visible": {
+                "template": true,
+                "states": {}
+              },
+              "rounding": {
+                "template": {
+                  "top_left": 0.0,
+                  "top_right": 0.0,
+                  "bot_left": 0.0,
+                  "bot_right": 0.0
+                },
+                "states": {}
+              },
+              "text_alginment": {
+                "template": "Left",
+                "states": {}
+              },
+              "text_position": {
+                "template": {
+                  "x": 10.0,
+                  "y": 21.0
+                },
+                "states": {}
+              }
+            },
+            {
+              "graphic_item_type": "Cell",
+              "id": "8173b2af-3306-4707-8033-7242d981a6c8",
+              "name": "Session time",
+              "text": {
+                "template": "00:45:53",
+                "states": {}
+              },
+              "text_color": {
+                "template": {
+                  "Rgba": {
+                    "red": 0.0,
+                    "green": 0.0,
+                    "blue": 0.0,
+                    "alpha": 1.0
+                  }
+                },
+                "states": {}
+              },
+              "text_size": {
+                "template": 29.0,
+                "states": {}
+              },
+              "font": {
+                "template": {
+                  "Producer": "ef11c790-88f2-4e3e-8530-e2bba43c011a"
+                },
+                "states": {}
+              },
+              "color": {
+                "template": {
+                  "Rgba": {
+                    "red": 0.0,
+                    "green": 0.0,
+                    "blue": 0.0,
+                    "alpha": 0.0
+                  }
+                },
+                "states": {}
+              },
+              "image": {
+                "template": "None",
+                "states": {}
+              },
+              "pos": {
+                "template": {
+                  "x": 192.0,
+                  "y": 81.0,
+                  "z": 0.0
+                },
+                "states": {}
+              },
+              "size": {
+                "template": {
+                  "x": 100.0,
+                  "y": 100.0
+                },
+                "states": {}
+              },
+              "skew": {
+                "template": 0.0,
+                "states": {}
+              },
+              "corner_offsets": {
+                "template": {
+                  "top_left": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "top_right": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "bot_left": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "bot_right": {
+                    "x": 0.0,
+                    "y": 0.0
+                  }
+                },
+                "states": {}
+              },
+              "visible": {
+                "template": true,
+                "states": {}
+              },
+              "rounding": {
+                "template": {
+                  "top_left": 0.0,
+                  "top_right": 0.0,
+                  "bot_left": 0.0,
+                  "bot_right": 0.0
+                },
+                "states": {}
+              },
+              "text_alginment": {
+                "template": "Right",
+                "states": {}
+              },
+              "text_position": {
+                "template": {
+                  "x": 0.0,
+                  "y": 0.0
+                },
+                "states": {}
+              }
+            }
+          ],
+          "position": {
+            "template": {
+              "x": 98.0,
+              "y": 56.0
+            },
+            "states": {}
+          }
+        },
+        "states": []
+      },
+      {
+        "element_type": "Graphic",
+        "style_item_type": "Graphic",
+        "id": "9770cec6-a17c-4fce-8db4-37b526ab877b",
+        "name": "Timing Tower",
+        "items": {
+          "graphic_item_type": "Root",
+          "id": "9f1d9792-74d3-41d6-be5e-3961fdc38c7e",
+          "name": "Timing Tower",
+          "items": [
+            {
+              "graphic_item_type": "Cell",
+              "id": "fc6fa9fa-9697-4cee-837e-5aa11d16487b",
+              "name": "Category",
+              "text": {
+                "template": "OVERALL",
+                "states": {}
+              },
+              "text_color": {
+                "template": {
+                  "Rgba": {
+                    "red": 1.0,
+                    "green": 1.0,
+                    "blue": 1.0,
+                    "alpha": 1.0
+                  }
+                },
+                "states": {}
+              },
+              "text_size": {
+                "template": 20.0,
+                "states": {}
+              },
+              "font": {
+                "template": {
+                  "Producer": "606987d1-63bc-491f-917d-9353d6b0ccb5"
+                },
+                "states": {}
+              },
+              "color": {
+                "template": {
+                  "Producer": "51d8a607-50a6-4a1c-8392-cbdb653b2702"
+                },
+                "states": {}
+              },
+              "image": {
+                "template": "None",
+                "states": {}
+              },
+              "pos": {
+                "template": {
+                  "x": 205.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "states": {}
+              },
+              "size": {
+                "template": {
+                  "x": 75.0,
+                  "y": 40.0
+                },
+                "states": {}
+              },
+              "skew": {
+                "template": 0.0,
+                "states": {}
+              },
+              "corner_offsets": {
+                "template": {
+                  "top_left": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "top_right": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "bot_left": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "bot_right": {
+                    "x": 0.0,
+                    "y": 0.0
+                  }
+                },
+                "states": {}
+              },
+              "visible": {
+                "template": true,
+                "states": {}
+              },
+              "rounding": {
+                "template": {
+                  "top_left": 0.0,
+                  "top_right": 0.0,
+                  "bot_left": 0.0,
+                  "bot_right": 0.0
+                },
+                "states": {}
+              },
+              "text_alginment": {
+                "template": "Left",
+                "states": {}
+              },
+              "text_position": {
+                "template": {
+                  "x": 6.0,
+                  "y": 21.0
+                },
+                "states": {}
+              }
+            },
+            {
+              "graphic_item_type": "Cell",
+              "id": "094a3876-5776-41ba-ace9-9b78db5df46d",
+              "name": "Data heading",
+              "text": {
+                "template": "INTERVAL",
+                "states": {}
+              },
+              "text_color": {
+                "template": {
+                  "Rgba": {
+                    "red": 1.0,
+                    "green": 1.0,
+                    "blue": 1.0,
+                    "alpha": 1.0
+                  }
+                },
+                "states": {}
+              },
+              "text_size": {
+                "template": 20.0,
+                "states": {}
+              },
+              "font": {
+                "template": {
+                  "Producer": "53c06080-cb8e-443b-8deb-c5dc30d07e52"
+                },
+                "states": {}
+              },
+              "color": {
+                "template": {
+                  "Producer": "51d8a607-50a6-4a1c-8392-cbdb653b2702"
+                },
+                "states": {}
+              },
+              "image": {
+                "template": "None",
+                "states": {}
+              },
+              "pos": {
+                "template": {
+                  "x": 280.0,
+                  "y": 0.0,
+                  "z": 0.0
+                },
+                "states": {}
+              },
+              "size": {
+                "template": {
+                  "x": 140.0,
+                  "y": 40.0
+                },
+                "states": {}
+              },
+              "skew": {
+                "template": 0.0,
+                "states": {}
+              },
+              "corner_offsets": {
+                "template": {
+                  "top_left": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "top_right": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "bot_left": {
+                    "x": 0.0,
+                    "y": 0.0
+                  },
+                  "bot_right": {
+                    "x": 0.0,
+                    "y": 0.0
+                  }
+                },
+                "states": {}
+              },
+              "visible": {
+                "template": true,
+                "states": {}
+              },
+              "rounding": {
+                "template": {
+                  "top_left": 0.0,
+                  "top_right": 0.0,
+                  "bot_left": 0.0,
+                  "bot_right": 15.0
+                },
+                "states": {}
+              },
+              "text_alginment": {
+                "template": "Left",
+                "states": {}
+              },
+              "text_position": {
+                "template": {
+                  "x": 12.0,
+                  "y": 21.0
+                },
+                "states": {}
+              }
+            },
+            {
+              "graphic_item_type": "DriverTable",
+              "id": "5524968f-e465-4df7-9922-1f88ae5ca1f3",
+              "name": "Driver table",
+              "row_offset": {
+                "template": {
+                  "x": 30.0,
+                  "y": 30.0
+                },
+                "states": {}
+              },
+              "columns": [
+                {
+                  "graphic_item_type": "Cell",
+                  "id": "1a5fc141-ee2f-4c8f-9354-7a92e2afc767",
+                  "name": "Cell",
+                  "text": {
+                    "template": "Cell",
+                    "states": {}
+                  },
+                  "text_color": {
+                    "template": {
+                      "Rgba": {
+                        "red": 1.0,
+                        "green": 1.0,
+                        "blue": 1.0,
+                        "alpha": 1.0
+                      }
+                    },
+                    "states": {}
+                  },
+                  "text_size": {
+                    "template": 20.0,
+                    "states": {}
+                  },
+                  "font": {
+                    "template": "Default",
+                    "states": {}
+                  },
+                  "color": {
+                    "template": {
+                      "Rgba": {
+                        "red": 0.5,
+                        "green": 0.0,
+                        "blue": 0.5,
+                        "alpha": 1.0
+                      }
+                    },
+                    "states": {}
+                  },
+                  "image": {
+                    "template": "None",
+                    "states": {}
+                  },
+                  "pos": {
+                    "template": {
+                      "x": 0.0,
+                      "y": 0.0,
+                      "z": 0.0
+                    },
+                    "states": {}
+                  },
+                  "size": {
+                    "template": {
+                      "x": 100.0,
+                      "y": 100.0
+                    },
+                    "states": {}
+                  },
+                  "skew": {
+                    "template": 0.0,
+                    "states": {}
+                  },
+                  "corner_offsets": {
+                    "template": {
+                      "top_left": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "top_right": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "bot_left": {
+                        "x": 0.0,
+                        "y": 0.0
+                      },
+                      "bot_right": {
+                        "x": 0.0,
+                        "y": 0.0
+                      }
+                    },
+                    "states": {}
+                  },
+                  "visible": {
+                    "template": true,
+                    "states": {}
+                  },
+                  "rounding": {
+                    "template": {
+                      "top_left": 0.0,
+                      "top_right": 0.0,
+                      "bot_left": 0.0,
+                      "bot_right": 0.0
+                    },
+                    "states": {}
+                  },
+                  "text_alginment": {
+                    "template": "Left",
+                    "states": {}
+                  },
+                  "text_position": {
+                    "template": {
+                      "x": 5.0,
+                      "y": 15.0
+                    },
+                    "states": {}
+                  }
+                }
+              ]
+            }
+          ],
+          "position": {
+            "template": {
+              "x": 98.0,
+              "y": 116.0
+            },
+            "states": {}
+          }
+        },
+        "states": []
+      }
+    ]
+  }
+}

@@ -94,7 +94,7 @@ fn setup(
     ));
     game_adapter.set(adapter);
 
-    savefile.load("../../savefile/style.json", savefile_changed_event);
+    savefile.load("../../savefiles/gtwc/style.json", savefile_changed_event);
 
     let background_id = commands
         .spawn_empty()
@@ -112,7 +112,7 @@ fn setup(
             font: None,
             color: Color::WHITE,
             //texture: Some(asset_server.load("../../../savefile/acc6.PNG")),
-            texture: Some(asset_server.load("../../../savefile/background.PNG")),
+            texture: Some(asset_server.load("../../../savefiles/gtwc/GTWC interval.png")),
             pos: Vec3::new(0.0, 0.0, -100.0),
             size: Vec2::new(1920.0, 1080.0),
             corner_offsets: [Vec2::ZERO, Vec2::ZERO, Vec2::ZERO, Vec2::ZERO],

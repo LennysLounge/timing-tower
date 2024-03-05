@@ -1496,7 +1496,7 @@
               },
               "color": {
                 "template": {
-                  "Producer": "51d8a607-50a6-4a1c-8392-cbdb653b2702"
+                  "Producer": "6ffd9b4c-91cf-42d2-82d5-b6167dc04f8b"
                 },
                 "states": {}
               },
@@ -1546,7 +1546,9 @@
               },
               "visible": {
                 "template": true,
-                "states": {}
+                "states": {
+                  "ee350493-a23d-4a4c-b86d-da50c85b994d": false
+                }
               },
               "rounding": {
                 "template": {
@@ -2341,7 +2343,9 @@
                       },
                       "visible": {
                         "template": true,
-                        "states": {}
+                        "states": {
+                          "ee350493-a23d-4a4c-b86d-da50c85b994d": false
+                        }
                       },
                       "rounding": {
                         "template": {
@@ -2378,6 +2382,10 @@
           }
         },
         "states": [
+          {
+            "id": "ee350493-a23d-4a4c-b86d-da50c85b994d",
+            "name": "Default"
+          },
           {
             "id": "c17fb308-d367-4878-85ac-fbd0784ab159",
             "name": "Interval"

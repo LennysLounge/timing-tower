@@ -651,12 +651,7 @@
             "right": true,
             "output_type": "Color",
             "truee": {
-              "Rgba": {
-                "red": 0.0,
-                "green": 0.0,
-                "blue": 0.0,
-                "alpha": 1.0
-              }
+              "Producer": "88bd01d2-550d-4c4e-8110-16563097e4b5"
             },
             "falsee": {
               "Producer": "88bd01d2-550d-4c4e-8110-16563097e4b5"
@@ -1236,7 +1231,9 @@
               "id": "8173b2af-3306-4707-8033-7242d981a6c8",
               "name": "Session time",
               "text": {
-                "template": "00:45:53",
+                "template": {
+                  "Producer": "c396553c-3281-4735-9805-dfd2de6ae3eb"
+                },
                 "states": {}
               },
               "text_color": {
@@ -1472,8 +1469,8 @@
               "text": {
                 "template": "DATA",
                 "states": {
-                  "c17fb308-d367-4878-85ac-fbd0784ab159": "INTERVAL",
-                  "f04764cf-0e37-4f6d-bd11-c6aed76822b7": "GAP TO LEADER"
+                  "f04764cf-0e37-4f6d-bd11-c6aed76822b7": "GAP TO LEADER",
+                  "c17fb308-d367-4878-85ac-fbd0784ab159": "INTERVAL"
                 }
               },
               "text_color": {
@@ -2065,12 +2062,7 @@
                       },
                       "text_color": {
                         "template": {
-                          "Rgba": {
-                            "red": 0.0,
-                            "green": 0.0,
-                            "blue": 0.0,
-                            "alpha": 1.0
-                          }
+                          "Producer": "31651fb8-4e69-4298-85a2-2d7df6f2ac80"
                         },
                         "states": {}
                       },
@@ -2268,11 +2260,11 @@
                       "text": {
                         "template": "Data",
                         "states": {
-                          "c17fb308-d367-4878-85ac-fbd0784ab159": {
-                            "Producer": "836eb641-9e43-401c-9365-3022deafea5f"
-                          },
                           "f04764cf-0e37-4f6d-bd11-c6aed76822b7": {
                             "Producer": "0ff0dc1b-c6e1-4135-b52a-f7f3afc83927"
+                          },
+                          "c17fb308-d367-4878-85ac-fbd0784ab159": {
+                            "Producer": "836eb641-9e43-401c-9365-3022deafea5f"
                           }
                         }
                       },

@@ -1,7 +1,6 @@
 pub mod combo_box;
 mod panels;
 pub mod popup;
-mod selection_manager;
 mod tabs;
 
 use std::{collections::HashMap, fs::File, io::Write};

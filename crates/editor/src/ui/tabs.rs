@@ -4,7 +4,7 @@ mod style_item;
 mod style_item_tree;
 mod undo_redo;
 
-use backend::GameAdapterResource;
+use backend::{graphic::GraphicStates, savefile::Savefile, GameAdapterResource};
 use bevy::ecs::system::{Res, ResMut, Resource};
 use bevy_egui::{egui, EguiContexts};
 use egui_dock::{DockArea, DockState, NodeIndex, TabViewer};
@@ -40,8 +40,9 @@ pub(super) fn tab_area(
     mut editor_state: ResMut<EditorState>,
     reference_store: Res<ReferenceStore>,
     game_adapter: Res<GameAdapterResource>,
+    mut graphic_states: ResMut<GraphicStates>,
+    savefile: ResMut<Savefile>,
 ) {
-    //let viewport = &mut editor_camera.single_mut().0.raw_viewport;
     DockArea::new(&mut tab_area.dock_state)
         .style({
             let mut style = egui_dock::Style::from_egui(ctx.ctx_mut().style().as_ref());
@@ -64,14 +65,10 @@ pub(super) fn tab_area(
                 messages: &mut messages,
                 editor_style: &mut editor_style,
                 editor_state: &mut editor_state,
-                //editor_style: &mut editor_state.style,
-                // viewport,
-                // selection_manager,
-                //style,
                 reference_store: &reference_store,
-                // undo_redo_manager: undo_redo_manager.as_mut(),
                 game_adapter: game_adapter.adapter(),
-                //graphic_states: &mut graphic_states,
+                graphic_states: &mut graphic_states,
+                savefile: &savefile,
             },
         );
 }
@@ -89,14 +86,10 @@ struct EditorTabViewer<'a> {
     messages: &'a mut UiMessages,
     editor_style: &'a mut EditorStyle,
     editor_state: &'a mut EditorState,
-    //editor_style: &'a mut ExactVariant<StyleItem, StyleDefinition>,
-    // pub viewport: &'a mut Rect,
-    // pub selection_manager: &'a mut SelectionManager,
-    //pub style: &'a mut ExactVariant<StyleItem, StyleDefinition>,
     reference_store: &'a ReferenceStore,
-    // pub undo_redo_manager: &'a mut UndoRedoManager,
     game_adapter: Option<&'a Adapter>,
-    // pub graphic_states: &'a mut GraphicStates,
+    graphic_states: &'a mut GraphicStates,
+    savefile: &'a Savefile,
 }
 impl<'a> TabViewer for EditorTabViewer<'a> {
     type Tab = Tab;
@@ -118,7 +111,12 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 self.messages.push(UiMessage::SceneViewport(ui.clip_rect()));
             }
             Tab::Dashboard => {
-                //dashboard::dashboard(ui, self.game_adapter, &self.style, self.graphic_states);
+                dashboard::dashboard(
+                    ui,
+                    self.game_adapter,
+                    self.savefile.style(),
+                    self.graphic_states,
+                );
             }
             Tab::StyleItems => {
                 style_item_tree::tree_view(ui, self.messages, self.editor_style, self.editor_state);

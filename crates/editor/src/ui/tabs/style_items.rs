@@ -80,7 +80,9 @@ fn drop_allowed(target: &StyleItem, dragged: &StyleItem) -> bool {
         (StyleItem::AssetFolder(_), StyleItem::AssetFolder(_)) => true,
         (StyleItem::AssetFolder(_), StyleItem::Asset(_)) => true,
 
-        (StyleItem::Scene(_), StyleItem::Graphic(_)) => true,
+        (StyleItem::GraphicFolder(_), StyleItem::GraphicFolder(_)) => true,
+        (StyleItem::GraphicFolder(_), StyleItem::Graphic(_)) => true,
+
         _ => false,
     }
 }
@@ -147,7 +149,16 @@ fn show_node(
                             messages.push(UiMessage::StyleItemInsert {
                                 target: parent_id.expect("Should have a parent"),
                                 position: TreePosition::After(asset.id),
-                                node: AssetDefinition::new().into(),
+                                node: AssetDefinition::new_image().into(),
+                                select_node: true,
+                            });
+                            ui.close_menu();
+                        }
+                        if ui.button("add font").clicked() {
+                            messages.push(UiMessage::StyleItemInsert {
+                                target: parent_id.expect("Should have a parent"),
+                                position: TreePosition::After(asset.id),
+                                node: AssetDefinition::new_font().into(),
                                 select_node: true,
                             });
                             ui.close_menu();
@@ -184,7 +195,7 @@ fn show_node(
                             messages.push(UiMessage::StyleItemInsert {
                                 target: folder.id,
                                 position: TreePosition::Last,
-                                node: AssetDefinition::new().into(),
+                                node: AssetDefinition::new_image().into(),
                                 select_node: true,
                             });
                             ui.close_menu();

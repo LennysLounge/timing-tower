@@ -20,11 +20,19 @@ pub struct AssetDefinition {
     pub path: String,
 }
 impl AssetDefinition {
-    pub fn new() -> Self {
+    pub fn new_image() -> Self {
         Self {
             id: StyleId::new(),
             name: String::from("image"),
             value_type: ValueType::Texture,
+            path: String::new(),
+        }
+    }
+    pub fn new_font() -> Self {
+        Self {
+            id: StyleId::new(),
+            name: String::from("font"),
+            value_type: ValueType::Font,
             path: String::new(),
         }
     }

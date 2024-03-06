@@ -1,5 +1,6 @@
 use std::ops::Deref;
 
+use enumcapsulate::{VariantDiscriminant, VariantDowncast};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -7,7 +8,9 @@ use crate::exact_variant::ExactVariant;
 
 use graphic_items::{root::Root, ComputedGraphicItem, GraphicItem};
 
-use super::{StyleId, StyleItem};
+use super::{
+    StyleId, StyleItem, StyleItemDiscriminant, TreePosition,
+};
 
 pub mod graphic_items;
 
@@ -83,6 +86,57 @@ impl GraphicFolder {
             })
             .collect()
     }
+    pub fn remove_if_present(
+        &mut self,
+        id: &StyleId,
+    ) -> Option<(StyleItem, TreePosition<StyleId>)> {
+        if let Some(index) = self.content.iter().position(|c| c.id() == id) {
+            Some((
+                self.content.remove(index).to_enum(),
+                if index == 0 {
+                    TreePosition::First
+                } else {
+                    TreePosition::After(*self.content[index - 1].id())
+                },
+            ))
+        } else {
+            None
+        }
+    }
+    pub fn insert(
+        &mut self,
+        item: StyleItem,
+        position: TreePosition<StyleId>,
+    ) -> Result<(), StyleItem> {
+        println!("insert graphic");
+        let element = match item.variant_discriminant() {
+            StyleItemDiscriminant::Graphic => GraphicOrFolder::Graphic(
+                item.as_variant_downcast::<GraphicDefinition>()
+                    .unwrap()
+                    .into(),
+            ),
+            StyleItemDiscriminant::GraphicFolder => {
+                GraphicOrFolder::Folder(item.as_variant_downcast::<GraphicFolder>().unwrap().into())
+            }
+            _ => return Err(item),
+        };
+        println!("element is correct");
+        match position {
+            TreePosition::First => self.content.insert(0, element),
+            TreePosition::Last => self.content.push(element),
+            TreePosition::After(id) => {
+                if let Some(index) = self.content.iter().position(|c| c.id() == &id) {
+                    self.content.insert(index + 1, element);
+                }
+            }
+            TreePosition::Before(id) => {
+                if let Some(index) = self.content.iter().position(|c| c.id() == &id) {
+                    self.content.insert(index, element);
+                }
+            }
+        }
+        Ok(())
+    }
 }
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(tag = "element_type")]
@@ -95,6 +149,12 @@ impl GraphicOrFolder {
         match self {
             GraphicOrFolder::Graphic(o) => &o.id,
             GraphicOrFolder::Folder(o) => &o.id,
+        }
+    }
+    fn to_enum(self) -> StyleItem {
+        match self {
+            GraphicOrFolder::Graphic(g) => g.to_enum(),
+            GraphicOrFolder::Folder(f) => f.to_enum(),
         }
     }
 }

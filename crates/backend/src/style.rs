@@ -163,3 +163,49 @@ impl TreeIteratorMut for StyleItem {
         f(self, Method::Leave)
     }
 }
+impl StyleItem {
+    pub fn remove(&mut self, id: &StyleId) -> Option<(StyleItem, TreePosition<StyleId>)> {
+        let result = self.try_for_each(|node| {
+            let result = match node {
+                StyleItem::VariableFolder(f) => f.remove_if_present(id),
+                StyleItem::AssetFolder(f) => f.remove_if_present(id),
+                StyleItem::GraphicFolder(f) => f.remove_if_present(id),
+                StyleItem::Style(_) => None,
+                StyleItem::Variable(_) => None,
+                StyleItem::Asset(_) => None,
+                StyleItem::Scene(_) => None,
+                StyleItem::Graphic(_) => None,
+            };
+            if result.is_some() {
+                ControlFlow::Break(result)
+            } else {
+                ControlFlow::Continue(())
+            }
+        });
+        if let ControlFlow::Break(result) = result {
+            result
+        } else {
+            None
+        }
+    }
+    pub fn insert(&mut self, item: StyleItem, target: &StyleId, position: TreePosition<StyleId>) {
+        self.search_mut(*target, |target_node| match target_node {
+            StyleItem::VariableFolder(f) => f.insert(item, position),
+            StyleItem::AssetFolder(f) => f.insert(item, position),
+            StyleItem::GraphicFolder(f) => f.insert(item, position),
+            StyleItem::Style(_) => todo!(),
+            StyleItem::Variable(_) => todo!(),
+            StyleItem::Asset(_) => todo!(),
+            StyleItem::Scene(_) => todo!(),
+            StyleItem::Graphic(_) => todo!(),
+        });
+    }
+}
+
+#[derive(Clone, Copy)]
+pub enum TreePosition<IdType> {
+    First,
+    Last,
+    After(IdType),
+    Before(IdType),
+}

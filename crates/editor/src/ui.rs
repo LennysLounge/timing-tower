@@ -9,7 +9,8 @@ use std::{fs::File, io::Write};
 use backend::{
     exact_variant::ExactVariant,
     savefile::{Savefile, SavefileChanged},
-    style::{StyleDefinition, StyleId, StyleItem},
+    style::{StyleDefinition, StyleId, StyleItem, TreePosition},
+    tree_iterator::TreeItem,
 };
 use bevy::{
     app::{First, Update},
@@ -38,6 +39,7 @@ pub struct EditorUiPlugin;
 impl Plugin for EditorUiPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource(EditorState::new())
+            .insert_resource(EditorStyle::default())
             .insert_resource(UiMessages(Vec::new()))
             .insert_resource(tabs::TabArea::new())
             .add_systems(Startup, setup_egui_context)
@@ -45,7 +47,9 @@ impl Plugin for EditorUiPlugin {
             .add_systems(
                 Update,
                 (
-                    (panels::top_panel, panels::bottom_panel, tabs::tab_area),
+                    panels::top_panel,
+                    panels::bottom_panel,
+                    tabs::tab_area,
                     process_messages,
                 )
                     .chain()
@@ -122,19 +126,22 @@ enum UiMessage {
     StyleItemMove {
         source: StyleId,
         target: StyleId,
-        position: DropPosition<StyleId>,
+        position: TreePosition<StyleId>,
     },
     StyleItemInsert {
         target: StyleId,
-        position: DropPosition<StyleId>,
+        position: TreePosition<StyleId>,
         node: StyleItem,
+        select_node: bool,
     },
     StyleItemRemove(StyleId),
 }
 
 fn process_messages(
     mut messages: ResMut<UiMessages>,
-    savefile: Res<Savefile>,
+    mut savefile: ResMut<Savefile>,
+    mut savefile_changed_event: EventWriter<SavefileChanged>,
+    mut editor_style: ResMut<EditorStyle>,
     mut editor_state: ResMut<EditorState>,
     mut game_adapter: ResMut<GameAdapterResource>,
     mut reset_camera_event: EventWriter<ResetCamera>,
@@ -197,8 +204,23 @@ fn process_messages(
                 target,
                 position,
                 node,
-            } => todo!(),
-            UiMessage::StyleItemRemove(_) => todo!(),
+                select_node,
+            } => {
+                if select_node {
+                    editor_state
+                        .style_item_tree_state
+                        .set_selected(Some(node.id()));
+                    editor_state
+                        .style_item_tree_state
+                        .expand_parents_of(target, true);
+                }
+                editor_style.0.as_enum_mut().insert(node, &target, position);
+                savefile.set(editor_style.0.clone(), &mut savefile_changed_event);
+            }
+            UiMessage::StyleItemRemove(id) => {
+                let _result = editor_style.0.as_enum_mut().remove(&id);
+                savefile.set(editor_style.0.clone(), &mut savefile_changed_event);
+            }
         }
     }
 }

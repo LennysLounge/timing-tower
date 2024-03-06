@@ -1,14 +1,16 @@
 use std::ops::Deref;
 
+use enumcapsulate::{VariantDiscriminant, VariantDowncast};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     exact_variant::ExactVariant,
+    style::StyleItemDiscriminant,
     value_store::{AnyValueProducer, ProducerId},
     value_types::{AnyProducerRef, Font, Texture, ValueType},
 };
 
-use super::{variables::StaticValueProducer, StyleId, StyleItem};
+use super::{variables::StaticValueProducer, StyleId, StyleItem, TreePosition};
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct AssetDefinition {
@@ -66,6 +68,55 @@ impl AssetFolder {
             })
             .collect()
     }
+    pub fn remove_if_present(
+        &mut self,
+        id: &StyleId,
+    ) -> Option<(StyleItem, TreePosition<StyleId>)> {
+        if let Some(index) = self.content.iter().position(|c| c.id() == id) {
+            Some((
+                self.content.remove(index).to_enum(),
+                if index == 0 {
+                    TreePosition::First
+                } else {
+                    TreePosition::After(*self.content[index - 1].id())
+                },
+            ))
+        } else {
+            None
+        }
+    }
+    pub fn insert(
+        &mut self,
+        item: StyleItem,
+        position: TreePosition<StyleId>,
+    ) -> Result<(), StyleItem> {
+        let element = match item.variant_discriminant() {
+            StyleItemDiscriminant::Asset => AssetOrFolder::Asset(
+                item.as_variant_downcast::<AssetDefinition>()
+                    .unwrap()
+                    .into(),
+            ),
+            StyleItemDiscriminant::AssetFolder => {
+                AssetOrFolder::Folder(item.as_variant_downcast::<AssetFolder>().unwrap().into())
+            }
+            _ => return Err(item),
+        };
+        match position {
+            TreePosition::First => self.content.insert(0, element),
+            TreePosition::Last => self.content.push(element),
+            TreePosition::After(id) => {
+                if let Some(index) = self.content.iter().position(|c| c.id() == &id) {
+                    self.content.insert(index + 1, element);
+                }
+            }
+            TreePosition::Before(id) => {
+                if let Some(index) = self.content.iter().position(|c| c.id() == &id) {
+                    self.content.insert(index, element);
+                }
+            }
+        }
+        Ok(())
+    }
 }
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(tag = "element_type")]
@@ -78,6 +129,12 @@ impl AssetOrFolder {
         match self {
             AssetOrFolder::Asset(o) => &o.id,
             AssetOrFolder::Folder(o) => &o.id,
+        }
+    }
+    fn to_enum(self) -> StyleItem {
+        match self {
+            AssetOrFolder::Asset(a) => a.to_enum(),
+            AssetOrFolder::Folder(f) => f.to_enum(),
         }
     }
 }

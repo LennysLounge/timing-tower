@@ -5,7 +5,7 @@ use backend::{
         assets::{AssetDefinition, AssetFolder},
         graphic::GraphicDefinition,
         variables::{VariableDefinition, VariableFolder},
-        StyleId, StyleItem,
+        StyleId, StyleItem, TreePosition,
     },
     tree_iterator::{Method, TreeIterator, TreeIteratorMut},
 };
@@ -15,11 +15,16 @@ use egui_ltreeview::{
     Action, DropPosition, TreeViewBuilder, TreeViewResponse,
 };
 
-use crate::ui::{EditorStyle, UiMessage, UiMessages};
+use crate::ui::{EditorState, EditorStyle, UiMessage, UiMessages};
 
-pub(super) fn tree_view(ui: &mut Ui, messages: &mut UiMessages, style: &mut EditorStyle) {
+pub(super) fn tree_view(
+    ui: &mut Ui,
+    messages: &mut UiMessages,
+    style: &mut EditorStyle,
+    state: &mut EditorState,
+) {
     let response = ScrollArea::vertical()
-        .show(ui, |ui| show(ui, style.0.as_enum_mut(), messages))
+        .show(ui, |ui| show(ui, style.0.as_enum_mut(), messages, state))
         .inner;
 
     for action in response.actions.iter() {
@@ -54,7 +59,12 @@ pub(super) fn tree_view(ui: &mut Ui, messages: &mut UiMessages, style: &mut Edit
                     messages.push(UiMessage::StyleItemMove {
                         source: *source,
                         target: *target,
-                        position: *position,
+                        position: match position {
+                            DropPosition::First => TreePosition::First,
+                            DropPosition::Last => TreePosition::Last,
+                            DropPosition::After(id) => TreePosition::After(*id),
+                            DropPosition::Before(id) => TreePosition::Before(*id),
+                        },
                     });
                 }
             }
@@ -75,11 +85,16 @@ fn drop_allowed(target: &StyleItem, dragged: &StyleItem) -> bool {
     }
 }
 
-fn show(ui: &mut Ui, root: &mut StyleItem, messages: &mut UiMessages) -> TreeViewResponse<StyleId> {
+fn show(
+    ui: &mut Ui,
+    root: &mut StyleItem,
+    messages: &mut UiMessages,
+    state: &mut EditorState,
+) -> TreeViewResponse<StyleId> {
     let response = egui_ltreeview::TreeView::new(ui.make_persistent_id("element_tree_view"))
         .row_layout(egui_ltreeview::RowLayout::CompactAlignedLables)
         .fill_space_vertical(true)
-        .show(ui, |mut builder| {
+        .show_state(ui, &mut state.style_item_tree_state, |mut builder| {
             root.walk_mut(&mut |node, method| show_node(node, method, &mut builder, messages));
         });
 
@@ -131,16 +146,18 @@ fn show_node(
                         if ui.button("add image").clicked() {
                             messages.push(UiMessage::StyleItemInsert {
                                 target: parent_id.expect("Should have a parent"),
-                                position: DropPosition::After(asset.id),
+                                position: TreePosition::After(asset.id),
                                 node: AssetDefinition::new().into(),
+                                select_node: true,
                             });
                             ui.close_menu();
                         }
                         if ui.button("add group").clicked() {
                             messages.push(UiMessage::StyleItemInsert {
                                 target: parent_id.expect("Should have a parent"),
-                                position: DropPosition::After(asset.id),
+                                position: TreePosition::After(asset.id),
                                 node: AssetFolder::new().into(),
+                                select_node: true,
                             });
                             ui.close_menu();
                         }
@@ -166,16 +183,18 @@ fn show_node(
                         if ui.button("add image").clicked() {
                             messages.push(UiMessage::StyleItemInsert {
                                 target: folder.id,
-                                position: DropPosition::Last,
+                                position: TreePosition::Last,
                                 node: AssetDefinition::new().into(),
+                                select_node: true,
                             });
                             ui.close_menu();
                         }
                         if ui.button("add group").clicked() {
                             messages.push(UiMessage::StyleItemInsert {
                                 target: folder.id,
-                                position: DropPosition::Last,
+                                position: TreePosition::Last,
                                 node: AssetFolder::new().into(),
+                                select_node: true,
                             });
                             ui.close_menu();
                         }
@@ -210,16 +229,18 @@ fn show_node(
                         if ui.button("add variable").clicked() {
                             messages.push(UiMessage::StyleItemInsert {
                                 target: parent_id.expect("Should have a parent"),
-                                position: DropPosition::After(variable.id),
+                                position: TreePosition::After(variable.id),
                                 node: VariableDefinition::new().into(),
+                                select_node: true,
                             });
                             ui.close_menu();
                         }
                         if ui.button("add group").clicked() {
                             messages.push(UiMessage::StyleItemInsert {
                                 target: parent_id.expect("Should have a parent"),
-                                position: DropPosition::After(variable.id),
+                                position: TreePosition::After(variable.id),
                                 node: VariableDefinition::new().into(),
+                                select_node: true,
                             });
                             ui.close_menu();
                         }
@@ -245,16 +266,18 @@ fn show_node(
                         if ui.button("add variable").clicked() {
                             messages.push(UiMessage::StyleItemInsert {
                                 target: folder.id,
-                                position: DropPosition::Last,
+                                position: TreePosition::Last,
                                 node: VariableDefinition::new().into(),
+                                select_node: true,
                             });
                             ui.close_menu();
                         }
                         if ui.button("add group").clicked() {
                             messages.push(UiMessage::StyleItemInsert {
                                 target: folder.id,
-                                position: DropPosition::Last,
+                                position: TreePosition::Last,
                                 node: VariableFolder::new().into(),
+                                select_node: true,
                             });
                             ui.close_menu();
                         }
@@ -303,8 +326,9 @@ fn show_node(
                         if ui.button("add graphic").clicked() {
                             messages.push(UiMessage::StyleItemInsert {
                                 target: parent_id.expect("Should have parent"),
-                                position: DropPosition::After(graphic.id),
+                                position: TreePosition::After(graphic.id),
                                 node: GraphicDefinition::new().into(),
+                                select_node: true,
                             });
                             ui.close_menu();
                         }
@@ -328,8 +352,9 @@ fn show_node(
                         if ui.button("add graphic").clicked() {
                             messages.push(UiMessage::StyleItemInsert {
                                 target: folder.id,
-                                position: DropPosition::Last,
+                                position: TreePosition::Last,
                                 node: GraphicDefinition::new().into(),
+                                select_node: true,
                             });
                             ui.close_menu();
                         }

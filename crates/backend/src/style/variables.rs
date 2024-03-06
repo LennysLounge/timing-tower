@@ -5,11 +5,12 @@ use crate::{
     value_store::{AnyValueProducer, ModelContext, ProducerId, ValueProducer, ValueStore},
     value_types::AnyProducerRef,
 };
+use enumcapsulate::{VariantDiscriminant, VariantDowncast};
 use serde::{Deserialize, Serialize};
 
 use self::{condition::Condition, fixed_value::FixedValue, map::Map};
 
-use super::{StyleId, StyleItem};
+use super::{StyleId, StyleItem, StyleItemDiscriminant, TreePosition};
 
 pub mod condition;
 pub mod fixed_value;
@@ -92,6 +93,55 @@ impl VariableFolder {
             })
             .collect()
     }
+    pub fn remove_if_present(
+        &mut self,
+        id: &StyleId,
+    ) -> Option<(StyleItem, TreePosition<StyleId>)> {
+        if let Some(index) = self.content.iter().position(|c| c.id() == id) {
+            Some((
+                self.content.remove(index).to_enum(),
+                if index == 0 {
+                    TreePosition::First
+                } else {
+                    TreePosition::After(*self.content[index - 1].id())
+                },
+            ))
+        } else {
+            None
+        }
+    }
+    pub fn insert(
+        &mut self,
+        item: StyleItem,
+        position: TreePosition<StyleId>,
+    ) -> Result<(), StyleItem> {
+        let element = match item.variant_discriminant() {
+            StyleItemDiscriminant::Variable => VariableOrFolder::Variable(
+                item.as_variant_downcast::<VariableDefinition>()
+                    .unwrap()
+                    .into(),
+            ),
+            StyleItemDiscriminant::VariableFolder => VariableOrFolder::Folder(
+                item.as_variant_downcast::<VariableFolder>().unwrap().into(),
+            ),
+            _ => return Err(item),
+        };
+        match position {
+            TreePosition::First => self.content.insert(0, element),
+            TreePosition::Last => self.content.push(element),
+            TreePosition::After(id) => {
+                if let Some(index) = self.content.iter().position(|c| c.id() == &id) {
+                    self.content.insert(index + 1, element);
+                }
+            }
+            TreePosition::Before(id) => {
+                if let Some(index) = self.content.iter().position(|c| c.id() == &id) {
+                    self.content.insert(index, element);
+                }
+            }
+        }
+        Ok(())
+    }
 }
 #[derive(Serialize, Deserialize, Clone)]
 #[serde(tag = "element_type")]
@@ -104,6 +154,12 @@ impl VariableOrFolder {
         match self {
             VariableOrFolder::Variable(o) => &o.id,
             VariableOrFolder::Folder(o) => &o.id,
+        }
+    }
+    fn to_enum(self) -> StyleItem {
+        match self {
+            VariableOrFolder::Variable(v) => v.to_enum(),
+            VariableOrFolder::Folder(f) => f.to_enum(),
         }
     }
 }

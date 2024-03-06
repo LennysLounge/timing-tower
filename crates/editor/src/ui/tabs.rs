@@ -47,7 +47,7 @@ pub(super) fn tab_area(
     mut messages: ResMut<UiMessages>,
     mut tab_area: ResMut<TabArea>,
     mut editor_style: ResMut<EditorStyle>,
-    editor_state: Res<EditorState>,
+    mut editor_state: ResMut<EditorState>,
 ) {
     //let viewport = &mut editor_camera.single_mut().0.raw_viewport;
     DockArea::new(&mut tab_area.dock_state)
@@ -71,7 +71,7 @@ pub(super) fn tab_area(
             &mut EditorTabViewer {
                 messages: &mut messages,
                 editor_style: &mut editor_style,
-                editor_state: &editor_state,
+                editor_state: &mut editor_state,
                 //editor_style: &mut editor_state.style,
                 // viewport,
                 // selection_manager,
@@ -96,7 +96,7 @@ enum Tab {
 struct EditorTabViewer<'a> {
     messages: &'a mut UiMessages,
     editor_style: &'a mut EditorStyle,
-    editor_state: &'a EditorState,
+    editor_state: &'a mut EditorState,
     //editor_style: &'a mut ExactVariant<StyleItem, StyleDefinition>,
     // pub viewport: &'a mut Rect,
     // pub selection_manager: &'a mut SelectionManager,
@@ -129,7 +129,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 //dashboard::dashboard(ui, self.game_adapter, &self.style, self.graphic_states);
             }
             Tab::StyleItems => {
-                style_items::tree_view(ui, self.messages, self.editor_style);
+                style_items::tree_view(ui, self.messages, self.editor_style, self.editor_state);
             }
             Tab::GraphicEditor => {
                 // property_editor::property_editor(

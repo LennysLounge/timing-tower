@@ -19,6 +19,19 @@ pub trait TreeIterator {
     where
         F: FnMut(&Self::Item, Method) -> ControlFlow<R>;
 
+    fn try_for_each<R>(
+        &self,
+        mut action: impl FnMut(&Self::Item) -> ControlFlow<R>,
+    ) -> ControlFlow<R> {
+        self.walk(&mut |item, method| {
+            if method == Method::Visit {
+                action(item)
+            } else {
+                ControlFlow::Continue(())
+            }
+        })
+    }
+
     fn search<T>(
         &self,
         key: <Self::Item as TreeItem>::Id,
@@ -52,6 +65,19 @@ pub trait TreeIteratorMut {
     fn walk_mut<F, R>(&mut self, f: &mut F) -> ControlFlow<R>
     where
         F: FnMut(&mut Self::Item, Method) -> ControlFlow<R>;
+
+    fn try_for_each<R>(
+        &mut self,
+        mut action: impl FnMut(&mut Self::Item) -> ControlFlow<R>,
+    ) -> ControlFlow<R> {
+        self.walk_mut(&mut |item, method| {
+            if method == Method::Visit {
+                action(item)
+            } else {
+                ControlFlow::Continue(())
+            }
+        })
+    }
 
     fn search_mut<T>(
         &mut self,

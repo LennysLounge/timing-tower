@@ -70,7 +70,7 @@ pub(super) fn top_panel(
 
 pub(super) fn bottom_panel(
     mut ctx: EguiContexts,
-    mut messages: ResMut<UiMessages>,
+    mut _messages: ResMut<UiMessages>,
     editor_camera: Query<(&EditorCamera, &Transform), With<MainCamera>>,
 ) {
     egui::TopBottomPanel::bottom("Bottom panel")

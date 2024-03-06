@@ -4,7 +4,7 @@ use crate::{
     command::edit_property::EditResult,
     reference_store::{any_producer_ref_editor, ReferenceStore},
     ui::tabs::{
-        element_editor::ui_split,
+        secondary_editor::ui_split,
         style_item::property::{PropertyEditor, ValueTypeEditor},
     },
 };

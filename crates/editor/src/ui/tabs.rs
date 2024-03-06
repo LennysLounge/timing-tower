@@ -1,31 +1,18 @@
 mod dashboard;
-mod element_editor;
+mod secondary_editor;
 mod style_item;
 mod style_item_tree;
 mod undo_redo;
 
-use std::marker::PhantomData;
-
-use backend::{
-    exact_variant::ExactVariant,
-    graphic::GraphicStates,
-    style::{StyleDefinition, StyleItem},
-    GameAdapterResource,
-};
+use backend::GameAdapterResource;
 use bevy::ecs::system::{Res, ResMut, Resource};
-use bevy_egui::{
-    egui::{self, Rect},
-    EguiContexts,
-};
+use bevy_egui::{egui, EguiContexts};
 use egui_dock::{DockArea, DockState, NodeIndex, TabViewer};
 use unified_sim_model::Adapter;
 
-use crate::{
-    command::UndoRedoManager,
-    reference_store::{self, ReferenceStore},
-};
+use crate::reference_store::ReferenceStore;
 
-use super::{selection_manager::SelectionManager, EditorState, EditorStyle, UiMessage, UiMessages};
+use super::{EditorState, EditorStyle, UiMessage, UiMessages};
 
 #[derive(Resource)]
 pub struct TabArea {
@@ -37,7 +24,7 @@ impl TabArea {
         let tree = state.main_surface_mut();
         let [scene, _tree_view] = tree.split_left(NodeIndex::root(), 0.15, vec![Tab::StyleItems]);
         let [scene, _component_editor] =
-            tree.split_right(scene, 0.75, vec![Tab::GraphicEditor, Tab::UndoRedo]);
+            tree.split_right(scene, 0.75, vec![Tab::StyleItemEditor, Tab::UndoRedo]);
 
         let [_scene, _element_editor] = tree.split_right(scene, 0.7, vec![Tab::GraphicItemEditor]);
 
@@ -93,7 +80,7 @@ enum Tab {
     SceneView,
     Dashboard,
     StyleItems,
-    GraphicEditor,
+    StyleItemEditor,
     GraphicItemEditor,
     UndoRedo,
 }
@@ -106,9 +93,9 @@ struct EditorTabViewer<'a> {
     // pub viewport: &'a mut Rect,
     // pub selection_manager: &'a mut SelectionManager,
     //pub style: &'a mut ExactVariant<StyleItem, StyleDefinition>,
-    pub reference_store: &'a ReferenceStore,
+    reference_store: &'a ReferenceStore,
     // pub undo_redo_manager: &'a mut UndoRedoManager,
-    pub game_adapter: Option<&'a Adapter>,
+    game_adapter: Option<&'a Adapter>,
     // pub graphic_states: &'a mut GraphicStates,
 }
 impl<'a> TabViewer for EditorTabViewer<'a> {
@@ -119,7 +106,7 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
             Tab::SceneView => "Scene view".into(),
             Tab::Dashboard => "Dashboard".into(),
             Tab::StyleItems => "Style".into(),
-            Tab::GraphicEditor => "Component".into(),
+            Tab::StyleItemEditor => "Component".into(),
             Tab::GraphicItemEditor => "Element".into(),
             Tab::UndoRedo => "Undo/Redo".into(),
         }
@@ -136,8 +123,8 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
             Tab::StyleItems => {
                 style_item_tree::tree_view(ui, self.messages, self.editor_style, self.editor_state);
             }
-            Tab::GraphicEditor => {
-                style_item::property_editor(
+            Tab::StyleItemEditor => {
+                style_item::editor(
                     ui,
                     self.messages,
                     self.editor_style,
@@ -147,14 +134,13 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 );
             }
             Tab::GraphicItemEditor => {
-                // element_editor::element_editor(
-                //     ui,
-                //     self.selection_manager,
-                //     self.style,
-                //     self.reference_store,
-                //     self.undo_redo_manager,
-                //     self.graphic_states,
-                // );
+                secondary_editor::editor(
+                    ui,
+                    self.messages,
+                    self.editor_state,
+                    self.editor_style,
+                    self.reference_store,
+                );
             }
             Tab::UndoRedo => {
                 //undo_redo::undo_redo(ui, &mut self.undo_redo_manager);

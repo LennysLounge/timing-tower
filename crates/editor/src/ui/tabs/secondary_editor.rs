@@ -1,6 +1,4 @@
 use backend::{
-    exact_variant::ExactVariant,
-    graphic::GraphicStates,
     style::{
         graphic::{
             graphic_items::{
@@ -9,11 +7,11 @@ use backend::{
                 driver_table::DriverTable,
                 entry_context::{EntryContext, EntrySelection},
                 root::Root,
-                Attribute, GraphicItem, GraphicItemId,
+                Attribute, GraphicItem,
             },
-            GraphicDefinition, GraphicStateId,
+            GraphicDefinition, GraphicStateId, TEMPLATE_ID,
         },
-        StyleDefinition, StyleItem,
+        StyleItem,
     },
     tree_iterator::TreeIteratorMut,
 };
@@ -23,82 +21,79 @@ use bevy_egui::egui::{
 use common::communication::TextAlignment;
 
 use crate::{
-    command::{
-        edit_property::{EditProperty, EditResult},
-        UndoRedoManager,
-    },
+    command::edit_property::EditResult,
     reference_store::ReferenceStore,
-    ui::{combo_box::LComboBox, selection_manager::SelectionManager},
+    ui::{
+        combo_box::LComboBox, EditorState, EditorStyle, StyleItemSelection, UiMessage, UiMessages,
+    },
 };
 
 use super::style_item::property::PropertyEditor;
 
-pub fn element_editor(
+pub(super) fn editor(
     ui: &mut Ui,
-    selection_manager: &mut SelectionManager,
-    style: &mut ExactVariant<StyleItem, StyleDefinition>,
+    messages: &mut UiMessages,
+    editor_state: &mut EditorState,
+    editor_style: &mut EditorStyle,
     reference_store: &ReferenceStore,
-    undo_redo_manager: &mut UndoRedoManager,
-    graphic_states: &mut GraphicStates,
 ) {
-    let Some(style_item_selection) = selection_manager.selected() else {
+    let Some(style_item_selection) = editor_state.style_item_tree_state.selected() else {
         return;
     };
-    let selection_state = selection_manager.selected_state().unwrap();
 
     ScrollArea::vertical()
         .auto_shrink([false, false])
         .show(ui, |ui| {
-            style.search_mut(style_item_selection, |style_item| {
-                if let StyleItem::Graphic(graphic) = style_item {
-                    let edit_result = graphic_item(
-                        ui,
-                        graphic,
-                        selection_state.graphic_item.as_ref(),
-                        reference_store,
-                        graphic_states,
-                    );
-                    if let EditResult::FromId(widget_id) = edit_result {
-                        undo_redo_manager.queue(EditProperty::new(
-                            graphic.id,
-                            graphic.clone(),
-                            widget_id,
-                        ));
+            editor_style
+                .0
+                .search_mut(style_item_selection, |style_item| {
+                    if let StyleItem::Graphic(graphic) = style_item {
+                        graphic_editor(ui, graphic, messages, editor_state, reference_store);
                     }
-                }
-            });
+                });
         });
 }
 
-fn graphic_item(
+fn graphic_editor(
     ui: &mut Ui,
     graphic: &mut GraphicDefinition,
-    graphic_item_selection: Option<&GraphicItemId>,
+    messages: &mut UiMessages,
+    editor_state: &mut EditorState,
     reference_store: &ReferenceStore,
-    graphic_states: &mut GraphicStates,
-) -> EditResult {
+) {
     let mut edit_result = EditResult::None;
 
-    if let Some(state) = graphic_states.states.get(&graphic.id).and_then(|state_id| {
-        graphic
+    let selection_data = editor_state
+        .style_item_selection_data
+        .entry(graphic.id)
+        .or_insert(StyleItemSelection::default());
+
+    // Editor for the the state.
+    if let Some(selected_state) = selection_data.graphic_state_tree_state.selected() {
+        if let Some(state) = graphic
             .states
             .iter_mut()
-            .find(|state| state.id == *state_id)
-    }) {
-        ui.label("State name:");
-        edit_result |= ui.text_edit_singleline(&mut state.name).into();
-        ui.separator();
+            .find(|state| state.id == selected_state)
+        {
+            ui.label("State name:");
+            edit_result |= ui.text_edit_singleline(&mut state.name).into();
+            ui.separator();
+        }
     }
 
-    if let Some(graphic_item_selection) = graphic_item_selection {
+    // Editor for the graphic item
+    if let Some(graphic_item_selection) = selection_data.graphic_item_tree_state.selected() {
         edit_result |= graphic
             .items
-            .search_mut(*graphic_item_selection, |graphic_item| {
-                editor(
+            .search_mut(graphic_item_selection, |item| {
+                graphic_item_editor(
                     ui,
-                    graphic_item,
-                    graphic_states.states.get(&graphic.id),
+                    item,
                     reference_store,
+                    selection_data
+                        .graphic_state_tree_state
+                        .selected()
+                        .unwrap_or(TEMPLATE_ID),
                 )
             })
             .unwrap_or_default();
@@ -107,16 +102,22 @@ fn graphic_item(
     if matches!(edit_result, EditResult::FromId(_)) {
         graphic.name = graphic.items.name.clone();
     }
-    edit_result
+
+    if let EditResult::FromId(widget_id) = edit_result {
+        messages.push(UiMessage::StyleItemEdit {
+            _widget_id: widget_id,
+            _item: StyleItem::Graphic(graphic.clone()),
+        });
+    }
 }
 
-fn editor(
+fn graphic_item_editor(
     ui: &mut Ui,
-    element: &mut GraphicItem,
-    state_id: Option<&GraphicStateId>,
+    item: &mut GraphicItem,
     reference_store: &ReferenceStore,
+    state_id: GraphicStateId,
 ) -> EditResult {
-    match element {
+    match item {
         GraphicItem::Root(root) => {
             let mut edit_result = EditResult::None;
 
@@ -185,46 +186,43 @@ pub fn ui_split(ui: &mut Ui, label: impl Into<WidgetText>, right: impl FnMut(&mu
 fn ui_attribute<T: Clone>(
     ui: &mut Ui,
     attr: &mut Attribute<T>,
-    state_id: Option<&GraphicStateId>,
+    state_id: GraphicStateId,
     mut add_content: impl FnMut(&mut Ui, &mut T),
 ) {
-    if let Some(state_id) = state_id {
-        ui.horizontal(|ui| {
-            let mut enabled = attr.has_state(&state_id);
-            if ui.checkbox(&mut enabled, "").changed() {
-                if enabled {
-                    attr.add_state(*state_id);
-                } else {
-                    attr.remove_state(state_id);
-                }
-            }
-            ui.vertical(|ui| {
-                ui.add_enabled_ui(enabled, |ui| {
-                    if let Some(attr) = attr.get_state(state_id) {
-                        add_content(ui, attr);
-                    } else {
-                        add_content(ui, attr.template_mut());
-                    }
-                });
-            });
-        });
-    } else {
-        ui.horizontal(|ui| {
+    ui.horizontal(|ui| {
+        let mut enabled = attr.has_state(&state_id) || state_id == TEMPLATE_ID;
+        if state_id == TEMPLATE_ID {
             // Add enough space to equal the checkbox.
             ui.add_space(ui.spacing().icon_width);
             ui.add_space(ui.spacing().item_spacing.x);
             ui.add_space(ui.spacing().item_spacing.x);
-            ui.vertical(|ui| {
-                add_content(ui, attr.template_mut());
+        } else {
+            if ui.checkbox(&mut enabled, "").changed() {
+                if enabled {
+                    attr.add_state(state_id);
+                } else {
+                    attr.remove_state(&state_id);
+                }
+            }
+        }
+
+        ui.vertical(|ui| {
+            ui.add_enabled_ui(enabled, |ui| {
+                let attribute = if attr.has_state(&state_id) {
+                    attr.get_state(&state_id).unwrap()
+                } else {
+                    attr.template_mut()
+                };
+                add_content(ui, attribute);
             });
         });
-    }
+    });
 }
 
 pub fn cell_property_editor(
     ui: &mut Ui,
     cell: &mut Cell,
-    state_id: Option<&GraphicStateId>,
+    state_id: GraphicStateId,
     reference_store: &ReferenceStore,
 ) -> EditResult {
     let mut edit_result = EditResult::None;
@@ -319,12 +317,9 @@ pub fn cell_property_editor(
                     edit_result |= ui.add(PropertyEditor::new(attr, reference_store)).into();
                 });
             });
-            ui.add_enabled_ui(
-                state_id.map_or(true, |state_id| cell.corner_offsets.has_state(state_id)),
-                |ui| {
-                    ui_split(ui, "Corner offsets", |_| {});
-                },
-            );
+            ui.add_enabled_ui(cell.corner_offsets.has_state(&state_id), |ui| {
+                ui_split(ui, "Corner offsets", |_| {});
+            });
             ui.add_space(-ui.spacing().item_spacing.y);
             ui_attribute(ui, &mut cell.corner_offsets, state_id, |ui, attr| {
                 ui_split(ui, "Top left X", |ui| {
@@ -412,13 +407,13 @@ pub fn cell_property_editor(
 pub fn clip_area_editor(
     ui: &mut Ui,
     clip_area: &mut ClipArea,
-    state_id: Option<&GraphicStateId>,
+    state_id: GraphicStateId,
     reference_store: &ReferenceStore,
 ) -> EditResult {
     let mut edit_result = EditResult::None;
 
     ui.scope(|ui| {
-        ui.add_enabled_ui(state_id.is_none(), |ui| {
+        ui.add_enabled_ui(state_id == TEMPLATE_ID, |ui| {
             ui.horizontal(|ui| {
                 ui.add_space(ui.spacing().icon_width);
                 ui.add_space(ui.spacing().item_spacing.x * 2.0);
@@ -499,7 +494,7 @@ pub fn clip_area_editor(
 pub fn root_editor(
     ui: &mut Ui,
     root: &mut Root,
-    state_id: Option<&GraphicStateId>,
+    state_id: GraphicStateId,
     reference_store: &ReferenceStore,
 ) -> EditResult {
     let mut edit_result = EditResult::None;
@@ -525,7 +520,7 @@ pub fn root_editor(
 pub fn driver_table_editor(
     ui: &mut Ui,
     driver_table: &mut DriverTable,
-    state_id: Option<&GraphicStateId>,
+    state_id: GraphicStateId,
     reference_store: &ReferenceStore,
 ) -> EditResult {
     let mut edit_result = EditResult::None;
@@ -563,7 +558,7 @@ pub fn driver_table_editor(
 pub fn entry_context_editor(
     ui: &mut Ui,
     entry_context: &mut EntryContext,
-    state_id: Option<&GraphicStateId>,
+    state_id: GraphicStateId,
     _reference_store: &ReferenceStore,
 ) -> EditResult {
     let mut edit_result = EditResult::None;

@@ -19,13 +19,13 @@ use crate::{
 
 use self::graphic::graphic_property_editor;
 
-use super::element_editor::ui_split;
+use super::secondary_editor::ui_split;
 
 mod graphic;
 pub mod property;
 mod variable;
 
-pub(super) fn property_editor(
+pub(super) fn editor(
     ui: &mut Ui,
     messages: &mut UiMessages,
     editor_style: &mut EditorStyle,
@@ -83,8 +83,8 @@ fn edit_node(
 
             if let EditResult::FromId(widget_id) = edit_result {
                 messages.push(UiMessage::StyleItemEdit {
-                    widget_id,
-                    item: node.clone(),
+                    _widget_id: widget_id,
+                    _item: node.clone(),
                 });
             }
         }
@@ -97,8 +97,8 @@ fn edit_node(
 
             if let EditResult::FromId(widget_id) = edit_result {
                 messages.push(UiMessage::StyleItemEdit {
-                    widget_id,
-                    item: node.clone(),
+                    _widget_id: widget_id,
+                    _item: node.clone(),
                 });
             }
         }
@@ -142,8 +142,8 @@ fn edit_node(
 
             if let EditResult::FromId(widget_id) = edit_result {
                 messages.push(UiMessage::StyleItemEdit {
-                    widget_id,
-                    item: node.clone(),
+                    _widget_id: widget_id,
+                    _item: node.clone(),
                 });
             }
         }
@@ -156,8 +156,8 @@ fn edit_node(
 
             if let EditResult::FromId(widget_id) = edit_result {
                 messages.push(UiMessage::StyleItemEdit {
-                    widget_id,
-                    item: node.clone(),
+                    _widget_id: widget_id,
+                    _item: node.clone(),
                 });
             }
         }
@@ -176,8 +176,8 @@ fn edit_node(
             });
             if let EditResult::FromId(widget_id) = edit_result {
                 messages.push(UiMessage::StyleItemEdit {
-                    widget_id,
-                    item: node.clone(),
+                    _widget_id: widget_id,
+                    _item: node.clone(),
                 });
             }
 
@@ -235,8 +235,8 @@ fn edit_node(
 
             if let EditResult::FromId(widget_id) = edit_result {
                 messages.push(UiMessage::StyleItemEdit {
-                    widget_id,
-                    item: node.clone(),
+                    _widget_id: widget_id,
+                    _item: node.clone(),
                 });
             }
         }

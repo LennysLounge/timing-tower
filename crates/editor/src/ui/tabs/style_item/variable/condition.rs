@@ -5,7 +5,7 @@ use crate::{
     reference_store::{any_producer_ref_editor, ReferenceStore},
     ui::{
         combo_box::LComboBox,
-        tabs::{element_editor::ui_split, style_item::property::PropertyEditor},
+        tabs::{secondary_editor::ui_split, style_item::property::PropertyEditor},
     },
 };
 use backend::{

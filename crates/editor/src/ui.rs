@@ -150,8 +150,8 @@ enum UiMessage {
     },
     StyleItemRemove(StyleId),
     StyleItemEdit {
-        widget_id: egui::Id,
-        item: StyleItem,
+        _widget_id: egui::Id,
+        _item: StyleItem,
     },
 }
 
@@ -285,8 +285,8 @@ fn process_messages(
                 savefile.set(editor_style.0.clone(), &mut savefile_changed_event);
             }
             UiMessage::StyleItemEdit {
-                widget_id: _,
-                item: _,
+                _widget_id: _,
+                _item: _,
             } => {
                 savefile.set(editor_style.0.clone(), &mut savefile_changed_event);
             }

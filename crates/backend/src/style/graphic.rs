@@ -8,9 +8,7 @@ use crate::exact_variant::ExactVariant;
 
 use graphic_items::{root::Root, ComputedGraphicItem, GraphicItem};
 
-use super::{
-    StyleId, StyleItem, StyleItemDiscriminant, TreePosition,
-};
+use super::{StyleId, StyleItem, StyleItemDiscriminant, TreePosition};
 
 pub mod graphic_items;
 
@@ -22,6 +20,8 @@ pub struct GraphicState {
 
 pub const GRAPHIC_STATE_HIDDEN: GraphicStateId =
     GraphicStateId(uuid::uuid!("5d493243-8787-4b4c-a06f-ceb17a35f10a"));
+pub const TEMPLATE_ID: GraphicStateId =
+    GraphicStateId(uuid::uuid!("3bd691e6-4a87-4082-89da-31a7cfb3967c"));
 
 /// Id that identifies a graphic state item.
 #[derive(Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Hash, Default, Debug)]

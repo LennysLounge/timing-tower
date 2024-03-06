@@ -3,7 +3,7 @@ use bevy_egui::egui::{vec2, ComboBox, Response, Ui};
 use crate::{
     command::edit_property::EditResult,
     reference_store::{any_producer_ref_editor, ReferenceStore},
-    ui::tab::{
+    ui::tabs::{
         element_editor::ui_split,
         property_editor::property::{PropertyEditor, ValueTypeEditor},
     },

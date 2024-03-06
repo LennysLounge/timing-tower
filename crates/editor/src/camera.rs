@@ -18,7 +18,7 @@ use bevy::{
     transform::components::Transform,
     window::{PrimaryWindow, Window},
 };
-use bevy_egui::egui::Rect;
+use bevy_egui::egui::{pos2, Rect};
 
 use crate::MainCamera;
 
@@ -64,7 +64,10 @@ impl EditorCamera {
             drag_position: None,
             scale_exponent: 0.0,
             scale: 1.0,
-            raw_viewport: Rect::NOTHING,
+            raw_viewport: Rect {
+                min: pos2(0.0, 0.0),
+                max: pos2(100.0, 1000.0),
+            },
         }
     }
 }

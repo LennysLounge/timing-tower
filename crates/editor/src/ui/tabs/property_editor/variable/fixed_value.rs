@@ -7,7 +7,7 @@ use bevy_egui::egui::{ComboBox, DragValue, Ui};
 use crate::{
     command::edit_property::EditResult,
     reference_store::ReferenceStore,
-    ui::{combo_box::LComboBox, tab::element_editor::ui_split},
+    ui::{combo_box::LComboBox, tabs::element_editor::ui_split},
 };
 
 pub fn property_editor(

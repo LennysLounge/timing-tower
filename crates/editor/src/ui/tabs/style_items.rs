@@ -1,12 +1,11 @@
 use std::ops::ControlFlow;
 
 use backend::{
-    exact_variant::ExactVariant,
     style::{
         assets::{AssetDefinition, AssetFolder},
         graphic::GraphicDefinition,
         variables::{VariableDefinition, VariableFolder},
-        StyleDefinition, StyleId, StyleItem,
+        StyleId, StyleItem,
     },
     tree_iterator::{Method, TreeIterator, TreeIteratorMut},
 };
@@ -16,30 +15,17 @@ use egui_ltreeview::{
     Action, DropPosition, TreeViewBuilder, TreeViewResponse,
 };
 
-use crate::{
-    command::{
-        insert_node::InsertNode, move_node::MoveNode, remove_node::RemoveNode, UndoRedoManager,
-    },
-    ui::selection_manager::SelectionManager,
-};
+use crate::ui::{EditorStyle, UiMessage, UiMessages};
 
-pub fn tree_view(
-    ui: &mut Ui,
-    selection_manager: &mut SelectionManager,
-    base_node: &mut ExactVariant<StyleItem, StyleDefinition>,
-    undo_redo_manager: &mut UndoRedoManager,
-) -> bool {
-    let mut changed = false;
+pub(super) fn tree_view(ui: &mut Ui, messages: &mut UiMessages, style: &mut EditorStyle) {
     let response = ScrollArea::vertical()
-        .show(ui, |ui| {
-            show(ui, base_node.as_enum_mut(), undo_redo_manager)
-        })
+        .show(ui, |ui| show(ui, style.0.as_enum_mut(), messages))
         .inner;
 
     for action in response.actions.iter() {
         match action {
             Action::SetSelected(Some(id)) => {
-                selection_manager.set_selected(*id);
+                messages.push(UiMessage::StyleItemSelect(*id));
             }
             Action::SetSelected(_) => (),
             a @ Action::Move {
@@ -52,9 +38,12 @@ pub fn tree_view(
                 target,
                 position,
             } => {
-                let drop_allowed = base_node
+                let drop_allowed = style
+                    .0
                     .search(*source, |dragged| {
-                        base_node.search(*target, |dropped| drop_allowed(dropped, dragged))
+                        style
+                            .0
+                            .search(*target, |dropped| drop_allowed(dropped, dragged))
                     })
                     .flatten()
                     .unwrap_or(false);
@@ -62,17 +51,15 @@ pub fn tree_view(
                     response.remove_drop_marker(ui);
                 }
                 if let Action::Move { .. } = a {
-                    undo_redo_manager.queue(MoveNode {
-                        id: *source,
-                        target_id: *target,
+                    messages.push(UiMessage::StyleItemMove {
+                        source: *source,
+                        target: *target,
                         position: *position,
                     });
-                    changed = true;
                 }
             }
         }
     }
-    changed
 }
 
 fn drop_allowed(target: &StyleItem, dragged: &StyleItem) -> bool {
@@ -88,18 +75,12 @@ fn drop_allowed(target: &StyleItem, dragged: &StyleItem) -> bool {
     }
 }
 
-fn show(
-    ui: &mut Ui,
-    root: &mut StyleItem,
-    undo_redo_manager: &mut UndoRedoManager,
-) -> TreeViewResponse<StyleId> {
+fn show(ui: &mut Ui, root: &mut StyleItem, messages: &mut UiMessages) -> TreeViewResponse<StyleId> {
     let response = egui_ltreeview::TreeView::new(ui.make_persistent_id("element_tree_view"))
         .row_layout(egui_ltreeview::RowLayout::CompactAlignedLables)
         .fill_space_vertical(true)
         .show(ui, |mut builder| {
-            root.walk_mut(&mut |node, method| {
-                show_node(node, method, &mut builder, undo_redo_manager)
-            });
+            root.walk_mut(&mut |node, method| show_node(node, method, &mut builder, messages));
         });
 
     response
@@ -108,7 +89,7 @@ fn show_node(
     node: &mut StyleItem,
     method: Method,
     builder: &mut TreeViewBuilder<StyleId>,
-    undo_redo_manager: &mut UndoRedoManager,
+    messages: &mut UiMessages,
 ) -> ControlFlow<()> {
     match (method, node) {
         (Method::Visit, StyleItem::Style(style)) => {
@@ -148,23 +129,24 @@ fn show_node(
                     })
                     .context_menu(|ui| {
                         if ui.button("add image").clicked() {
-                            undo_redo_manager.queue(InsertNode {
-                                target_node: parent_id.expect("Should have a parent"),
+                            messages.push(UiMessage::StyleItemInsert {
+                                target: parent_id.expect("Should have a parent"),
                                 position: DropPosition::After(asset.id),
                                 node: AssetDefinition::new().into(),
                             });
                             ui.close_menu();
                         }
                         if ui.button("add group").clicked() {
-                            undo_redo_manager.queue(InsertNode {
-                                target_node: parent_id.expect("Should have a parent"),
+                            messages.push(UiMessage::StyleItemInsert {
+                                target: parent_id.expect("Should have a parent"),
                                 position: DropPosition::After(asset.id),
                                 node: AssetFolder::new().into(),
                             });
                             ui.close_menu();
                         }
+                        ui.separator();
                         if ui.button("delete").clicked() {
-                            undo_redo_manager.queue(RemoveNode { id: asset.id });
+                            messages.push(UiMessage::StyleItemRemove(asset.id));
                             ui.close_menu();
                         }
                     }),
@@ -182,19 +164,24 @@ fn show_node(
                     })
                     .context_menu(|ui| {
                         if ui.button("add image").clicked() {
-                            undo_redo_manager.queue(InsertNode {
-                                target_node: folder.id,
+                            messages.push(UiMessage::StyleItemInsert {
+                                target: folder.id,
                                 position: DropPosition::Last,
                                 node: AssetDefinition::new().into(),
                             });
                             ui.close_menu();
                         }
                         if ui.button("add group").clicked() {
-                            undo_redo_manager.queue(InsertNode {
-                                target_node: folder.id,
+                            messages.push(UiMessage::StyleItemInsert {
+                                target: folder.id,
                                 position: DropPosition::Last,
                                 node: AssetFolder::new().into(),
                             });
+                            ui.close_menu();
+                        }
+                        ui.separator();
+                        if ui.button("delete").clicked() {
+                            messages.push(UiMessage::StyleItemRemove(folder.id));
                             ui.close_menu();
                         }
                     }),
@@ -221,23 +208,24 @@ fn show_node(
                     })
                     .context_menu(|ui| {
                         if ui.button("add variable").clicked() {
-                            undo_redo_manager.queue(InsertNode {
-                                target_node: parent_id.expect("Should have a parent"),
+                            messages.push(UiMessage::StyleItemInsert {
+                                target: parent_id.expect("Should have a parent"),
                                 position: DropPosition::After(variable.id),
                                 node: VariableDefinition::new().into(),
                             });
                             ui.close_menu();
                         }
                         if ui.button("add group").clicked() {
-                            undo_redo_manager.queue(InsertNode {
-                                target_node: parent_id.expect("Should have a parent"),
+                            messages.push(UiMessage::StyleItemInsert {
+                                target: parent_id.expect("Should have a parent"),
                                 position: DropPosition::After(variable.id),
-                                node: VariableFolder::new().into(),
+                                node: VariableDefinition::new().into(),
                             });
                             ui.close_menu();
                         }
+                        ui.separator();
                         if ui.button("delete").clicked() {
-                            undo_redo_manager.queue(RemoveNode { id: variable.id });
+                            messages.push(UiMessage::StyleItemRemove(variable.id));
                             ui.close_menu();
                         }
                     }),
@@ -255,19 +243,24 @@ fn show_node(
                     })
                     .context_menu(|ui| {
                         if ui.button("add variable").clicked() {
-                            undo_redo_manager.queue(InsertNode {
-                                target_node: folder.id,
+                            messages.push(UiMessage::StyleItemInsert {
+                                target: folder.id,
                                 position: DropPosition::Last,
                                 node: VariableDefinition::new().into(),
                             });
                             ui.close_menu();
                         }
                         if ui.button("add group").clicked() {
-                            undo_redo_manager.queue(InsertNode {
-                                target_node: folder.id,
+                            messages.push(UiMessage::StyleItemInsert {
+                                target: folder.id,
                                 position: DropPosition::Last,
                                 node: VariableFolder::new().into(),
                             });
+                            ui.close_menu();
+                        }
+                        ui.separator();
+                        if ui.button("delete").clicked() {
+                            messages.push(UiMessage::StyleItemRemove(folder.id));
                             ui.close_menu();
                         }
                     }),
@@ -308,15 +301,16 @@ fn show_node(
                     })
                     .context_menu(|ui| {
                         if ui.button("add graphic").clicked() {
-                            undo_redo_manager.queue(InsertNode {
-                                target_node: parent_id.expect("Should have parent"),
+                            messages.push(UiMessage::StyleItemInsert {
+                                target: parent_id.expect("Should have parent"),
                                 position: DropPosition::After(graphic.id),
                                 node: GraphicDefinition::new().into(),
                             });
                             ui.close_menu();
                         }
+                        ui.separator();
                         if ui.button("delete").clicked() {
-                            undo_redo_manager.queue(RemoveNode { id: graphic.id });
+                            messages.push(UiMessage::StyleItemRemove(graphic.id));
                             ui.close_menu();
                         }
                     }),
@@ -332,11 +326,16 @@ fn show_node(
                     })
                     .context_menu(|ui| {
                         if ui.button("add graphic").clicked() {
-                            undo_redo_manager.queue(InsertNode {
-                                target_node: folder.id,
+                            messages.push(UiMessage::StyleItemInsert {
+                                target: folder.id,
                                 position: DropPosition::Last,
                                 node: GraphicDefinition::new().into(),
                             });
+                            ui.close_menu();
+                        }
+                        ui.separator();
+                        if ui.button("delete").clicked() {
+                            messages.push(UiMessage::StyleItemRemove(folder.id));
                             ui.close_menu();
                         }
                     }),

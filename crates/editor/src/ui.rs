@@ -1,49 +1,56 @@
 pub mod combo_box;
+mod panels;
 pub mod popup;
 mod selection_manager;
-mod tab;
+mod tabs;
 
 use std::{fs::File, io::Write};
 
 use backend::{
     exact_variant::ExactVariant,
-    graphic::GraphicStates,
     savefile::{Savefile, SavefileChanged},
-    style::{StyleDefinition, StyleItem},
+    style::{StyleDefinition, StyleId, StyleItem},
 };
 use bevy::{
     app::{First, Update},
     ecs::{
         event::{EventReader, EventWriter},
+        query::With,
         schedule::{IntoSystemConfigs, SystemSet},
-        system::Res,
+        system::{Query, Res},
     },
-    prelude::{Plugin, Query, ResMut, Resource, Startup, With},
-    transform::components::Transform,
+    prelude::{Plugin, ResMut, Resource, Startup},
 };
-use bevy_egui::{
-    egui::{self},
-    EguiContexts,
-};
-use egui_dock::{DockArea, DockState, NodeIndex};
+use bevy_egui::{egui::Rect, EguiContexts};
+
+use egui_ltreeview::{DropPosition, TreeViewState};
 use tracing::error;
+use unified_sim_model::Adapter;
 
 use crate::{
     camera::{AlignCamera, EditorCamera, ResetCamera},
-    command::{EditorCommand, UndoRedoManager},
-    reference_store::ReferenceStore,
     GameAdapterResource, MainCamera,
 };
 
-use self::{selection_manager::SelectionManager, tab::Tab};
+use self::selection_manager::SelectionManager;
 
 pub struct EditorUiPlugin;
 impl Plugin for EditorUiPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.insert_resource(EditorState::new())
+            .insert_resource(UiMessages(Vec::new()))
+            .insert_resource(tabs::TabArea::new())
             .add_systems(Startup, setup_egui_context)
             .add_systems(First, savefile_changed)
-            .add_systems(Update, ui.in_set(UiSystem));
+            .add_systems(
+                Update,
+                (
+                    (panels::top_panel, panels::bottom_panel, tabs::tab_area),
+                    process_messages,
+                )
+                    .chain()
+                    .in_set(UiSystem),
+            );
     }
 }
 
@@ -60,183 +67,138 @@ fn setup_egui_context(mut ctx: EguiContexts) {
 }
 
 #[derive(Resource)]
+struct EditorStyle(ExactVariant<StyleItem, StyleDefinition>);
+impl Default for EditorStyle {
+    fn default() -> Self {
+        Self(StyleDefinition::default().into())
+    }
+}
+
+#[derive(Resource)]
 struct EditorState {
-    dock_state: DockState<Tab>,
+    style_item_tree_state: TreeViewState<StyleId>,
     selection_manager: SelectionManager,
-    style: ExactVariant<StyleItem, StyleDefinition>,
 }
 impl EditorState {
-    pub fn new() -> Self {
-        let mut state = DockState::new(vec![Tab::SceneView, Tab::Dashboard]);
-        let tree = state.main_surface_mut();
-        let [scene, _tree_view] = tree.split_left(NodeIndex::root(), 0.15, vec![Tab::StyleItems]);
-        let [scene, _component_editor] =
-            tree.split_right(scene, 0.75, vec![Tab::GraphicEditor, Tab::UndoRedo]);
-
-        let [_scene, _element_editor] = tree.split_right(scene, 0.7, vec![Tab::GraphicItemEditor]);
-
+    fn new() -> Self {
         Self {
-            dock_state: state,
-            style: StyleDefinition::default().into(),
             selection_manager: Default::default(),
+            style_item_tree_state: Default::default(),
         }
     }
 }
 
-fn ui(
-    reference_store: Res<ReferenceStore>,
-    savefile_changed_event: EventWriter<SavefileChanged>,
-    mut reset_camera_event: EventWriter<ResetCamera>,
-    mut align_camera_event: EventWriter<AlignCamera>,
-    mut savefile: ResMut<Savefile>,
-    mut ctx: EguiContexts,
-    mut state: ResMut<EditorState>,
-    mut editor_camera: Query<(&mut EditorCamera, &mut Transform), With<MainCamera>>,
-    mut undo_redo_manager: ResMut<UndoRedoManager>,
-    mut game_adapter: ResMut<GameAdapterResource>,
-    mut graphic_states: ResMut<GraphicStates>,
-) {
-    let old_stroke = ctx
-        .ctx_mut()
-        .style()
-        .visuals
-        .widgets
-        .noninteractive
-        .bg_stroke;
-    ctx.ctx_mut()
-        .style_mut(|style| style.visuals.widgets.noninteractive.bg_stroke = egui::Stroke::NONE);
-    egui::TopBottomPanel::top("Top panel").show(ctx.ctx_mut(), |ui| {
-        egui::menu::bar(ui, |ui| {
-            ui.menu_button("File", |ui| {
-                if ui.button("Save").clicked() {
-                    save_style(savefile.style());
-                    ui.close_menu();
-                }
-            });
-            let is_connected = game_adapter.adapter().is_some_and(|a| !a.is_finished());
-            if is_connected {
-                if ui.button("Disconnect").clicked() {
-                    if let Some(adapter) = game_adapter.adapter_mut() {
-                        adapter.send(unified_sim_model::AdapterCommand::Close);
-                    }
-                    ui.close_menu();
-                }
-            } else {
-                ui.menu_button("Connection", |ui| {
-                    if ui.button("Connect Dummy").clicked() {
-                        game_adapter.set(unified_sim_model::Adapter::new_dummy());
-                        ui.close_menu();
-                    }
-                    if ui.button("Connect ACC").clicked() {
-                        game_adapter.set(unified_sim_model::Adapter::new_acc());
-                        ui.close_menu();
-                    }
-                });
-            }
-            ui.menu_button("View", |ui| {
-                if ui.button("Reset camera").clicked() {
-                    reset_camera_event.send(ResetCamera);
-                    ui.close_menu();
-                }
-                if ui.button("Align camera").clicked() {
-                    align_camera_event.send(AlignCamera);
-                    ui.close_menu();
-                }
-            });
-            if ui.button("Undo").clicked() {
-                undo_redo_manager.queue(EditorCommand::Undo);
-            }
-            if ui.button("Redo").clicked() {
-                undo_redo_manager.queue(EditorCommand::Redo);
-            }
-        });
-    });
-    egui::TopBottomPanel::bottom("Bottom panel").show(ctx.ctx_mut(), |ui| {
-        ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
-            let (cam, trans) = editor_camera.single();
-            let zoom = 1.0 / cam.scale * 100.0;
-            ui.label(format!("Zoom: {:.0}%", zoom));
-            ui.separator();
-            ui.separator();
-            ui.label(format!("Zoom exponent: {:.2}", cam.scale_exponent));
-            ui.separator();
-            ui.label(format!("pos: {:?}", trans.translation));
-        });
-    });
-    ctx.ctx_mut()
-        .style_mut(|style| style.visuals.widgets.noninteractive.bg_stroke = old_stroke);
-
-    let EditorState {
-        dock_state,
-        selection_manager,
-        style,
-    } = &mut *state;
-    let viewport = &mut editor_camera.single_mut().0.raw_viewport;
-    DockArea::new(dock_state)
-        .style({
-            let mut style = egui_dock::Style::from_egui(ctx.ctx_mut().style().as_ref());
-            style.separator.width = 3.0;
-            style.separator.color_idle = ctx.ctx_mut().style().visuals.panel_fill;
-            style.separator.color_dragged = ctx.ctx_mut().style().visuals.panel_fill;
-            style.separator.color_hovered = ctx.ctx_mut().style().visuals.panel_fill;
-
-            style.tab_bar.rounding = egui::Rounding::ZERO;
-            style.tab_bar.bg_fill = ctx.ctx_mut().style().visuals.panel_fill;
-
-            style.tab.hline_below_active_tab_name = false;
-
-            style.tab.inactive.text_color = style.tab.inactive.text_color.linear_multiply(0.3);
-            style
-        })
-        .show(
-            ctx.ctx_mut(),
-            &mut tab::EditorTabViewer {
-                viewport,
-                selection_manager,
-                style,
-                reference_store: &reference_store,
-                undo_redo_manager: undo_redo_manager.as_mut(),
-                game_adapter: game_adapter.adapter(),
-                graphic_states: &mut graphic_states,
-            },
-        );
-
-    undo_redo_manager.apply_queue(
-        savefile.as_mut(),
-        savefile_changed_event,
-        game_adapter.adapter_mut(),
-    );
+#[derive(Resource)]
+struct UiMessages(Vec<UiMessage>);
+impl UiMessages {
+    fn push(&mut self, message: UiMessage) {
+        self.0.push(message)
+    }
 }
 
 fn savefile_changed(
     savefile: Res<Savefile>,
-    mut editor_state: ResMut<EditorState>,
+    mut editor_style: ResMut<EditorStyle>,
     mut savefile_changed_event: EventReader<SavefileChanged>,
 ) {
     if savefile_changed_event.is_empty() {
         return;
     }
     savefile_changed_event.clear();
-    editor_state.style = savefile.style().clone();
+    editor_style.0 = savefile.style().clone();
 }
 
-fn save_style(style: &StyleDefinition) {
-    let s = match serde_json::to_string_pretty(style) {
-        Ok(s) => s,
-        Err(e) => {
-            error!("Error turning style into string: {e}");
-            return;
+enum UiMessage {
+    Undo,
+    Redo,
+    SceneViewport(Rect),
+    SaveStyleDefinition,
+    GameAdapterClose,
+    GameAdaperConnectDummy,
+    GameAdaperConnectACC,
+    CameraReset,
+    CameraAlign,
+    StyleItemSelect(StyleId),
+    StyleItemMove {
+        source: StyleId,
+        target: StyleId,
+        position: DropPosition<StyleId>,
+    },
+    StyleItemInsert {
+        target: StyleId,
+        position: DropPosition<StyleId>,
+        node: StyleItem,
+    },
+    StyleItemRemove(StyleId),
+}
+
+fn process_messages(
+    mut messages: ResMut<UiMessages>,
+    savefile: Res<Savefile>,
+    mut editor_state: ResMut<EditorState>,
+    mut game_adapter: ResMut<GameAdapterResource>,
+    mut reset_camera_event: EventWriter<ResetCamera>,
+    mut align_camera_event: EventWriter<AlignCamera>,
+    mut editor_camera: Query<&mut EditorCamera, With<MainCamera>>,
+) {
+    for message in messages.0.drain(0..) {
+        match message {
+            UiMessage::Undo => todo!(),
+            UiMessage::Redo => todo!(),
+            UiMessage::SceneViewport(viewport_rect) => {
+                editor_camera.single_mut().raw_viewport = viewport_rect;
+            }
+            UiMessage::SaveStyleDefinition => {
+                let s = match serde_json::to_string_pretty(savefile.style()) {
+                    Ok(s) => s,
+                    Err(e) => {
+                        error!("Error turning style into string: {e}");
+                        return;
+                    }
+                };
+                let mut file = match File::create("style.json") {
+                    Ok(f) => f,
+                    Err(e) => {
+                        error!("Error opening file: {e}");
+                        return;
+                    }
+                };
+                if let Err(e) = file.write_all(s.as_bytes()) {
+                    error!("Cannot write to file: {e}");
+                    return;
+                }
+            }
+            UiMessage::GameAdapterClose => {
+                if let Some(adapter) = game_adapter.adapter_mut() {
+                    adapter.send(unified_sim_model::AdapterCommand::Close);
+                }
+            }
+            UiMessage::GameAdaperConnectDummy => {
+                game_adapter.set(Adapter::new_dummy());
+            }
+            UiMessage::GameAdaperConnectACC => {
+                game_adapter.set(Adapter::new_acc());
+            }
+            UiMessage::CameraReset => {
+                reset_camera_event.send(ResetCamera);
+            }
+            UiMessage::CameraAlign => {
+                align_camera_event.send(AlignCamera);
+            }
+            UiMessage::StyleItemSelect(id) => {
+                editor_state.style_item_tree_state.set_selected(Some(id));
+            }
+            UiMessage::StyleItemMove {
+                source,
+                target,
+                position,
+            } => todo!(),
+            UiMessage::StyleItemInsert {
+                target,
+                position,
+                node,
+            } => todo!(),
+            UiMessage::StyleItemRemove(_) => todo!(),
         }
-    };
-    let mut file = match File::create("style.json") {
-        Ok(f) => f,
-        Err(e) => {
-            error!("Error opening file: {e}");
-            return;
-        }
-    };
-    if let Err(e) = file.write_all(s.as_bytes()) {
-        error!("Cannot write to file: {e}");
-        return;
     }
 }

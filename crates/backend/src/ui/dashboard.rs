@@ -16,9 +16,9 @@ pub fn show_graphic(ui: &mut Ui, graphic: &GraphicDefinition, graphic_states: &m
                 TreeView::new(ui.make_persistent_id("__graphic").with(graphic.id.0))
                     .min_width(150.0)
                     .show(ui, |mut builder| {
-                        if let Some(state) = graphic_states.states.get(&graphic.id) {
-                            builder.set_selected(*state);
-                        }
+                        // if let Some(state) = graphic_states.states.get(&graphic.id) {
+                        //     builder.set_selected(*state);
+                        // }
                         for state in graphic.states.iter() {
                             builder.leaf(state.id, &state.name);
                         }

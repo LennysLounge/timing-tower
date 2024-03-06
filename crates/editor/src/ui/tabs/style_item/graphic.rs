@@ -1,44 +1,42 @@
 use std::ops::ControlFlow;
 
 use backend::{
-    graphic::GraphicStates,
-    style::graphic::{
-        self,
-        graphic_items::{
-            cell::Cell, clip_area::ClipArea, driver_table::DriverTable,
-            entry_context::EntryContext, root::Root, GraphicItem, GraphicItemId,
+    style::{
+        graphic::{
+            self,
+            graphic_items::{
+                cell::Cell, clip_area::ClipArea, driver_table::DriverTable,
+                entry_context::EntryContext, root::Root, GraphicItem, GraphicItemId,
+            },
+            GraphicDefinition, GraphicStateId,
         },
-        GraphicDefinition, GraphicStateId,
+        StyleItem,
     },
     tree_iterator::{Method, TreeItem, TreeIterator, TreeIteratorMut},
 };
 use bevy_egui::egui::{self, vec2, Color32, Id, RichText, Ui};
 use egui_ltreeview::{
-    node::NodeBuilder, Action, DropPosition, RowLayout, TreeView, TreeViewBuilder,
+    node::NodeBuilder, Action, DropPosition, RowLayout, TreeView, TreeViewBuilder, TreeViewState,
 };
 
 use crate::{
-    command::{
-        edit_property::{EditProperty, EditResult},
-        UndoRedoManager,
-    },
-    ui::selection_manager::SelectionState,
+    command::edit_property::EditResult,
+    ui::{StyleItemSelection, UiMessage, UiMessages},
 };
 
-pub fn graphic_property_editor(
+pub(super) fn graphic_property_editor(
     ui: &mut Ui,
-    component: &mut GraphicDefinition,
-    selection_state: &mut SelectionState,
-    undo_redo_manager: &mut UndoRedoManager,
-    graphic_states: &mut GraphicStates,
+    graphic: &mut GraphicDefinition,
+    messages: &mut UiMessages,
+    selection_data: &mut StyleItemSelection,
 ) {
     let mut edit_result = EditResult::None;
 
     ui.label("Name:");
-    let res = ui.text_edit_singleline(&mut component.name);
+    let res = ui.text_edit_singleline(&mut graphic.name);
     if res.changed() {
         // Keep the graphic item root in sync with the graphic name itself.
-        component.items.name = component.name.clone();
+        graphic.items.name = graphic.name.clone();
     };
     edit_result |= res.into();
 
@@ -49,7 +47,8 @@ pub fn graphic_property_editor(
         egui::ScrollArea::horizontal()
             .auto_shrink([false, true])
             .show(ui, |ui| {
-                edit_result |= show_element_tree(ui, &mut selection_state.graphic_item, component);
+                edit_result |=
+                    show_element_tree(ui, graphic, &mut selection_data.graphic_item_tree_state);
             });
 
         ui.allocate_space(vec2(
@@ -62,22 +61,22 @@ pub fn graphic_property_editor(
         .width(ui.available_width())
         .show_ui(ui, |ui| {
             if ui.selectable_label(false, "Cell").clicked() {
-                component.items.items.push(Cell::new().into());
+                graphic.items.items.push(Cell::new().into());
                 edit_result = EditResult::FromId(ui.id());
                 ui.close_menu();
             }
             if ui.selectable_label(false, "Clip Area").clicked() {
-                component.items.items.push(ClipArea::new().into());
+                graphic.items.items.push(ClipArea::new().into());
                 edit_result = EditResult::FromId(ui.id());
                 ui.close_menu();
             }
             if ui.selectable_label(false, "Driver Table").clicked() {
-                component.items.items.push(DriverTable::new().into());
+                graphic.items.items.push(DriverTable::new().into());
                 edit_result = EditResult::FromId(ui.id());
                 ui.close_menu();
             }
             if ui.selectable_label(false, "Entry Context").clicked() {
-                component.items.items.push(EntryContext::new().into());
+                graphic.items.items.push(EntryContext::new().into());
                 edit_result = EditResult::FromId(ui.id());
                 ui.close_menu();
             }
@@ -86,7 +85,7 @@ pub fn graphic_property_editor(
     ui.add_space(10.0);
     ui.label("States:");
     ui.group(|ui| {
-        edit_result |= show_states_tree(ui, component, graphic_states);
+        edit_result |= show_states_tree(ui, graphic, &mut selection_data.graphic_state_tree_state);
 
         ui.allocate_space(vec2(
             ui.available_width(),
@@ -95,18 +94,17 @@ pub fn graphic_property_editor(
     });
     let add_button_res = ui.add_sized(vec2(ui.available_width(), 0.0), egui::Button::new("Add"));
     if add_button_res.clicked() {
-        component.states.push(graphic::GraphicState {
+        graphic.states.push(graphic::GraphicState {
             id: GraphicStateId::new(),
             name: String::from("new state"),
         });
     }
 
     if let EditResult::FromId(widget_id) = edit_result {
-        undo_redo_manager.queue(EditProperty::new(
-            component.id,
-            component.clone(),
+        messages.push(UiMessage::StyleItemEdit {
             widget_id,
-        ));
+            item: StyleItem::Graphic(graphic.clone()),
+        });
     }
 }
 
@@ -123,14 +121,14 @@ enum GraphicItemCommand {
 
 fn show_element_tree(
     ui: &mut Ui,
-    graphic_item_selection: &mut Option<GraphicItemId>,
     graphic: &mut GraphicDefinition,
+    tree_view_state: &mut TreeViewState<GraphicItemId>,
 ) -> EditResult {
     let mut edit_result = EditResult::None;
     let mut commands = Vec::new();
     let res = TreeView::new(ui.make_persistent_id("Component element tree"))
         .row_layout(RowLayout::AlignedIcons)
-        .show(ui, |mut builder| {
+        .show_state(ui, tree_view_state, |mut builder| {
             graphic.items.walk(&mut |item, method| {
                 element_tree_node(&mut builder, item, method, &mut commands);
                 ControlFlow::Continue::<()>(())
@@ -139,9 +137,7 @@ fn show_element_tree(
 
     for action in res.actions.iter() {
         match action {
-            Action::SetSelected(id) => {
-                *graphic_item_selection = *id;
-            }
+            Action::SetSelected(_) => (),
             Action::Move {
                 source,
                 target,
@@ -464,7 +460,7 @@ fn insert_into_vec(
 fn show_states_tree(
     ui: &mut Ui,
     graphic: &mut GraphicDefinition,
-    graphic_states: &mut GraphicStates,
+    tree_view_state: &mut TreeViewState<GraphicStateId>,
 ) -> EditResult {
     let mut edit_result = EditResult::None;
 
@@ -477,12 +473,7 @@ fn show_states_tree(
 
     let tree_res = TreeView::new(ui.make_persistent_id("State tree"))
         .row_layout(RowLayout::Compact)
-        .show(ui, |mut builder| {
-            // if let Some(state) = graphic_states.states.get(&graphic.id) {
-            //     builder.set_selected(*state);
-            // } else {
-            //     builder.set_selected(TEMPLATE_ID);
-            // }
+        .show_state(ui, tree_view_state, |mut builder| {
             builder.node(NodeBuilder::dir(TREE_ROOT_ID).flatten(true));
             builder.leaf(TEMPLATE_ID, "Template");
             for state in graphic.states.iter_mut() {
@@ -491,17 +482,7 @@ fn show_states_tree(
         });
     for action in &tree_res.actions {
         match action {
-            Action::SetSelected(id) => {
-                if let Some(id) = id {
-                    if id == &TEMPLATE_ID {
-                        graphic_states.states.remove(&graphic.id);
-                    } else {
-                        graphic_states.states.insert(graphic.id, *id);
-                    }
-                } else {
-                    graphic_states.states.remove(&graphic.id);
-                }
-            }
+            Action::SetSelected(_) => (),
             Action::Move {
                 source,
                 target: _,

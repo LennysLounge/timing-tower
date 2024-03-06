@@ -1,7 +1,7 @@
 mod dashboard;
 mod element_editor;
-mod property_editor;
-mod style_items;
+mod style_item;
+mod style_item_tree;
 mod undo_redo;
 
 use std::marker::PhantomData;
@@ -20,7 +20,10 @@ use bevy_egui::{
 use egui_dock::{DockArea, DockState, NodeIndex, TabViewer};
 use unified_sim_model::Adapter;
 
-use crate::{command::UndoRedoManager, reference_store::ReferenceStore};
+use crate::{
+    command::UndoRedoManager,
+    reference_store::{self, ReferenceStore},
+};
 
 use super::{selection_manager::SelectionManager, EditorState, EditorStyle, UiMessage, UiMessages};
 
@@ -48,6 +51,8 @@ pub(super) fn tab_area(
     mut tab_area: ResMut<TabArea>,
     mut editor_style: ResMut<EditorStyle>,
     mut editor_state: ResMut<EditorState>,
+    reference_store: Res<ReferenceStore>,
+    game_adapter: Res<GameAdapterResource>,
 ) {
     //let viewport = &mut editor_camera.single_mut().0.raw_viewport;
     DockArea::new(&mut tab_area.dock_state)
@@ -76,9 +81,9 @@ pub(super) fn tab_area(
                 // viewport,
                 // selection_manager,
                 //style,
-                // reference_store: &reference_store,
+                reference_store: &reference_store,
                 // undo_redo_manager: undo_redo_manager.as_mut(),
-                //game_adapter: game_adapter.adapter(),
+                game_adapter: game_adapter.adapter(),
                 //graphic_states: &mut graphic_states,
             },
         );
@@ -101,9 +106,9 @@ struct EditorTabViewer<'a> {
     // pub viewport: &'a mut Rect,
     // pub selection_manager: &'a mut SelectionManager,
     //pub style: &'a mut ExactVariant<StyleItem, StyleDefinition>,
-    // pub reference_store: &'a ReferenceStore,
+    pub reference_store: &'a ReferenceStore,
     // pub undo_redo_manager: &'a mut UndoRedoManager,
-    // pub game_adapter: Option<&'a Adapter>,
+    pub game_adapter: Option<&'a Adapter>,
     // pub graphic_states: &'a mut GraphicStates,
 }
 impl<'a> TabViewer for EditorTabViewer<'a> {
@@ -129,18 +134,17 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                 //dashboard::dashboard(ui, self.game_adapter, &self.style, self.graphic_states);
             }
             Tab::StyleItems => {
-                style_items::tree_view(ui, self.messages, self.editor_style, self.editor_state);
+                style_item_tree::tree_view(ui, self.messages, self.editor_style, self.editor_state);
             }
             Tab::GraphicEditor => {
-                // property_editor::property_editor(
-                //     ui,
-                //     self.selection_manager,
-                //     self.style,
-                //     self.reference_store,
-                //     self.undo_redo_manager,
-                //     self.game_adapter,
-                //     self.graphic_states,
-                // );
+                style_item::property_editor(
+                    ui,
+                    self.messages,
+                    self.editor_style,
+                    self.editor_state,
+                    self.reference_store,
+                    self.game_adapter,
+                );
             }
             Tab::GraphicItemEditor => {
                 // element_editor::element_editor(

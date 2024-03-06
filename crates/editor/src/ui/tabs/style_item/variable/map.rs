@@ -5,7 +5,7 @@ use crate::{
     reference_store::{any_producer_ref_editor, ReferenceStore},
     ui::tabs::{
         element_editor::ui_split,
-        property_editor::property::{PropertyEditor, ValueTypeEditor},
+        style_item::property::{PropertyEditor, ValueTypeEditor},
     },
 };
 use backend::{

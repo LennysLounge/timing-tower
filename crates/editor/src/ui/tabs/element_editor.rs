@@ -31,7 +31,7 @@ use crate::{
     ui::{combo_box::LComboBox, selection_manager::SelectionManager},
 };
 
-use super::property_editor::property::PropertyEditor;
+use super::style_item::property::PropertyEditor;
 
 pub fn element_editor(
     ui: &mut Ui,

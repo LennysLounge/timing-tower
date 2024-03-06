@@ -39,11 +39,11 @@ pub(super) fn top_panel(
                 } else {
                     ui.menu_button("Connection", |ui| {
                         if ui.button("Connect Dummy").clicked() {
-                            messages.push(UiMessage::GameAdaperConnectDummy);
+                            messages.push(UiMessage::GameAdapterConnectDummy);
                             ui.close_menu();
                         }
                         if ui.button("Connect ACC").clicked() {
-                            messages.push(UiMessage::GameAdaperConnectACC);
+                            messages.push(UiMessage::GameAdapterConnectACC);
                             ui.close_menu();
                         }
                     });

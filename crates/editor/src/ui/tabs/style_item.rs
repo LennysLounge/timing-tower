@@ -1,27 +1,19 @@
 use backend::{
-    exact_variant::ExactVariant,
-    graphic::GraphicStates,
     style::{
         variables::{condition::Condition, fixed_value::FixedValue, map::Map, VariableBehavior},
-        StyleDefinition, StyleItem,
+        StyleItem,
     },
     tree_iterator::TreeIteratorMut,
     value_types::ValueType,
 };
-use bevy_egui::egui::{self, DragValue, ScrollArea, Ui};
-use rand::{seq::IteratorRandom, thread_rng};
-use unified_sim_model::{games::dummy::DummyCommands, Adapter, GameAdapterCommand};
+use bevy_egui::egui::{DragValue, ScrollArea, Ui};
+use unified_sim_model::Adapter;
 
 use crate::{
-    command::{
-        adapter_command::AdapterCommand,
-        edit_property::{EditProperty, EditResult},
-        UndoRedoManager,
-    },
+    command::edit_property::EditResult,
     reference_store::ReferenceStore,
     ui::{
-        combo_box::LComboBox,
-        selection_manager::{SelectionManager, SelectionState},
+        combo_box::LComboBox, EditorState, EditorStyle, StyleItemSelection, UiMessage, UiMessages,
     },
 };
 
@@ -33,45 +25,41 @@ mod graphic;
 pub mod property;
 mod variable;
 
-pub fn property_editor(
+pub(super) fn property_editor(
     ui: &mut Ui,
-    selection_manager: &mut SelectionManager,
-    style: &mut ExactVariant<StyleItem, StyleDefinition>,
+    messages: &mut UiMessages,
+    editor_style: &mut EditorStyle,
+    editor_state: &mut EditorState,
     reference_store: &ReferenceStore,
-    undo_redo_manager: &mut UndoRedoManager,
     game_adapter: Option<&Adapter>,
-    graphic_states: &mut GraphicStates,
 ) {
-    let Some(selected_id) = selection_manager.selected() else {
+    let Some(style_item) = editor_state.style_item_tree_state.selected() else {
         return;
     };
-    let selected_state = selection_manager.selected_state_mut().unwrap();
 
     ScrollArea::vertical()
         .auto_shrink([false, false])
         .show(ui, |ui| {
-            style.search_mut(selected_id, |node| {
+            editor_style.0.search_mut(style_item, |node| {
                 edit_node(
                     ui,
                     node,
+                    messages,
                     reference_store,
+                    editor_state,
                     game_adapter,
-                    undo_redo_manager,
-                    selected_state,
-                    graphic_states,
                 );
             });
         });
 }
 
-pub fn edit_node(
+fn edit_node(
     ui: &mut Ui,
     node: &mut StyleItem,
+    messages: &mut UiMessages,
     reference_store: &ReferenceStore,
+    editor_state: &mut EditorState,
     game_adapter: Option<&Adapter>,
-    undo_redo_manager: &mut UndoRedoManager,
-    selection_state: &mut SelectionState,
-    graphic_states: &mut GraphicStates,
 ) {
     match node {
         StyleItem::Asset(asset) => {
@@ -94,7 +82,10 @@ pub fn edit_node(
             edit_result |= ui.text_edit_singleline(&mut asset.path).into();
 
             if let EditResult::FromId(widget_id) = edit_result {
-                undo_redo_manager.queue(EditProperty::new(asset.id, asset.clone(), widget_id));
+                messages.push(UiMessage::StyleItemEdit {
+                    widget_id,
+                    item: node.clone(),
+                });
             }
         }
 
@@ -105,7 +96,10 @@ pub fn edit_node(
             edit_result |= ui.text_edit_singleline(&mut folder.name).into();
 
             if let EditResult::FromId(widget_id) = edit_result {
-                undo_redo_manager.queue(EditProperty::new(folder.id, folder.clone(), widget_id));
+                messages.push(UiMessage::StyleItemEdit {
+                    widget_id,
+                    item: node.clone(),
+                });
             }
         }
 
@@ -147,11 +141,10 @@ pub fn edit_node(
             };
 
             if let EditResult::FromId(widget_id) = edit_result {
-                undo_redo_manager.queue(EditProperty::new(
-                    variable.id,
-                    variable.clone(),
+                messages.push(UiMessage::StyleItemEdit {
                     widget_id,
-                ));
+                    item: node.clone(),
+                });
             }
         }
 
@@ -162,7 +155,10 @@ pub fn edit_node(
             edit_result |= ui.text_edit_singleline(&mut folder.name).into();
 
             if let EditResult::FromId(widget_id) = edit_result {
-                undo_redo_manager.queue(EditProperty::new(folder.id, folder.clone(), widget_id));
+                messages.push(UiMessage::StyleItemEdit {
+                    widget_id,
+                    item: node.clone(),
+                });
             }
         }
 
@@ -179,54 +175,33 @@ pub fn edit_node(
                 edit_result |= ui.add(DragValue::new(&mut scene.prefered_size.y)).into();
             });
             if let EditResult::FromId(widget_id) = edit_result {
-                undo_redo_manager.queue(EditProperty::new(scene.id, scene.clone(), widget_id));
+                messages.push(UiMessage::StyleItemEdit {
+                    widget_id,
+                    item: node.clone(),
+                });
             }
 
             ui.separator();
-            match game_adapter {
-                Some(game_adapter) => {
-                    if ui.button("Change focus to random entry").clicked() {
-                        let model = game_adapter.model.read_raw();
-                        if let Some(random_entry) = model
-                            .current_session()
-                            .and_then(|session| session.entries.values().choose(&mut thread_rng()))
-                        {
-                            undo_redo_manager.queue(AdapterCommand {
-                                command: unified_sim_model::AdapterCommand::FocusOnCar(
-                                    random_entry.id,
-                                ),
-                            });
-                        }
-                    }
+            let connected = game_adapter.is_some_and(|adapter| !adapter.is_finished());
+            ui.add_enabled_ui(connected, |ui| {
+                if ui.button("Change focus to random entry").clicked() {
+                    messages.push(UiMessage::GameAdapterSelectRandomEntry);
                 }
-                None => {
-                    ui.add_enabled(false, egui::Button::new("Change focus to random entry"));
-                }
-            }
+            });
             if ui.button("Set Race").clicked() {
-                undo_redo_manager.queue(AdapterCommand {
-                    command: unified_sim_model::AdapterCommand::Game(GameAdapterCommand::Dummy(
-                        DummyCommands::SetSessionType(unified_sim_model::model::SessionType::Race),
-                    )),
-                });
+                messages.push(UiMessage::GameAdapterDummySetSessionType(
+                    unified_sim_model::model::SessionType::Race,
+                ));
             }
             if ui.button("Set Quali").clicked() {
-                undo_redo_manager.queue(AdapterCommand {
-                    command: unified_sim_model::AdapterCommand::Game(GameAdapterCommand::Dummy(
-                        DummyCommands::SetSessionType(
-                            unified_sim_model::model::SessionType::Qualifying,
-                        ),
-                    )),
-                });
+                messages.push(UiMessage::GameAdapterDummySetSessionType(
+                    unified_sim_model::model::SessionType::Qualifying,
+                ));
             }
             if ui.button("Set Practice").clicked() {
-                undo_redo_manager.queue(AdapterCommand {
-                    command: unified_sim_model::AdapterCommand::Game(GameAdapterCommand::Dummy(
-                        DummyCommands::SetSessionType(
-                            unified_sim_model::model::SessionType::Practice,
-                        ),
-                    )),
-                });
+                messages.push(UiMessage::GameAdapterDummySetSessionType(
+                    unified_sim_model::model::SessionType::Practice,
+                ));
             }
             ui.horizontal(|ui| {
                 ui.label("Set entry amount:");
@@ -237,24 +212,19 @@ pub fn edit_node(
                 ui.add(DragValue::new(&mut amount).clamp_range(1..=usize::MAX));
                 ui.data_mut(|d| d.insert_persisted(amount_id, amount));
                 if ui.button("set").clicked() {
-                    undo_redo_manager.queue(AdapterCommand {
-                        command: unified_sim_model::AdapterCommand::Game(
-                            GameAdapterCommand::Dummy(DummyCommands::SetEntryAmount(amount)),
-                        ),
-                    });
+                    messages.push(UiMessage::GameAdapterDummySetEntryAmount(amount));
                 }
             });
         }
 
-        StyleItem::Graphic(component) => {
-            ui.push_id(component.id, |ui| {
-                graphic_property_editor(
-                    ui,
-                    component,
-                    selection_state,
-                    undo_redo_manager,
-                    graphic_states,
-                );
+        StyleItem::Graphic(graphic) => {
+            let style_item_selection = editor_state
+                .style_item_selection_data
+                .entry(graphic.id)
+                .or_insert(StyleItemSelection::default());
+
+            ui.push_id(graphic.id, |ui| {
+                graphic_property_editor(ui, graphic, messages, style_item_selection);
             });
         }
         StyleItem::GraphicFolder(folder) => {
@@ -264,7 +234,10 @@ pub fn edit_node(
             edit_result |= ui.text_edit_singleline(&mut folder.name).into();
 
             if let EditResult::FromId(widget_id) = edit_result {
-                undo_redo_manager.queue(EditProperty::new(folder.id, folder.clone(), widget_id));
+                messages.push(UiMessage::StyleItemEdit {
+                    widget_id,
+                    item: node.clone(),
+                });
             }
         }
 

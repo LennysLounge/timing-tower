@@ -4,12 +4,15 @@ pub mod popup;
 mod selection_manager;
 mod tabs;
 
-use std::{fs::File, io::Write};
+use std::{collections::HashMap, fs::File, io::Write};
 
 use backend::{
     exact_variant::ExactVariant,
     savefile::{Savefile, SavefileChanged},
-    style::{StyleDefinition, StyleId, StyleItem, TreePosition},
+    style::{
+        graphic::{graphic_items::GraphicItemId, GraphicStateId},
+        StyleDefinition, StyleId, StyleItem, TreePosition,
+    },
     tree_iterator::TreeItem,
 };
 use bevy::{
@@ -22,9 +25,13 @@ use bevy::{
     },
     prelude::{Plugin, ResMut, Resource, Startup},
 };
-use bevy_egui::{egui::Rect, EguiContexts};
+use bevy_egui::{
+    egui::{self, Rect},
+    EguiContexts,
+};
 
-use egui_ltreeview::{DropPosition, TreeViewState};
+use egui_ltreeview::TreeViewState;
+use rand::{seq::IteratorRandom, thread_rng};
 use tracing::error;
 use unified_sim_model::Adapter;
 
@@ -32,8 +39,6 @@ use crate::{
     camera::{AlignCamera, EditorCamera, ResetCamera},
     GameAdapterResource, MainCamera,
 };
-
-use self::selection_manager::SelectionManager;
 
 pub struct EditorUiPlugin;
 impl Plugin for EditorUiPlugin {
@@ -81,15 +86,21 @@ impl Default for EditorStyle {
 #[derive(Resource)]
 struct EditorState {
     style_item_tree_state: TreeViewState<StyleId>,
-    selection_manager: SelectionManager,
+    style_item_selection_data: HashMap<StyleId, StyleItemSelection>,
 }
 impl EditorState {
     fn new() -> Self {
         Self {
-            selection_manager: Default::default(),
             style_item_tree_state: Default::default(),
+            style_item_selection_data: HashMap::new(),
         }
     }
+}
+
+#[derive(Default)]
+struct StyleItemSelection {
+    graphic_item_tree_state: TreeViewState<GraphicItemId>,
+    graphic_state_tree_state: TreeViewState<GraphicStateId>,
 }
 
 #[derive(Resource)]
@@ -118,8 +129,11 @@ enum UiMessage {
     SceneViewport(Rect),
     SaveStyleDefinition,
     GameAdapterClose,
-    GameAdaperConnectDummy,
-    GameAdaperConnectACC,
+    GameAdapterConnectDummy,
+    GameAdapterConnectACC,
+    GameAdapterSelectRandomEntry,
+    GameAdapterDummySetSessionType(unified_sim_model::model::SessionType),
+    GameAdapterDummySetEntryAmount(usize),
     CameraReset,
     CameraAlign,
     StyleItemSelect(StyleId),
@@ -135,6 +149,10 @@ enum UiMessage {
         select_node: bool,
     },
     StyleItemRemove(StyleId),
+    StyleItemEdit {
+        widget_id: egui::Id,
+        item: StyleItem,
+    },
 }
 
 fn process_messages(
@@ -180,11 +198,44 @@ fn process_messages(
                     adapter.send(unified_sim_model::AdapterCommand::Close);
                 }
             }
-            UiMessage::GameAdaperConnectDummy => {
+            UiMessage::GameAdapterConnectDummy => {
                 game_adapter.set(Adapter::new_dummy());
             }
-            UiMessage::GameAdaperConnectACC => {
+            UiMessage::GameAdapterConnectACC => {
                 game_adapter.set(Adapter::new_acc());
+            }
+            UiMessage::GameAdapterSelectRandomEntry => {
+                if let Some(adapter) = game_adapter.adapter_mut() {
+                    let model = adapter.model.read_raw();
+                    if let Some(random_entry) = model
+                        .current_session()
+                        .and_then(|session| session.entries.values().choose(&mut thread_rng()))
+                    {
+                        adapter.send(unified_sim_model::AdapterCommand::FocusOnCar(
+                            random_entry.id,
+                        ));
+                    }
+                }
+            }
+            UiMessage::GameAdapterDummySetSessionType(session_type) => {
+                if let Some(adapter) = game_adapter.adapter_mut() {
+                    adapter.send(unified_sim_model::AdapterCommand::Game(
+                        unified_sim_model::GameAdapterCommand::Dummy(
+                            unified_sim_model::games::dummy::DummyCommands::SetSessionType(
+                                session_type,
+                            ),
+                        ),
+                    ))
+                }
+            }
+            UiMessage::GameAdapterDummySetEntryAmount(amount) => {
+                if let Some(adapter) = game_adapter.adapter_mut() {
+                    adapter.send(unified_sim_model::AdapterCommand::Game(
+                        unified_sim_model::GameAdapterCommand::Dummy(
+                            unified_sim_model::games::dummy::DummyCommands::SetEntryAmount(amount),
+                        ),
+                    ));
+                }
             }
             UiMessage::CameraReset => {
                 reset_camera_event.send(ResetCamera);
@@ -231,6 +282,12 @@ fn process_messages(
             }
             UiMessage::StyleItemRemove(id) => {
                 let _result = editor_style.0.as_enum_mut().remove(&id);
+                savefile.set(editor_style.0.clone(), &mut savefile_changed_event);
+            }
+            UiMessage::StyleItemEdit {
+                widget_id: _,
+                item: _,
+            } => {
                 savefile.set(editor_style.0.clone(), &mut savefile_changed_event);
             }
         }

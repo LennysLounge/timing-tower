@@ -199,7 +199,19 @@ fn process_messages(
                 source,
                 target,
                 position,
-            } => todo!(),
+            } => {
+                if let Some((removed_node, _removed_position)) =
+                    editor_style.0.as_enum_mut().remove(&source)
+                {
+                    editor_style
+                        .0
+                        .as_enum_mut()
+                        .insert(removed_node, &target, position);
+                    editor_state
+                        .style_item_tree_state
+                        .expand_parents_of(target, true);
+                }
+            }
             UiMessage::StyleItemInsert {
                 target,
                 position,

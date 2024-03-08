@@ -3,7 +3,7 @@ mod panels;
 pub mod popup;
 mod tabs;
 
-use std::{collections::HashMap, fs::File, io::Write, time::Instant};
+use std::{collections::HashMap, fs::File, io::Write, ops::BitOrAssign, time::Instant};
 
 use backend::{
     exact_variant::ExactVariant,
@@ -26,7 +26,7 @@ use bevy::{
     prelude::{Plugin, ResMut, Resource, Startup},
 };
 use bevy_egui::{
-    egui::{self, Rect},
+    egui::{self, Rect, Response},
     EguiContexts,
 };
 
@@ -118,6 +118,33 @@ fn savefile_changed(
     }
     savefile_changed_event.clear();
     editor_style.0 = savefile.style().clone();
+}
+
+/// The result of a undo/redo context.
+#[derive(Default)]
+pub enum EditResult {
+    /// No value were changed.
+    #[default]
+    None,
+    /// The value was changed by a widget with this id.
+    FromId(bevy_egui::egui::Id),
+}
+impl BitOrAssign for EditResult {
+    fn bitor_assign(&mut self, rhs: Self) {
+        match rhs {
+            EditResult::None => (),
+            EditResult::FromId(_) => *self = rhs,
+        }
+    }
+}
+impl From<Response> for EditResult {
+    fn from(value: Response) -> Self {
+        if value.changed() {
+            Self::FromId(value.id)
+        } else {
+            Self::None
+        }
+    }
 }
 
 enum UiMessage {

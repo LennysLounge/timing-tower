@@ -17,7 +17,6 @@ use bevy::{
 use bevy_egui::EguiPlugin;
 use camera::EditorCameraPlugin;
 use cell_manager::CellManagerPlugin;
-use command::CommandPlugin;
 use common::communication::TextAlignment;
 use frontend::{
     cell::{CreateCell, SetStyle},
@@ -30,7 +29,6 @@ use ui::EditorUiPlugin;
 mod asset_path_store;
 mod camera;
 mod cell_manager;
-mod command;
 mod reference_store;
 mod ui;
 
@@ -45,7 +43,6 @@ fn main() {
             CellManagerPlugin,
             EditorUiPlugin,
             EditorCameraPlugin,
-            CommandPlugin,
             ReferenceStorePlugin,
         ))
         .add_plugins(DefaultPlugins)

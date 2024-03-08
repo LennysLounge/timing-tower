@@ -5,9 +5,8 @@ use backend::{
 use bevy_egui::egui::{ComboBox, DragValue, Ui};
 
 use crate::{
-    command::edit_property::EditResult,
     reference_store::ReferenceStore,
-    ui::{combo_box::LComboBox, tabs::secondary_editor::ui_split},
+    ui::{combo_box::LComboBox, tabs::secondary_editor::ui_split, EditResult},
 };
 
 pub fn property_editor(

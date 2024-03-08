@@ -21,10 +21,9 @@ use bevy_egui::egui::{
 use common::communication::TextAlignment;
 
 use crate::{
-    command::edit_property::EditResult,
     reference_store::ReferenceStore,
     ui::{
-        combo_box::LComboBox, EditorState, EditorStyle, StyleItemSelection, UiMessage, UiMessages,
+        combo_box::LComboBox, EditResult, EditorState, EditorStyle, StyleItemSelection, UiMessage, UiMessages
     },
 };
 

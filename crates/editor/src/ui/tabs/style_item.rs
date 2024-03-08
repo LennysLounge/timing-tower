@@ -10,10 +10,9 @@ use bevy_egui::egui::{DragValue, ScrollArea, Ui};
 use unified_sim_model::Adapter;
 
 use crate::{
-    command::edit_property::EditResult,
     reference_store::ReferenceStore,
     ui::{
-        combo_box::LComboBox, EditorState, EditorStyle, StyleItemSelection, UiMessage, UiMessages,
+        combo_box::LComboBox, EditResult, EditorState, EditorStyle, StyleItemSelection, UiMessage, UiMessages
     },
 };
 

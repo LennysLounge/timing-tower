@@ -1,11 +1,11 @@
 use bevy_egui::egui::{ComboBox, Sense, Ui, Vec2};
 
 use crate::{
-    command::edit_property::EditResult,
     reference_store::{any_producer_ref_editor, ReferenceStore},
     ui::{
         combo_box::LComboBox,
         tabs::{secondary_editor::ui_split, style_item::property::PropertyEditor},
+        EditResult,
     },
 };
 use backend::{

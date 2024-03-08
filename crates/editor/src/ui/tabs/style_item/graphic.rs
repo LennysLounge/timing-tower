@@ -19,10 +19,7 @@ use egui_ltreeview::{
     node::NodeBuilder, Action, DropPosition, RowLayout, TreeView, TreeViewBuilder, TreeViewState,
 };
 
-use crate::{
-    command::edit_property::EditResult,
-    ui::{StyleItemSelection, UiMessage, UiMessages},
-};
+use crate::ui::{EditResult, StyleItemSelection, UiMessage, UiMessages};
 
 pub(super) fn graphic_property_editor(
     ui: &mut Ui,

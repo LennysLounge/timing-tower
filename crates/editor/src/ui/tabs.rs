@@ -2,7 +2,6 @@ mod dashboard;
 mod secondary_editor;
 mod style_item;
 mod style_item_tree;
-mod undo_redo;
 
 use backend::{graphic::GraphicStates, savefile::Savefile, GameAdapterResource};
 use bevy::ecs::system::{Res, ResMut, Resource};
@@ -23,8 +22,7 @@ impl TabArea {
         let mut state = DockState::new(vec![Tab::SceneView, Tab::Dashboard]);
         let tree = state.main_surface_mut();
         let [scene, _tree_view] = tree.split_left(NodeIndex::root(), 0.15, vec![Tab::StyleItems]);
-        let [scene, _component_editor] =
-            tree.split_right(scene, 0.75, vec![Tab::StyleItemEditor, Tab::UndoRedo]);
+        let [scene, _component_editor] = tree.split_right(scene, 0.75, vec![Tab::StyleItemEditor]);
 
         let [_scene, _element_editor] = tree.split_right(scene, 0.7, vec![Tab::GraphicItemEditor]);
 
@@ -79,7 +77,6 @@ enum Tab {
     StyleItems,
     StyleItemEditor,
     GraphicItemEditor,
-    UndoRedo,
 }
 
 struct EditorTabViewer<'a> {
@@ -101,7 +98,6 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
             Tab::StyleItems => "Style".into(),
             Tab::StyleItemEditor => "Component".into(),
             Tab::GraphicItemEditor => "Element".into(),
-            Tab::UndoRedo => "Undo/Redo".into(),
         }
     }
 
@@ -139,9 +135,6 @@ impl<'a> TabViewer for EditorTabViewer<'a> {
                     self.editor_style,
                     self.reference_store,
                 );
-            }
-            Tab::UndoRedo => {
-                //undo_redo::undo_redo(ui, &mut self.undo_redo_manager);
             }
         }
     }

@@ -13,14 +13,15 @@ use backend::{
         StyleDefinition, StyleId, StyleItem, TreePosition,
     },
     tree_iterator::TreeItem,
+    GameAdapterResource,
 };
 use bevy::{
     app::{First, Update},
     ecs::{
         event::{EventReader, EventWriter},
-        query::With,
         schedule::{IntoSystemConfigs, SystemSet},
-        system::{Query, Res},
+        system::{Res, SystemState},
+        world::World,
     },
     prelude::{Plugin, ResMut, Resource, Startup},
 };
@@ -34,10 +35,7 @@ use rand::{seq::IteratorRandom, thread_rng};
 use tracing::error;
 use unified_sim_model::Adapter;
 
-use crate::{
-    camera::{AlignCamera, EditorCamera, ResetCamera},
-    GameAdapterResource, MainCamera,
-};
+use crate::camera::{AlignCamera, EditorCamera, ResetCamera};
 
 pub struct EditorUiPlugin;
 impl Plugin for EditorUiPlugin {
@@ -54,7 +52,7 @@ impl Plugin for EditorUiPlugin {
                     panels::top_panel,
                     panels::bottom_panel,
                     tabs::tab_area,
-                    process_messages,
+                    process_ui_messages,
                 )
                     .chain()
                     .in_set(UiSystem),
@@ -154,141 +152,182 @@ enum UiMessage {
     },
 }
 
-fn process_messages(
-    mut messages: ResMut<UiMessages>,
-    mut savefile: ResMut<Savefile>,
-    mut savefile_changed_event: EventWriter<SavefileChanged>,
-    mut editor_style: ResMut<EditorStyle>,
-    mut editor_state: ResMut<EditorState>,
-    mut game_adapter: ResMut<GameAdapterResource>,
-    mut reset_camera_event: EventWriter<ResetCamera>,
-    mut align_camera_event: EventWriter<AlignCamera>,
-    mut editor_camera: Query<&mut EditorCamera, With<MainCamera>>,
-) {
-    for message in messages.0.drain(0..) {
-        match message {
-            UiMessage::Undo => todo!(),
-            UiMessage::Redo => todo!(),
-            UiMessage::SceneViewport(viewport_rect) => {
-                editor_camera.single_mut().raw_viewport = viewport_rect;
-            }
-            UiMessage::SaveStyleDefinition => {
-                let s = match serde_json::to_string_pretty(savefile.style()) {
-                    Ok(s) => s,
-                    Err(e) => {
-                        error!("Error turning style into string: {e}");
-                        return;
-                    }
-                };
-                let mut file = match File::create("style.json") {
-                    Ok(f) => f,
-                    Err(e) => {
-                        error!("Error opening file: {e}");
-                        return;
-                    }
-                };
-                if let Err(e) = file.write_all(s.as_bytes()) {
-                    error!("Cannot write to file: {e}");
+fn process_ui_messages(world: &mut World) {
+    let messages = world
+        .resource_mut::<UiMessages>()
+        .0
+        .drain(0..)
+        .collect::<Vec<_>>();
+    for message in messages {
+        process_message(message, world);
+    }
+}
+
+fn process_message(message: UiMessage, world: &mut World) {
+    match message {
+        UiMessage::Undo => todo!(),
+        UiMessage::Redo => todo!(),
+        UiMessage::SceneViewport(viewport_rect) => {
+            world
+                .query::<&mut EditorCamera>()
+                .single_mut(world)
+                .raw_viewport = viewport_rect;
+        }
+        UiMessage::SaveStyleDefinition => {
+            let savefile = world.resource::<Savefile>();
+            let s = match serde_json::to_string_pretty(savefile.style()) {
+                Ok(s) => s,
+                Err(e) => {
+                    error!("Error turning style into string: {e}");
                     return;
                 }
-            }
-            UiMessage::GameAdapterClose => {
-                if let Some(adapter) = game_adapter.adapter_mut() {
-                    adapter.send(unified_sim_model::AdapterCommand::Close);
+            };
+            let mut file = match File::create("style.json") {
+                Ok(f) => f,
+                Err(e) => {
+                    error!("Error opening file: {e}");
+                    return;
                 }
+            };
+            if let Err(e) = file.write_all(s.as_bytes()) {
+                error!("Cannot write to file: {e}");
+                return;
             }
-            UiMessage::GameAdapterConnectDummy => {
-                game_adapter.set(Adapter::new_dummy());
+        }
+        UiMessage::GameAdapterClose => {
+            let mut game_adapter = world.resource_mut::<GameAdapterResource>();
+            if let Some(adapter) = game_adapter.adapter_mut() {
+                adapter.send(unified_sim_model::AdapterCommand::Close);
             }
-            UiMessage::GameAdapterConnectACC => {
-                game_adapter.set(Adapter::new_acc());
-            }
-            UiMessage::GameAdapterSelectRandomEntry => {
-                if let Some(adapter) = game_adapter.adapter_mut() {
-                    let model = adapter.model.read_raw();
-                    if let Some(random_entry) = model
-                        .current_session()
-                        .and_then(|session| session.entries.values().choose(&mut thread_rng()))
-                    {
-                        adapter.send(unified_sim_model::AdapterCommand::FocusOnCar(
-                            random_entry.id,
-                        ));
-                    }
-                }
-            }
-            UiMessage::GameAdapterDummySetSessionType(session_type) => {
-                if let Some(adapter) = game_adapter.adapter_mut() {
-                    adapter.send(unified_sim_model::AdapterCommand::Game(
-                        unified_sim_model::GameAdapterCommand::Dummy(
-                            unified_sim_model::games::dummy::DummyCommands::SetSessionType(
-                                session_type,
-                            ),
-                        ),
-                    ))
-                }
-            }
-            UiMessage::GameAdapterDummySetEntryAmount(amount) => {
-                if let Some(adapter) = game_adapter.adapter_mut() {
-                    adapter.send(unified_sim_model::AdapterCommand::Game(
-                        unified_sim_model::GameAdapterCommand::Dummy(
-                            unified_sim_model::games::dummy::DummyCommands::SetEntryAmount(amount),
-                        ),
+        }
+        UiMessage::GameAdapterConnectDummy => {
+            let mut game_adapter = world.resource_mut::<GameAdapterResource>();
+            game_adapter.set(Adapter::new_dummy());
+        }
+        UiMessage::GameAdapterConnectACC => {
+            let mut game_adapter = world.resource_mut::<GameAdapterResource>();
+            game_adapter.set(Adapter::new_acc());
+        }
+        UiMessage::GameAdapterSelectRandomEntry => {
+            let mut game_adapter = world.resource_mut::<GameAdapterResource>();
+            if let Some(adapter) = game_adapter.adapter_mut() {
+                let model = adapter.model.read_raw();
+                if let Some(random_entry) = model
+                    .current_session()
+                    .and_then(|session| session.entries.values().choose(&mut thread_rng()))
+                {
+                    adapter.send(unified_sim_model::AdapterCommand::FocusOnCar(
+                        random_entry.id,
                     ));
                 }
             }
-            UiMessage::CameraReset => {
-                reset_camera_event.send(ResetCamera);
+        }
+        UiMessage::GameAdapterDummySetSessionType(session_type) => {
+            let mut game_adapter = world.resource_mut::<GameAdapterResource>();
+            if let Some(adapter) = game_adapter.adapter_mut() {
+                adapter.send(unified_sim_model::AdapterCommand::Game(
+                    unified_sim_model::GameAdapterCommand::Dummy(
+                        unified_sim_model::games::dummy::DummyCommands::SetSessionType(
+                            session_type,
+                        ),
+                    ),
+                ))
             }
-            UiMessage::CameraAlign => {
-                align_camera_event.send(AlignCamera);
+        }
+        UiMessage::GameAdapterDummySetEntryAmount(amount) => {
+            let mut game_adapter = world.resource_mut::<GameAdapterResource>();
+            if let Some(adapter) = game_adapter.adapter_mut() {
+                adapter.send(unified_sim_model::AdapterCommand::Game(
+                    unified_sim_model::GameAdapterCommand::Dummy(
+                        unified_sim_model::games::dummy::DummyCommands::SetEntryAmount(amount),
+                    ),
+                ));
             }
-            UiMessage::StyleItemSelect(id) => {
-                editor_state.style_item_tree_state.set_selected(Some(id));
+        }
+        UiMessage::CameraReset => {
+            world.send_event(ResetCamera);
+        }
+        UiMessage::CameraAlign => {
+            world.send_event(AlignCamera);
+        }
+        UiMessage::StyleItemSelect(id) => {
+            world
+                .resource_mut::<EditorState>()
+                .style_item_tree_state
+                .set_selected(Some(id));
+        }
+        UiMessage::StyleItemMove {
+            source,
+            target,
+            position,
+        } => {
+            let mut system_state: SystemState<(ResMut<EditorState>, ResMut<EditorStyle>)> =
+                SystemState::new(world);
+            let (mut editor_state, mut editor_style) = system_state.get_mut(world);
+
+            if let Some((removed_node, _removed_position)) =
+                editor_style.0.as_enum_mut().remove(&source)
+            {
+                editor_style
+                    .0
+                    .as_enum_mut()
+                    .insert(removed_node, &target, position);
+                editor_state
+                    .style_item_tree_state
+                    .expand_parents_of(target, true);
             }
-            UiMessage::StyleItemMove {
-                source,
-                target,
-                position,
-            } => {
-                if let Some((removed_node, _removed_position)) =
-                    editor_style.0.as_enum_mut().remove(&source)
-                {
-                    editor_style
-                        .0
-                        .as_enum_mut()
-                        .insert(removed_node, &target, position);
-                    editor_state
-                        .style_item_tree_state
-                        .expand_parents_of(target, true);
-                }
+        }
+        UiMessage::StyleItemInsert {
+            target,
+            position,
+            node,
+            select_node,
+        } => {
+            let mut system_state: SystemState<(
+                ResMut<EditorState>,
+                ResMut<EditorStyle>,
+                ResMut<Savefile>,
+                EventWriter<SavefileChanged>,
+            )> = SystemState::new(world);
+            let (mut editor_state, mut editor_style, mut savefile, mut savefile_changed_event) =
+                system_state.get_mut(world);
+
+            if select_node {
+                editor_state
+                    .style_item_tree_state
+                    .set_selected(Some(node.id()));
+                editor_state
+                    .style_item_tree_state
+                    .expand_parents_of(target, true);
             }
-            UiMessage::StyleItemInsert {
-                target,
-                position,
-                node,
-                select_node,
-            } => {
-                if select_node {
-                    editor_state
-                        .style_item_tree_state
-                        .set_selected(Some(node.id()));
-                    editor_state
-                        .style_item_tree_state
-                        .expand_parents_of(target, true);
-                }
-                editor_style.0.as_enum_mut().insert(node, &target, position);
-                savefile.set(editor_style.0.clone(), &mut savefile_changed_event);
-            }
-            UiMessage::StyleItemRemove(id) => {
-                let _result = editor_style.0.as_enum_mut().remove(&id);
-                savefile.set(editor_style.0.clone(), &mut savefile_changed_event);
-            }
-            UiMessage::StyleItemEdit {
-                _widget_id: _,
-                _item: _,
-            } => {
-                savefile.set(editor_style.0.clone(), &mut savefile_changed_event);
-            }
+            editor_style.0.as_enum_mut().insert(node, &target, position);
+            savefile.set(editor_style.0.clone(), &mut savefile_changed_event);
+        }
+        UiMessage::StyleItemRemove(id) => {
+            let mut system_state: SystemState<(
+                ResMut<EditorStyle>,
+                ResMut<Savefile>,
+                EventWriter<SavefileChanged>,
+            )> = SystemState::new(world);
+            let (mut editor_style, mut savefile, mut savefile_changed_event) =
+                system_state.get_mut(world);
+
+            let _result = editor_style.0.as_enum_mut().remove(&id);
+            savefile.set(editor_style.0.clone(), &mut savefile_changed_event);
+        }
+        UiMessage::StyleItemEdit {
+            _widget_id: _,
+            _item: _,
+        } => {
+            let mut system_state: SystemState<(
+                ResMut<EditorStyle>,
+                ResMut<Savefile>,
+                EventWriter<SavefileChanged>,
+            )> = SystemState::new(world);
+            let (editor_style, mut savefile, mut savefile_changed_event) =
+                system_state.get_mut(world);
+
+            savefile.set(editor_style.0.clone(), &mut savefile_changed_event);
         }
     }
 }

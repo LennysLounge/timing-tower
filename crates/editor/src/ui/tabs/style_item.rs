@@ -83,8 +83,8 @@ fn edit_node(
 
             if let EditResult::FromId(widget_id) = edit_result {
                 messages.push(UiMessage::StyleItemEdit {
-                    _widget_id: widget_id,
-                    _item: node.clone(),
+                    widget_id,
+                    item: node.clone(),
                 });
             }
         }
@@ -97,8 +97,8 @@ fn edit_node(
 
             if let EditResult::FromId(widget_id) = edit_result {
                 messages.push(UiMessage::StyleItemEdit {
-                    _widget_id: widget_id,
-                    _item: node.clone(),
+                    widget_id,
+                    item: node.clone(),
                 });
             }
         }
@@ -142,8 +142,8 @@ fn edit_node(
 
             if let EditResult::FromId(widget_id) = edit_result {
                 messages.push(UiMessage::StyleItemEdit {
-                    _widget_id: widget_id,
-                    _item: node.clone(),
+                    widget_id,
+                    item: node.clone(),
                 });
             }
         }
@@ -156,8 +156,8 @@ fn edit_node(
 
             if let EditResult::FromId(widget_id) = edit_result {
                 messages.push(UiMessage::StyleItemEdit {
-                    _widget_id: widget_id,
-                    _item: node.clone(),
+                    widget_id,
+                    item: node.clone(),
                 });
             }
         }
@@ -176,8 +176,8 @@ fn edit_node(
             });
             if let EditResult::FromId(widget_id) = edit_result {
                 messages.push(UiMessage::StyleItemEdit {
-                    _widget_id: widget_id,
-                    _item: node.clone(),
+                    widget_id,
+                    item: node.clone(),
                 });
             }
 
@@ -235,8 +235,8 @@ fn edit_node(
 
             if let EditResult::FromId(widget_id) = edit_result {
                 messages.push(UiMessage::StyleItemEdit {
-                    _widget_id: widget_id,
-                    _item: node.clone(),
+                    widget_id,
+                    item: node.clone(),
                 });
             }
         }

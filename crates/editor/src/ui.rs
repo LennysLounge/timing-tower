@@ -3,7 +3,7 @@ mod panels;
 pub mod popup;
 mod tabs;
 
-use std::{collections::HashMap, fs::File, io::Write};
+use std::{collections::HashMap, fs::File, io::Write, time::Instant};
 
 use backend::{
     exact_variant::ExactVariant,
@@ -12,7 +12,7 @@ use backend::{
         graphic::{graphic_items::GraphicItemId, GraphicStateId},
         StyleDefinition, StyleId, StyleItem, TreePosition,
     },
-    tree_iterator::TreeItem,
+    tree_iterator::{TreeItem, TreeIterator, TreeIteratorMut},
     GameAdapterResource,
 };
 use bevy::{
@@ -147,8 +147,8 @@ enum UiMessage {
     },
     StyleItemRemove(StyleId),
     StyleItemEdit {
-        _widget_id: egui::Id,
-        _item: StyleItem,
+        widget_id: egui::Id,
+        item: StyleItem,
     },
 }
 
@@ -156,6 +156,7 @@ fn process_ui_messages(
     world: &mut World,
     mut undo_list: Local<Vec<UiMessage>>,
     mut redo_list: Local<Vec<UiMessage>>,
+    mut last_edit: Local<Option<Instant>>,
 ) {
     let messages = world
         .resource_mut::<UiMessages>()
@@ -182,11 +183,42 @@ fn process_ui_messages(
             }
             _ => {
                 if let Some(undo_message) = process_message(message, world) {
-                    undo_list.push(undo_message);
+                    push_undo_list(&mut undo_list, undo_message, &mut last_edit);
                     redo_list.clear();
                 }
             }
         }
+    }
+}
+
+fn push_undo_list(
+    undo_list: &mut Vec<UiMessage>,
+    message: UiMessage,
+    last_edit: &mut Option<Instant>,
+) {
+    if let Some(last_message) = undo_list.last() {
+        let can_merge = match (last_message, &message) {
+            (
+                UiMessage::StyleItemEdit { widget_id, item },
+                UiMessage::StyleItemEdit {
+                    widget_id: widget_id_2,
+                    item: item_2,
+                },
+            ) => widget_id == widget_id_2 && item.id() == item_2.id(),
+            _ => false,
+        };
+        let is_in_merge_window = last_edit
+            .is_some_and(|last_edit| Instant::now().duration_since(last_edit).as_secs() < 1);
+
+        if can_merge && is_in_merge_window {
+            *last_edit = Some(Instant::now());
+        } else {
+            *last_edit = Some(Instant::now());
+            undo_list.push(message);
+        }
+    } else {
+        *last_edit = Some(Instant::now());
+        undo_list.push(message);
     }
 }
 
@@ -367,19 +399,24 @@ fn process_message(message: UiMessage, world: &mut World) -> Option<UiMessage> {
                 });
             }
         }
-        UiMessage::StyleItemEdit {
-            _widget_id: _,
-            _item: _,
-        } => {
-            let mut system_state: SystemState<(
-                ResMut<EditorStyle>,
-                ResMut<Savefile>,
-                EventWriter<SavefileChanged>,
-            )> = SystemState::new(world);
-            let (editor_style, mut savefile, mut savefile_changed_event) =
-                system_state.get_mut(world);
+        UiMessage::StyleItemEdit { widget_id, item } => {
+            let mut system_state: SystemState<(ResMut<Savefile>, EventWriter<SavefileChanged>)> =
+                SystemState::new(world);
+            let (mut savefile, mut savefile_changed_event) = system_state.get_mut(world);
 
-            savefile.set(editor_style.0.clone(), &mut savefile_changed_event);
+            let prev_value = savefile.style().search(item.id(), |node| node.clone());
+
+            savefile.style_mut().search_mut(item.id(), |node| {
+                *node = item;
+            });
+            savefile_changed_event.send(SavefileChanged { replace: false });
+
+            if let Some(prev_value) = prev_value {
+                return Some(UiMessage::StyleItemEdit {
+                    widget_id,
+                    item: prev_value,
+                });
+            }
         }
     }
     None

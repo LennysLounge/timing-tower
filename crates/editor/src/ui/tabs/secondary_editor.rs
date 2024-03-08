@@ -105,8 +105,8 @@ fn graphic_editor(
 
     if let EditResult::FromId(widget_id) = edit_result {
         messages.push(UiMessage::StyleItemEdit {
-            _widget_id: widget_id,
-            _item: StyleItem::Graphic(graphic.clone()),
+            widget_id,
+            item: StyleItem::Graphic(graphic.clone()),
         });
     }
 }

@@ -121,6 +121,10 @@ impl Savefile {
         &self.style
     }
 
+    pub fn style_mut(&mut self) -> &mut ExactVariant<StyleItem, StyleDefinition> {
+        &mut self.style
+    }
+
     pub fn base_path(&self) -> &Path {
         self.base_path.as_path()
     }

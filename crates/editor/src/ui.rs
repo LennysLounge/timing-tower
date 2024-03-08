@@ -20,7 +20,7 @@ use bevy::{
     ecs::{
         event::{EventReader, EventWriter},
         schedule::{IntoSystemConfigs, SystemSet},
-        system::{Res, SystemState},
+        system::{Local, Res, SystemState},
         world::World,
     },
     prelude::{Plugin, ResMut, Resource, Startup},
@@ -152,21 +152,48 @@ enum UiMessage {
     },
 }
 
-fn process_ui_messages(world: &mut World) {
+fn process_ui_messages(
+    world: &mut World,
+    mut undo_list: Local<Vec<UiMessage>>,
+    mut redo_list: Local<Vec<UiMessage>>,
+) {
     let messages = world
         .resource_mut::<UiMessages>()
         .0
         .drain(0..)
         .collect::<Vec<_>>();
     for message in messages {
-        process_message(message, world);
+        match message {
+            UiMessage::Undo => {
+                if let Some(redo_message) = undo_list
+                    .pop()
+                    .and_then(|message| process_message(message, world))
+                {
+                    redo_list.push(redo_message);
+                }
+            }
+            UiMessage::Redo => {
+                if let Some(redo_message) = redo_list
+                    .pop()
+                    .and_then(|message| process_message(message, world))
+                {
+                    undo_list.push(redo_message);
+                }
+            }
+            _ => {
+                if let Some(undo_message) = process_message(message, world) {
+                    undo_list.push(undo_message);
+                    redo_list.clear();
+                }
+            }
+        }
     }
 }
 
-fn process_message(message: UiMessage, world: &mut World) {
+fn process_message(message: UiMessage, world: &mut World) -> Option<UiMessage> {
     match message {
-        UiMessage::Undo => todo!(),
-        UiMessage::Redo => todo!(),
+        UiMessage::Undo => {}
+        UiMessage::Redo => {}
         UiMessage::SceneViewport(viewport_rect) => {
             world
                 .query::<&mut EditorCamera>()
@@ -179,19 +206,19 @@ fn process_message(message: UiMessage, world: &mut World) {
                 Ok(s) => s,
                 Err(e) => {
                     error!("Error turning style into string: {e}");
-                    return;
+                    return None;
                 }
             };
             let mut file = match File::create("style.json") {
                 Ok(f) => f,
                 Err(e) => {
                     error!("Error opening file: {e}");
-                    return;
+                    return None;
                 }
             };
             if let Err(e) = file.write_all(s.as_bytes()) {
                 error!("Cannot write to file: {e}");
-                return;
+                return None;
             }
         }
         UiMessage::GameAdapterClose => {
@@ -265,9 +292,11 @@ fn process_message(message: UiMessage, world: &mut World) {
                 SystemState::new(world);
             let (mut editor_state, mut editor_style) = system_state.get_mut(world);
 
-            if let Some((removed_node, _removed_position)) =
+            if let Some((removed_node, removed_position)) =
                 editor_style.0.as_enum_mut().remove(&source)
             {
+                let removed_from = editor_state.style_item_tree_state.parent_id_of(source);
+
                 editor_style
                     .0
                     .as_enum_mut()
@@ -275,6 +304,14 @@ fn process_message(message: UiMessage, world: &mut World) {
                 editor_state
                     .style_item_tree_state
                     .expand_parents_of(target, true);
+
+                if let Some(removed_from) = removed_from {
+                    return Some(UiMessage::StyleItemMove {
+                        source,
+                        target: removed_from,
+                        position: removed_position,
+                    });
+                }
             }
         }
         UiMessage::StyleItemInsert {
@@ -292,6 +329,7 @@ fn process_message(message: UiMessage, world: &mut World) {
             let (mut editor_state, mut editor_style, mut savefile, mut savefile_changed_event) =
                 system_state.get_mut(world);
 
+            let node_id = node.id();
             if select_node {
                 editor_state
                     .style_item_tree_state
@@ -302,18 +340,32 @@ fn process_message(message: UiMessage, world: &mut World) {
             }
             editor_style.0.as_enum_mut().insert(node, &target, position);
             savefile.set(editor_style.0.clone(), &mut savefile_changed_event);
+
+            return Some(UiMessage::StyleItemRemove(node_id));
         }
         UiMessage::StyleItemRemove(id) => {
             let mut system_state: SystemState<(
+                ResMut<EditorState>,
                 ResMut<EditorStyle>,
                 ResMut<Savefile>,
                 EventWriter<SavefileChanged>,
             )> = SystemState::new(world);
-            let (mut editor_style, mut savefile, mut savefile_changed_event) =
+            let (editor_state, mut editor_style, mut savefile, mut savefile_changed_event) =
                 system_state.get_mut(world);
 
-            let _result = editor_style.0.as_enum_mut().remove(&id);
+            let parent_id = editor_state.style_item_tree_state.parent_id_of(id);
+
+            let remove_result = editor_style.0.as_enum_mut().remove(&id);
             savefile.set(editor_style.0.clone(), &mut savefile_changed_event);
+
+            if let Some(((item, position), parent_id)) = remove_result.zip(parent_id) {
+                return Some(UiMessage::StyleItemInsert {
+                    target: parent_id,
+                    position,
+                    node: item,
+                    select_node: false,
+                });
+            }
         }
         UiMessage::StyleItemEdit {
             _widget_id: _,
@@ -330,4 +382,5 @@ fn process_message(message: UiMessage, world: &mut World) {
             savefile.set(editor_style.0.clone(), &mut savefile_changed_event);
         }
     }
+    None
 }

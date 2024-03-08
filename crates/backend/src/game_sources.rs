@@ -262,6 +262,17 @@ pub fn get_game_sources() -> Vec<&'static GameSource> {
                     },
                 ),
                 GameSource::new_text(
+                    uuid!("a27bbf7b-2c34-4624-b70d-39711817a175"),
+                    "Driver last 3 letter",
+                    |_: &ValueStore, context: ModelContext<'_>| {
+                        context.entry.and_then(|e| {
+                            e.drivers
+                                .get(&e.current_driver)
+                                .map(|driver| driver.last_name.as_ref()[0..3].to_uppercase())
+                        })
+                    },
+                ),
+                GameSource::new_text(
                     uuid!("4507167c-4c78-4686-b7a2-44809d969cee"),
                     "Car name",
                     |_: &ValueStore, context: ModelContext<'_>| {

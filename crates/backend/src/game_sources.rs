@@ -266,9 +266,10 @@ pub fn get_game_sources() -> Vec<&'static GameSource> {
                     "Driver last 3 letter",
                     |_: &ValueStore, context: ModelContext<'_>| {
                         context.entry.and_then(|e| {
-                            e.drivers
-                                .get(&e.current_driver)
-                                .map(|driver| driver.last_name.as_ref()[0..3].to_uppercase())
+                            e.drivers.get(&e.current_driver).map(|driver| {
+                                driver.last_name.as_ref()[0..(driver.last_name.len().min(3))]
+                                    .to_uppercase()
+                            })
                         })
                     },
                 ),

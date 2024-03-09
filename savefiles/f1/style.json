@@ -452,6 +452,44 @@
             }
           }
         ]
+      },
+      {
+        "element_type": "Folder",
+        "style_item_type": "VariableFolder",
+        "id": "da26873e-2721-477f-bc4e-a2ff7cf4e6c1",
+        "name": "Race clock",
+        "content": [
+          {
+            "element_type": "Variable",
+            "style_item_type": "Variable",
+            "id": "78f784a6-f2ca-4cea-9355-6a69d27005c2",
+            "name": "Session name",
+            "behavior": "Map",
+            "input_type": "Number",
+            "input_ref": "e3b19274-200e-4ebb-bbdd-a75e2390094c",
+            "input_cases": [
+              {
+                "right": 1.0,
+                "comparator": "Equal"
+              },
+              {
+                "right": 2.0,
+                "comparator": "Equal"
+              },
+              {
+                "right": 3.0,
+                "comparator": "Equal"
+              }
+            ],
+            "output_type": "Text",
+            "output_cases": [
+              "FP",
+              "Q",
+              "RACE"
+            ],
+            "default": ""
+          }
+        ]
       }
     ]
   },
@@ -1277,11 +1315,11 @@
                       "text": {
                         "template": "data",
                         "states": {
-                          "c1bd9436-636b-4a39-a816-0622f6874613": {
-                            "Producer": "53c17a87-6f24-4afd-bfc6-58c290693a2e"
-                          },
                           "8ef8ef51-e8d2-4442-a03d-a7186d7b4607": {
                             "Producer": "ab178be4-a7e0-4871-ac19-5f97330688ad"
+                          },
+                          "c1bd9436-636b-4a39-a816-0622f6874613": {
+                            "Producer": "53c17a87-6f24-4afd-bfc6-58c290693a2e"
                           }
                         }
                       },
@@ -1393,7 +1431,7 @@
           ],
           "position": {
             "template": {
-              "x": 400.0,
+              "x": 84.0,
               "y": 148.0
             },
             "states": {}
@@ -1935,15 +1973,17 @@
               "id": "f404819b-3333-439a-8a67-9d0d89f32fe1",
               "name": "Session",
               "text": {
-                "template": "RACE",
+                "template": {
+                  "Producer": "78f784a6-f2ca-4cea-9355-6a69d27005c2"
+                },
                 "states": {}
               },
               "text_color": {
                 "template": {
                   "Rgba": {
-                    "red": 1.0,
-                    "green": 1.0,
-                    "blue": 1.0,
+                    "red": 0.791015,
+                    "green": 0.791015,
+                    "blue": 0.791015,
                     "alpha": 1.0
                   }
                 },
@@ -2289,9 +2329,9 @@
               "color": {
                 "template": {
                   "Rgba": {
-                    "red": 1.0,
-                    "green": 1.0,
-                    "blue": 1.0,
+                    "red": 0.791015,
+                    "green": 0.791015,
+                    "blue": 0.791015,
                     "alpha": 1.0
                   }
                 },
@@ -2371,7 +2411,7 @@
           ],
           "position": {
             "template": {
-              "x": 400.0,
+              "x": 84.0,
               "y": 51.0
             },
             "states": {}

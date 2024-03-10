@@ -155,6 +155,8 @@ fn show_element_tree(
                 target,
                 position,
             } => {
+                tree_view_state.set_selected(Some(element.id()));
+                tree_view_state.expand_parents_of(target, true);
                 insert_element(graphic, target, position, element);
                 edit_result = EditResult::FromId(Id::new("Component element Tree view edit"));
             }

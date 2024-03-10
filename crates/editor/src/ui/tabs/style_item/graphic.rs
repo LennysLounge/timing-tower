@@ -14,7 +14,7 @@ use backend::{
     },
     tree_iterator::{Method, TreeItem, TreeIterator, TreeIteratorMut},
 };
-use bevy_egui::egui::{self, vec2, Color32, Id, RichText, Ui};
+use bevy_egui::egui::{self, vec2, Color32, Id, Label, RichText, Ui};
 use egui_ltreeview::{
     node::NodeBuilder, Action, DropPosition, RowLayout, TreeView, TreeViewBuilder, TreeViewState,
 };
@@ -473,15 +473,51 @@ fn show_states_tree(
     const TEMPLATE_ID: GraphicStateId =
         GraphicStateId(uuid::uuid!("3bd691e6-4a87-4082-89da-31a7cfb3967c"));
 
+    let tree_id = ui.make_persistent_id("State tree");
+
+    // Id of the state that is currently being renamed.
+    let mut edit_id: Option<GraphicStateId> = ui
+        .data_mut(|d| d.get_persisted::<Option<GraphicStateId>>(tree_id))
+        .flatten();
+
     let tree_res = TreeView::new(ui.make_persistent_id("State tree"))
         .row_layout(RowLayout::Compact)
         .show_state(ui, tree_view_state, |mut builder| {
             builder.node(NodeBuilder::dir(TREE_ROOT_ID).flatten(true));
             builder.leaf(TEMPLATE_ID, "Template");
             for state in graphic.states.iter_mut() {
-                builder.leaf(state.id, &state.name);
+                let is_edited = Some(state.id) == edit_id;
+                let mut edit_stopped = false;
+                builder.node(
+                    NodeBuilder::leaf(state.id)
+                        .label(|ui| {
+                            if is_edited {
+                                let res = ui.text_edit_singleline(&mut state.name);
+                                if res.lost_focus() {
+                                    edit_stopped = true;
+                                } else {
+                                    res.request_focus();
+                                }
+                                edit_result |= res.into();
+                            } else {
+                                ui.add(Label::new(&state.name).selectable(false));
+                            }
+                        })
+                        .context_menu(|ui| {
+                            if ui.button("rename").clicked() {
+                                edit_id = Some(state.id);
+                                ui.close_menu();
+                            }
+                        }),
+                );
+                if edit_stopped {
+                    edit_id = None;
+                }
             }
         });
+
+    ui.data_mut(|d| d.insert_persisted(tree_id, edit_id));
+
     for action in &tree_res.actions {
         match action {
             Action::SetSelected(_) => (),

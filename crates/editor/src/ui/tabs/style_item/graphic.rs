@@ -19,7 +19,9 @@ use egui_ltreeview::{
     node::NodeBuilder, Action, DropPosition, RowLayout, TreeView, TreeViewBuilder, TreeViewState,
 };
 
-use crate::ui::{EditResult, StyleItemSelection, UiMessage, UiMessages};
+use crate::ui::{
+    tabs::secondary_editor::ui_split, EditResult, StyleItemSelection, UiMessage, UiMessages,
+};
 
 pub(super) fn graphic_property_editor(
     ui: &mut Ui,
@@ -29,13 +31,14 @@ pub(super) fn graphic_property_editor(
 ) {
     let mut edit_result = EditResult::None;
 
-    ui.label("Name:");
-    let res = ui.text_edit_singleline(&mut graphic.name);
-    if res.changed() {
-        // Keep the graphic item root in sync with the graphic name itself.
-        graphic.items.name = graphic.name.clone();
-    };
-    edit_result |= res.into();
+    ui_split(ui, "Name", |ui| {
+        let res = ui.text_edit_singleline(&mut graphic.name);
+        if res.changed() {
+            // Keep the graphic item root in sync with the graphic name itself.
+            graphic.items.name = graphic.name.clone();
+        };
+        edit_result |= res.into();
+    });
 
     ui.separator();
 

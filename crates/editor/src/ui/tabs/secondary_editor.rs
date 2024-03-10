@@ -23,7 +23,8 @@ use common::communication::TextAlignment;
 use crate::{
     reference_store::ReferenceStore,
     ui::{
-        combo_box::LComboBox, EditResult, EditorState, EditorStyle, StyleItemSelection, UiMessage, UiMessages
+        combo_box::LComboBox, EditResult, EditorState, EditorStyle, StyleItemSelection, UiMessage,
+        UiMessages,
     },
 };
 
@@ -74,9 +75,9 @@ fn graphic_editor(
             .iter_mut()
             .find(|state| state.id == selected_state)
         {
-            ui.label("State name:");
-            edit_result |= ui.text_edit_singleline(&mut state.name).into();
-            ui.separator();
+            ui_split_with_space(ui, "State name", |ui| {
+                edit_result |= ui.text_edit_singleline(&mut state.name).into();
+            });
         }
     }
 
@@ -120,8 +121,9 @@ fn graphic_item_editor(
         GraphicItem::Root(root) => {
             let mut edit_result = EditResult::None;
 
-            ui.label("Name:");
-            edit_result |= ui.text_edit_singleline(&mut root.name).into();
+            ui_split_with_space(ui, "Name", |ui| {
+                edit_result |= ui.text_edit_singleline(&mut root.name).into();
+            });
             ui.separator();
             edit_result |= root_editor(ui, root, state_id, reference_store);
             edit_result
@@ -129,8 +131,9 @@ fn graphic_item_editor(
         GraphicItem::Cell(cell) => {
             let mut edit_result = EditResult::None;
 
-            ui.label("Name:");
-            edit_result |= ui.text_edit_singleline(&mut cell.name).into();
+            ui_split_with_space(ui, "Name", |ui| {
+                edit_result |= ui.text_edit_singleline(&mut cell.name).into();
+            });
             ui.separator();
             edit_result |= cell_property_editor(ui, cell, state_id, reference_store).into();
             edit_result
@@ -138,8 +141,9 @@ fn graphic_item_editor(
         GraphicItem::ClipArea(clip_area) => {
             let mut edit_result = EditResult::None;
 
-            ui.label("Name:");
-            edit_result |= ui.text_edit_singleline(&mut clip_area.name).into();
+            ui_split_with_space(ui, "Name", |ui| {
+                edit_result |= ui.text_edit_singleline(&mut clip_area.name).into();
+            });
             ui.separator();
             edit_result |= clip_area_editor(ui, clip_area, state_id, reference_store);
             edit_result
@@ -147,8 +151,9 @@ fn graphic_item_editor(
         GraphicItem::DriverTable(driver_table) => {
             let mut edit_result = EditResult::None;
 
-            ui.label("Name:");
-            edit_result |= ui.text_edit_singleline(&mut driver_table.name).into();
+            ui_split_with_space(ui, "Name", |ui| {
+                edit_result |= ui.text_edit_singleline(&mut driver_table.name).into();
+            });
             ui.separator();
             edit_result |= driver_table_editor(ui, driver_table, state_id, reference_store);
             edit_result
@@ -156,13 +161,23 @@ fn graphic_item_editor(
         GraphicItem::EntryContext(entry_context) => {
             let mut edit_result = EditResult::None;
 
-            ui.label("Name:");
-            edit_result |= ui.text_edit_singleline(&mut entry_context.name).into();
+            ui_split_with_space(ui, "Name", |ui| {
+                edit_result |= ui.text_edit_singleline(&mut entry_context.name).into();
+            });
             ui.separator();
             edit_result |= entry_context_editor(ui, entry_context, state_id, reference_store);
             edit_result
         }
     }
+}
+
+pub fn ui_split_with_space(ui: &mut Ui, label: impl Into<WidgetText>, right: impl FnMut(&mut Ui)) {
+    ui.horizontal(|ui| {
+        ui.add_space(ui.spacing().icon_width);
+        ui.add_space(ui.spacing().item_spacing.x);
+        ui.add_space(ui.spacing().item_spacing.x);
+        ui_split(ui, label, right);
+    });
 }
 
 pub fn ui_split(ui: &mut Ui, label: impl Into<WidgetText>, right: impl FnMut(&mut Ui)) {

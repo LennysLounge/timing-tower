@@ -68,19 +68,6 @@ fn graphic_editor(
         .entry(graphic.id)
         .or_insert(StyleItemSelection::default());
 
-    // Editor for the the state.
-    if let Some(selected_state) = selection_data.graphic_state_tree_state.selected() {
-        if let Some(state) = graphic
-            .states
-            .iter_mut()
-            .find(|state| state.id == selected_state)
-        {
-            ui_split_with_space(ui, "State name", |ui| {
-                edit_result |= ui.text_edit_singleline(&mut state.name).into();
-            });
-        }
-    }
-
     // Editor for the graphic item
     if let Some(graphic_item_selection) = selection_data.graphic_item_tree_state.selected() {
         edit_result |= graphic
